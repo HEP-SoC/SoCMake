@@ -1,3 +1,7 @@
+.. image:: SoCMakeLogo5.png
+  :width: 50%
+  :alt: Alternative text
+  :align: center
 
 SoCMake
 =======
