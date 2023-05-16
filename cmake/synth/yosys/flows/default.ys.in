@@ -1,0 +1,11 @@
+read_verilog @V_FILES@
+
+hierarchy -check -top @RTLLIB@
+
+proc; opt; fsm; opt; memory; opt
+clean
+
+stat -top @RTLLIB@
+
+write_verilog @V_GEN@
+

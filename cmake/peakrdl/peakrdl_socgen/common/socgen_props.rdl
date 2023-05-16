@@ -1,0 +1,157 @@
+`ifndef COMMON_RDL
+`define COMMON_RDL
+
+enum SignalType {
+    output   = 0;
+    input    = 1;
+    bidir    = 2;
+    tri      = 3;
+    clk      = 4;
+    rst      = 5;
+    wire     = 6;
+    blank    = 7;
+};
+
+property output {
+    type = boolean;
+    component = signal;
+};
+property input {
+    type = boolean;
+    component = signal;
+};
+
+property signal_type {
+    type = SignalType;
+    component = signal;
+};
+
+property master {
+    type = boolean;
+    component = addrmap;
+};
+
+property subsystem {
+    type = boolean;
+    component = addrmap;
+};
+
+property interconnect {
+    type = boolean;
+    component = addrmap;
+};
+
+property adapter {
+    type = boolean;
+    component = addrmap;
+};
+
+property connections {
+    type = string[];
+    component = addrmap;
+};
+
+
+struct intcw_struct{
+    string name;
+    string slv_ports[];
+    string mst_ports[];
+};
+
+property intcw_l {
+    type = intcw_struct[];
+    component = addrmap;
+};
+
+
+// desc = "Slave select signal, should not be shared between slaves";
+property ss {
+    type = boolean;
+    component = addrmap;
+};
+
+property interconnect_name {
+    type = string;
+    component = addrmap;
+};
+
+property mosi {
+    type = boolean;
+    component = signal;
+};
+
+property miso {
+    type = boolean;
+    component = signal;
+};
+
+signal  clk { 
+    signalwidth=1; 
+    desc = "Input clock";
+    signal_type = SignalType::clk;
+    };
+
+signal rstn { 
+    signalwidth=1; 
+    desc = "Input reset, active low";
+    activelow = true;
+    signal_type = SignalType::rst;
+    };
+
+signal rst { 
+    signalwidth=1; 
+    desc = "Input reset, active high";
+    activehigh = true;
+    signal_type = SignalType::rst;
+    };
+
+property intf {
+    type = boolean;
+    component = addrmap;
+};
+
+property n_array {
+    type = longint unsigned;
+    component = addrmap;
+};
+
+enum Modport {
+    slave   = 0;
+    master  = 1;
+};
+
+struct base_intf{
+    string name;
+    longint unsigned ADDR_WIDTH;
+    longint unsigned DATA_WIDTH;
+};
+ 
+struct test_struct{
+    longint unsigned TEST_NUM;
+};
+
+
+struct intf_t : base_intf{
+    string prefix;
+    Modport modport;
+};
+
+struct intf_cap : intf_t{
+    boolean cap;
+};
+
+struct intc_intf_t : intf_t{
+    longint unsigned N;
+};
+
+property intf_inst{
+    component = addrmap;
+    type = base_intf;
+};
+
+property intfs{
+    component = addrmap;
+    type = intf_t[];
+};
+
+`endif

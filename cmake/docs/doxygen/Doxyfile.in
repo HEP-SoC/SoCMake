@@ -1,0 +1,4 @@
+WARN_IF_UNDOCUMENTED   =  NO
+
+OUTPUT_DIRECTORY       = @OUTDIR@
+INPUT                  = @INCDIRS@
