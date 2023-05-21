@@ -25,12 +25,12 @@ function(peakrdl_regblock RTLLIB)
     endif()
 
     set(V_GEN 
-        ${OUTDIR}/${RTLLIB}_regblock.sv
         ${OUTDIR}/${RTLLIB}_regblock_pkg.sv
+        ${OUTDIR}/${RTLLIB}_regblock.sv
         )
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
     get_target_property(TARGET_SOURCES ${RTLLIB} SOURCES)
-    set_property(TARGET ${RTLLIB} PROPERTY SOURCES ${TARGET_SOURCES} ${V_GEN})
+    set_property(TARGET ${RTLLIB} PROPERTY SOURCES ${V_GEN} ${TARGET_SOURCES} )
 
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
