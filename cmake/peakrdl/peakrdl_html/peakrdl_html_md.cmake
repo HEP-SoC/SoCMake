@@ -39,7 +39,7 @@ function(peakrdl_html_md RTLLIB)
             ${ARG_HOME_URL}
 
         COMMAND touch ${STAMP_FILE}
-        DEPENDS ${RDL_FILES}
+        DEPENDS ${RDL_FILES} ${GRAPHIC_FILES}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${RTLLIB}"
         )
 
@@ -55,8 +55,6 @@ function(peakrdl_html_md RTLLIB)
             )
     endif()
 
-    add_dependencies(${RTLLIB}_${CMAKE_CURRENT_FUNCTION} ${RTLLIB})
-    # set_property(TARGET ${RTLLIB} APPEND PROPERTY DEPENDS ${RTLLIB}_regblock) # TODO maybe add this
 endfunction()
 
 

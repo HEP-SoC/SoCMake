@@ -10,7 +10,9 @@ class RDL2LdsExporter:
 
         self.memories = []
 
-    def find_memories(self, node : Node, mems : List[MemNode] = []) -> List[MemNode]:
+    def find_memories(self, node : Node,
+                      mems : List[MemNode] = [],
+                      ) -> List[MemNode]:
         memories = []
         if isinstance(node, MemNode):
             assert isinstance(node, Node)
@@ -20,7 +22,7 @@ class RDL2LdsExporter:
         for child in node.children(unroll=True):
             ret = self.find_memories(child, memories)
             if len(ret) > 0:
-                memories.append(*ret)
+                memories.extend(ret)
 
         return memories
 

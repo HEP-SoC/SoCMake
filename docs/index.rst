@@ -12,20 +12,26 @@ It aims to provide a complete workflow for simulating, implementing, developing 
 Instead of developing a new build system, ``SoCMake`` relies on CMake.
 The rationale behind using CMake is to use the same build system for SoC applications, verification environment and implementation.
 
-Therefore the main difference compared to the popular `FuseSoC <https://github.com/olofk/fusesoc>`_ or `hdlmake <https://hdlmake.readthedocs.io/en/master/#>`_ is the C++ support and cross compiling support.
+Therefore the big difference compared to the popular `FuseSoC <https://github.com/olofk/fusesoc>`_ or `hdlmake <https://hdlmake.readthedocs.io/en/master/#>`_ is the C++ support and cross compiling support.
 However the project is still in early stages, so the tool support is nowhere near FuseSoC.
-
 
 .. toctree::
    :maxdepth: 2
    :caption: Getting Started
 
    quickstart.rst
+   build_system.rst
         
 
-Indices and tables
-==================
+`Build system <https://risto97.github.io/SoCMake/build_system.html>`_
+=====================================================================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+SoCMake is relying on `CMake <https://cmake.org/>`_ for the build system, while it provides some additional functions for ``RTL libraries``.
+
+| For more information on how the build system works take a look at `build_system <https://risto97.github.io/SoCMake/build_system.html>`_ secition
+
+`Package Manager <https://risto97.github.io/SoCMake/package_manager.html>`_
+===========================================================================
+
+SoCMake provides package management functionality through `CPM.cmake <https://github.com/cpm-cmake/CPM.cmake>`_.
+Take a look at how to use it to bootstrap SoCMake `bootstrap <https://risto97.github.io/SoCMake/quickstart.html#installation>`_.
