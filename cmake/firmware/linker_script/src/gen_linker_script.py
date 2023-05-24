@@ -107,7 +107,7 @@ class RDL2LdsExporter:
 
         return data_mems[0]
 
-    def getBootMem(self, mems: List[MemNode]) -> MemNode | None:
+    def getBootMem(self, mems: List[MemNode]) -> "MemNode | None":
         boot_mems = []
         for m in mems:
             if self.isBoot(m):
