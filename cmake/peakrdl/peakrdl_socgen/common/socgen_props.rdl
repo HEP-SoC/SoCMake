@@ -121,37 +121,30 @@ enum Modport {
 };
 
 struct base_intf{
-    string name;
-    longint unsigned ADDR_WIDTH;
-    longint unsigned DATA_WIDTH;
-};
- 
-struct test_struct{
-    longint unsigned TEST_NUM;
-};
-
-
-struct intf_t : base_intf{
-    string prefix;
     Modport modport;
-};
-
-struct intf_cap : intf_t{
+    string prefix;
     boolean cap;
 };
 
-struct intc_intf_t : intf_t{
-    longint unsigned N;
+struct data_intf : base_intf {
+    longint unsigned DATA_WIDTH;
+
 };
+ 
+struct addr_intf : data_intf {
+    longint unsigned ADDR_WIDTH;
+};
+
+
 
 property intf_inst{
     component = addrmap;
     type = base_intf;
 };
 
-property intfs{
+property ifports {
     component = addrmap;
-    type = intf_t[];
+    type = base_intf[];
 };
 
 `endif
