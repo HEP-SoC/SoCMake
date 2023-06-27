@@ -47,7 +47,7 @@ function(peakrdl_socgen RTLLIB)
     add_custom_command(
         OUTPUT ${V_GEN} ${STAMP_FILE}
         COMMAND peakrdl socgen 
-        --intfs ${RDL_SOCGEN_GLUE} ${RDL_INTF_ADAPTERS} ${RDL_INTF_INTCS}
+        --intfs ${RDL_SOCGEN_GLUE}
             -o ${OUTDIR} 
             ${RDL_FILES}
 
