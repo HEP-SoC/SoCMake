@@ -51,10 +51,18 @@ function(tmrg RTLLIB)
         )
 
 
+    if(NOT TARGET tmrg_cells)
+        add_library(tmrg_cells INTERFACE
+            "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/fanout.v"
+            "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/majorityVoter.v"
+            )
+    endif()
+
     if(ARG_REPLACE)
         set_property(TARGET ${RTLLIB} PROPERTY SOURCES ${V_GEN})
         set_property(TARGET ${RTLLIB} PROPERTY INTERFACE_SOURCES "")
         add_dependencies(${RTLLIB} ${RTLLIB}_${CMAKE_CURRENT_FUNCTION})
+        target_link_libraries(${RTLLIB} INTERFACE tmrg_cells)
     endif()
 
 endfunction()
