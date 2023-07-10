@@ -50,6 +50,8 @@ macro(verisc_build)
         NO_DEFAULT_PATH
         )
 
+    set(VERISC_HOME "${veriSC_DIR}/../../../")
+
     if((NOT veriSC_FOUND) OR (NOT veriSC_VERSION VERSION_EQUAL ${VERSION}) OR FORCE_UPDATE)
 
         set(BOOTSTRAP_DIR "${INSTALL_DIR}/../verisc-build/")
