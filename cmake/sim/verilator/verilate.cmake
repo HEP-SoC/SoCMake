@@ -126,10 +126,13 @@ function(_verilate TARGET)
         set(ARG_CMAKE_CXX_STANDARD "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}")
     endif()
 
-    find_package(verilator REQUIRED
-        PATHS ${VERISC_HOME}/open/verilator-${VERILATOR_VERSION}/*/*/*
-        )
-    set(VERILATOR_HOME "${verilator_DIR}/../../")
+
+    if(VERISC_HOME)
+        set(VERILATOR_HOME "${VERISC_HOME}/open/verilator-${VERILATOR_VERSION}")
+    else()
+        find_package(verilator REQUIRED)
+        set(VERILATOR_HOME "${verilator_DIR}/../../")
+    endif()
 
       include(ExternalProject)
       ExternalProject_Add(${TARGET}_vlt
