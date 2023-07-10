@@ -34,14 +34,14 @@ function(iverilog RTLLIB)
 
     add_custom_target(
         ${RTLLIB}_${CMAKE_CURRENT_FUNCTION}
-        DEPENDS ${EXEC} ${STAMP_FILE}
+        DEPENDS ${EXEC} ${STAMP_FILE} ${RTLLIB}
         )
 
     add_custom_target(
         run_${RTLLIB}_iv
         COMMAND exec ${EXEC}
         BYPRODUCTS "${OUTDIR}/test1.vcd"
-        DEPENDS ${EXEC} ${STAMP_FILE} ${V_FILES}
+        DEPENDS ${EXEC} ${STAMP_FILE} ${V_FILES} ${RTLLIB}_${CMAKE_CURRENT_FUNCTION}
         )
 
     # add_dependencies(${RTLLIB} ${RTLLIB}_${CMAKE_CURRENT_FUNCTION})
