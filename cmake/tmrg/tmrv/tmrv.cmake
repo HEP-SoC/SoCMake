@@ -23,17 +23,20 @@ function(tmrv RTLLIB)
 
     # TODO get verilog defines
 
-    set(V_GEN ${OUTDIR}/${RTLLIB}.v)
+    foreach(v ${V_FILES})
+        get_filename_component(base_name ${v} NAME_WE)
+        get_filename_component(ext ${v} EXT)
+        list(APPEND V_GEN ${OUTDIR}/${base_name}Voted${ext})
+    endforeach()
 
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
-
 
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${V_GEN}
         COMMAND python -m tmrv
-        ${V_FILES} ${INCDIR_ARG}
-        -w ${V_GEN}
+        ${V_FILES} 
+        -o ${OUTDIR}
 
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${V_FILES}
