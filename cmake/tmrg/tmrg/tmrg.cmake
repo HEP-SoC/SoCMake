@@ -51,6 +51,13 @@ function(tmrg RTLLIB)
         )
 
     if(ARG_REPLACE)
+        get_target_property(TOP_MODULE ${RTLLIB} TOP_MODULE)
+        if(NOT TOP_MODULE)
+            set_property(TARGET ${RTLLIB} PROPERTY TOP_MODULE ${RTLLIB}TMR)
+        else()
+            set_property(TARGET ${RTLLIB} PROPERTY TOP_MODULE ${TOP_MODULE}TMR)
+        endif()
+
         set_property(TARGET ${RTLLIB} PROPERTY SOURCES ${V_GEN})
         set_property(TARGET ${RTLLIB} PROPERTY INTERFACE_SOURCES "")
         add_dependencies(${RTLLIB} ${RTLLIB}_${CMAKE_CURRENT_FUNCTION})
