@@ -1,5 +1,5 @@
 function(tmrg RTLLIB)
-    cmake_parse_arguments(ARG "REPLACE;SED_WOR" "OUTDIR" "" ${ARGN})
+    cmake_parse_arguments(ARG "REPLACE;SED_WOR;NO_COMMON_DEFINITIONS" "OUTDIR" "" ${ARGN})
 
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -26,7 +26,7 @@ function(tmrg RTLLIB)
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
 
     set(TMRG_COMMAND 
-        tmrg --no-common-definitions --stats --tmr-dir=${OUTDIR} ${V_FILES};
+        tmrg --stats --tmr-dir=${OUTDIR} ${V_FILES};
         )
 
     if(ARG_SED_WOR)
@@ -50,19 +50,10 @@ function(tmrg RTLLIB)
         DEPENDS ${STAMP_FILE} ${V_FILES} ${V_GEN}
         )
 
-
-    if(NOT TARGET tmrg_cells)
-        add_library(tmrg_cells INTERFACE
-            "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/fanout.v"
-            "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/majorityVoter.v"
-            )
-    endif()
-
     if(ARG_REPLACE)
         set_property(TARGET ${RTLLIB} PROPERTY SOURCES ${V_GEN})
         set_property(TARGET ${RTLLIB} PROPERTY INTERFACE_SOURCES "")
         add_dependencies(${RTLLIB} ${RTLLIB}_${CMAKE_CURRENT_FUNCTION})
-        target_link_libraries(${RTLLIB} INTERFACE tmrg_cells)
     endif()
 
 endfunction()
