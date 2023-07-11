@@ -1,3 +1,25 @@
+# - PeakRDL-regblock
+#
+# This function creates a target for calling PeakRDL-regblock. 
+#
+#    peakrdl_regblock( RTLLIB
+#         [OUTDIR <output-directory> ]
+#         [INTF <intf-name>]
+#    )
+#
+# RTLLIB  - RTL interface library, it needs to have RDL_FILES property set with a list of SystemRDL files
+# [OUTDIR] - Optionally provide a directory where the output SV files will be written
+# [INTF] - Interfaces to use for the regblock possible values:
+#           * passthrough
+#           * apb3
+#           * apb3-flat
+#           * apb4
+#           * apb4-flat
+#           * axi4-lite
+#           * axi4-lite-flat
+#           * avalon-mm
+#           * avalon-mm-flat
+
 function(peakrdl_regblock RTLLIB)
     cmake_parse_arguments(ARG "" "OUTDIR" "INTF" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
