@@ -6,12 +6,13 @@ macro(verisc_build)
     foreach(dep ${DEPS})
         list(APPEND OPTIONS NO${dep})
         list(APPEND ONE_PARAM ${dep}_VERSION)
+        list(APPEND ONE_PARAM ${dep}_HOME)
     endforeach()
     list(APPEND ONE_PARAM "CMAKE_CXX_STANDARD;INSTALL_DIR;VERSION")
     set(MULT_PARAM "")
     cmake_parse_arguments(ARG 
         "${OPTIONS}"
-        "${ONE_PARAM}"
+        "${ONE_PARAM};VERISC_HOME"
         "${MULT_PARAM}"
         ${ARGN}
         )
@@ -46,7 +47,7 @@ macro(verisc_build)
     endif()
 
     find_package(veriSC CONFIG
-        PATHS $ENV{VERISC_HOME} ${VERISC_HOME} ${INSTALL_DIR}
+        PATHS ${ARG_VERISC_HOME} $ENV{VERISC_HOME} ${VERISC_HOME} ${INSTALL_DIR}
         NO_DEFAULT_PATH
         )
 
