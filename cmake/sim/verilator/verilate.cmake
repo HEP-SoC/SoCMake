@@ -130,7 +130,9 @@ function(_verilate TARGET)
     if(VERISC_HOME)
         set(VERILATOR_HOME "${VERISC_HOME}/open/verilator-${VERILATOR_VERSION}")
     else()
-        find_package(verilator REQUIRED)
+        find_package(verilator REQUIRED
+            HINTS $ENV{VERISC_HOME}/*
+            )
         set(VERILATOR_HOME "${verilator_DIR}/../../")
     endif()
 
