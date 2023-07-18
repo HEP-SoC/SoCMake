@@ -46,6 +46,13 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/fpga/vivado/vivado.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/synth/sv2v.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/synth/yosys/yosys.cmake")
 
+# ====================================
+# ======== Safety ====================
+# ====================================
+
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/tmrg/tmrg/tmrg.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/tmrg/tmrv/tmrv.cmake")
+
 
 
 # ====================================

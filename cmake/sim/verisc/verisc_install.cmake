@@ -1,5 +1,4 @@
 set(VERISC_INSTALL_LIST_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "")
-message("VERISC_INSTALL_LIST_DIR: ${VERISC_INSTALL_LIST_DIR}")
 
 macro(verisc_build)
 
@@ -7,12 +6,13 @@ macro(verisc_build)
     foreach(dep ${DEPS})
         list(APPEND OPTIONS NO${dep})
         list(APPEND ONE_PARAM ${dep}_VERSION)
+        list(APPEND ONE_PARAM ${dep}_HOME)
     endforeach()
     list(APPEND ONE_PARAM "CMAKE_CXX_STANDARD;INSTALL_DIR;VERSION")
     set(MULT_PARAM "")
     cmake_parse_arguments(ARG 
         "${OPTIONS}"
-        "${ONE_PARAM}"
+        "${ONE_PARAM};VERISC_HOME"
         "${MULT_PARAM}"
         ${ARGN}
         )
@@ -47,9 +47,11 @@ macro(verisc_build)
     endif()
 
     find_package(veriSC CONFIG
-        PATHS $ENV{VERISC_HOME} ${VERISC_HOME} ${INSTALL_DIR}
+        PATHS ${ARG_VERISC_HOME} $ENV{VERISC_HOME} ${VERISC_HOME} ${INSTALL_DIR}
         NO_DEFAULT_PATH
         )
+
+    set(VERISC_HOME "${veriSC_DIR}/../../../")
 
     if((NOT veriSC_FOUND) OR (NOT veriSC_VERSION VERSION_EQUAL ${VERSION}) OR FORCE_UPDATE)
 

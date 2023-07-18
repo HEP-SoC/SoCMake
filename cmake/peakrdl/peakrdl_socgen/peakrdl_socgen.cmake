@@ -16,9 +16,7 @@ function(peakrdl_socgen RTLLIB)
         set(OUTDIR ${ARG_OUTDIR})
     endif()
 
-    get_rtl_target_property(RDL_INTFS ${RTLLIB} RDL_INTFS)
-    get_rtl_target_property(RDL_INTF_ADAPTERS ${RTLLIB} RDL_INTF_ADAPTERS)
-    get_rtl_target_property(RDL_INTF_INTCS ${RTLLIB} RDL_INTF_INTCS)
+    get_rtl_target_property(RDL_SOCGEN_GLUE ${RTLLIB} RDL_SOCGEN_GLUE)
     get_rtl_target_property(RDL_FILES ${RTLLIB} RDL_FILES)
 
     if(RDL_FILES STREQUAL "RDL_FILES-NOTFOUND")
@@ -49,7 +47,7 @@ function(peakrdl_socgen RTLLIB)
     add_custom_command(
         OUTPUT ${V_GEN} ${STAMP_FILE}
         COMMAND peakrdl socgen 
-        --intfs ${RDL_INTFS} ${RDL_INTF_ADAPTERS} ${RDL_INTF_INTCS}
+        --intfs ${RDL_SOCGEN_GLUE}
             -o ${OUTDIR} 
             ${RDL_FILES}
 

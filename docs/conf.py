@@ -6,6 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import cminx
+
+cminx.main(['-o', 'source/cmake_api', '-r', '../cmake/'])
+
 project = 'SoCMake'
 copyright = '2023, Risto Pejašinović'
 author = 'Risto Pejašinović'
@@ -13,6 +17,8 @@ release = 'v0.0.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
+
+master_doc = 'index'
 
 extensions = ['sphinx.ext.autosectionlabel',
               ]
