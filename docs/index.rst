@@ -1,4 +1,4 @@
-.. image:: SoCMakeLogo5.png
+.. image:: source/graphics/SoCMakeLogo5.png
   :width: 50%
   :alt: Alternative text
   :align: center
@@ -19,9 +19,10 @@ However the project is still in early stages, so the tool support is nowhere nea
    :maxdepth: 2
    :caption: Getting Started
 
-   quickstart.rst
-   build_system.rst
-        
+   source/quickstart.rst
+   source/build_system.rst
+   source/cmake_api/index.rst
+
 
 `Build system <https://risto97.github.io/SoCMake/build_system.html>`_
 =====================================================================
@@ -35,3 +36,4 @@ SoCMake is relying on `CMake <https://cmake.org/>`_ for the build system, while 
 
 SoCMake provides package management functionality through `CPM.cmake <https://github.com/cpm-cmake/CPM.cmake>`_.
 Take a look at how to use it to bootstrap SoCMake `bootstrap <https://risto97.github.io/SoCMake/quickstart.html#installation>`_.
+
