@@ -11,11 +11,13 @@
 #
 # :keyword OUTDIR: output directory in which the files will be generated, if ommited ${BINARY_DIR}/regblock will be used.
 # :type OUTDIR: string path
+# :keyword RENAME: Rename the generated module and file name to a custom string, otherwise the name will be ${RTLLIB}.sv.
+# :type RENAME: string
 # :keyword INTF: Interface to use for the regblock possible values: [passthrough, apb3, apb3-flat, apb4, apb4-flat, axi4-lite, axi4-lite-flat, avalon-mm, avalon-mm-flat]
 # :type INTF: string
 #]]
 function(peakrdl_regblock RTLLIB)
-    cmake_parse_arguments(ARG "" "OUTDIR" "INTF" ${ARGN})
+    cmake_parse_arguments(ARG "" "OUTDIR;RENAME;INTF" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -30,6 +32,12 @@ function(peakrdl_regblock RTLLIB)
         set(OUTDIR ${ARG_OUTDIR})
     endif()
 
+    if(NOT ARG_RENAME)
+        set(MOD_NAME ${RTLLIB}_regblock)
+    else()
+        set(MOD_NAME ${ARG_RENAME})
+    endif()
+
     if(ARG_INTF)
         set(INTF_ARG --cpuif ${ARG_INTF})
     endif()
@@ -41,8 +49,8 @@ function(peakrdl_regblock RTLLIB)
     endif()
 
     set(V_GEN 
-        ${OUTDIR}/${RTLLIB}_regblock_pkg.sv
-        ${OUTDIR}/${RTLLIB}_regblock.sv
+        ${OUTDIR}/${MOD_NAME}_pkg.sv
+        ${OUTDIR}/${MOD_NAME}.sv
         )
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
     get_target_property(TARGET_SOURCES ${RTLLIB} SOURCES)
@@ -55,7 +63,7 @@ function(peakrdl_regblock RTLLIB)
     add_custom_command(
         OUTPUT ${V_GEN} ${STAMP_FILE}
         COMMAND peakrdl regblock 
-            --rename ${RTLLIB}_regblock
+            --rename ${MOD_NAME}
             ${INTF_ARG}
             -o ${OUTDIR} 
             ${RDL_FILES}

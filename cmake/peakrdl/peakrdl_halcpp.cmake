@@ -25,22 +25,28 @@ function(peakrdl_halcpp RTLLIB)
     if(RDL_FILES STREQUAL "RDL_FILES-NOTFOUND")
         message(FATAL_ERROR "Library ${RTLLIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
+
+    set(__CMD 
+        python3 -m peakrdl halcpp
+            ${RDL_FILES}
+            ${EXT_ARG}
+            -o ${OUTDIR} 
+        )
+    set(__CMD_LF ${__CMD} --list-files)
+
     # Call peakrdl-halcpp with --list-files option to get the list of headers
     execute_process(
         OUTPUT_VARIABLE CPP_HEADERS
         ERROR_VARIABLE HALCPP_ERROR
-        COMMAND python3 -m peakrdl halcpp
-            --list-files
-            ${RDL_FILES}
-            ${EXT_ARG}
-            -o ${OUTDIR}
+        COMMAND ${__CMD_LF}
         )
     if(CPP_HEADERS)
         string(REPLACE " " ";" CPP_HEADERS "${CPP_HEADERS}") # TOOD verify
         string(REPLACE "\n" "" CPP_HEADERS "${CPP_HEADERS}")
         list(REMOVE_DUPLICATES CPP_HEADERS)
     else()
-        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${RTLLIB}, output of --list-files option: ${CPP_HEADERS} error output: ${HALCPP_ERROR}")
+        string(REPLACE ";" " " __CMD_STR "${__CMD}")
+        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${RTLLIB}, output of --list-files option: ${CPP_HEADERS} error output: ${HALCPP_ERROR} \n Command Called: \n ${__CMD_STR}")
     endif()
 
     set_source_files_properties(${CPP_HEADERS} PROPERTIES GENERATED TRUE)
@@ -54,11 +60,7 @@ function(peakrdl_halcpp RTLLIB)
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${CPP_HEADERS} ${STAMP_FILE}
-        COMMAND python3 -m peakrdl halcpp
-            ${RDL_FILES}
-            ${EXT_ARG}
-            -o ${OUTDIR} 
-
+        COMMAND ${__CMD}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${RTLLIB}"

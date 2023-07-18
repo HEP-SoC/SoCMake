@@ -23,21 +23,27 @@ function(peakrdl_socgen RTLLIB)
         message(FATAL_ERROR "Library ${RTLLIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
+    set(__CMD 
+        peakrdl socgen
+            --intfs ${RDL_SOCGEN_GLUE}
+            -o ${OUTDIR}
+            ${RDL_FILES} 
+        )
+    set(__CMD_LF ${__CMD} --list-files)
+    
     # Call peakrdl-socgen with --list-files option to get the list of headers
     execute_process(
         OUTPUT_VARIABLE V_GEN
         ERROR_VARIABLE SOCGEN_ERROR
-        COMMAND peakrdl socgen
-            --list-files
-            ${RDL_FILES}
-            -o ${OUTDIR}
+        COMMAND ${__CMD_LF}
         )
     if(V_GEN)
         string(REPLACE " " ";" V_GEN "${V_GEN}")
         string(REPLACE "\n" "" V_GEN "${V_GEN}")
         list(REMOVE_DUPLICATES V_GEN)
     else()
-        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${RTLLIB}, output of --list-files option: ${V_GEN} error output: ${SOCGEN_ERROR}")
+        string(REPLACE ";" " " __CMD_STR "${__CMD}")
+        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${RTLLIB}, output of --list-files option: ${V_GEN} error output: ${SOCGEN_ERROR} \n Command Called: \n ${__CMD_STR}")
     endif()
 
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
@@ -46,11 +52,7 @@ function(peakrdl_socgen RTLLIB)
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${V_GEN} ${STAMP_FILE}
-        COMMAND peakrdl socgen 
-        --intfs ${RDL_SOCGEN_GLUE}
-            -o ${OUTDIR} 
-            ${RDL_FILES}
-
+        COMMAND ${__CMD}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${RTLLIB}"
