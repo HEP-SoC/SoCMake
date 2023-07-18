@@ -1,4 +1,33 @@
-include("${CMAKE_CURRENT_LIST_DIR}/common/socgen_props.cmake")
+#[[[ @module peakrdl_socgen
+#]]
+
+#[[[
+# Create a target for invoking PeakRDL-socgen on RTLLIB.
+#
+# PeakRDL-socgen generates top verilog file that connects the IP blocks.
+#
+# PeakRDL-socgen can be found on this `link <https://gitlab.cern.ch/socmake/PeakRDL-socgen>`_
+#
+# Function expects that **RTLLIB** *INTERFACE_LIBRARY* has **RDL_FILES** property set with a list of SystemRDL files to be used as inputs.
+# To set the RDL_FILES property use `set_property() <https://cmake.org/cmake/help/latest/command/set_property.html>`_ CMake function:
+#
+# .. code-block:: cmake
+#
+#    set_property(TARGET <your-lib> PROPERTY RDL_FILES ${PROJECT_SOURCE_DIR}/file.rdl)
+#
+#
+# Function will append verilog files generated to the **SOURCES** property of the **RTLLIB**.
+#
+# PeakRDL-socgen also generates a graphviz .dot file as a visualization of the generated architecture
+#
+# :param RTLLIB: RTL interface library, it needs to have RDL_FILES property set with a list of SystemRDL files.
+# :type RTLLIB: INTERFACE_LIBRARY
+#
+# **Keyword Arguments**
+#
+# :keyword OUTDIR: output directory in which the files will be generated, if ommited ${BINARY_DIR}/socgen will be used.
+# :type OUTDIR: string path
+#]]
 
 function(peakrdl_socgen RTLLIB)
     cmake_parse_arguments(ARG "" "OUTDIR" "" ${ARGN})
@@ -67,3 +96,4 @@ function(peakrdl_socgen RTLLIB)
 
 endfunction()
 
+include("${CMAKE_CURRENT_LIST_DIR}/common/socgen_props.cmake")

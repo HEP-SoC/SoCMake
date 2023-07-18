@@ -4,6 +4,19 @@
 #[[[
 # Create a target for invoking PeakRDL-regblock on RTLLIB.
 #
+# PeakRDL-regblock is transforming SystemRDL input files to SystemVerilog register block files.
+# Regblock documentation can be found on this `link <https://peakrdl-regblock.readthedocs.io/en/latest/>`_
+#
+# Function expects that **${RTLLIB}** *INTERFACE_LIBRARY* has **RDL_FILES** property set with a list of SystemRDL files to be used as inputs.
+# To set the RDL_FILES property use `set_property() <https://cmake.org/cmake/help/latest/command/set_property.html>`_ CMake function:
+#
+# .. code-block:: cmake
+#
+#    set_property(TARGET <your-lib> PROPERTY RDL_FILES ${PROJECT_SOURCE_DIR}/file.rdl)
+#
+#
+# Function will append 2 generated files from PeakRDL-regblock to the **SOURCES** property of the **${RTLLIB}**
+#
 # :param RTLLIB: RTL interface library, it needs to have RDL_FILES property set with a list of SystemRDL files.
 # :type RTLLIB: INTERFACE_LIBRARY
 #
