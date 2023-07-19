@@ -166,7 +166,7 @@ SECTIONS {
   .align_mem0 : {
     . = ALIGN(3);
     } > {{ bss_mem.parent.inst_name }}
-    {# __global_pointer$ = 0x{{ '%08x' % data_mem.absolute_address }} + 0x{{ '%08x' % (data_mem.size/2)|int }}; #}
+    __global_pointer$ = 0x{{ '%08x' % data_mem.absolute_address }} + 0x{{ '%08x' % (data_mem.size/2)|int }};
   _end = .; PROVIDE (end = .);
   . = DATA_SEGMENT_END (.);
   
