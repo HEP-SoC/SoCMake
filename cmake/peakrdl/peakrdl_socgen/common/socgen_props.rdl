@@ -51,6 +51,16 @@ property connections {
     component = addrmap;
 };
 
+property path {
+    type = string;
+    component = signal;
+};
+
+property propagate {
+    type = boolean;
+    component = signal;
+};
+
 
 struct intc {
     string name;
