@@ -1,3 +1,33 @@
+#[[[ @module peakrdl_html
+#]]
+
+#[[[
+# Create a target for invoking PeakRDL-html on RTLLIB.
+#
+# PeakRDL-html generates HTML documentation out of the SystemRDL inputs.
+#
+# PeakRDL-html can be found on this `link <https://github.com/SystemRDL/PeakRDL-html>`_
+# 
+# An example of generated documentation can be found on this `link <https://systemrdl.github.io/PeakRDL-html/?p=>`_
+#
+# Function expects that **RTLLIB** *INTERFACE_LIBRARY* has **RDL_FILES** property set with a list of SystemRDL files to be used as inputs.
+# To set the RDL_FILES property use `set_property() <https://cmake.org/cmake/help/latest/command/set_property.html>`_ CMake function:
+#
+# .. code-block:: cmake
+#
+#    set_property(TARGET <your-lib> PROPERTY RDL_FILES ${PROJECT_SOURCE_DIR}/file.rdl)
+#
+#
+# :param RTLLIB: RTL interface library, it needs to have RDL_FILES property set with a list of SystemRDL files.
+# :type RTLLIB: INTERFACE_LIBRARY
+#
+# **Keyword Arguments**
+#
+# :keyword OUTDIR: output directory in which the files will be generated, if ommited ${BINARY_DIR}/html will be used.
+# :type OUTDIR: string path
+# :keyword SERVER_TARGET: option argument if passed it will also launch the local server on `https://0.0.0.0:8000 <https://0.0.0.0:8000>`_
+# :type SERVER_TARGET: option
+#]]
 function(peakrdl_html RTLLIB)
     cmake_parse_arguments(ARG "SERVER_TARGET" "OUTDIR" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)

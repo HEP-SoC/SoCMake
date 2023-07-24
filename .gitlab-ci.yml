@@ -1,0 +1,19 @@
+image: alpine:latest
+
+before_script:
+  - apk add --no-cache python3 py3-sphinx py3-pip make git
+  - pip3 install --no-cache-dir sphinx cminx sphinx-rtd-theme
+
+pages:
+  stage: deploy
+  script:
+    - mkdir -p public
+    - cd docs
+    - make html
+    - cp -R _build/html/* ../public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
+

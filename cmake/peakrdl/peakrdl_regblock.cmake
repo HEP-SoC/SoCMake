@@ -1,5 +1,36 @@
+#[[[ @module peakrdl_regblock
+#]]
+
+#[[[
+# Create a target for invoking PeakRDL-regblock on RTLLIB.
+#
+# PeakRDL-regblock is transforming SystemRDL input files to SystemVerilog register block files.
+# Regblock documentation can be found on this `link <https://peakrdl-regblock.readthedocs.io/en/latest/>`_
+#
+# Function expects that **${RTLLIB}** *INTERFACE_LIBRARY* has **RDL_FILES** property set with a list of SystemRDL files to be used as inputs.
+# To set the RDL_FILES property use `set_property() <https://cmake.org/cmake/help/latest/command/set_property.html>`_ CMake function:
+#
+# .. code-block:: cmake
+#
+#    set_property(TARGET <your-lib> PROPERTY RDL_FILES ${PROJECT_SOURCE_DIR}/file.rdl)
+#
+#
+# Function will append 2 generated files from PeakRDL-regblock to the **SOURCES** property of the **${RTLLIB}**
+#
+# :param RTLLIB: RTL interface library, it needs to have RDL_FILES property set with a list of SystemRDL files.
+# :type RTLLIB: INTERFACE_LIBRARY
+#
+# **Keyword Arguments**
+#
+# :keyword OUTDIR: output directory in which the files will be generated, if ommited ${BINARY_DIR}/regblock will be used.
+# :type OUTDIR: string path
+# :keyword RENAME: Rename the generated module and file name to a custom string, otherwise the name will be ${RTLLIB}.sv.
+# :type RENAME: string
+# :keyword INTF: Interface to use for the regblock possible values: [passthrough, apb3, apb3-flat, apb4, apb4-flat, axi4-lite, axi4-lite-flat, avalon-mm, avalon-mm-flat]
+# :type INTF: string
+#]]
 function(peakrdl_regblock RTLLIB)
-    cmake_parse_arguments(ARG "" "OUTDIR" "INTF" ${ARGN})
+    cmake_parse_arguments(ARG "" "OUTDIR;RENAME;INTF" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -13,6 +44,12 @@ function(peakrdl_regblock RTLLIB)
         set(OUTDIR ${BINARY_DIR}/regblock)
     else()
         set(OUTDIR ${ARG_OUTDIR})
+    endif()
+
+    if(NOT ARG_RENAME)
+        set(MOD_NAME ${RTLLIB}_regblock)
+    else()
+        set(MOD_NAME ${ARG_RENAME})
     endif()
 
     if(ARG_INTF)
@@ -34,11 +71,14 @@ function(peakrdl_regblock RTLLIB)
         )
 
     set(V_GEN 
-        ${OUTDIR}/${RTLLIB}_regblock_pkg.sv
-        ${OUTDIR}/${RTLLIB}_regblock.sv
+        ${OUTDIR}/${MOD_NAME}_pkg.sv
+        ${OUTDIR}/${MOD_NAME}.sv
         )
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
     get_target_property(TARGET_SOURCES ${RTLLIB} SOURCES)
+    if(NOT TARGET_SOURCES)
+        set(TARGET_SOURCES "")
+    endif()
     set_property(TARGET ${RTLLIB} PROPERTY SOURCES ${V_GEN} ${TARGET_SOURCES} )
 
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")

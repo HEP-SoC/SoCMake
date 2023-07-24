@@ -1,3 +1,43 @@
+#[[[ @module peakrdl_halcpp
+#]]
+
+#[[[
+# Create a target for invoking PeakRDL-halcpp on RTLLIB.
+#
+# PeakRDL-halcpp generates a C++ 17 Hardware Abstraction Layer (HAL) drivers based on SystemRDL description.
+# PeakRDL-halcpp can be found on this `link <https://github.com/Risto97/PeakRDL-halcpp>`_
+#
+# Function expects that **RTLLIB** *INTERFACE_LIBRARY* has **RDL_FILES** property set with a list of SystemRDL files to be used as inputs.
+# To set the RDL_FILES property use `set_property() <https://cmake.org/cmake/help/latest/command/set_property.html>`_ CMake function:
+#
+# .. code-block:: cmake
+#
+#    set_property(TARGET <your-lib> PROPERTY RDL_FILES ${PROJECT_SOURCE_DIR}/file.rdl)
+#
+#
+# Function will append CPP source files to the **FILE_SET** **HEADERS** of the **RTLLIB**.
+#
+# If the **RLTLLIB** has a header file called **RTLLIB_ext.h** added to **FILE_SET** **HEADERS**, that module will be passed to peakrdl-halcpp as \-\-ext argument.
+# Meaning that the extended class will be used in the hierarchy instead of the HAL generated one.
+# The function works recursively, so its enough to call it once on the top library of the hierarchy.
+#
+# To set the extended class to the library this code snippet can be used
+#
+# .. code-block:: c++
+#
+#    target_sources(<lib> INTERFACE FILE_SET HEADERS 
+#        BASE_DIRS "${PROJECT_SOURCE_DIR}/firmware/hal"
+#        FILES "firmware/hal/<lib>_ext.h"
+#        )
+#
+# :param RTLLIB: RTL interface library, it needs to have RDL_FILES property set with a list of SystemRDL files.
+# :type RTLLIB: INTERFACE_LIBRARY
+#
+# **Keyword Arguments**
+#
+# :keyword OUTDIR: output directory in which the files will be generated, if ommited ${BINARY_DIR}/halcpp will be used.
+# :type OUTDIR: string path
+#]]
 function(peakrdl_halcpp RTLLIB)
     cmake_parse_arguments(ARG "" "OUTDIR" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
@@ -40,11 +80,7 @@ function(peakrdl_halcpp RTLLIB)
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${CPP_HEADERS} ${STAMP_FILE}
-        COMMAND python3 -m peakrdl halcpp
-            ${RDL_FILES}
-            ${EXT_ARG}
-            -o ${OUTDIR} 
-
+        COMMAND ${__CMD}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${RTLLIB}"
