@@ -102,7 +102,7 @@ function(peakrdl_socgen RTLLIB)
     # Call peakrdl-socgen with --list-files option to get the list of headers
     execute_process(
         OUTPUT_VARIABLE V_GEN
-        ERROR_VARIABLE SOCGEN_ERROR
+        ERROR_VARIABLE ERROR_MSG
         COMMAND ${__CMD_LF}
         )
     if(V_GEN)
@@ -111,7 +111,7 @@ function(peakrdl_socgen RTLLIB)
         list(REMOVE_DUPLICATES V_GEN)
     else()
         string(REPLACE ";" " " __CMD_STR "${__CMD}")
-        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${RTLLIB}, output of --list-files option: ${V_GEN} error output: ${SOCGEN_ERROR} \n Command Called: \n ${__CMD_STR}")
+        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${RTLLIB}, output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n Command Called: \n ${__CMD_STR}")
     endif()
 
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)

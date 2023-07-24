@@ -81,7 +81,7 @@ function(peakrdl_ipblocksvg RTLLIB)
 
     execute_process(
         OUTPUT_VARIABLE GRAPHIC_FILES
-        ERROR_VARIABLE IPLBOCKSVG_ERROR
+        ERROR_VARIABLE ERROR_MSG
         COMMAND ${__CMD_LF}
         )
     if(GRAPHIC_FILES)
@@ -89,7 +89,8 @@ function(peakrdl_ipblocksvg RTLLIB)
         string(REPLACE "\n" "" GRAPHIC_FILES "${GRAPHIC_FILES}")
         list(REMOVE_DUPLICATES GRAPHIC_FILES)
     else()
-        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${RTLLIB}, output of --list-files option: ${GRAPHIC_FILES} error output: ${IPLBOCKSVG_ERROR}")
+        string(REPLACE ";" " " __CMD_STR "${__CMD}")
+        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${RTLLIB}, output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n Command Called: \n ${__CMD_STR}")
     endif()
 
     set_source_files_properties(${GRAPHIC_FILES} PROPERTIES GENERATED TRUE)
