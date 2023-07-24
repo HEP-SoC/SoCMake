@@ -17,6 +17,10 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/verilator/verilate_xml.cmake")
 # ----- iverilog ------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/iverilog/iverilog.cmake")
 
+# ----- xcelium ------
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cadence/xcelium.cmake")
+
+# ----- VeriSC --------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/verisc/verisc_install.cmake")
 # ====================================
 # ======== PeakRDL ===================
