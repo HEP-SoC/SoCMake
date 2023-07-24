@@ -1,15 +1,19 @@
 include_guard(GLOBAL)
 
-function(sv2v RTLLIB)
+function(tmrv RTLLIB)
     cmake_parse_arguments(ARG "REPLACE" "OUTDIR" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/find_python.cmake")
+    find_python3()
+
     get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)
-        set(OUTDIR ${BINARY_DIR}/sv2v)
+        set(OUTDIR ${BINARY_DIR}/tmrv)
     else()
         set(OUTDIR ${ARG_OUTDIR})
     endif()
@@ -25,17 +29,20 @@ function(sv2v RTLLIB)
 
     # TODO get verilog defines
 
-    set(V_GEN ${OUTDIR}/${RTLLIB}.v)
+    foreach(v ${V_FILES})
+        get_filename_component(base_name ${v} NAME_WE)
+        get_filename_component(ext ${v} EXT)
+        list(APPEND V_GEN ${OUTDIR}/${base_name}Voted${ext})
+    endforeach()
 
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
-
 
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${V_GEN}
-        COMMAND  sv2v
-        ${V_FILES} ${INCDIR_ARG}
-        -w ${V_GEN}
+        COMMAND ${Python3_EXECUTABLE} -m tmrv
+        ${V_FILES} 
+        -o ${OUTDIR}
 
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${V_FILES}
@@ -54,6 +61,7 @@ function(sv2v RTLLIB)
     endif()
 
 endfunction()
+
 
 
 

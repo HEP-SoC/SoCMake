@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+
 function(iverilog RTLLIB)
     cmake_parse_arguments(ARG "" "OUTDIR" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)

@@ -5,6 +5,7 @@ function(peakrdl_halcpp RTLLIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/find_python.cmake")
 
     get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
 
@@ -25,31 +26,16 @@ function(peakrdl_halcpp RTLLIB)
     if(RDL_FILES STREQUAL "RDL_FILES-NOTFOUND")
         message(FATAL_ERROR "Library ${RTLLIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
-    # Call peakrdl-halcpp with --list-files option to get the list of headers
-    execute_process(
-        OUTPUT_VARIABLE CPP_HEADERS
-        ERROR_VARIABLE HALCPP_ERROR
-        COMMAND python3 -m peakrdl halcpp
-            --list-files
+
+    find_python3()
+    set(__CMD 
+        ${Python3_EXECUTABLE} -m peakrdl halcpp
             ${RDL_FILES}
             ${EXT_ARG}
-            -o ${OUTDIR}
+            -o ${OUTDIR} 
         )
-    if(CPP_HEADERS)
-        string(REPLACE " " ";" CPP_HEADERS "${CPP_HEADERS}") # TOOD verify
-        string(REPLACE "\n" "" CPP_HEADERS "${CPP_HEADERS}")
-        list(REMOVE_DUPLICATES CPP_HEADERS)
-    else()
-        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${RTLLIB}, output of --list-files option: ${CPP_HEADERS} error output: ${HALCPP_ERROR}")
-    endif()
 
-    set_source_files_properties(${CPP_HEADERS} PROPERTIES GENERATED TRUE)
-    set_property(TARGET ${RTLLIB} APPEND PROPERTY INTERFACE ${GRAPHIC_FILES})
-    target_sources(${RTLLIB} INTERFACE
-        FILE_SET HEADERS 
-        BASE_DIRS ${OUTDIR}
-        FILES ${CPP_HEADERS}
-        )
+    target_include_directories(${RTLLIB} INTERFACE ${OUTDIR} ${OUTDIR}/include)
 
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(

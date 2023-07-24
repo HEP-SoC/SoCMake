@@ -6,6 +6,8 @@ function(gen_lds RTLLIB)
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../rtllib.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../fw_utils.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/find_python.cmake")
+    find_python3()
 
     set(LDS_GEN_TOOL "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/gen_linker_script.py")
 
@@ -38,7 +40,7 @@ function(gen_lds RTLLIB)
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${LDS_FILE} ${STAMP_FILE}
-        COMMAND python3 ${LDS_GEN_TOOL}
+        COMMAND ${Python3_EXECUTABLE} ${LDS_GEN_TOOL}
             --rdlfiles ${RDL_FILES}
             --outfile ${LDS_FILE}
             ${ARG_NODEBUG}

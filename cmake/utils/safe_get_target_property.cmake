@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+
 function(safe_get_target_property OUT_VAR TARGET PROPERTY WARNING_LEVEL)
     get_target_property(TMP_VAR ${TARGET} ${PROPERTY})
     if(TMP_VAR STREQUAL "TMP_VAR-NOTFOUND")

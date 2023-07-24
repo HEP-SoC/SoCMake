@@ -5,6 +5,7 @@ function(peakrdl_html RTLLIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/find_python.cmake")
 
     get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
 
@@ -20,12 +21,17 @@ function(peakrdl_html RTLLIB)
         message(FATAL_ERROR "Library ${RTLLIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
+    find_python3()
+    set(__CMD 
+        ${Python3_EXECUTABLE} -m peakrdl html
+            -o ${OUTDIR}
+            ${RDL_FILES}
+            )
+
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${OUTDIR} ${STAMP_FILE}
-        COMMAND peakrdl  html
-            -o ${OUTDIR} 
-            ${RDL_FILES}
+        COMMAND ${__CMD}
 
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES} ${GRAPHIC_FILES}

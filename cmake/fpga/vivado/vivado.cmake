@@ -5,6 +5,8 @@ function(vivado RTLLIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/find_python.cmake")
+    find_python3()
 
     get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
 
@@ -40,7 +42,7 @@ function(vivado RTLLIB)
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${BITSTREAM} ${STAMP_FILE}
-        COMMAND python3 ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/edalize_vivado.py
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/edalize_vivado.py
             --rtl-files ${V_FILES}
             --inc-dirs ${INTERFACE_INCLUDE_DIRS} ${INCLUDE_DIRS}
             --constraint-files ${XDC_FILES}

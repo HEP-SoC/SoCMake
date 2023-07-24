@@ -5,6 +5,7 @@ function(peakrdl_ipblocksvg RTLLIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/find_python.cmake")
 
     get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
 
@@ -28,15 +29,20 @@ function(peakrdl_ipblocksvg RTLLIB)
         message(FATAL_ERROR "Library ${RTLLIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
-    execute_process(
-        OUTPUT_VARIABLE GRAPHIC_FILES
-        ERROR_VARIABLE IPLBOCKSVG_ERROR
-        COMMAND python3 -m peakrdl ipblocksvg 
+    find_python3()
+    set(__CMD 
+        ${Python3_EXECUTABLE} -m peakrdl ipblocksvg 
             ${RDL_FILES}
             ${ARG_LOGO}
             ${ARG_TRAVERSE}
-            --list-files
             -o ${OUTDIR}
+            )
+    set(__CMD_LF ${__CMD} --list-files)
+
+    execute_process(
+        OUTPUT_VARIABLE GRAPHIC_FILES
+        ERROR_VARIABLE IPLBOCKSVG_ERROR
+        COMMAND ${__CMD_LF}
         )
     if(GRAPHIC_FILES)
         string(REPLACE " " ";" GRAPHIC_FILES "${GRAPHIC_FILES}")
@@ -52,11 +58,7 @@ function(peakrdl_ipblocksvg RTLLIB)
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${GRAPHIC_FILES} ${STAMP_FILE}
-        COMMAND python3 -m peakrdl ipblocksvg 
-            ${RDL_FILES}
-            ${ARG_LOGO}
-            ${ARG_TRAVERSE}
-            -o ${OUTDIR}
+        COMMAND ${__CMD}
 
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES}

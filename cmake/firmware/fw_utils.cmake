@@ -60,6 +60,9 @@ function(gen_hex_files EXE)
 
     cmake_parse_arguments(ARG "" "" "WIDTHS" ${ARGN})
 
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/find_python.cmake")
+    find_python3()
+
     set(EXECUTABLE ${BINARY_DIR}/${EXE})
     set(MAKEHEX_TOOL       "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/scripts/makehex.py")
     gen_bin(${EXE})
@@ -82,9 +85,9 @@ function(gen_hex_files EXE)
             add_custom_command(TARGET ${EXE}
                 POST_BUILD
                 BYPRODUCTS ${HEX_FILE} ${HEX_TEXT_FILE} ${HEX_DATA_FILE}
-                COMMAND python3 ${MAKEHEX_TOOL} --width ${width} ${BIN_FILE} ${HEX_FILE}
-                COMMAND python3 ${MAKEHEX_TOOL} --width ${width} ${BIN_TEXT_FILE} ${HEX_TEXT_FILE}
-                COMMAND python3 ${MAKEHEX_TOOL} --width ${width} ${BIN_DATA_FILE} ${HEX_DATA_FILE}
+                COMMAND ${Python3_EXECUTABLE} ${MAKEHEX_TOOL} --width ${width} ${BIN_FILE} ${HEX_FILE}
+                COMMAND ${Python3_EXECUTABLE} ${MAKEHEX_TOOL} --width ${width} ${BIN_TEXT_FILE} ${HEX_TEXT_FILE}
+                COMMAND ${Python3_EXECUTABLE} ${MAKEHEX_TOOL} --width ${width} ${BIN_DATA_FILE} ${HEX_DATA_FILE}
                 COMMENT "Generating ${width} bit hex file file for ${EXE}"
                 )
 
@@ -126,7 +129,7 @@ endfunction()
 #         POST_BUILD
 #         BYPRODUCTS ${CFLOW_CALLSTACK}
 #         COMMAND cflow ${CPP_SOURCES} > ${CFLOW_CALLSTACK} || (exit 0)
-#         COMMAND python3 ${SSA_TOOL} -f ${CFLOW_CALLSTACK} -d ${BINARY_DIR}/CMakeFiles/${EXE}.dir/ || (exit 0)
+#         COMMAND ${Python3_EXECUTABLE} ${SSA_TOOL} -f ${CFLOW_CALLSTACK} -d ${BINARY_DIR}/CMakeFiles/${EXE}.dir/ || (exit 0)
 #         COMMENT "Running static stack analysis on ${EXE}, error on this command can be ignored"
 #         )
 #

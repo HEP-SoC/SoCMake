@@ -1,5 +1,6 @@
-include("${CMAKE_CURRENT_LIST_DIR}/utils/safe_get_target_property.cmake")
+include_guard(GLOBAL)
 
+include("${CMAKE_CURRENT_LIST_DIR}/utils/safe_get_target_property.cmake")
 
 function(get_rtl_target_property OUT_VAR TARGET PROPERTY)
 

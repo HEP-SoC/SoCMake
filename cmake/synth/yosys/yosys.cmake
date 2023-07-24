@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+
 include(${CMAKE_CURRENT_LIST_DIR}/../sv2v.cmake)
 function(yosys RTLLIB)
     cmake_parse_arguments(ARG "SV2V;SHOW;REPLACE" "OUTDIR" "" ${ARGN})

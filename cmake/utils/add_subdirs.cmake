@@ -1,3 +1,4 @@
+include_guard(GLOBAL)
 # Does not work for ../ TODO
 macro(add_subdirs)
     foreach(dir ${ARGN})

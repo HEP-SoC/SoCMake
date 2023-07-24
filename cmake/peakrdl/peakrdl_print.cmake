@@ -2,6 +2,7 @@ function(peakrdl_print RTLLIB)
     # cmake_parse_arguments(ARG "" "" "" ${ARGN})
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/find_python.cmake")
 
     get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
 
@@ -11,8 +12,9 @@ function(peakrdl_print RTLLIB)
         message(FATAL_ERROR "Library ${RTLLIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
+    find_python3()
     add_custom_target(${RTLLIB}_print
-        COMMAND peakrdl dump 
+        COMMAND ${Python3_EXECUTABLE} -m peakrdl dump 
             ${RDL_FILES}
         COMMENT "Running peakrdl dump on ${RTLLIB}"
         )

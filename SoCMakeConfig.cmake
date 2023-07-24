@@ -64,3 +64,8 @@ set(IBEX_TOOLCHAIN_BASE "${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/toolchains/ibe
 # ====================================
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/docs/doxygen/doxygen.cmake")
 
+# ====================================
+# ====== Linting, Formatting =========
+# =====================================
+
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/verible/verible.cmake")

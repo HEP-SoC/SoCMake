@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+
 if(NOT TARGET graphviz)
     add_custom_target(graphviz
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/graphviz/CMakeGraphVizOptions.cmake ${CMAKE_BINARY_DIR}

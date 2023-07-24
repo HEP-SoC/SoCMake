@@ -5,6 +5,7 @@ function(peakrdl_html_md RTLLIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/find_python.cmake")
 
     get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
 
@@ -26,6 +27,14 @@ function(peakrdl_html_md RTLLIB)
         message(FATAL_ERROR "Library ${RTLLIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
+    find_python3()
+    set(__CMD 
+        ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/export_html.py
+            --rdlfiles ${RDL_FILES}
+            --outdir ${OUTDIR} 
+            ${ARG_HOME_URL}
+            )
+
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${OUTDIR} ${STAMP_FILE}
@@ -33,10 +42,7 @@ function(peakrdl_html_md RTLLIB)
         COMMAND ${CMAKE_COMMAND} -E copy ${MD_FILES} ${OUTDIR}/docs  ||  true # Ignore error if ${MD_FILES} dont exist, TODO something smarter 
         COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}/docs/pictures 
         COMMAND ${CMAKE_COMMAND} -E copy ${GRAPHIC_FILES} ${OUTDIR}/docs/pictures || true
-        COMMAND python3 ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/export_html.py
-            --rdlfiles ${RDL_FILES}
-            --outdir ${OUTDIR} 
-            ${ARG_HOME_URL}
+        COMMAND ${__CMD}
 
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES} ${GRAPHIC_FILES}

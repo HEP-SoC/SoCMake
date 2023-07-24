@@ -7,6 +7,7 @@ function(peakrdl_socgen RTLLIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/find_python.cmake")
 
     get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
 
@@ -25,6 +26,17 @@ function(peakrdl_socgen RTLLIB)
         message(FATAL_ERROR "Library ${RTLLIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
+    find_python3()
+    set(__CMD 
+        ${Python3_EXECUTABLE} -m peakrdl socgen
+            --intfs ${RDL_SOCGEN_GLUE}
+            -o ${OUTDIR}
+            ${RDL_FILES} 
+            ${ARG_USE_INCLUDE}
+            ${ARG_INJECT_V_FILES}
+        )
+    set(__CMD_LF ${__CMD} --list-files)
+    
     # Call peakrdl-socgen with --list-files option to get the list of headers
     execute_process(
         OUTPUT_VARIABLE V_GEN

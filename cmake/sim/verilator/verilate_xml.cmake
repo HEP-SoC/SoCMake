@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+
 function(_verilate_xml TARGET)
     set(OPTIONS "EXCLUDE_FROM_ALL")
     set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;DIRECTORY")
