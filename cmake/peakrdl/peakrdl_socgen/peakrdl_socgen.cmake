@@ -19,7 +19,7 @@
 # .. code-block:: cmake
 #
 #    set_property(TARGET <your-lib> PROPERTY RDL_FILES ${PROJECT_SOURCE_DIR}/file.rdl)
-#    set_property(TARGET <your-lib> PROPERTY SCOGEN_INJECT_V_FILES ${PROJECT_SOURCE_DIR}/apb_subsystem_plic_irq.v)
+#    set_property(TARGET <your-lib> PROPERTY SOCGEN_INJECT_V_FILES ${PROJECT_SOURCE_DIR}/apb_subsystem_plic_irq.v)
 #
 #
 # Function will append verilog files generated to the **SOURCES** property of the **RTLLIB**.
@@ -31,8 +31,10 @@
 #
 # **Keyword Arguments**
 #
-# :keyword USE_INCLUDE: option to use verilog include preprocessor directive instead of embedding injected code directly into generated verilog. By default embedding is used.
-# :type USE_INCLUDE: List[string path] 
+# :keyword USE_INCLUDE: use verilog include preprocessor directive instead of embedding injected code directly into generated verilog. By default embedding is used.
+# :type USE_INCLUDE: option
+# :keyword GEN_DOT: enable generation of graphviz dot file along with verilog files
+# :type GEN_DOT: option
 # :keyword OUTDIR: output directory in which the files will be generated, if ommited ${BINARY_DIR}/socgen will be used.
 # :type OUTDIR: string path
 # :keyword INJECT_V_FILES: list of Verilog or SV files to be injected into the subsystems.
@@ -40,7 +42,7 @@
 #]]
 
 function(peakrdl_socgen RTLLIB)
-    cmake_parse_arguments(ARG "USE_INCLUDE" "OUTDIR" "INJECT_V_FILES" ${ARGN})
+    cmake_parse_arguments(ARG "USE_INCLUDE;GEN_DOT" "OUTDIR" "INJECT_V_FILES" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -81,6 +83,16 @@ function(peakrdl_socgen RTLLIB)
         unset(ARG_USE_INCLUDE)
     endif()
 
+    if(ARG_GEN_DOT)
+        set(SOCGEN_DOT_FILES ${OUTDIR}/soc_diagram.dot)
+        set_source_files_properties(${SOCGEN_DOT_FILES} PROPERTIES GENERATED TRUE)
+        set_property(TARGET ${RTLLIB} APPEND PROPERTY GRAPHIC_FILES ${SOCGEN_DOT_FILES})
+        set(ARG_GEN_DOT --gen-dot)
+        message("DOT FILE: ${SOCGEN_DOT_FILES}")
+    else()
+        unset(ARG_GEN_DOT)
+    endif()
+
     get_rtl_target_property(RDL_SOCGEN_GLUE ${RTLLIB} RDL_SOCGEN_GLUE)
     get_rtl_target_property(RDL_FILES ${RTLLIB} RDL_FILES)
 
@@ -96,6 +108,7 @@ function(peakrdl_socgen RTLLIB)
             ${RDL_FILES} 
             ${ARG_USE_INCLUDE}
             ${ARG_INJECT_V_FILES}
+            ${ARG_GEN_DOT}
         )
     set(__CMD_LF ${__CMD} --list-files)
     
@@ -119,7 +132,7 @@ function(peakrdl_socgen RTLLIB)
 
     set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
-        OUTPUT ${V_GEN} ${STAMP_FILE}
+        OUTPUT ${V_GEN} ${SOCGEN_DOT_FILES} ${STAMP_FILE}
         COMMAND ${__CMD}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES} ${ADDITIONAL_DEPENDS}
@@ -128,7 +141,7 @@ function(peakrdl_socgen RTLLIB)
 
     add_custom_target(
         ${RTLLIB}_socgen
-        DEPENDS ${V_GEN} ${STAMP_FILE}
+        DEPENDS ${V_GEN} ${SOCGEN_DOT_FILES} ${SOCGEN_DOT_FILES} ${STAMP_FILE}
         )
 
     add_dependencies(${RTLLIB} ${RTLLIB}_socgen)
