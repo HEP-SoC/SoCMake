@@ -35,7 +35,7 @@ macro(verisc_build)
     endforeach()
 
     if(NOT ARG_VERSION)
-        set(VERSION 0.0.2)
+        message(FATAL_ERROR "Need to specify VERSION for verisc_build() function")
     else()
         set(VERSION ${ARG_VERSION})
     endif()
@@ -48,7 +48,7 @@ macro(verisc_build)
         set(INSTALL_DIR ${ARG_INSTALL_DIR})
     endif()
 
-    find_package(veriSC CONFIG
+    find_package(veriSC ${VERSION} EXACT CONFIG
         PATHS ${ARG_VERISC_HOME} $ENV{VERISC_HOME} ${VERISC_HOME} ${INSTALL_DIR}
         NO_DEFAULT_PATH
         )
@@ -73,7 +73,7 @@ macro(verisc_build)
                 )
         execute_process(COMMAND make -j${nproc} -C ${BOOTSTRAP_DIR} verisc)
 
-        find_package(veriSC ${VERSION} CONFIG REQUIRED
+        find_package(veriSC ${veriSC_VERSION} CONFIG REQUIRED
             PATHS ${INSTALL_DIR}
             NO_DEFAULT_PATH
             )
