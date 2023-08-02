@@ -1,6 +1,7 @@
 include_guard(GLOBAL)
 
 include("${CMAKE_CURRENT_LIST_DIR}/utils/safe_get_target_property.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/hwip.cmake")
 
 function(get_rtl_target_property OUT_VAR TARGET PROPERTY)
 
@@ -45,48 +46,6 @@ function(get_rtl_target_incdirs OUT_VAR TARGET)
     set(${OUT_VAR} ${INCDIRS} PARENT_SCOPE)
 endfunction()
 
-
-# ========================================================== #
-# ========# To be removed possibly ========================= #
-# ========================================================== #
-
-# Flat Intrface RTL library and copy properties from flattened lib TARGET to OUTLIB
-function(flat_rtl_lib TARGET OUTLIB)
-    cmake_parse_arguments(ARG "" "" "PROPERTIES" ${ARGN})
-
-    flatten_graph(${TARGET})
-
-    if(NOT TARGET ${OUTLIB})
-        add_library(${OUTLIB} INTERFACE)
-    endif()
-
-    get_property(FLAT_GRAPH TARGET ${TARGET} PROPERTY FLAT_GRAPH)
-    set_property(TARGET ${OUTLIB} PROPERTY FLAT_GRAPH ${FLAT_GRAPH})
-
-    # Merge INTERFACE_SOURCES and SOURCES and put them in SOURCES in OUTLIB
-    get_rtl_target_sources(SOURCES ${TARGET})
-    set_property(TARGET ${OUTLIB} PROPERTY SOURCES ${SOURCES})
-
-    # Append include directories, the PROJECT_SOURCE_DIR is also added as include directory
-    set_property(TARGET ${OUTLIB} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "") 
-    foreach(lib ${FLAT_GRAPH})
-        safe_get_target_property(src_dirs ${lib} SOURCE_DIR "FATAL")
-        safe_get_target_property(inc_dirs ${lib} INTERFACE_INCLUDE_DIRECTORIES "")
-        set_property(TARGET ${OUTLIB} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${inc_dirs} ${src_dirs})
-    endforeach()
-
-    set(PROPERTY_APPEND_LIST RDL_FILES DOCS_FILES DOCS_LIB GRAPHIC_FILES ${ARG_PROPERTIES})
-    foreach(prop_name ${PROPERTY_APPEND_LIST})
-        set_property(TARGET ${OUTLIB} PROPERTY ${prop_name} "")
-        foreach(lib ${FLAT_GRAPH})
-            safe_get_target_property(prop_val ${lib} ${prop_name} "")
-            set_property(TARGET ${OUTLIB} APPEND PROPERTY ${prop_name} ${prop_val})
-        endforeach()
-        get_target_property(OUTVAR ${OUTLIB} ${prop_name})
-    endforeach()
-
-endfunction()
-
 # ========================================================== #
 # ======== Print all RTL sources =========================== #
 # ========================================================== #
@@ -105,6 +64,7 @@ endfunction()
 # ========================================================== #
 
 function(flatten_graph NODE)
+    alias_dereference(NODE ${NODE}) # TODO provide set_property function that dereferences alias
 
     set_property(GLOBAL PROPERTY __GLOBAL_STACK "")
     set(FOUND_ROOT -1)
@@ -115,6 +75,7 @@ function(flatten_graph NODE)
     endwhile()
 
     foreach(lib ${STACK}) # CLear __RM_LIST
+        alias_dereference(lib ${lib})
         set_property(TARGET ${lib} PROPERTY __RM_LIST "")
     endforeach()
     set_property(TARGET ${NODE} PROPERTY FLAT_GRAPH ${STACK})
@@ -122,6 +83,7 @@ function(flatten_graph NODE)
 endfunction()
 
 function(__flatten_graph_recursive NODE RET)
+    alias_dereference(NODE ${NODE})
     if(NOT TARGET ${NODE}) # If its not a target e.g. not interface library but maybe -pthread
         set(${RET} 1 PARENT_SCOPE)
         return()
@@ -145,6 +107,7 @@ function(__flatten_graph_recursive NODE RET)
     if(LINK_LIBS STREQUAL "LINK_LIBS-NOTFOUND") # Not needed
         set(LINK_LIBS "")
     endif()
+    # message("LINK LIBS for lib: ${NODE} are: ${LINK_LIBS}")
     foreach(lib ${LINK_LIBS})
         __flatten_graph_recursive(${lib} LIB_ADDED)
         if(LIB_ADDED EQUAL 1)
@@ -157,6 +120,7 @@ function(__flatten_graph_recursive NODE RET)
 endfunction()
 
 function(__append_rm_list_unique NODE RM_EL) # Append if element not already in list
+    alias_dereference(NODE ${NODE})
     get_target_property(RM_LIST ${NODE} __RM_LIST )
 
     list(FIND RM_LIST ${RM_EL} FOUND)

@@ -1,17 +1,18 @@
-function(gen_lds RTLLIB)
+function(gen_lds IP_LIB)
     cmake_parse_arguments(ARG "NODEBUG" "OUTDIR" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../fw_utils.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/find_python.cmake")
     find_python3()
 
     set(LDS_GEN_TOOL "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/gen_linker_script.py")
 
-    get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
+    ip_assume_last(IP_LIB ${IP_LIB})
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)
         set(OUTDIR ${BINARY_DIR}/lds)
@@ -27,17 +28,17 @@ function(gen_lds RTLLIB)
 
     execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR})
 
-    get_rtl_target_property(RDL_FILES ${RTLLIB} RDL_FILES)
+    get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
 
-    if(RDL_FILES STREQUAL "RDL_FILES-NOTFOUND")
-        message(FATAL_ERROR "Library ${RTLLIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
+    if(NOT RDL_FILES)
+        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
-    set(LDS_FILE "${OUTDIR}/${RTLLIB}.lds")
+    set(LDS_FILE "${OUTDIR}/${IP_LIB}.lds")
 
     set_source_files_properties(${LDS_FILE} PROPERTIES GENERATED TRUE)
-    set_property(TARGET ${RTLLIB} APPEND PROPERTY LDS_FILES ${LDS_FILE})
+    ip_sources(${IP_LIB} LINKER_SCRIPT ${LDS_FILE})
 
-    set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${LDS_FILE} ${STAMP_FILE}
         COMMAND ${Python3_EXECUTABLE} ${LDS_GEN_TOOL}
@@ -47,15 +48,15 @@ function(gen_lds RTLLIB)
 
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${RTLLIB}"
+        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
         )
 
     add_custom_target(
-        ${RTLLIB}_lds
+        ${IP_LIB}_lds
         DEPENDS ${RDL_FILES} ${STAMP_FILE}
         )
 
-    add_dependencies(${RTLLIB} ${RTLLIB}_lds)
+    add_dependencies(${IP_LIB} ${IP_LIB}_lds)
 
 endfunction()
 

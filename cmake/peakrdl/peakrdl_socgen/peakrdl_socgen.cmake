@@ -2,19 +2,19 @@
 #]]
 
 #[[[
-# Create a target for invoking PeakRDL-socgen on RTLLIB.
+# Create a target for invoking PeakRDL-socgen on IP_LIB.
 #
 # PeakRDL-socgen generates top verilog file that connects the IP blocks.
 #
 # PeakRDL-socgen can be found on this `link <https://gitlab.cern.ch/socmake/PeakRDL-socgen>`_
 #
-# Function expects that **RTLLIB** *INTERFACE_LIBRARY* has **RDL_FILES** property set with a list of SystemRDL files to be used as inputs.
+# Function expects that **IP_LIB** *INTERFACE_LIBRARY* has **RDL_FILES** property set with a list of SystemRDL files to be used as inputs.
 # To set the RDL_FILES property use `set_property() <https://cmake.org/cmake/help/latest/command/set_property.html>`_ CMake function:
 # 
 # Additionally it is possible to inject custom Verilog code inside the generated verilog code.
 # In order to inject files its necessary to do 2 things:
 # * Name of the file needs to be <name-of-the-subsystem_<whatever>.v/sv for example apb_subsystem_plic_irq.v
-# * Set the SOCGEN_INJECT_V_FILES property of RTLLIB like shown below, it is possible to provide multiple files. Another option is to pass the parameter INJECT_V_FILES as parameter to the function.
+# * Set the SOCGEN_INJECT_V_FILES property of IP_LIB like shown below, it is possible to provide multiple files. Another option is to pass the parameter INJECT_V_FILES as parameter to the function.
 #
 # .. code-block:: cmake
 #
@@ -22,12 +22,12 @@
 #    set_property(TARGET <your-lib> PROPERTY SOCGEN_INJECT_V_FILES ${PROJECT_SOURCE_DIR}/apb_subsystem_plic_irq.v)
 #
 #
-# Function will append verilog files generated to the **SOURCES** property of the **RTLLIB**.
+# Function will append verilog files generated to the **SOURCES** property of the **IP_LIB**.
 #
 # PeakRDL-socgen also generates a graphviz .dot file as a visualization of the generated architecture
 #
-# :param RTLLIB: RTL interface library, it needs to have RDL_FILES property set with a list of SystemRDL files.
-# :type RTLLIB: INTERFACE_LIBRARY
+# :param IP_LIB: RTL interface library, it needs to have RDL_FILES property set with a list of SystemRDL files.
+# :type IP_LIB: INTERFACE_LIBRARY
 #
 # **Keyword Arguments**
 #
@@ -41,16 +41,17 @@
 # :type INJECT_V_FILES: List[string path] 
 #]]
 
-function(peakrdl_socgen RTLLIB)
+function(peakrdl_socgen IP_LIB)
     cmake_parse_arguments(ARG "USE_INCLUDE;GEN_DOT" "OUTDIR" "INJECT_V_FILES" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/find_python.cmake")
 
-    get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
+    ip_assume_last(IP_LIB ${IP_LIB})
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)
         set(OUTDIR ${BINARY_DIR}/socgen)
@@ -58,7 +59,7 @@ function(peakrdl_socgen RTLLIB)
         set(OUTDIR ${ARG_OUTDIR})
     endif()
 
-    get_target_property(SOCGEN_INJECT_V_FILES ${RTLLIB} SOCGEN_INJECT_V_FILES)
+    get_target_property(SOCGEN_INJECT_V_FILES ${IP_LIB} SOCGEN_INJECT_V_FILES)
     if(ARG_INJECT_V_FILES OR SOCGEN_INJECT_V_FILES)
         set(INJECT_V_FILES ${ARG_INJECT_V_FILES} ${SOCGEN_INJECT_V_FILES})
         set(ARG_INJECT_V_FILES --vinject ${INJECT_V_FILES})
@@ -71,11 +72,11 @@ function(peakrdl_socgen RTLLIB)
         set(ARG_USE_INCLUDE --use-include)
         unset(ADDITIONAL_DEPENDS)
 
-        get_rtl_target_incdirs(INC_DIRS ${RTLLIB}) # Add directories to INCLUDE_DIRECTORIES if --use-include is used
+        get_ip_include_directories(INC_DIRS ${IP_LIB}) # Add directories to INCLUDE_DIRECTORIES if --use-include is used
         foreach(f ${INJECT_V_FILES})
             get_filename_component(dir ${f} DIRECTORY)
             if(NOT ${dir} IN_LIST INC_DIRS)
-                target_include_directories(${RTLLIB} INTERFACE ${dir})
+                ip_include_directories(${IP_LIB} ${dir})
             endif()
         endforeach()
     else()
@@ -86,17 +87,15 @@ function(peakrdl_socgen RTLLIB)
     if(ARG_GEN_DOT)
         set(SOCGEN_DOT_FILES ${OUTDIR}/soc_diagram.dot)
         set_source_files_properties(${SOCGEN_DOT_FILES} PROPERTIES GENERATED TRUE)
-        set_property(TARGET ${RTLLIB} APPEND PROPERTY GRAPHIC_FILES ${SOCGEN_DOT_FILES})
+        ip_sources(${IP_LIB} GRAPHVIZ  ${SOCGEN_DOT_FILES})
         set(ARG_GEN_DOT --gen-dot)
-    else()
-        unset(ARG_GEN_DOT)
     endif()
 
-    get_rtl_target_property(RDL_SOCGEN_GLUE ${RTLLIB} RDL_SOCGEN_GLUE)
-    get_rtl_target_property(RDL_FILES ${RTLLIB} RDL_FILES)
+    get_ip_sources(RDL_SOCGEN_GLUE ${IP_LIB} SYSTEMRDL_SOCGEN)
+    get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
 
-    if(RDL_FILES STREQUAL "RDL_FILES-NOTFOUND")
-        message(FATAL_ERROR "Library ${RTLLIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
+    if(NOT RDL_FILES)
+        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
     find_python3()
@@ -123,27 +122,27 @@ function(peakrdl_socgen RTLLIB)
         list(REMOVE_DUPLICATES V_GEN)
     else()
         string(REPLACE ";" " " __CMD_STR "${__CMD}")
-        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${RTLLIB}, output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n Command Called: \n ${__CMD_STR}")
+        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${IP_LIB}, output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n Command Called: \n ${__CMD_STR}")
     endif()
 
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
-    set_property(TARGET ${RTLLIB} APPEND PROPERTY SOURCES ${V_GEN})
+    ip_sources(${IP_LIB} VERILOG ${V_GEN})
 
-    set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${V_GEN} ${SOCGEN_DOT_FILES} ${STAMP_FILE}
         COMMAND ${__CMD}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES} ${ADDITIONAL_DEPENDS}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${RTLLIB}"
+        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
         )
 
     add_custom_target(
-        ${RTLLIB}_socgen
+        ${IP_LIB}_socgen
         DEPENDS ${V_GEN} ${SOCGEN_DOT_FILES} ${SOCGEN_DOT_FILES} ${STAMP_FILE}
         )
 
-    add_dependencies(${RTLLIB} ${RTLLIB}_socgen)
+    add_dependencies(${IP_LIB} ${IP_LIB}_socgen)
 
 endfunction()
 

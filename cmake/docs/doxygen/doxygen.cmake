@@ -1,12 +1,13 @@
-function(doxygen RTLLIB)
+function(doxygen IP_LIB)
     cmake_parse_arguments(ARG "" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
 
-    get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
+    ip_assume_last(IP_LIB ${IP_LIB})
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)
         set(OUTDIR ${BINARY_DIR}/doxygen)
@@ -17,7 +18,7 @@ function(doxygen RTLLIB)
 
     find_package(Doxygen REQUIRED)
 
-    get_rtl_target_incdirs(INCLUDE_DIRS ${RTLLIB})
+    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB})
     foreach(dir ${INCLUDE_DIRS})
         set(regex_pattern "^\\$<BUILD_INTERFACE:(.+)>")
         string(REGEX MATCH "${regex_pattern}" extracted_path ${dir})
@@ -36,12 +37,12 @@ function(doxygen RTLLIB)
     set(DOXYGEN_OUT ${OUTDIR}/Doxyfile)
     configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
 
-    set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
 
-    add_custom_target( ${RTLLIB}_${CMAKE_CURRENT_FUNCTION}
+    add_custom_target( ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
         WORKING_DIRECTORY ${OUTDIR}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${RTLLIB}"
+        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
         VERBATIM )
 
 endfunction()

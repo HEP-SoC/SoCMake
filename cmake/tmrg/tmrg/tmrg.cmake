@@ -1,13 +1,18 @@
+# TODO iterate over linked libraries and replace SYSTEMVERILOG_SOURCES with VERILOG_SOURCES instead
+# TODO create a new library instead???
 include_guard(GLOBAL)
 
-function(tmrg RTLLIB)
+function(tmrg IP_LIB)
     cmake_parse_arguments(ARG "REPLACE;SED_WOR;NO_COMMON_DEFINITIONS" "OUTDIR" "" ${ARGN})
 
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+
+    ip_assume_last(IP_LIB ${IP_LIB})
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)
         set(OUTDIR ${BINARY_DIR}/tmrg)
@@ -16,10 +21,12 @@ function(tmrg RTLLIB)
     endif()
     execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR})
 
-    get_rtl_target_sources(V_FILES ${RTLLIB})
-    list(REMOVE_DUPLICATES V_FILES)
+    get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
+    list(PREPEND SOURCES ${V_SOURCES})
+    list(REMOVE_DUPLICATES SOURCES)
 
-    foreach(vfile ${V_FILES})
+    foreach(vfile ${SOURCES})
         get_filename_component(V_SOURCE_WO_EXT ${vfile} NAME_WE)
         get_filename_component(V_SOURCE_EXT ${vfile} EXT)
         list(APPEND V_GEN "${OUTDIR}/${V_SOURCE_WO_EXT}TMR${V_SOURCE_EXT}")
@@ -28,7 +35,7 @@ function(tmrg RTLLIB)
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
 
     set(TMRG_COMMAND 
-        tmrg --stats --tmr-dir=${OUTDIR} ${V_FILES};
+        tmrg --stats --tmr-dir=${OUTDIR} ${SOURCES};
         )
 
     if(ARG_SED_WOR)
@@ -37,32 +44,28 @@ function(tmrg RTLLIB)
             )
     endif()
 
-    set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${V_GEN} ${STAMP_FILE}
         COMMAND ${TMRG_COMMAND}
         ${SED_COMMAND}
         COMMAND touch ${STAMP_FILE}
-        DEPENDS ${V_FILES}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${RTLLIB}"
+        DEPENDS ${SOURCES}
+        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
         )
 
     add_custom_target(
-        ${RTLLIB}_${CMAKE_CURRENT_FUNCTION}
-        DEPENDS ${STAMP_FILE} ${V_FILES} ${V_GEN}
+        ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        DEPENDS ${STAMP_FILE} ${SOURCES} ${V_GEN}
         )
 
     if(ARG_REPLACE)
-        get_target_property(TOP_MODULE ${RTLLIB} TOP_MODULE)
-        if(NOT TOP_MODULE)
-            set_property(TARGET ${RTLLIB} PROPERTY TOP_MODULE ${RTLLIB}TMR)
-        else()
-            set_property(TARGET ${RTLLIB} PROPERTY TOP_MODULE ${TOP_MODULE}TMR)
-        endif()
+        get_target_property(TOP_MODULE ${IP_LIB} IP_NAME)
+        set_property(TARGET ${IP_LIB} PROPERTY IP_NAME ${TOP_MODULE}TMR)
 
-        set_property(TARGET ${RTLLIB} PROPERTY SOURCES ${V_GEN})
-        set_property(TARGET ${RTLLIB} PROPERTY INTERFACE_SOURCES "")
-        add_dependencies(${RTLLIB} ${RTLLIB}_${CMAKE_CURRENT_FUNCTION})
+        set_property(TARGET ${IP_LIB} PROPERTY VERILOG_SOURCES ${V_GEN})
+        set_property(TARGET ${IP_LIB} PROPERTY SYSTEMVERILOG_SOURCES "")
+        add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
     endif()
 
 endfunction()

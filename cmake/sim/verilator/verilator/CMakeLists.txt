@@ -16,3 +16,6 @@ verilate(${TARGET}
     ${FORWARDED_ARGS}
     )
 
+if(VERILATE_SYSTEMC)
+    verilator_link_systemc(${TARGET})
+endif()

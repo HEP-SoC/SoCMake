@@ -2,7 +2,7 @@
 #]]
 
 #[[[
-# Create a target for invoking PeakRDL-ipblocksvg on RTLLIB.
+# Create a target for invoking PeakRDL-ipblocksvg on IP_LIB.
 #
 # PeakRDL-ipblocksvg generates IP block diagram like the one shown below.
 #
@@ -15,7 +15,7 @@
 #
 # It is important to have `inkscape <https://inkscape.org/>`_ installed on the system for this function to work.
 #
-# Function expects that **RTLLIB** *INTERFACE_LIBRARY* has **RDL_FILES** property set with a list of SystemRDL files to be used as inputs.
+# Function expects that **IP_LIB** *INTERFACE_LIBRARY* has **RDL_FILES** property set with a list of SystemRDL files to be used as inputs.
 # To set the RDL_FILES property use `set_property() <https://cmake.org/cmake/help/latest/command/set_property.html>`_ CMake function:
 #
 # .. code-block:: cmake
@@ -23,11 +23,11 @@
 #    set_property(TARGET <your-lib> PROPERTY RDL_FILES ${PROJECT_SOURCE_DIR}/file.rdl)
 #
 #
-# Function will append  .png files to the **GRAPHIC_FILES** of the **RTLLIB**.
+# Function will append  .png files to the **GRAPHIC_FILES** of the **IP_LIB**.
 #
 #
-# :param RTLLIB: RTL interface library, it needs to have RDL_FILES property set with a list of SystemRDL files.
-# :type RTLLIB: INTERFACE_LIBRARY
+# :param IP_LIB: RTL interface library, it needs to have RDL_FILES property set with a list of SystemRDL files.
+# :type IP_LIB: INTERFACE_LIBRARY
 #
 # **Keyword Arguments**
 #
@@ -38,16 +38,17 @@
 # :keyword LOGO: a logo can be placed in the middle of generated picture like shown in figure above.
 # :type LOGO: string path
 #]]
-function(peakrdl_ipblocksvg RTLLIB)
+function(peakrdl_ipblocksvg IP_LIB)
     cmake_parse_arguments(ARG "TRAVERSE" "OUTDIR;LOGO" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/find_python.cmake")
 
-    get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
+    ip_assume_last(IP_LIB ${IP_LIB})
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)
         set(OUTDIR ${BINARY_DIR}/ipblocksvg)
@@ -63,10 +64,10 @@ function(peakrdl_ipblocksvg RTLLIB)
         set(ARG_TRAVERSE --traverse)
     endif()
 
-    get_rtl_target_property(RDL_FILES ${RTLLIB} RDL_FILES)
+    get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
 
-    if(RDL_FILES STREQUAL "RDL_FILES-NOTFOUND")
-        message(FATAL_ERROR "Library ${RTLLIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
+    if(NOT RDL_FILES)
+        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
     find_python3()
@@ -90,28 +91,28 @@ function(peakrdl_ipblocksvg RTLLIB)
         list(REMOVE_DUPLICATES GRAPHIC_FILES)
     else()
         string(REPLACE ";" " " __CMD_STR "${__CMD}")
-        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${RTLLIB}, output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n Command Called: \n ${__CMD_STR}")
+        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${IP_LIB}, output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n Command Called: \n ${__CMD_STR}")
     endif()
 
     set_source_files_properties(${GRAPHIC_FILES} PROPERTIES GENERATED TRUE)
-    set_property(TARGET ${RTLLIB} APPEND PROPERTY GRAPHIC_FILES ${GRAPHIC_FILES})
+    ip_sources(${IP_LIB} GRAPHIC ${GRAPHIC_FILES})
 
-    set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${GRAPHIC_FILES} ${STAMP_FILE}
         COMMAND ${__CMD}
 
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${RTLLIB}"
+        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
         )
 
     add_custom_target(
-        ${RTLLIB}_${CMAKE_CURRENT_FUNCTION}
+        ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${GRAPHIC_FILES} ${STAMP_FILE}
         )
 
-    # set_property(TARGET ${RTLLIB} APPEND PROPERTY DEPENDS ${RTLLIB}_${CMAKE_CURRENT_FUNCTION})
-    add_dependencies(${RTLLIB} ${RTLLIB}_${CMAKE_CURRENT_FUNCTION} )
+    # set_property(TARGET ${IP_LIB} APPEND PROPERTY DEPENDS ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
+    add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} )
 endfunction()
 

@@ -1,14 +1,15 @@
-function(vivado RTLLIB)
+function(vivado IP_LIB)
     cmake_parse_arguments(ARG "" "TOP" "VERILOG_DEFINES" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../rtllib.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/find_python.cmake")
     find_python3()
 
-    get_target_property(BINARY_DIR ${RTLLIB} BINARY_DIR)
+    ip_assume_last(IP_LIB ${IP_LIB})
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)
         set(OUTDIR ${BINARY_DIR}/vivado)
@@ -17,11 +18,13 @@ function(vivado RTLLIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
-    get_rtl_target_sources(V_FILES ${RTLLIB})
-    list(FILTER V_FILES EXCLUDE REGEX ".vlt$")
+    get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
+    list(PREPEND SOURCES ${V_SOURCES})
+    list(FILTER SOURCES EXCLUDE REGEX ".vlt$")
     
     if(NOT ARG_TOP)
-        set(TOP ${RTLLIB})
+        set(TOP ${IP_LIB})
     else()
         set(TOP ${ARG_TOP})
     endif()
@@ -30,35 +33,34 @@ function(vivado RTLLIB)
         string(REPLACE "=" ";" vdef_l ${vdef})
     endforeach()
 
-    get_rtl_target_property(XDC_FILES ${RTLLIB} XDC_FILES)
-    get_target_property(FPGA_PART ${RTLLIB} FPGA_PART)
+    get_ip_sources(XDC_FILES ${IP_LIB} XDC)
+    get_target_property(FPGA_PART ${IP_LIB} FPGA_PART)
 
-    get_rtl_target_property(INTERFACE_INCLUDE_DIRS ${RTLLIB} INTERFACE_INCLUDE_DIRECTORIES)
-    get_rtl_target_property(INCLUDE_DIRS ${RTLLIB} INCLUDE_DIRECTORIES)
+    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB})
 
-    set(BITSTREAM ${OUTDIR}/${RTLLIB}.bit)
+    set(BITSTREAM ${OUTDIR}/${IP_LIB}.bit)
     set_source_files_properties(${BITSTREAM} PROPERTIES GENERATED TRUE)
 
-    set(STAMP_FILE "${BINARY_DIR}/${RTLLIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${BITSTREAM} ${STAMP_FILE}
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/edalize_vivado.py
-            --rtl-files ${V_FILES}
-            --inc-dirs ${INTERFACE_INCLUDE_DIRS} ${INCLUDE_DIRS}
+            --rtl-files ${SOURCES}
+            --inc-dirs ${INCLUDE_DIRS} ${INCLUDE_DIRS}
             --constraint-files ${XDC_FILES}
             --part ${FPGA_PART}
-            --name ${RTLLIB}
+            --name ${IP_LIB}
             --top  ${TOP}
             --outdir ${OUTDIR}
             --verilog-defs ${ARG_VERILOG_DEFINES}
 
         COMMAND touch ${STAMP_FILE}
-        DEPENDS ${V_FILES} ${XDC_FILES} ${RTLLIB}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${RTLLIB}"
+        DEPENDS ${SOURCES} ${XDC_FILES} ${IP_LIB}
+        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
         )
 
     add_custom_target(
-        ${RTLLIB}_vivado
+        ${IP_LIB}_vivado
         DEPENDS ${BITSTREAM} ${STAMP_FILE}
         )
 endfunction()

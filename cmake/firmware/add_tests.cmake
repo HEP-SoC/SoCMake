@@ -15,7 +15,8 @@ function(add_tests EXECUTABLE DIRECTORY)
     
     unset(msg)
     list(APPEND _msg "-------------------------------------------------------------------------\n")
-    list(APPEND _msg "------------ Adding tests for SoC: \"${SOC_NAME}\", tb executable: \"${EXECUTABLE}\"\n")
+    string(REPLACE "__" "::" ALIAS_NAME ${SOC_NAME})
+    list(APPEND _msg "------------ Adding tests for SoC: \"${ALIAS_NAME}\", tb executable: \"${EXECUTABLE}\"\n")
     list(APPEND _msg "Added tests:\n")
 
     enable_testing()

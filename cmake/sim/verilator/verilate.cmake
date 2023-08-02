@@ -1,182 +1,142 @@
-include_guard(GLOBAL)
-
-function(verilate TARGET LIB)
-    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;EXCLUDE_FROM_ALL")
+function(verilate IP_LIB)
+    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS")
     set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY")
     set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL")
 
-    cmake_parse_arguments(VERILATE "${OPTIONS}"
+    cmake_parse_arguments(ARG "${OPTIONS}"
         "${ONE_PARAM_ARGS}"
         "${MULTI_PARAM_ARGS}"
         ${ARGN})
 
-    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../rtllib.cmake")
-
-    get_target_property(BINARY_DIR ${LIB} BINARY_DIR)
-
-    get_rtl_target_property(INTERFACE_INCLUDE_DIRECTORIES ${LIB} INTERFACE_INCLUDE_DIRECTORIES)
-    get_rtl_target_property(INCLUDE_DIRECTORIES ${LIB} INCLUDE_DIRECTORIES)
-    if(INTERFACE_INCLUDE_DIRECTORIES)
-        set(INCLUDE_DIRS_ARG INCLUDE_DIRS ${INTERFACE_INCLUDE_DIRECTORIES} ${INCLUDE_DIRECTORIES})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    if(VERILATE_TOP_MODULE)
-        set(TOP_MODULE_ARG TOP_MODULE ${VERILATE_TOP_MODULE})
-    endif()
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
 
-    if(VERILATE_EXCLUDE_FROM_ALL)
-        set(VERILATE_EXCLUDE_FROM_ALL "EXCLUDE_FROM_ALL")
+    ip_assume_last(IP_LIB ${IP_LIB})
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
+
+    if(NOT ARG_DIRECTORY)
+        set(DIRECTORY "${BINARY_DIR}/${IP_LIB}_verilate")
     else()
-        set(VERILATE_EXCLUDE_FROM_ALL "")
+        set(DIRECTORY ${ARG_DIRECTORY})
     endif()
 
-    get_rtl_target_property(LIB_VERILATOR_ARGS ${LIB} VERILATOR_ARGS)
-    if(NOT TARGET ${TARGET})
-        set(VERILATOR_ARGS VERILATOR_ARGS --main --timing ${VERILATE_VERILATOR_ARGS} ${LIB_VERILATOR_ARGS})
+    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB})
+
+    if(ARG_TOP_MODULE)
+        set(TOP_MODULE ${ARG_TOP_MODULE})
     else()
-        set(VERILATOR_ARGS VERILATOR_ARGS ${VERILATE_VERILATOR_ARGS} ${LIB_VERILATOR_ARGS})
+        get_target_property(TOP_MODULE ${IP_LIB} IP_NAME)
     endif()
 
-    get_rtl_target_sources(V_FILES ${LIB} SOURCES)
-    list(REMOVE_DUPLICATES V_FILES)
-
-    _verilate(${TARGET} ${VERILATE_EXCLUDE_FROM_ALL}
-        SOURCES ${V_FILES}
-        ${VERILATOR_ARGS}
-
-        ${ARGN}
-        ${INCLUDE_DIRS_ARG}
-        
-        )
-
-    add_dependencies(${TARGET}_vlt ${LIB})
-
-endfunction()
-
-function(_verilate TARGET)
-    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;EXCLUDE_FROM_ALL")
-    set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY")
-    set(MULTI_PARAM_ARGS "SOURCES;VERILATOR_ARGS;INCLUDE_DIRS;OPT_SLOW;OPT_FAST;OPT_GLOBAL")
-    cmake_parse_arguments(VERILATE "${OPTIONS}"
-        "${ONE_PARAM_ARGS}"
-        "${MULTI_PARAM_ARGS}"
-        ${ARGN})
-
-
-    if (NOT VERILATE_SOURCES)
-        message(FATAL_ERROR "Need at least one source")
-    endif()
-
-    if(NOT VERILATE_TOP_MODULE)
-        list(GET VERILATE_SOURCES 0 FIRST_SOURCE)
-        get_filename_component(TOP_MODULE ${FIRST_SOURCE} NAME_WE)
+    if(ARG_PREFIX)
+        set(PREFIX ${ARG_PREFIX})
     else()
-        set(TOP_MODULE ${VERILATE_TOP_MODULE})
+        set(PREFIX V${TOP_MODULE})
     endif()
 
-    if(VERILATE_EXCLUDE_FROM_ALL)
-        set(VERILATE_EXCLUDE_FROM_ALL "EXCLUDE_FROM_ALL")
-    else()
-        set(VERILATE_EXCLUDE_FROM_ALL "")
+    get_ip_property(VERILATOR_ARGS ${IP_LIB} VERILATOR_ARGS)
+    list(APPEND VERILATOR_ARGS ${ARG_VERILATOR_ARGS})
+
+    get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
+    list(PREPEND SOURCES ${V_SOURCES})
+
+    if(NOT SOURCES)
+        message(FATAL_ERROR "Verilate function needs at least one VERILOG or SYSTEMVERILOG source added to the IP")
     endif()
 
-    set(MAIN_FN "V${TOP_MODULE}__main.cpp")
-    if(VERILATE_PREFIX)
-        set(TOP_MODULE ${VERILATE_PREFIX})
-        set(MAIN_FN "${TOP_MODULE}__main.cpp")
-    else()
-        if(VERILATE_TOP_MODULE)
-            set(VERILATE_PREFIX "V${VERILATE_TOP_MODULE}")
-        endif()
+    if(TRACE_STRUCTS)
+        list(APPEND VERILATOR_ARGS --trace-structs)
     endif()
 
-    if(NOT VERILATE_DIRECTORY)
-        set(VERILATE_DIRECTORY "${PROJECT_BINARY_DIR}/${TARGET}_vlt/verilate")
+    if(ARG_SYSTEMC)
+        set(SYSTEMC TRUE)
     endif()
 
-    list(FIND VERILATE_VERILATOR_ARGS --main GENERATE_MAIN)
+    set(PASS_MULTIPARAM SOURCES VERILATOR_ARGS INCLUDE_DIRS SYSTEMC) # TODO Pass more stuff from top
+    set(PASS_ONEPARAM DIRECTORY TOP_MODULE PREFIX)
+    set(PASS_OPTIONS ARG_TRACE_STRUCTS)
 
-    if(GENERATE_MAIN GREATER -1)
-        set(MAIN "${VERILATE_DIRECTORY}/${MAIN_FN}")
-        set_source_files_properties(${MAIN} PROPERTIES GENERATED TRUE)
-
-        if(NOT TARGET ${TARGET})
-            file(WRITE "${PROJECT_BINARY_DIR}/__null.cpp" "")
-            add_executable(${TARGET} ${VERILATE_EXCLUDE_FROM_ALL}
-                "${PROJECT_BINARY_DIR}/__null.cpp"
-                )
-        endif()
-
-        target_sources(${TARGET} PUBLIC
-            ${MAIN}
-            )
-    endif()
-
-    foreach(param ${MULTI_PARAM_ARGS})
-        string(REPLACE ";" "|" VERILATE_${param} "${VERILATE_${param}}")
+    foreach(param ${PASS_MULTIPARAM})
+        string(REPLACE ";" "|" ${param} "${${param}}")
     endforeach()
 
-    foreach(param ${OPTIONS} ${ONE_PARAM_ARGS} ${MULTI_PARAM_ARGS})
-        if(VERILATE_${param})
-            list(APPEND EXT_PRJ_ARGS "-DVERILATE_${param}=${VERILATE_${param}}")
+    foreach(param ${PASS_MULTIPARAM} ${PASS_OPTIONS} ${PASS_ONEPARAM})
+        if(${param})
+            list(APPEND EXT_PRJ_ARGS "-DVERILATE_${param}=${${param}}")
             list(APPEND ARGUMENTS_LIST ${param})
         endif()
     endforeach()
     string(REPLACE ";" "|" ARGUMENTS_LIST "${ARGUMENTS_LIST}")
 
-    if(CMAKE_CXX_STANDARD)
-        set(ARG_CMAKE_CXX_STANDARD "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}")
-    endif()
-
-
-    if(VERISC_HOME)
-        set(VERILATOR_HOME "${VERISC_HOME}/open/verilator-${VERILATOR_VERSION}")
-    else()
+    if(NOT VERILATOR_HOME)
         find_package(verilator REQUIRED
-            HINTS $ENV{VERISC_HOME}/*
+            HINTS ${VERISC_HOME}/open/* $ENV{VERISC_HOME}/open/*
             )
         set(VERILATOR_HOME "${verilator_DIR}/../../")
     endif()
 
-      include(ExternalProject)
-      ExternalProject_Add(${TARGET}_vlt
-          DOWNLOAD_COMMAND ""
-          SOURCE_DIR "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/verilator"
-          PREFIX ${PROJECT_BINARY_DIR}/${TARGET}_vlt
-          BINARY_DIR ${PROJECT_BINARY_DIR}/${TARGET}_vlt
-          LIST_SEPARATOR |
-          BUILD_ALWAYS 1
-
-          CMAKE_ARGS
-              ${ARG_CMAKE_CXX_STANDARD}
-              -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-              -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-              -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}
-
-              -DTARGET=${TARGET}
-              -DARGUMENTS_LIST=${ARGUMENTS_LIST}
-              ${EXT_PRJ_ARGS}
-              -DVERILATOR_ROOT=${VERILATOR_HOME}
-
-          INSTALL_COMMAND ""
-          DEPENDS ${RTL_LIB}
-          EXCLUDE_FROM_ALL 1
-          ) 
-
-    set(VLT_STATIC_LIB "${PROJECT_BINARY_DIR}/${TARGET}_vlt/lib${TARGET}.a")
-    set(INC_DIR ${VERILATE_DIRECTORY})
+    if(NOT SYSTEMC_HOME)
+        find_package(SystemCLanguage REQUIRED
+            HINTS ${VERISC_HOME}/open/* $ENV{VERISC_HOME}/open/*
+            )
+        set(SYSTEMC_HOME "${SystemCLanguage_DIR}/../../../")
+    endif()
     
-    add_library(tmp_${TOP_MODULE} STATIC IMPORTED)
-    add_dependencies(${TARGET} tmp_${TOP_MODULE} ${TARGET}_vlt)
-    set_target_properties(tmp_${TOP_MODULE} PROPERTIES IMPORTED_LOCATION ${VLT_STATIC_LIB})
-    
-    target_include_directories(${TARGET} PUBLIC ${INC_DIR})
-    target_include_directories(${TARGET} PUBLIC 
+    if(CMAKE_CXX_STANDARD)
+        set(ARG_CMAKE_CXX_STANDARD "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}")
+    endif()
+
+    set(VERILATE_TARGET ${IP_LIB}_verilate)
+    include(ExternalProject)
+    ExternalProject_Add(${VERILATE_TARGET}
+        DOWNLOAD_COMMAND ""
+        SOURCE_DIR "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/verilator"
+        PREFIX ${DIRECTORY}
+        BINARY_DIR ${DIRECTORY}
+        LIST_SEPARATOR |
+        BUILD_ALWAYS 1
+
+        CMAKE_ARGS
+            ${ARG_CMAKE_CXX_STANDARD}
+            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+            -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}
+
+            -DTARGET=${TOP_MODULE} # USE TOP_MODULE MAYBE???? TODO
+            -DARGUMENTS_LIST=${ARGUMENTS_LIST}
+            ${EXT_PRJ_ARGS}
+            -DVERILATOR_ROOT=${VERILATOR_HOME}
+            -DSYSTEMC_ROOT=${SYSTEMC_HOME}
+
+        INSTALL_COMMAND ""
+        DEPENDS ${IP_LIB}
+        EXCLUDE_FROM_ALL 1
+        ) 
+
+    set(VLT_STATIC_LIB "${DIRECTORY}/lib${TOP_MODULE}.a")
+    set(INC_DIR ${DIRECTORY})
+
+    set(VERILATED_LIB ${IP_LIB}__vlt)
+    add_library(${VERILATED_LIB} STATIC IMPORTED)
+    add_dependencies(${VERILATED_LIB} ${VERILATE_TARGET})
+    set_target_properties(${VERILATED_LIB} PROPERTIES IMPORTED_LOCATION ${VLT_STATIC_LIB})
+
+    target_include_directories(${VERILATED_LIB} INTERFACE ${INC_DIR})
+    target_include_directories(${VERILATED_LIB} INTERFACE
         "${VERILATOR_HOME}/include"
         "${VERILATOR_HOME}/include/vltstd")
 
     set(THREADS_PREFER_PTHREAD_FLAG ON)
     find_package(Threads REQUIRED)
 
-    target_link_libraries(${TARGET} tmp_${TOP_MODULE} -pthread)
+    target_link_libraries(${VERILATED_LIB} INTERFACE -pthread)
+
+    get_target_property(TYPE ${VERILATED_LIB} TYPE)
+
+    string(REPLACE "__" "::" ALIAS_NAME "${VERILATED_LIB}")
+    add_library(${ALIAS_NAME} ALIAS ${VERILATED_LIB})
 endfunction()
