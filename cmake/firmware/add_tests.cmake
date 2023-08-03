@@ -24,6 +24,7 @@ function(add_tests EXECUTABLE DIRECTORY)
         add_subdirectory("${DIRECTORY}/${test}" "${test}_test")
         foreach(fw_prj ${FW_PROJECT_NAME})
             list(APPEND _msg "   ${fw_prj}\n")
+            list(APPEND test_list ${fw_prj})
             get_target_property(HEX_FILE ${fw_prj} HEX_${ARG_WIDTH}bit_FILE)
             get_target_property(HEX_TEXT_FILE ${fw_prj} HEX_TEXT_${ARG_WIDTH}bit_FILE)
             get_target_property(HEX_DATA_FILE ${fw_prj} HEX_DATA_${ARG_WIDTH}bit_FILE)
@@ -46,6 +47,14 @@ function(add_tests EXECUTABLE DIRECTORY)
                 )
         endforeach()
     endforeach()
+
+    add_custom_target(check
+        COMMAND ${CMAKE_CTEST_COMMAND}
+        DEPENDS ${test_list} ${EXECUTABLE}
+        )
+
+    list(APPEND _msg "To run ctest on all of the tests run:\n")
+    list(APPEND _msg "    make check\n")
     list(APPEND _msg "To run any of the added tests execute:\n")
     list(APPEND _msg "   make run_<test_name>\n")
     list(APPEND _msg "-------------------------------------------------------------------------")
