@@ -82,3 +82,9 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/docs/doxygen/doxygen.cmake")
 # =====================================
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/verible/verible.cmake")
+
+# ====================================
+# ====== Riscv =======================
+# ====================================
+
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/riscv/sail/sail_install.cmake")
