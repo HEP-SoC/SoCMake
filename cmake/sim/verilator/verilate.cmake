@@ -40,6 +40,11 @@ function(verilate IP_LIB)
     get_ip_property(VERILATOR_ARGS ${IP_LIB} VERILATOR_ARGS)
     list(APPEND VERILATOR_ARGS ${ARG_VERILATOR_ARGS})
 
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
+    foreach(def ${COMP_DEFS})
+        list(APPEND VERILATOR_ARGS -D${def})
+    endforeach()
+
     get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
     list(PREPEND SOURCES ${V_SOURCES})

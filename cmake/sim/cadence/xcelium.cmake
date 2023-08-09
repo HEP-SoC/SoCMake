@@ -44,10 +44,16 @@ function(xcelium IP_LIB)
         list(APPEND ARG_INCDIRS -incdir ${dir})
     endforeach()
 
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
+    foreach(def ${COMP_DEFS})
+        list(APPEND CMP_DEFS_ARG -D${def})
+    endforeach()
+
     add_custom_target( run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         COMMAND xrun
         ${V_FILES}
         ${ARG_INCDIRS}
+        ${CMP_DEFS_ARG}
         ${ARG_GUI}
         DEPENDS ${V_FILES}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"

@@ -26,14 +26,20 @@ function(iverilog IP_LIB)
     foreach(dir ${INC_DIRS})
         list(APPEND ARG_INCDIRS -I ${dir})
     endforeach()
-    set(EXEC "${OUTDIR}/${IP_LIB}_iv")
 
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
+    foreach(def ${COMP_DEFS})
+        list(APPEND CMP_DEFS_ARG -D${def})
+    endforeach()
+
+    set(EXEC "${OUTDIR}/${IP_LIB}_iv")
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${EXEC} ${STAMP_FILE}
         COMMAND iverilog
         ${SOURCES}
         ${ARG_INCDIRS}
+        ${CMP_DEFS_ARG}
         -o ${EXEC}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES}

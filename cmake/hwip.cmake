@@ -1,23 +1,4 @@
 include("${CMAKE_CURRENT_LIST_DIR}/rtllib.cmake")
-function(get_ipname OUTVAR IP_NAME)
-    cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION" "" ${ARGN})
-    if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    endif()
-
-    if(ARG_VENDOR)
-        set(LIB_NAME ${ARG_VENDOR}__)
-    endif()
-    if(ARG_LIBRARY)
-        string(APPEND LIB_NAME ${ARG_LIBRARY}__)
-    endif()
-    string(APPEND LIB_NAME ${IP_NAME})
-    if(ARG_VERSION)
-        string(APPEND LIB_NAME __${ARG_VERSION})
-    endif()
-
-    set(${OUTVAR} ${LIB_NAME} PARENT_SCOPE)
-endfunction()
 
 function(add_ip IP_NAME)
     cmake_parse_arguments(ARG "" "VERSION;DESCRIPTION;VENDOR;LIBRARY" "" ${ARGN})
@@ -62,6 +43,26 @@ function(add_ip IP_NAME)
 
     set(IP ${IP_LIB} PARENT_SCOPE)
 
+endfunction()
+
+function(get_ipname OUTVAR IP_NAME)
+    cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    if(ARG_VENDOR)
+        set(LIB_NAME ${ARG_VENDOR}__)
+    endif()
+    if(ARG_LIBRARY)
+        string(APPEND LIB_NAME ${ARG_LIBRARY}__)
+    endif()
+    string(APPEND LIB_NAME ${IP_NAME})
+    if(ARG_VERSION)
+        string(APPEND LIB_NAME __${ARG_VERSION})
+    endif()
+
+    set(${OUTVAR} ${LIB_NAME} PARENT_SCOPE)
 endfunction()
 
 function(ip_assume_last VLNV IP_NAME) # TODO check SOURCE DIR if its the same as current
@@ -173,4 +174,18 @@ function(get_ip_property OUTVAR IP_LIB PROPERTY)
     alias_dereference(IP_LIB ${IP_LIB})
     get_rtl_target_property(out ${IP_LIB} ${PROPERTY})
     set(${OUTVAR} ${out} PARENT_SCOPE)
+endfunction()
+
+function(ip_compile_definitions IP_LIB)
+    # If only IP name is given without full VLNV, assume rest from the project variables
+    ip_assume_last(IP_LIB ${IP_LIB})
+
+    target_compile_definitions(${IP_LIB} INTERFACE ${ARGN})
+endfunction()
+
+function(get_ip_compile_definitions OUTVAR IP_LIB)
+    # If only IP name is given without full VLNV, assume rest from the project variables
+    ip_assume_last(IP_LIB ${IP_LIB})
+    get_rtl_target_property(__comp_defs ${IP_LIB} INTERFACE_COMPILE_DEFINITIONS)
+    set(${OUTVAR} ${__comp_defs} PARENT_SCOPE)
 endfunction()

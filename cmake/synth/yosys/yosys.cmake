@@ -39,9 +39,13 @@ function(yosys IP_LIB)
     endif()
     string (REPLACE ";" " " V_FILES_STR "${SOURCES}")
 
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
+    foreach(def ${COMP_DEFS})
+        list(APPEND CMP_DEFS_ARG -D${def})
+    endforeach()
+
     set(V_GEN ${OUTDIR}/${IP_LIB}.v)
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
-
     get_ip_sources(YOSYS_SCRIPTS ${IP_LIB} YOSYS)
     if(NOT YOSYS_SCRIPTS)
         configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/flows/default.ys.in ${OUTDIR}/flows/default.ys @ONLY)
@@ -59,7 +63,7 @@ function(yosys IP_LIB)
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${STAMP_FILE}
-        COMMAND yosys -s ${YOSYS_SCRIPTS}
+        COMMAND yosys ${CMP_DEFS_ARG} -s ${YOSYS_SCRIPTS}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"

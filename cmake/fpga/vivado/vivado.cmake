@@ -38,6 +38,11 @@ function(vivado IP_LIB)
 
     get_ip_include_directories(INCLUDE_DIRS ${IP_LIB})
 
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
+    foreach(def ${COMP_DEFS})
+        list(APPEND CMP_DEFS_ARG -D${def})
+    endforeach()
+
     set(BITSTREAM ${OUTDIR}/${IP_LIB}.bit)
     set_source_files_properties(${BITSTREAM} PROPERTIES GENERATED TRUE)
 
@@ -52,7 +57,7 @@ function(vivado IP_LIB)
             --name ${IP_LIB}
             --top  ${TOP}
             --outdir ${OUTDIR}
-            --verilog-defs ${ARG_VERILOG_DEFINES}
+            --verilog-defs ${ARG_VERILOG_DEFINES} ${CMP_DEFS_ARG}
 
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES} ${XDC_FILES} ${IP_LIB}

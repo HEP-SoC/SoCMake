@@ -28,18 +28,20 @@ function(sv2v IP_LIB)
         list(APPEND INCDIR_ARG -I${dir})
     endforeach()
 
-    # TODO get verilog defines
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
+    foreach(def ${COMP_DEFS})
+        list(APPEND CMP_DEFS_ARG -D${def})
+    endforeach()
 
     set(V_GEN ${OUTDIR}/${IP_LIB}.v)
 
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
 
-
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${V_GEN}
         COMMAND  sv2v
-        ${SOURCES} ${INCDIR_ARG}
+        ${SOURCES} ${INCDIR_ARG} ${CMP_DEFS_ARG}
         -w ${V_GEN}
 
         COMMAND touch ${STAMP_FILE}
