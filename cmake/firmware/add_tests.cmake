@@ -52,8 +52,10 @@ function(add_tests EXECUTABLE DIRECTORY)
         endforeach()
     endforeach()
 
+    include(ProcessorCount)
+    ProcessorCount(NPROC)
     add_custom_target(check
-        COMMAND ${CMAKE_CTEST_COMMAND}
+        COMMAND ${CMAKE_CTEST_COMMAND} -j${NPROC}
         DEPENDS ${test_list} ${EXECUTABLE}
         )
 
