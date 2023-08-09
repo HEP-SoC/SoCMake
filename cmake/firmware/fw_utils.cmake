@@ -64,7 +64,7 @@ function(gen_hex_files EXE)
     find_python3()
 
     set(EXECUTABLE ${BINARY_DIR}/${EXE})
-    set(MAKEHEX_TOOL       "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/scripts/makehex.py")
+    set(SOCMAKE_MAKEHEX_TOOL       "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/scripts/makehex.py" CACHE STRING "Makehex tool")
     gen_bin(${EXE})
     get_property(BIN_FILE TARGET ${EXE} PROPERTY BIN_FILE)
     get_property(BIN_TEXT_FILE TARGET ${EXE} PROPERTY BIN_TEXT_FILE)
@@ -85,9 +85,9 @@ function(gen_hex_files EXE)
             add_custom_command(TARGET ${EXE}
                 POST_BUILD
                 BYPRODUCTS ${HEX_FILE} ${HEX_TEXT_FILE} ${HEX_DATA_FILE}
-                COMMAND ${Python3_EXECUTABLE} ${MAKEHEX_TOOL} --width ${width} ${BIN_FILE} ${HEX_FILE}
-                COMMAND ${Python3_EXECUTABLE} ${MAKEHEX_TOOL} --width ${width} ${BIN_TEXT_FILE} ${HEX_TEXT_FILE}
-                COMMAND ${Python3_EXECUTABLE} ${MAKEHEX_TOOL} --width ${width} ${BIN_DATA_FILE} ${HEX_DATA_FILE}
+                COMMAND ${Python3_EXECUTABLE} ${SOCMAKE_MAKEHEX_TOOL} --width ${width} ${BIN_FILE} ${HEX_FILE}
+                COMMAND ${Python3_EXECUTABLE} ${SOCMAKE_MAKEHEX_TOOL} --width ${width} ${BIN_TEXT_FILE} ${HEX_TEXT_FILE}
+                COMMAND ${Python3_EXECUTABLE} ${SOCMAKE_MAKEHEX_TOOL} --width ${width} ${BIN_DATA_FILE} ${HEX_DATA_FILE}
                 COMMENT "Generating ${width} bit hex file file for ${EXE}"
                 )
 
