@@ -90,7 +90,7 @@ function(verilate_xml IP_LIB)
           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/scripts/parse_vlt_xml.py
           ${XML_FILE}
           ${OUTDIR}
-          --prefix ${TOP_MODULE}
+          --prefix ${IP_LIB}
           --vlt --reg-list --reg-h
           COMMAND touch ${STAMP_FILE}
           DEPENDS ${IP_LIB}_verilate_xml ${XML_FILE}
