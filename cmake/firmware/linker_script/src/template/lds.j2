@@ -20,6 +20,10 @@ PROVIDE(_program_memory = ORIGIN( {{ prog_mem.parent.inst_name }} ));
 
 PROVIDE (__executable_start = SEGMENT_START("text-segment", _start)); . = SEGMENT_START("text-segment", _start) + SIZEOF_HEADERS;
 
+{% for reg in regs %}
+PROVIDE({{reg.inst_name}} = 0x{{ '%08x' % reg.absolute_address }});
+{% endfor %}
+
 SECTIONS {
 
     {% if boot_mem is not none %}

@@ -60,4 +60,4 @@ function(gen_lds IP_LIB)
 
 endfunction()
 
-
+include("${CMAKE_CURRENT_LIST_DIR}/src/lds_props.cmake")

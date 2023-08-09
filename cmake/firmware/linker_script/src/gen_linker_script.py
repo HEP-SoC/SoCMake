@@ -1,30 +1,24 @@
-from systemrdl import RDLCompiler, RDLCompileError
+from systemrdl import RDLCompiler, RDLCompileError, RDLListener, RDLWalker
 from systemrdl.node import FieldNode, MemNode, Node, RootNode, AddressableNode, RegNode, SignalNode
 from typing import List
 import sys, os
 import jinja2
 import argparse
 
-class RDL2LdsExporter:
+class RDL2LdsExporter(RDLListener):
     def __init__(self):
-
         self.memories = []
+        self.regs = []
 
-    def find_memories(self, node : Node,
-                      mems : List[MemNode] = [],
-                      ) -> List[MemNode]:
-        memories = []
-        if isinstance(node, MemNode):
-            assert isinstance(node, Node)
-            if node.get_property("sections") != "":
-                memories.append(node)
+    def enter_Mem(self, node):
+        if node.get_property("sections", default=False):
+            self.memories.append(node)
 
-        for child in node.children(unroll=True):
-            ret = self.find_memories(child, memories)
-            if len(ret) > 0:
-                memories.extend(ret)
+    def enter_Reg(self, node):
+        if node.get_property("linker_symbol", default=False):
+            assert not any(reg.inst_name == node.inst_name for reg in self.regs), f"Only one register with linker_symbol property and the same instance name can exist, you probably instantiated \"{node.parent.orig_type_name}\" Addrmap multiple times"
 
-        return memories
+            self.regs.append(node)
 
     def isSwEx(self, mem : MemNode) -> bool:
         sections = self.get_sections_prop(mem)
@@ -134,9 +128,12 @@ class RDL2LdsExporter:
                outfile : str,
                debug : bool = True,
                ):
-        self.memories = self.find_memories(node)
+        # self.memories = self.find_memories(node)
 
-        context = {'mems' : self.memories, 'debug' : debug}
+        context = {'mems'  : self.memories,
+                   'debug' : debug,
+                   'regs'  : self.regs
+                   }
 
         text = self.process_template(context, "lds.j2")
 
@@ -202,8 +199,9 @@ def main():
         top = top
     assert top is not None
 
-
+    walker = RDLWalker(unroll=True)
     rdl2lds = RDL2LdsExporter()
+    walker.walk(top, rdl2lds)
 
     rdl2lds.export(
             node=top,

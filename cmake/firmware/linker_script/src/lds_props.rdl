@@ -1,0 +1,9 @@
+property sections {
+    type = string;
+    component = mem;
+};
+
+property linker_symbol { // MOve to LDS_gen
+    type = boolean;
+    component = reg;
+};

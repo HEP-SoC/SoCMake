@@ -4,9 +4,10 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../../hwip.cmake")
 
 add_ip(base
     VENDOR cern
-    LIBRARY socgen
-    VERSION 0.0.5
+    LIBRARY ldsgen
+    VERSION 0.0.1
     )
 ip_sources(${IP} SYSTEMRDL
-    ${CMAKE_CURRENT_LIST_DIR}/socgen_props.rdl
+    ${CMAKE_CURRENT_LIST_DIR}/lds_props.rdl
     )
+
