@@ -110,10 +110,11 @@ function(set_linker_scripts EXE)
 
     set(LINKER_SCRIPT_ARG "-Wl")
     foreach(lds ${ARG_LDS})
-        string(APPEND LINKER_SCRIPT_ARG ",-T${lds}")
+        target_link_options(${PROJECT_NAME} PUBLIC
+            -T${lds}
+            )
     endforeach()
 
-    target_link_options(${EXE} BEFORE PRIVATE ${LINKER_SCRIPT_ARG})
     set_property(TARGET ${EXE} PROPERTY LINK_DEPENDS ${ARG_LDS})
 endfunction()
 

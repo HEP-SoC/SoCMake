@@ -71,6 +71,7 @@ string(APPEND CMAKE_CXX_FLAGS " -Wstack-usage=128")       # Create warning if a 
 string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wredundant-decls -pedantic")
 string(APPEND CMAKE_CXX_FLAGS " -ffreestanding") # Standard library may not exist and program startup may not be at main, do not assume that standard function use usual definitions
 string(APPEND CMAKE_CXX_FLAGS " -nostdlib") # Do not use the standard system startup files or libraries when linking https://cs107e.github.io/guides/gcc/
+string(APPEND CMAKE_CXX_FLAGS " -nodefaultlibs") # Do not use the standard system libraries when linking
 # string(APPEND CMAKE_CXX_FLAGS " -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables") # Remove eh_frame sections and rest
 
 
@@ -89,6 +90,3 @@ set(CMAKE_C_FLAGS ${CMAKE_CXX_FLAGS})
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM     NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY     ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE     ONLY)
-
-
-
