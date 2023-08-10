@@ -24,6 +24,7 @@ PROVIDE (__executable_start = SEGMENT_START("text-segment", _start)); . = SEGMEN
 PROVIDE({{reg.inst_name}} = 0x{{ '%08x' % reg.absolute_address }});
 {% endfor %}
 
+
 SECTIONS {
 
     {% if boot_mem is not none %}
@@ -41,6 +42,9 @@ SECTIONS {
     *crt0.S.o(.vectors);
     *crt0.S.o(.start_section);
     *crt0.S.o(.text);
+
+    /* TODO maybe more relaxed garbage collection */
+    KEEP (*crt0.S.o(*))
 
     KEEP (*(SORT_NONE(.init)))
 
