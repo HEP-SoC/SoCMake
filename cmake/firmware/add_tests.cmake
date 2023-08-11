@@ -1,5 +1,5 @@
 function(add_tests EXECUTABLE DIRECTORY)
-    cmake_parse_arguments(ARG "" "WIDTH" "ARGS;DEPS" ${ARGN})
+    cmake_parse_arguments(ARG "USE_PLUSARGS" "WIDTH" "ARGS;DEPS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -11,6 +11,12 @@ function(add_tests EXECUTABLE DIRECTORY)
 
     if(NOT ARG_WIDTH)
         set(ARG_WIDTH 32)
+    endif()
+
+    if(ARG_USE_PLUSARGS)
+        set(PREFIX +)
+    else()
+        set(PREFIX --)
     endif()
     
     unset(msg)
@@ -35,17 +41,17 @@ function(add_tests EXECUTABLE DIRECTORY)
             add_test(
                 NAME ${fw_prj}
                 COMMAND ./${EXECUTABLE} 
-                    +firmware=${HEX_FILE} 
-                    +firmware_text=${HEX_TEXT_FILE}
-                    +firmware_data=${HEX_DATA_FILE}
+                    ${PREFIX}firmware=${HEX_FILE} 
+                    ${PREFIX}firmware_text=${HEX_TEXT_FILE}
+                    ${PREFIX}firmware_data=${HEX_DATA_FILE}
                     ${ARG_ARGS}
                 )
 
             add_custom_target(run_${fw_prj}
                 COMMAND ./${EXECUTABLE} 
-                    +firmware=${HEX_FILE} 
-                    +firmware_text=${HEX_TEXT_FILE}
-                    +firmware_data=${HEX_DATA_FILE}
+                    ${PREFIX}firmware=${HEX_FILE} 
+                    ${PREFIX}firmware_text=${HEX_TEXT_FILE}
+                    ${PREFIX}firmware_data=${HEX_DATA_FILE}
                     ${ARG_ARGS}
                 DEPENDS ${EXECUTABLE} ${fw_prj} ${ARG_DEPS}
                 )
