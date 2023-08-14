@@ -85,7 +85,7 @@ function(gen_hex_files EXE)
             add_custom_command(TARGET ${EXE}
                 POST_BUILD
                 BYPRODUCTS ${HEX_FILE} ${HEX_TEXT_FILE} ${HEX_DATA_FILE}
-                COMMAND ${Python3_EXECUTABLE} ${SOCMAKE_MAKEHEX_TOOL} --width ${width} ${BIN_FILE} ${HEX_FILE}
+                COMMAND ${Python3_EXECUTABLE} ${SOCMAKE_MAKEHEX_TOOL} --width ${width} ${BIN_FILE} ${HEX_FILE}          # TODO this is slowing down
                 COMMAND ${Python3_EXECUTABLE} ${SOCMAKE_MAKEHEX_TOOL} --width ${width} ${BIN_TEXT_FILE} ${HEX_TEXT_FILE}
                 COMMAND ${Python3_EXECUTABLE} ${SOCMAKE_MAKEHEX_TOOL} --width ${width} ${BIN_DATA_FILE} ${HEX_DATA_FILE}
                 COMMENT "Generating ${width} bit hex file file for ${EXE}"
