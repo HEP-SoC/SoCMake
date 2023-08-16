@@ -35,6 +35,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_html/peakrdl_html.cmake
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_html/peakrdl_html_md.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_socgen/peakrdl_socgen.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_print.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_docusaurus.cmake")
 
 # ====================================
 # ======== FPGA ======================

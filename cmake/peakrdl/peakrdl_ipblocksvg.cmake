@@ -35,11 +35,15 @@
 # :type OUTDIR: string path
 # :keyword TRAVERSE: option argument if passed, it will traverse the hierarchy and generate a .png file for each addrmap
 # :type TRAVERSE: option
+# :keyword APPEND_HIERPATH: Append hierarchical path to the output directory, for example if outdir is /home/user/test/ and hierarchy of Addrmap is soc.apb_subsystem.plic the output directory will be /home/user/test/soc/apb_subsystem/plic, use PATH_SUFFIX to append additional suffix to this path
+# :type APPEND_HIERPATH: option
+# :keyword PATH_SUFFIX: Append a path suffix to the output directory, for example if --path-suffix=docs/pictures and outdir is /home/user/test/, and APPEND_HIERPATH is active, addrmap hierarchy is soc.apb_subsystem.plic, the real output path will be /home/user/test/soc/apb_subsystem/plic/docs/pictures/
+# :type PATH_SUFFIX: string
 # :keyword LOGO: a logo can be placed in the middle of generated picture like shown in figure above.
 # :type LOGO: string path
 #]]
 function(peakrdl_ipblocksvg IP_LIB)
-    cmake_parse_arguments(ARG "TRAVERSE" "OUTDIR;LOGO" "" ${ARGN})
+    cmake_parse_arguments(ARG "TRAVERSE;APPEND_HIERPATH" "OUTDIR;LOGO;PATH_SUFFIX" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -64,6 +68,18 @@ function(peakrdl_ipblocksvg IP_LIB)
         set(ARG_TRAVERSE --traverse)
     endif()
 
+    if(ARG_APPEND_HIERPATH)
+        set(ARG_APPEND_HIERPATH --append-hierpath)
+    else()
+        unset(ARG_APPEND_HIERPATH)
+    endif()
+
+    if(ARG_PATH_SUFFIX)
+        set(ARG_PATH_SUFFIX --path-suffix ${ARG_PATH_SUFFIX})
+    else()
+        unset(ARG_PATH_SUFFIX)
+    endif()
+
     get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
 
     if(NOT RDL_FILES)
@@ -76,6 +92,8 @@ function(peakrdl_ipblocksvg IP_LIB)
             ${RDL_FILES}
             ${ARG_LOGO}
             ${ARG_TRAVERSE}
+            ${ARG_APPEND_HIERPATH}
+            ${ARG_PATH_SUFFIX}
             -o ${OUTDIR}
             )
     set(__CMD_LF ${__CMD} --list-files)
