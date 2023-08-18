@@ -1,5 +1,5 @@
 function(doxygen IP_LIB)
-    cmake_parse_arguments(ARG "" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "" "OUTDIR;DOXYGEN_CONFIG" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -33,7 +33,11 @@ function(doxygen IP_LIB)
     string(REPLACE ";" "," INCDIRS "${INCDIRS}")
 
 
-    set(DOXYGEN_IN ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Doxyfile.in)
+    if(ARG_DOXYGEN_CONFIG)
+        set(DOXYGEN_IN ${ARG_DOXYGEN_CONFIG})
+    else()
+        set(DOXYGEN_IN ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Doxyfile.in)
+    endif()
     set(DOXYGEN_OUT ${OUTDIR}/Doxyfile)
     configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
 
@@ -42,6 +46,7 @@ function(doxygen IP_LIB)
     add_custom_target( ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
         WORKING_DIRECTORY ${OUTDIR}
+        BYPRODUCTS ${OUTDIR}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
         VERBATIM )
 
