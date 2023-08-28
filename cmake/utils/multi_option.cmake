@@ -18,3 +18,6 @@ function(multi_option variable docstring value default)
   endif()
 endfunction()
 
+function(option_str variable docstring default)
+  set(${variable} ${default} CACHE STRING "${docstring}")
+endfunction()
