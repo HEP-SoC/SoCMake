@@ -49,6 +49,9 @@ function(verilate IP_LIB)
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
     list(PREPEND SOURCES ${V_SOURCES})
 
+    get_ip_sources(CFG_FILE ${IP_LIB} VERILATOR_CFG)
+    list(PREPEND SOURCES ${CFG_FILE})
+
     if(NOT SOURCES)
         message(FATAL_ERROR "Verilate function needs at least one VERILOG or SYSTEMVERILOG source added to the IP")
     endif()
