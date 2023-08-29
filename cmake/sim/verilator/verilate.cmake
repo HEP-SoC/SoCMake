@@ -1,6 +1,6 @@
 function(verilate IP_LIB)
-    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS")
-    set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY")
+    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN")
+    set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY;EXECUTABLE_NAME")
     set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL")
 
     cmake_parse_arguments(ARG "${OPTIONS}"
@@ -24,6 +24,24 @@ function(verilate IP_LIB)
     else()
         set(DIRECTORY ${ARG_DIRECTORY})
     endif()
+
+    ##################################
+    ## Find verilator installation ###
+    ##################################
+    if(NOT VERILATOR_HOME)
+        find_package(verilator REQUIRED
+            HINTS ${VERISC_HOME}/open/* $ENV{VERISC_HOME}/open/*
+            )
+        set(VERILATOR_HOME "${verilator_DIR}/../../")
+    endif()
+
+    find_file(_VERILATED_H verilated.h REQUIRED
+        HINTS ${VERILATOR_HOME}/include ${verilator_DIR}/include
+        )
+    get_filename_component(VERILATOR_INCLUDE_DIR ${_VERILATED_H} DIRECTORY)
+
+    set(VERILATOR_ROOT ${VERILATOR_INCLUDE_DIR}/../)
+    ##################################
 
     get_ip_include_directories(INCLUDE_DIRS ${IP_LIB})
 
@@ -66,6 +84,15 @@ function(verilate IP_LIB)
         set(SYSTEMC TRUE)
     endif()
 
+    if(ARG_MAIN)
+        list(APPEND VERILATOR_ARGS --main)
+        if(ARG_EXECUTABLE_NAME)
+            set(EXECUTABLE_NAME ${ARG_EXECUTABLE_NAME})
+        else()
+            set(EXECUTABLE_NAME ${IP_LIB}_verilator_tb)
+        endif()
+    endif()
+
     set(PASS_MULTIPARAM SOURCES VERILATOR_ARGS INCLUDE_DIRS SYSTEMC) # TODO Pass more stuff from top
     set(PASS_ONEPARAM DIRECTORY TOP_MODULE PREFIX)
     set(PASS_OPTIONS ARG_TRACE_STRUCTS)
@@ -82,27 +109,13 @@ function(verilate IP_LIB)
     endforeach()
     string(REPLACE ";" "|" ARGUMENTS_LIST "${ARGUMENTS_LIST}")
 
-    if(NOT VERILATOR_HOME)
-        find_package(verilator REQUIRED
-            HINTS ${VERISC_HOME}/open/* $ENV{VERISC_HOME}/open/*
-            )
-        set(VERILATOR_HOME "${verilator_DIR}/../../")
-    endif()
-
-    find_file(_VERILATED_H verilated.h REQUIRED
-        HINTS ${VERILATOR_HOME}/include ${verilator_DIR}/include
-        )
-    get_filename_component(VERILATOR_INCLUDE_DIR ${_VERILATED_H} DIRECTORY)
-
-    set(VERILATOR_ROOT ${VERILATOR_INCLUDE_DIR}/../)
-
     if(NOT SYSTEMC_HOME)
         find_package(SystemCLanguage REQUIRED
             HINTS ${VERISC_HOME}/open/* $ENV{VERISC_HOME}/open/*
             )
         set(SYSTEMC_HOME "${SystemCLanguage_DIR}/../../../")
     endif()
-    
+
     if(CMAKE_CXX_STANDARD)
         set(ARG_CMAKE_CXX_STANDARD "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}")
     endif()
@@ -122,9 +135,11 @@ function(verilate IP_LIB)
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
             -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}
+            -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${BINARY_DIR}
 
             -DTARGET=${TOP_MODULE} # USE TOP_MODULE MAYBE???? TODO
             -DARGUMENTS_LIST=${ARGUMENTS_LIST}
+            -DEXECUTABLE_NAME=${EXECUTABLE_NAME}
             ${EXT_PRJ_ARGS}
             -DVERILATOR_ROOT=${VERILATOR_ROOT}
             -DSYSTEMC_ROOT=${SYSTEMC_HOME}
