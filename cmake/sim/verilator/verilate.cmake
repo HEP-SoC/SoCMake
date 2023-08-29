@@ -12,6 +12,8 @@ function(verilate IP_LIB)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
+    enable_language(CXX C)      # We need to enable CXX and C for Verilator
+
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
 
     ip_assume_last(IP_LIB ${IP_LIB})
