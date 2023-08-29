@@ -87,6 +87,13 @@ function(verilate IP_LIB)
         set(VERILATOR_HOME "${verilator_DIR}/../../")
     endif()
 
+    find_file(_VERILATED_H verilated.h REQUIRED
+        HINTS ${VERILATOR_HOME}/include ${verilator_DIR}/include
+        )
+    get_filename_component(VERILATOR_INCLUDE_DIR ${_VERILATED_H} DIRECTORY)
+
+    set(VERILATOR_ROOT ${VERILATOR_INCLUDE_DIR}/../)
+
     if(NOT SYSTEMC_HOME)
         find_package(SystemCLanguage REQUIRED
             HINTS ${VERISC_HOME}/open/* $ENV{VERISC_HOME}/open/*
@@ -117,7 +124,7 @@ function(verilate IP_LIB)
             -DTARGET=${TOP_MODULE} # USE TOP_MODULE MAYBE???? TODO
             -DARGUMENTS_LIST=${ARGUMENTS_LIST}
             ${EXT_PRJ_ARGS}
-            -DVERILATOR_ROOT=${VERILATOR_HOME}
+            -DVERILATOR_ROOT=${VERILATOR_ROOT}
             -DSYSTEMC_ROOT=${SYSTEMC_HOME}
 
         INSTALL_COMMAND ""
@@ -135,8 +142,8 @@ function(verilate IP_LIB)
 
     target_include_directories(${VERILATED_LIB} INTERFACE ${INC_DIR})
     target_include_directories(${VERILATED_LIB} INTERFACE
-        "${VERILATOR_HOME}/include"
-        "${VERILATOR_HOME}/include/vltstd")
+        "${VERILATOR_INCLUDE_DIR}/include"
+        "${VERILATOR_INCLUDE_DIR}/include/vltstd")
 
     set(THREADS_PREFER_PTHREAD_FLAG ON)
     find_package(Threads REQUIRED)
