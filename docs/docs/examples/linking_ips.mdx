@@ -1,0 +1,64 @@
+# Hierarchical design
+import { Graphviz } from 'graphviz-react';
+import CodeBlock from '@theme/CodeBlock';
+const graph = require('!!raw-loader!../../static/examples/linking_ips/graph.dot')?.default;
+const cmakelists = require('!!raw-loader!../../static/examples/linking_ips/CMakeLists.txt')?.default;
+
+SoCMake promotes hierarchical design, by organizing IP blocks into IP libraries, we can easily reuse IP blocks into different designs.
+
+Let's try to create a bit more complex example to demonstrate how to link different libraries together.
+Imagine the following graph.<br/>
+*   We have a `top` IP that instantiates some primitives: `prim10` and `prim11`.
+*   `prim10` depends on `prim00`.
+*   `prim11` depends on `prim00` and `prim01`.
+
+## Graph
+
+<Graphviz dot={graph}/>
+
+## CMakeLists.txt
+
+We can create this hierarchy with the following `CMakeLists.txt`
+
+<CodeBlock language="verilog" title="CMakeLists.txt" showLineNumbers>{cmakelists}</CodeBlock>
+
+:::warning
+We can see in the highlighted lines `add_ip()` function calls, that we are adding IPs without `VENDOR`, `LIBRARY`, `VERSION` format, instead we only pass the `NAME`.
+This is not recommended, and we set `SOCMAKE_NOWARN_VLNV` variable to true, so we don't get a warning.
+:::
+
+Finally we are describing our dependencies with `ip_link()` function.
+The `ip_link()` function as first positional argument takes the `Dependent` library, and the rest of the arguments are its `Dependencies`.
+
+We can get the `Source Filesets` by calling `get_ip_sources()` on the IP library.
+First argument is the variable where to save the list of sources, second one is the name of the IP library and the last one is the file type.
+
+We are finally printing the list of sources to stdout in the last 2 lines.
+
+```raw
+-- CPM: Adding package SoCMake@ (verilator_system_path)
+V_SOURCES:
+    ..../linking_ips/prim00.v
+    ..../linking_ips/prim01.v
+    ..../linking_ips/prim10.v
+    ..../linking_ips/prim11.v
+    ..../linking_ips/top.v
+-- Configuring done
+-- Generating done
+-- Build files have been written to: ..../linking_ips/build
+```
+
+:::caution
+CMake property populated in this case will be `VERILOG_SOURCES`, the library `top` will only hold its own `VERILOG_SOURCES` in this case `top.v`, so if you use `get_target_property(V_SOURCES top VERILOG_SOURCES)` you will only get one file, if you want to get the files of all IPs use `get_ip_sources()`
+:::
+
+We can see that the order of the printed files is respected and that the lowest hierarchy IPs files are first.
+
+:::tip
+Running `make graphviz` on the previous example will generate the graph shown above
+:::
+
+:::tip
+It is recommended to keep libraries in separate directories and CMakeLists.txt files, and ideally on their own GIT repositories.
+:::
+

@@ -1,0 +1,71 @@
+---
+sidebar_position: 3
+---
+
+# Introduction
+
+SoCMake is built on top of [CMake](https://cmake.org/documentation/).
+
+## CMake
+
+CMake stands for "Cross-Platform Make" and is a build system generator.
+Being a build system generator CMake is not building the software on its own, but instead it generates Make/Ninja files that are used for the real compilation.
+
+CMake build descriptions are described in a declarative CMake domain-specific language (DSL).
+Although the CMake language has a lot of issues, it is still a very powerful tool, and the biggest advantage is its maturity and widespread usage.
+Although C++ does not have a standard build system, CMake is surely the closest to being one.
+
+### CMake Useful links
+
+There is plenty of CMake tutorials online and the documentation is decent, some useful links:
+*   [Documentation](https://cmake.org/documentation/)
+*   [Official Tutorial](https://cmake.org/cmake/help/latest/guide/tutorial/index.html)
+*   [It's Time To Do CMake Right](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
+*   [Jason Turner Intro Video](https://www.youtube.com/watch?v=HPMvU64RUTY)
+*   [Modern CMake](https://cliutils.gitlab.io/modern-cmake/)
+
+### Modern CMake
+
+CMake has a bad reputation for it's DSL, which could do things much better.
+In CMake DSL every variable is a string, which can be pretty awkward and error prone at times.
+Setting aside those problems, it is still a very good build tool, and it provides a lot of flexibility compared to other available build systems.
+
+There is a big distinction between earlier versions of CMake and what is recommended today.
+There is plenty of bad examples online of CMake code, typically comming from the old versions that one should avoid.
+
+Modern CMake is all about creating targets instead of global variables, and this fits really well in the Hardware hierarchy as it will be explained later.
+This page will not give a tutorial to CMake as it is already done really well in previously linked tutorials.
+
+## SoCMake
+
+SoCMake is a set of functions for creating hardware IP blocks, composing them, packaging them and executing EDA tools on them.
+
+The advantage to build systems like FuseSoC or hdlmake is that there is a native C++ compilation support through CMake itself.
+This makes it that using SoCMake for verifying Systems On Chip (SoC), where it is needed to compile some application code for the processor, it is not needed to have another build system for C++ or C compilation.<br/>
+Very often today testbenches are written in C++ and simulated with Verilator, SoCMake also provides an easy way to create these testbenches and use common C++ build system for this task.
+
+### SoCMake IP libraries
+
+The basic building block of SoCMake build system is an `IP library`, which is just a wrapper around CMake [Interface Library](https://cmake.org/cmake/help/latest/command/add_library.html#interface-libraries).
+These library do not compile to any objects or executables, they are only used to carry files and information.
+In case of Hardware designs, they can contain list of Verilog files.
+
+Although it is possible to support additional languages like Verilog and "compilers" like Verilator in CMake, in SoCMake for simplicity reasons [approach](https://cmake.org/cmake/help/book/mastering-cmake/chapter/Custom%20Commands.html) of [add_custom_target()](https://cmake.org/cmake/help/latest/command/add_custom_target.html) and [add_custom_command()](https://cmake.org/cmake/help/latest/command/add_custom_command.html) pairs is used to provide support for different tools like Verilator, Yosys, Vivado …
+
+Modern CMake encourages the use of Targets instead of setting global variables. This way in SoCMake the way of passing different tool information and files along with your IP libraries is by setting different [properties](https://cmake.org/cmake/help/latest/command/set_property.html) to IP library targets.
+
+The SoCMake provides an API to abstract the usage of these CMake concepts.
+
+### SoCMake linking IPs example
+
+import { Graphviz } from 'graphviz-react';
+const graph = require('!!raw-loader!../../static/examples/linking_ips/graph.dot')?.default;
+
+SoCMake promotes hierarchical design, by organizing IP blocks into IP libraries, we can easily reuse IP blocks into different designs.
+A simple example of such a IP hierarchy is shown below.
+
+<Graphviz dot={graph}/>
+
+The full example is provided in the examples section [here](../examples/linking_ips)
+
+
