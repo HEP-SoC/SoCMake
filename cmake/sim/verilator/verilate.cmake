@@ -59,7 +59,7 @@ function(verilate IP_LIB)
     endif()
 
     get_ip_property(VERILATOR_ARGS ${IP_LIB} VERILATOR_ARGS)
-    list(APPEND ARG_VERILATOR_ARGS ${ARG_VERILATOR_ARGS})
+    list(APPEND ARG_VERILATOR_ARGS ${VERILATOR_ARGS})
 
     get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
     foreach(def ${COMP_DEFS})
@@ -77,13 +77,13 @@ function(verilate IP_LIB)
         message(FATAL_ERROR "Verilate function needs at least one VERILOG or SYSTEMVERILOG source added to the IP")
     endif()
 
+    unset(EXECUTABLE_PATH)
     if(ARG_MAIN)
         list(APPEND ARG_VERILATOR_ARGS --main)
-        if(ARG_EXECUTABLE_NAME)
-            set(EXECUTABLE_NAME ${ARG_EXECUTABLE_NAME})
-        else()
-            set(EXECUTABLE_NAME ${IP_LIB}_verilator_tb)
+        if(NOT ARG_EXECUTABLE_NAME)
+            set(ARG_EXECUTABLE_NAME ${IP_LIB}_verilator_tb)
         endif()
+        set(EXECUTABLE_PATH ${BINARY_DIR}/${ARG_EXECUTABLE_NAME})
     endif()
 
     set(PASS_ADDITIONAL_MULTIPARAM SOURCES INCLUDE_DIRS) # Additional parameters to pass
@@ -147,7 +147,7 @@ function(verilate IP_LIB)
 
             -DTARGET=${ARG_TOP_MODULE}
             -DARGUMENTS_LIST=${ARGUMENTS_LIST}
-            -DEXECUTABLE_NAME=${EXECUTABLE_NAME}
+            -DEXECUTABLE_NAME=${ARG_EXECUTABLE_NAME}
             ${EXT_PRJ_ARGS}
             -DVERILATOR_ROOT=${VERILATOR_ROOT}
             -DSYSTEMC_ROOT=${SYSTEMC_HOME}
@@ -161,7 +161,7 @@ function(verilate IP_LIB)
         TARGET ${VERILATE_TARGET}
         APPEND PROPERTY ADDITIONAL_CLEAN_FILES 
             ${DIRECTORY}
-            ${BINARY_DIR}/${EXECUTABLE_NAME}
+            ${EXECUTABLE_PATH}
     )
 
     set(VLT_STATIC_LIB "${DIRECTORY}/lib${ARG_TOP_MODULE}.a")
