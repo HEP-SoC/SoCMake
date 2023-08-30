@@ -32,3 +32,9 @@ if("--main" IN_LIST VERILATE_VERILATOR_ARGS)
         ${TARGET}
         )
 endif()
+
+### Avoid warnings
+if(SYSTEMC_ROOT)
+endif()
+if(EXECUTABLE_NAME)
+endif()

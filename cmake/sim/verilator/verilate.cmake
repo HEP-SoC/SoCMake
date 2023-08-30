@@ -149,6 +149,13 @@ function(verilate IP_LIB)
         EXCLUDE_FROM_ALL 1
         ) 
 
+    set_property(
+        TARGET ${VERILATE_TARGET}
+        APPEND PROPERTY ADDITIONAL_CLEAN_FILES 
+            ${DIRECTORY}
+            ${BINARY_DIR}/${EXECUTABLE_NAME}
+    )
+
     set(VLT_STATIC_LIB "${DIRECTORY}/lib${TOP_MODULE}.a")
     set(INC_DIR ${DIRECTORY})
 
