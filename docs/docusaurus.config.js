@@ -8,7 +8,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const config = {
   title: 'SoCMake',
   tagline: 'Build System for Hardware',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/SoCMakeLogo3.svg',
 
   // Set the production url of your site here
   url: 'https://socmake-docs.cern.ch',

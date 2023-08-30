@@ -1,0 +1,135 @@
+---
+sidebar_position: 3
+---
+
+# Verilator C++ testbench
+
+import CodeBlock from '@theme/CodeBlock';
+const adder_v = require('!!raw-loader!../../../examples/verilator/adder/adder.v')?.default;
+const cmakelists = require('!!raw-loader!../../../examples/verilator/CMakeLists.txt')?.default;
+const adder_cmakelists = require('!!raw-loader!../../../examples/verilator/adder/CMakeLists.txt')?.default;
+const main_cpp = require('!!raw-loader!../../../examples/verilator/main.cpp')?.default;
+
+### Description
+
+This example shows how to create a C++ testbench and instantiate a Verilated RTL IP library.
+
+In this case we will have an IP library called `adder`, that is just a simple combinatorial adder with only 1 file `adder.v`.<br/>
+We will also have a C++ testbench `main.cpp`
+
+## Example
+
+### Directory structure
+
+Lets take a look at the directory structure of the example first.
+
+```raw
+.
+├── adder
+│   ├── adder.v
+│   └── CMakeLists.txt
+├── CMakeLists.txt
+├── deps
+│   ├── CPM.cmake
+│   └── deps.cmake
+└── main.cpp
+```
+
+We have a directory `adder/` that contains the `adder` IP block, it as its own `CMakeLists.txt` to make it easier to reuse in a larger project.
+:::tip
+For a design this simple it is not really necessary to have a separate `CMakeLists.txt`, but it is a good practice anyways.
+:::
+
+### adder/adder.v
+
+Adder verilog file is just a simple two 8bit inputs, and a 9bit output module.
+
+<CodeBlock language="verilog" title="adder/adder.v" showLineNumbers>{adder_v}</CodeBlock>
+
+### adder/CMakeLists.txt
+
+There is nothing new in this file from previous examples.
+We are making a library under the full name `cern::ip::adder::0.0.1`.
+
+<CodeBlock language="cmake" title="adder/CMakeLists.txt" showLineNumbers>{adder_cmakelists}</CodeBlock>
+
+### main.cpp
+
+This is a standard C++ testbench using a Verilated model. Refer to Verilator documentation for more information.
+
+<CodeBlock language="cpp" title="main.cpp" showLineNumbers>{main_cpp}</CodeBlock>
+
+
+### CMakeLists.txt
+
+And finally we need a top `CMakeLists.txt` that will assemble the full design and create simulation targets.
+
+<CodeBlock language="cmake" title="CMakeLists.txt" showLineNumbers>{cmakelists}</CodeBlock>
+
+We can add the `adder` IP as a subdirectory with [`add_subdirectory()`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) CMake function.
+
+Then we are creating the target to Verilate the IP.
+Executing the `cern__ip__adder__0.0.1_verilate` target will compile a [static library](https://en.wikipedia.org/wiki/Static_library) of the IP block.<br/>
+This time we are not asking Verilator to create a `main.cpp` file as we will write it ourselves.<br/>
+We are also passing `TRACE` argument to `verilate()`, indicating that we want to enable [`VCD`](https://en.wikipedia.org/wiki/Value_change_dump) generation in Verilated model.
+
+After that we create an `executable` with [`add_executable()`](https://cmake.org/cmake/help/latest/command/add_executable.html) CMake function. The first argument is the name of the compiled executable, and then we pass a list of sources, in this case only `main.cpp`
+
+Finally we use [`target_link_libraries()`](https://cmake.org/cmake/help/latest/command/target_link_libraries.html), to link the Verilated static library into our testbench executable, and also add the include paths for headers of the Verilated model, and Verilator headers.
+
+
+:::tip
+Notice in the line 11, we are linking to the static library created with Verilator.
+It is a bit annoying to have to change the version number manually, in order to avoid it it is a better idea to set a variable in `adder/CMakeLists.txt` that will hold the full name of the IP.
+```cmake title="adder/CMakeLists.txt"
+...
+if(NOT PROJECT_IS_TOP_LEVEL)    # Avoid warning if project is top level
+    set(ADDER_LIB_NAME ${IP} PARENT_SCOPE)
+endif()
+```
+And then in `CMakeLists.txt`:
+```cmake title="CMakeLists.txt"
+...
+target_link_libraries(testbench ${ADDER_LIB_NAME}__vlt)
+```
+
+:::
+
+### Build graph
+
+Take a look at the build graph for this example.
+We can see that the `testbench` executable depends on Verilated models and Verilator targets.
+Executing the `testbench` targets, the dependencies will be built first.
+
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+  <img
+    src={require('../../../examples/verilator/graph.png').default}
+    alt="graph"
+  />
+</div>
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+  <img
+    src={require('../../../examples/verilator/legend.png').default}
+    alt="graph"
+    width="80%"
+  />
+</div>
+
+## Running the simulation
+
+Simulation can be run the same way as always:
+
+```bash
+mkdir build
+cd build
+cmake ../                  # Configure project
+make testbench -j$(nproc)  # Build testbench
+./testbench                # Execute testbench
+```
+
+:::tip
+Use [bash-completion](https://github.com/scop/bash-completion) to autocomplete `make` target names.
+After typing `make ` press `Tab ↹` twice.
+:::

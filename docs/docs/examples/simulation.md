@@ -14,8 +14,8 @@ For this step make sure you have Iverilog and/or Verilator installed on your sys
 Lets create a simple verilog testbench file:
 
 import CodeBlock from '@theme/CodeBlock';
-const tb_v = require('!!raw-loader!../../static/examples/sim_example/tb.v')?.default;
-const cmakelists = require('!!raw-loader!../../static/examples/sim_example/CMakeLists.txt')?.default;
+const tb_v = require('!!raw-loader!../../../examples/sim_example/tb.v')?.default;
+const cmakelists = require('!!raw-loader!../../../examples/sim_example/CMakeLists.txt')?.default;
 
 ## tb.v 
 
@@ -88,7 +88,7 @@ Checkout the video example below to see how to run the simulation.
 
 import ReactPlayer from 'react-player'
 
-<ReactPlayer width="100%" height="100%" controls url='/examples/sim_example/render.mp4' />
+<ReactPlayer width="100%" height="100%" controls url='/examples/sim_example.mp4' />
 
 </details>
 

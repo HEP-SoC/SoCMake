@@ -1,6 +1,7 @@
-image: alpine:latest
+image: alpine:3.18.2
 
 before_script:
+  - apk update
   - apk add --no-cache python3 py3-pip make git npm automake autoconf gcc g++
 
 pages:
