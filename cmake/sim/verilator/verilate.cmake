@@ -59,11 +59,11 @@ function(verilate IP_LIB)
     endif()
 
     get_ip_property(VERILATOR_ARGS ${IP_LIB} VERILATOR_ARGS)
-    list(APPEND VERILATOR_ARGS ${ARG_VERILATOR_ARGS})
+    list(APPEND ARG_VERILATOR_ARGS ${ARG_VERILATOR_ARGS})
 
     get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
     foreach(def ${COMP_DEFS})
-        list(APPEND VERILATOR_ARGS -D${def})
+        list(APPEND ARG_VERILATOR_ARGS -D${def})
     endforeach()
 
     get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
@@ -78,7 +78,7 @@ function(verilate IP_LIB)
     endif()
 
     if(ARG_MAIN)
-        list(APPEND VERILATOR_ARGS --main)
+        list(APPEND ARG_VERILATOR_ARGS --main)
         if(ARG_EXECUTABLE_NAME)
             set(EXECUTABLE_NAME ${ARG_EXECUTABLE_NAME})
         else()
@@ -86,13 +86,18 @@ function(verilate IP_LIB)
         endif()
     endif()
 
-    set(PASS_ADDITIONAL_MULTIPARAM SOURCES) # Additional parameters to pass
+    set(PASS_ADDITIONAL_MULTIPARAM SOURCES INCLUDE_DIRS) # Additional parameters to pass
     set(PASS_ADDITIONAL_ONEPARAM DIRECTORY PREFIX)
     set(PASS_ADDITIONAL_OPTIONS)
 
-    foreach(param ${MULTI_PARAM_ARGS} ${PASS_ADDITIONAL_MULTIPARAM})
+    foreach(param ${PASS_ADDITIONAL_MULTIPARAM})
         if(${param})
-            string(REPLACE ";" "|" ARG_${param} "${${param}}")
+            string(REPLACE ";" "|" ${param} "${${param}}")
+        endif()
+    endforeach()
+    foreach(param ${MULTI_PARAM_ARGS})
+        if(ARG_${param})
+            string(REPLACE ";" "|" ARG_${param} "${ARG_${param}}")
         endif()
     endforeach()
 
