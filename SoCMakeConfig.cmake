@@ -22,6 +22,9 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/iverilog/iverilog.cmake")
 # ----- xcelium ------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cadence/xcelium.cmake")
 
+# ----- vcs ------
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/synopsys/vcs.cmake")
+
 # ----- FC4SC -------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/fc4sc/fc4sc_merge_coverage.cmake")
 
