@@ -17,6 +17,9 @@ verilate(${TARGET}
     )
 
 if(VERILATE_SYSTEMC)
+    find_package(SystemCLanguage REQUIRED
+        HINTS ${SYSTEMC_ROOT}/*/*/*
+        )
     verilator_link_systemc(${TARGET})
 endif()
 
