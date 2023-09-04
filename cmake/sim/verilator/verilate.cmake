@@ -182,8 +182,6 @@ function(verilate IP_LIB)
 
     target_link_libraries(${VERILATED_LIB} INTERFACE -pthread)
 
-    get_target_property(TYPE ${VERILATED_LIB} TYPE)
-
     string(REPLACE "__" "::" ALIAS_NAME "${VERILATED_LIB}")
     add_library(${ALIAS_NAME} ALIAS ${VERILATED_LIB})
 endfunction()
