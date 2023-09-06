@@ -51,7 +51,7 @@ function(verilate_xml IP_LIB)
 
     get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
     foreach(def ${COMP_DEFS})
-        list(APPEND ARG_VERILATOR_ARGS -D${def})
+        list(APPEND VERILATOR_ARGS -D${def})
     endforeach()
 
     if(NOT SOURCES)
