@@ -49,6 +49,11 @@ function(verilate_xml IP_LIB)
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
     list(PREPEND SOURCES ${V_SOURCES})
 
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
+    foreach(def ${COMP_DEFS})
+        list(APPEND ARG_VERILATOR_ARGS -D${def})
+    endforeach()
+
     if(NOT SOURCES)
         message(FATAL_ERROR "Verilate function needs at least one VERILOG or SYSTEMVERILOG source added to the IP")
     endif()
