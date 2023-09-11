@@ -18,3 +18,18 @@ pages:
   only:
     - master
 
+
+# Check if all commiters are in docs/CONTRIBUTORS list
+contributors:
+  image: python:3.9
+  interruptible: true
+
+  before_script:
+    - pip install GitPython
+
+  script:
+    - python .workflow/check_contrib.py
+
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      allow_failure: false
