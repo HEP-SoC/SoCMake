@@ -181,8 +181,8 @@ def modify_path_to_generate_blocks(root):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-            prog='Verilator sequential nexts XML parser',
-            description='Pareses Verilator XML file generated with --xml-only command line option, and finds all the non blocking assignment left hand side nets. Generates multiple formats from the list: .vlt for verilator public, ...')
+            prog='Verilator sequential nets XML parser',
+            description='Parses Verilator XML file generated with --xml-only command line option, and finds all the non blocking assignment left hand side nets. Generates multiple formats from the list: .vlt for verilator public, ...')
 
     parser.add_argument('xmlfile', help='XML input file')
     parser.add_argument('outdir', help='Generated files output dir')

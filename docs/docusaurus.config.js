@@ -70,8 +70,8 @@ const config = {
             label: 'Documentation',
           },
           {
-            href: 'https://github.com/facebook/docusaurus',
-            label: 'GitHub',
+            href: 'https://gitlab.cern.ch/socmake/SoCMake',
+            label: 'GitLab',
             position: 'right',
           },
         ],
