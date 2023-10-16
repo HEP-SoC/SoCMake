@@ -88,7 +88,8 @@ function(verilate_xml IP_LIB)
       set(REG_LIST ${OUTDIR}/${IP_LIB}_reglist.txt)
       set(REG_H_FILE ${OUTDIR}/${IP_LIB}_seq_vpi_handles.h)
       set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
-      
+
+
       find_python3() # sets Python3_EXECUTABLE 
       add_custom_command(
           OUTPUT ${VLT_CFG_FILE} ${REG_LIST} ${REG_H_FILE} ${STAMP_FILE}
@@ -106,6 +107,7 @@ function(verilate_xml IP_LIB)
           DEPENDS ${VLT_CFG_FILE} ${REG_LIST} ${REG_H_FILE} ${STAMP_FILE} ${XML_FILE}
           )
       
+      set_property(TARGET ${IP_LIB}_verilate_xml_regpublic PROPERTY VPIREG_LIST ${REG_LIST})
       # add vlt file to sources list
       ip_sources(${IP_LIB} SYSTEMVERILOG ${VLT_CFG_FILE})
       target_sources(${IP_LIB} INTERFACE
