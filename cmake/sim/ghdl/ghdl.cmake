@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
 function(ghdl IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE;EXECUTABLE" "" ${ARGN})
+    cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE;EXECUTABLE;STANDARD" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -21,6 +21,17 @@ function(ghdl IP_LIB)
         set(ARG_TOP_MODULE ${ARG_TOP_MODULE})
     else()
         get_target_property(ARG_TOP_MODULE ${IP_LIB} IP_NAME)
+    endif()
+
+    set(SUPPORTED_VHDL_STANDARDS  87 93c 93 00 02 08)
+    if(ARG_STANDARD)
+        if(${ARG_STANDARD} IN_LIST SUPPORTED_VHDL_STANDARDS)
+        else()
+            message(FATAL_ERROR "VHDL standard not supported ${ARG_STANDARD}, supported standards: ${ARG_STANDARD}")
+        endif()
+        set(ARG_STANDARD --std=${ARG_STANDARD})
+    else()
+        set(ARG_STANDARD --std=93)
     endif()
 
     if(NOT ARG_EXECUTABLE)
@@ -48,6 +59,7 @@ function(ghdl IP_LIB)
         )
 
     get_target_property(IPS ${IP_LIB} FLAT_GRAPH)
+
     unset(_ghdl_analyze_commands)
     foreach(_ip ${IPS})
         get_target_property(_lib ${_ip} LIBRARY)
@@ -57,6 +69,7 @@ function(ghdl IP_LIB)
             COMMAND ${GHDL_EXECUTABLE} analyze
             --work=${_lib}
             --workdir=${OUTDIR}
+            ${ARG_STANDARD}
             -P${OUTDIR}
             ${_lib_sources}
             )
@@ -74,6 +87,7 @@ function(ghdl IP_LIB)
             -o ${ARG_EXECUTABLE}
             --work=${WORK_LIB}
             --workdir=${OUTDIR}
+            ${ARG_STANDARD}
             ${ARG_TOP_MODULE}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES}
@@ -99,6 +113,3 @@ function(ghdl IP_LIB)
     # add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
 
 endfunction()
-
-
-
