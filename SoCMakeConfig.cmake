@@ -93,6 +93,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/docs/doxygen/doxygen.cmake")
 # =====================================
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/verible/verible.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/ghdl/vhdl_linter.cmake")
 
 # ====================================
 # ====== Riscv =======================
