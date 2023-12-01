@@ -84,6 +84,7 @@ function(verilate IP_LIB)
             set(ARG_EXECUTABLE_NAME ${IP_LIB}_verilator_tb)
         endif()
         set(EXECUTABLE_PATH ${BINARY_DIR}/${ARG_EXECUTABLE_NAME})
+        unset(ARG_MAIN)
     endif()
 
     set(PASS_ADDITIONAL_MULTIPARAM SOURCES INCLUDE_DIRS) # Additional parameters to pass
@@ -114,6 +115,7 @@ function(verilate IP_LIB)
         endif()
     endforeach()
     string(REPLACE ";" "|" ARGUMENTS_LIST "${ARGUMENTS_LIST}")
+
 
     if(ARG_SYSTEMC)
         if(NOT SYSTEMC_HOME)
