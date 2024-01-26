@@ -18,8 +18,11 @@ function(doxygen IP_LIB)
 
     find_package(Doxygen REQUIRED)
 
-    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB})
-    foreach(dir ${INCLUDE_DIRS})
+    get_target_property(INCLUDE_DIRS ${IP_LIB} INCLUDE_DIRECTORIES)
+    get_target_property(INTERFACE_INCLUDE_DIRS ${IP_LIB} INTERFACE_INCLUDE_DIRECTORIES)
+    set(INC_DIRS ${INCLUDE_DIRS} ${INTERFACE_INCLUDE_DIRS})
+
+    foreach(dir ${INC_DIRS})
         set(regex_pattern "^\\$<BUILD_INTERFACE:(.+)>")
         string(REGEX MATCH "${regex_pattern}" extracted_path ${dir})
 
