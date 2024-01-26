@@ -44,7 +44,9 @@ function(verilate IP_LIB)
     set(VERILATOR_ROOT ${VERILATOR_INCLUDE_DIR}/../)
     ##################################
 
-    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB})
+    get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
+    get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
+    set(INCLUDE_DIRS ${SYSTEMVERILOG_INCLUDE_DIRS} ${VERILOG_INCLUDE_DIRS})
 
     if(ARG_TOP_MODULE)
         set(ARG_TOP_MODULE ${ARG_TOP_MODULE})

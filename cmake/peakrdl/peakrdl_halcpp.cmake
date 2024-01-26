@@ -76,7 +76,7 @@ function(peakrdl_halcpp IP_LIB)
             -o ${OUTDIR} 
         )
 
-    ip_include_directories(${IP_LIB} ${OUTDIR} ${OUTDIR}/include)
+    target_include_directories(${IP_LIB} INTERFACE ${OUTDIR} ${OUTDIR}/include)
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
