@@ -36,7 +36,10 @@ function(vivado IP_LIB)
     get_ip_sources(XDC_FILES ${IP_LIB} XDC)
     get_target_property(FPGA_PART ${IP_LIB} FPGA_PART)
 
-    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB})
+    get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
+    get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
+    get_ip_include_directories(VHDL_INCLUDE_DIRS ${IP_LIB} VHDL)
+    set(INCLUDE_DIRS ${SYSTEMVERILOG_INCLUDE_DIRS} ${VERILOG_INCLUDE_DIRS} ${VHDL_INCLUDE_DIRS})
 
     get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
     foreach(def ${COMP_DEFS})

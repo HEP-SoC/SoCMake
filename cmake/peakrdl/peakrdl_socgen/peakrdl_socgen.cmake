@@ -72,11 +72,11 @@ function(peakrdl_socgen IP_LIB)
         set(ARG_USE_INCLUDE --use-include)
         unset(ADDITIONAL_DEPENDS)
 
-        get_ip_include_directories(INC_DIRS ${IP_LIB}) # Add directories to INCLUDE_DIRECTORIES if --use-include is used
+        get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMVERILOG) # Add directories to INCLUDE_DIRECTORIES if --use-include is used
         foreach(f ${INJECT_V_FILES})
             get_filename_component(dir ${f} DIRECTORY)
             if(NOT ${dir} IN_LIST INC_DIRS)
-                ip_include_directories(${IP_LIB} ${dir})
+                ip_include_directories(${IP_LIB} SYSTEMVERILOG ${dir})
             endif()
         endforeach()
     else()

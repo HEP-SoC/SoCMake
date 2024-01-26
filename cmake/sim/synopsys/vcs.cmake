@@ -20,7 +20,9 @@ function(vcs_vlogan IP_LIB)
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
     list(PREPEND SOURCES ${V_SOURCES})
 
-    get_ip_include_directories(INC_DIRS ${IP_LIB})
+    get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
+    get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
+    set(INC_DIRS ${SYSTEMVERILOG_INCLUDE_DIRS} ${VERILOG_INCLUDE_DIRS})
 
     foreach(dir ${INC_DIRS})
         list(APPEND ARG_INCDIRS -incdir ${dir})

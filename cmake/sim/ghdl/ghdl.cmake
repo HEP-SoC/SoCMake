@@ -42,7 +42,8 @@ function(ghdl IP_LIB)
     get_ip_sources(VHDL_SOURCES ${IP_LIB} VHDL)
     list(PREPEND SOURCES ${VHDL_SOURCES})
 
-    get_ip_include_directories(INC_DIRS ${IP_LIB})
+    get_ip_include_directories(VHDL_INCLUDE_DIRS ${IP_LIB} VHDL)
+    set(INC_DIRS ${VHDL_INCLUDE_DIRS})
 
     foreach(dir ${INC_DIRS})
         list(APPEND ARG_INCDIRS -P${dir})

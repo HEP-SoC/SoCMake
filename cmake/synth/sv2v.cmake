@@ -23,7 +23,10 @@ function(sv2v IP_LIB)
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
     list(PREPEND SOURCES ${V_SOURCES})
 
-    get_ip_include_directories(INCDIRS ${IP_LIB})
+    get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
+    get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
+    set(INCDIRS ${SYSTEMVERILOG_INCLUDE_DIRS} ${VERILOG_INCLUDE_DIRS})
+
     foreach(dir ${INCDIRS})
         list(APPEND INCDIR_ARG -I${dir})
     endforeach()
