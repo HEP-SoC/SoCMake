@@ -34,18 +34,6 @@ function(get_rtl_target_sources OUT_VAR TARGET)
     set(${OUT_VAR} ${V_SOURCES} PARENT_SCOPE)
 endfunction()
 
-function(get_rtl_target_incdirs OUT_VAR TARGET)
-    flatten_graph(${TARGET})
-    get_target_property(DEPS ${TARGET} FLAT_GRAPH)
-    foreach(d ${DEPS})
-        safe_get_target_property(INTERFACE_INCLUDE_DIRECTORIES ${d} INTERFACE_INCLUDE_DIRECTORIES "")
-        safe_get_target_property(INCLUDE_DIRECTORIES ${d} INCLUDE_DIRECTORIES "")
-        list(APPEND INCDIRS ${INCLUDE_DIRECTORIES} ${INTERFACE_INCLUDE_DIRECTORIES})
-    endforeach()
-
-    set(${OUT_VAR} ${INCDIRS} PARENT_SCOPE)
-endfunction()
-
 # ========================================================== #
 # ======== Print all RTL sources =========================== #
 # ========================================================== #
