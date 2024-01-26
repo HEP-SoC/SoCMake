@@ -104,24 +104,26 @@ function(get_ip_sources OUT_VAR IP_LIB TYPE)
 endfunction()
 
 
-function(ip_include_directories IP_LIB TYPE)
+function(ip_include_directories IP_LIB LANGUAGE)
     # If only IP name is given without full VLNV, assume rest from the project variables
+    check_languages(${LANGUAGE})
     ip_assume_last(_reallib ${IP_LIB})
-    set_property(TARGET ${_reallib} PROPERTY ${TYPE}_INCLUDE_DIRECTORIES ${ARGN})
+    set_property(TARGET ${_reallib} PROPERTY ${LANGUAGE}_INCLUDE_DIRECTORIES ${ARGN})
 endfunction()
 
-function(get_ip_include_directories OUTVAR IP_LIB TYPE)
+function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
     # If only IP name is given without full VLNV, assume rest from the project variables
+    check_languages(${LANGUAGE})
     ip_assume_last(_reallib ${IP_LIB})
     flatten_graph(${_reallib})
     get_target_property(DEPS ${_reallib} FLAT_GRAPH)
 
     foreach(d ${DEPS})
-        safe_get_target_property(${TYPE}_INCLUDE_DIRECTORIES ${d} ${TYPE}_INCLUDE_DIRECTORIES "")
-        list(PREPEND ${TYPE}_INCDIRS ${${TYPE}_INCLUDE_DIRECTORIES})
+        safe_get_target_property(${LANGUAGE}_INCLUDE_DIRECTORIES ${d} ${LANGUAGE}_INCLUDE_DIRECTORIES "")
+        list(PREPEND ${LANGUAGE}_INCDIRS ${${LANGUAGE}_INCLUDE_DIRECTORIES})
     endforeach()
 
-    set(${OUTVAR} ${${TYPE}_INCDIRS} PARENT_SCOPE)
+    set(${OUTVAR} ${${LANGUAGE}_INCDIRS} PARENT_SCOPE)
 endfunction()
 
 function(alias_dereference OUT LIB)
@@ -146,6 +148,19 @@ function(alias_dereference OUT LIB)
         return()
     endif()
 
+endfunction()
+
+function(check_languages LANGUAGE)
+    set(SOCMAKE_SUPPORTED_LANGUAGES SYSTEMVERILOG VERILOG VHDL SYSTEMRDL ${SOCMAKE_ADDITIONAL_LANGUAGES})
+
+    if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
+        if(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL)
+            set(_verbosity FATAL_ERROR)
+        else()
+            set(_verbosity WARNING)
+        endif()
+        message(${_verbosity} "Language not supported: ${LANGUAGE}")
+    endif()
 endfunction()
 
 function(ip_link IP_LIB)
