@@ -33,3 +33,22 @@ contributors:
   rules:
     - if: $CI_COMMIT_BRANCH
       allow_failure: false
+
+image_testing:
+  image: alpine:3.18.2
+  interruptible: true
+
+  before_script:
+    - apk update
+    - apk add --no-cache cmake make git gcc musl-dev
+    - cmake --version
+
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DSOCMAKE_BUILD_TESTING=1 ../
+    - ctest
+
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      allow_failure: false
