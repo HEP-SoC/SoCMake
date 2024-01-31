@@ -108,7 +108,7 @@ function(ip_include_directories IP_LIB LANGUAGE)
     # If only IP name is given without full VLNV, assume rest from the project variables
     check_languages(${LANGUAGE})
     ip_assume_last(_reallib ${IP_LIB})
-    set_property(TARGET ${_reallib} PROPERTY ${LANGUAGE}_INCLUDE_DIRECTORIES ${ARGN})
+    set_property(TARGET ${_reallib} APPEND PROPERTY ${LANGUAGE}_INCLUDE_DIRECTORIES ${ARGN})
 endfunction()
 
 function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
