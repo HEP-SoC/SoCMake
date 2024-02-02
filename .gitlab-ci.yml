@@ -2,7 +2,7 @@ image: alpine:3.18.2
 
 before_script:
   - apk update
-  - apk add --no-cache python3 py3-pip make git npm automake autoconf gcc g++
+  - apk add --no-cache python3 py3-pip cmake make git npm automake autoconf gcc g++
 
 pages:
   stage: deploy
@@ -41,7 +41,7 @@ image_testing:
 
   before_script:
     - apk update
-    - apk add --no-cache cmake make git gcc musl-dev
+    - apk add --no-cache git gcc musl-dev
     - cmake --version
 
   script:
