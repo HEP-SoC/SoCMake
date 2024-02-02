@@ -75,15 +75,13 @@ function(ip_assume_last VLNV IP_NAME) # TODO check SOURCE DIR if its the same as
     set(${VLNV} ${IP_LIB} PARENT_SCOPE)
 endfunction()
 
-function(ip_sources IP_LIB TYPE)
+function(ip_sources IP_LIB LANGUAGE)
     cmake_parse_arguments(ARG "PREPEND" "" "" ${ARGN})
-    # if(ARG_UNPARSED_ARGUMENTS)
-    #     message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    # endif()
 
+    check_languages(${LANGUAGE})
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(_reallib ${IP_LIB})
-    get_ip_sources(_sources ${_reallib} ${TYPE})
+    get_ip_sources(_sources ${_reallib} ${LANGUAGE})
 
     if(ARG_PREPEND)
         list(REMOVE_ITEM ARGN "PREPEND")
@@ -91,13 +89,13 @@ function(ip_sources IP_LIB TYPE)
     else()
         set(_sources ${_sources} ${ARGN})
     endif()
-    set_property(TARGET ${_reallib} PROPERTY ${TYPE}_SOURCES ${_sources})
+    set_property(TARGET ${_reallib} PROPERTY ${LANGUAGE}_SOURCES ${_sources})
 
 endfunction()
 
-function(get_ip_sources OUT_VAR IP_LIB TYPE)
+function(get_ip_sources OUT_VAR IP_LIB LANGUAGE)
     ip_assume_last(IP_LIB ${IP_LIB})
-    get_rtl_target_property(SOURCES ${IP_LIB} ${TYPE}_SOURCES)
+    get_rtl_target_property(SOURCES ${IP_LIB} ${LANGUAGE}_SOURCES)
     list(REMOVE_DUPLICATES SOURCES)
     set(${OUT_VAR} ${SOURCES} PARENT_SCOPE)
 
@@ -151,7 +149,7 @@ function(alias_dereference OUT LIB)
 endfunction()
 
 function(check_languages LANGUAGE)
-    set(SOCMAKE_SUPPORTED_LANGUAGES SYSTEMVERILOG VERILOG VHDL SYSTEMRDL ${SOCMAKE_ADDITIONAL_LANGUAGES})
+    set(SOCMAKE_SUPPORTED_LANGUAGES SYSTEMVERILOG VERILOG VHDL SYSTEMRDL SYSTEMRDL_SOCGEN ${SOCMAKE_ADDITIONAL_LANGUAGES})
 
     if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
         if(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL)
