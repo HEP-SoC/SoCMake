@@ -349,6 +349,37 @@ function(get_ip_property OUTVAR TARGET PROPERTY)
 endfunction()
 
 #[[[
+# Set a compile definition on a IP for a given language
+#
+# Any leading `-D` on an item will be removed. Empty items are ignored. For example, the following are all equivalent:
+#
+# ip_compile_definitions(foo VERILOG FOO)
+# ip_compile_definitions(foo VERILOG -DFOO)  # -D removed
+# ip_compile_definitions(foo VERILOG "" FOO) # "" ignored
+# ip_compile_definitions(foo VERILOG -D FOO) # -D becomes "", then ignoredOMPILE_DEFINITIONS property.
+#
+# :param IP_LIB: The target IP library name.
+# :type IP_LIB: string
+# :param LANGUAGE: Language to which the definition should apply.
+# :type LANGUAGE: string
+#
+#]]
+function(ip_compile_definitions IP_LIB LANGUAGE)
+    check_languages(${LANGUAGE})
+    # If only IP name is given without full VLNV, assume rest from the project variables
+    ip_assume_last(_reallib ${IP_LIB})
+
+    # Strip -D
+    set(__comp_defs ${ARGN})
+    string(REPLACE "-D" "" __comp_defs "${__comp_defs}")
+    list(REMOVE_ITEM __comp_defs "")
+
+    # Append the new compile definitions to the exsiting ones
+    set_property(TARGET ${_reallib} APPEND PROPERTY ${LANGUAGE}_COMPILE_DEFINITIONS ${__comp_defs})
+endfunction()
+
+
+#[[[
 # This function is a hardcoded version of get_ip_property() for the
 # INTERFACE_COMPILE_DEFINITIONS property.
 #
@@ -356,11 +387,14 @@ endfunction()
 # :type OUT_VAR: string
 # :param IP_LIB: The target IP library name.
 # :type IP_LIB: string
+# :param LANGUAGE: Language to which the definition apply.
+# :type LANGUAGE: string
 #
 #]]
-function(get_ip_compile_definitions OUTVAR IP_LIB)
+function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
+    check_languages(${LANGUAGE})
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(IP_LIB ${IP_LIB})
-    get_ip_property(__comp_defs ${IP_LIB} INTERFACE_COMPILE_DEFINITIONS)
+    get_ip_property(__comp_defs ${IP_LIB} ${LANGUAGE}_COMPILE_DEFINITIONS)
     set(${OUTVAR} ${__comp_defs} PARENT_SCOPE)
 endfunction()

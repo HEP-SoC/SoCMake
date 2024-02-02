@@ -29,7 +29,9 @@ function(iverilog IP_LIB)
         list(APPEND ARG_INCDIRS -I ${dir})
     endforeach()
 
-    get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
+    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
+    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG)
+    set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
     foreach(def ${COMP_DEFS})
         list(APPEND CMP_DEFS_ARG -D${def})
     endforeach()
@@ -41,10 +43,10 @@ function(iverilog IP_LIB)
     add_custom_command(
         OUTPUT ${ARG_EXECUTABLE} ${STAMP_FILE}
         COMMAND iverilog
-        ${SOURCES}
         ${ARG_INCDIRS}
         ${CMP_DEFS_ARG}
         -o ${ARG_EXECUTABLE}
+        ${SOURCES}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES}
         COMMENT "Running iverilog on ${IP_LIB}"

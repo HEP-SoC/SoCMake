@@ -49,7 +49,7 @@ function(ghdl IP_LIB)
         list(APPEND ARG_INCDIRS -P${dir})
     endforeach()
 
-    get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} VHDL)
     foreach(def ${COMP_DEFS})
         list(APPEND CMP_DEFS_ARG -D${def})
     endforeach()

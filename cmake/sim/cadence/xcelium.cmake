@@ -46,7 +46,9 @@ function(xcelium IP_LIB)
         list(APPEND ARG_INCDIRS -incdir ${dir})
     endforeach()
 
-    get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
+    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
+    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG) # TODO Add VHDL??
+    set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
     foreach(def ${COMP_DEFS})
         list(APPEND CMP_DEFS_ARG -D${def})
     endforeach()

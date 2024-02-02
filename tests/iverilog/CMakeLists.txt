@@ -11,7 +11,7 @@ ip_sources(${IP} VERILOG
     ${PROJECT_SOURCE_DIR}/tb.v
     )
 
-# ip_compile_definitions(${IP} SOME_DEF1=100)
+ip_compile_definitions(${IP} VERILOG SOME_DEF1=100)
 ip_include_directories(${IP} VERILOG ${PROJECT_SOURCE_DIR}/inc)
 
 iverilog(${IP}

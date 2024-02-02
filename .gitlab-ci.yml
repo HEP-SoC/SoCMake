@@ -41,14 +41,13 @@ image_testing:
 
   before_script:
     - apk update
-    - apk add --no-cache cmake make git gcc musl-dev
-    - cmake --version
+    - apk add --no-cache cmake make git gcc musl-dev iverilog
 
   script:
     - mkdir build
     - cd build
     - cmake -DSOCMAKE_BUILD_TESTING=1 ../
-    - ctest
+    - make check
 
   rules:
     - if: $CI_COMMIT_BRANCH

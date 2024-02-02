@@ -41,7 +41,9 @@ function(vivado IP_LIB)
     get_ip_include_directories(VHDL_INCLUDE_DIRS ${IP_LIB} VHDL)
     set(INCLUDE_DIRS ${SYSTEMVERILOG_INCLUDE_DIRS} ${VERILOG_INCLUDE_DIRS} ${VHDL_INCLUDE_DIRS})
 
-    get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
+    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
+    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG) # TODO Add VHDL??
+    set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
     foreach(def ${COMP_DEFS})
         list(APPEND CMP_DEFS_ARG -D${def})
     endforeach()
