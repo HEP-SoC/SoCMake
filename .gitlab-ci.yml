@@ -41,7 +41,7 @@ image_testing:
 
   before_script:
     - apk update
-    - apk add --no-cache git gcc musl-dev
+    - apk add --no-cache cmake make git gcc musl-dev
     - cmake --version
 
   script:
