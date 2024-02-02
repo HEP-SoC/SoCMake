@@ -1,41 +1,15 @@
 # Website
 
-This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
+This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator. The documentation is hosted at this [link](https://socmake.docs.cern.ch/). The documentation is built and deployed by the CI. It can also be build locally using CMake (see below instructions).
 
-### Installation
+### Local development
 
-```
-$ yarn
-```
-
-### Local Development
+From within the docs folder (same level as this README):
 
 ```
-$ yarn start
+$ mkdir build && cd build
+$ cmake ../
+$ make docusaurus_start
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
-
-### Build
-
-```
-$ yarn build
-```
-
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-### Deployment
-
-Using SSH:
-
-```
-$ USE_SSH=true yarn deploy
-```
-
-Not using SSH:
-
-```
-$ GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+This should open the website documentation on your localhost.

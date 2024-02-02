@@ -95,21 +95,21 @@ property miso {
     component = signal;
 };
 
-signal  clk { 
-    signalwidth=1; 
+signal  clk {
+    signalwidth=1;
     desc = "Input clock";
     signal_type = SignalType::clk;
     };
 
-signal rstn { 
-    signalwidth=1; 
+signal rstn {
+    signalwidth=1;
     desc = "Input reset, active low";
     activelow = true;
     signal_type = SignalType::rst;
     };
 
-signal rst { 
-    signalwidth=1; 
+signal rst {
+    signalwidth=1;
     desc = "Input reset, active high";
     activehigh = true;
     signal_type = SignalType::rst;
@@ -140,7 +140,7 @@ struct data_intf : base_intf {
     longint unsigned DATA_WIDTH;
 
 };
- 
+
 struct addr_intf : data_intf {
     longint unsigned ADDR_WIDTH;
 };

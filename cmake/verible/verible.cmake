@@ -6,7 +6,7 @@
 #
 # Verible-lint is a SystemVerilog linter...
 #
-# Verible can be found on this `link <https://github.com/chipsalliance/verible>`_
+# Verible can be found `here <https://github.com/chipsalliance/verible>`_
 #
 # Function expects that **IP_LIB** *INTERFACE_LIBRARY* has **SOURCES** property set with a list of System Verilog files to be used as inputs.
 # To set the SOURCES property use `target_sources() <https://cmake.org/cmake/help/latest/command/target_sources.html>`_ CMake function:
@@ -28,7 +28,7 @@
 # :type OUTDIR: string path
 # :keyword AUTOFIX: autofix the linting errors
 # :type AUTOFIX: [no|patch-interactive|patch|inplace-interactive|inplace|generate-waiver]
-# :keyword RULES: list of rules to enable or disable for reference look at verible documentation `link <https://github.com/chipsalliance/verible/tree/master/verilog/tools/lint#rule-configuration>`_
+# :keyword RULES: list of rules to enable or disable for reference look at verible `documentation <https://github.com/chipsalliance/verible/tree/master/verilog/tools/lint#rule-configuration>`_
 # :type RULES: List[string]
 # :keyword RULES_FILE: Additionally, the RULES_FILE flag can be used to read configuration stored in a file. The syntax is the same as RULES, except the rules can be also separated with the newline character
 # :type RULES_FILE: path string

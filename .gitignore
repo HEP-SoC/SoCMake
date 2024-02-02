@@ -1,4 +1,4 @@
 
-build/
-_build/
-docs/source/cmake_api/
+*build/
+_deps/
+
