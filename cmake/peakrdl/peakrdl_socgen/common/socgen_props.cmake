@@ -10,3 +10,6 @@ add_ip(base
 ip_sources(${IP} SYSTEMRDL
     ${CMAKE_CURRENT_LIST_DIR}/socgen_props.rdl
     )
+ip_sources(${IP} SYSTEMRDL_SOCGEN
+    ${CMAKE_CURRENT_LIST_DIR}/socgen_props.rdl
+    )
