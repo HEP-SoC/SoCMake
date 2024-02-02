@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
 function(iverilog IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR" "" ${ARGN})
+    cmake_parse_arguments(ARG "" "OUTDIR;EXECUTABLE" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -34,15 +34,17 @@ function(iverilog IP_LIB)
         list(APPEND CMP_DEFS_ARG -D${def})
     endforeach()
 
-    set(EXEC "${OUTDIR}/${IP_LIB}_iv")
+    if(NOT ARG_EXECUTABLE)
+        set(ARG_EXECUTABLE "${OUTDIR}/${IP_LIB}_iv")
+    endif()
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
-        OUTPUT ${EXEC} ${STAMP_FILE}
+        OUTPUT ${ARG_EXECUTABLE} ${STAMP_FILE}
         COMMAND iverilog
         ${SOURCES}
         ${ARG_INCDIRS}
         ${CMP_DEFS_ARG}
-        -o ${EXEC}
+        -o ${ARG_EXECUTABLE}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES}
         COMMENT "Running iverilog on ${IP_LIB}"
@@ -50,14 +52,13 @@ function(iverilog IP_LIB)
 
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-        DEPENDS ${EXEC} ${STAMP_FILE} ${IP_LIB}
+        DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${IP_LIB}
         )
 
     add_custom_target(
         run_${IP_LIB}_iv
-        COMMAND exec ${EXEC}
-        BYPRODUCTS "${OUTDIR}/test1.vcd"
-        DEPENDS ${EXEC} ${STAMP_FILE} ${SOURCES} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        COMMAND exec ${ARG_EXECUTABLE}
+        DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${SOURCES} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         )
 
     # add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
