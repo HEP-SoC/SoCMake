@@ -7,6 +7,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/hwip.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/add_subdirs.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/graphviz.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/multi_option.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/find_python.cmake")
 
 # ====================================
 # ======== Simulation ================
