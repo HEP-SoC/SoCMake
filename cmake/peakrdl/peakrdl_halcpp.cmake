@@ -1,36 +1,36 @@
-#[[[ @module peakrdl_halcpp
-#]]
-
 #[[[
 # Create a target for invoking PeakRDL-halcpp on IP_LIB.
 #
-# PeakRDL-halcpp generates a C++ 17 Hardware Abstraction Layer (HAL) drivers based on SystemRDL description.
-# PeakRDL-halcpp can be found on this `link <https://github.com/Risto97/PeakRDL-halcpp>`_
+# PeakRDL-halcpp generates a C++ 17 Hardware Abstraction Layer (HAL) drivers based on
+# SystemRDL description. PeakRDL-halcpp can be found on this
+# `link <https://github.com/Risto97/PeakRDL-halcpp>`_
 #
-# Function expects that **IP_LIB** *INTERFACE_LIBRARY* has **RDL_FILES** property set with a list of SystemRDL files to be used as inputs.
-# To set the RDL_FILES property use `set_property() <https://cmake.org/cmake/help/latest/command/set_property.html>`_ CMake function:
+# Function expects that **IP_LIB** *INTERFACE_LIBRARY* has **SYSTEMRDL_SOURCES** property set
+# with a list of SystemRDL files to be used as inputs. To set the SYSTEMRDL_SOURCES property use
+# the ip_sources() function from SoCMake (internally using `set_property()
+# <https://cmake.org/cmake/help/latest/command/set_property.html>`_ CMake function):
 #
 # .. code-block:: cmake
 #
-#    set_property(TARGET <your-lib> PROPERTY RDL_FILES ${PROJECT_SOURCE_DIR}/file.rdl)
+#    ip_sources(IP_LIB LANGUAGE [SYSTEMRDL|SYSTEMVERILOG|...] ${PROJECT_SOURCE_DIR}/file.rdl)
 #
+# This function will append CPP source files to the **FILE_SET** **HEADERS** of the **IP_LIB**.
 #
-# Function will append CPP source files to the **FILE_SET** **HEADERS** of the **IP_LIB**.
-#
-# If the **RLTLLIB** has a header file called **IP_LIB_ext.h** added to **FILE_SET** **HEADERS**, that module will be passed to peakrdl-halcpp as \-\-ext argument.
-# Meaning that the extended class will be used in the hierarchy instead of the HAL generated one.
+# If the **IP_LIB** has a header file called **IP_LIB_ext.h** added to **FILE_SET** **HEADERS**,
+# that module will be passed to peakrdl-halcpp as \-\-ext argument. Meaning that the extended class
+# will be used in the hierarchy instead of the HAL generated one.
 # The function works recursively, so its enough to call it once on the top library of the hierarchy.
 #
-# To set the extended class to the library this code snippet can be used
+# To set the extended class to the library this code snippet can be used:
 #
 # .. code-block:: c++
 #
-#    target_sources(<lib> INTERFACE FILE_SET HEADERS 
+#    target_sources(<lib> INTERFACE FILE_SET HEADERS
 #        BASE_DIRS "${PROJECT_SOURCE_DIR}/firmware/hal"
 #        FILES "firmware/hal/<lib>_ext.h"
-#        )
+#    )
 #
-# :param IP_LIB: RTL interface library, it needs to have RDL_FILES property set with a list of SystemRDL files.
+# :param IP_LIB: RTL interface library, it needs to have SYSTEMRDL_SOURCES property set with a list of SystemRDL files.
 # :type IP_LIB: INTERFACE_LIBRARY
 #
 # **Keyword Arguments**
@@ -65,16 +65,14 @@ function(peakrdl_halcpp IP_LIB)
     endif()
 
     if(NOT RDL_FILES)
-        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
+        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
+                unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
     find_python3()
-    set(__CMD 
-        ${Python3_EXECUTABLE} -m peakrdl halcpp
-            ${RDL_FILES}
-            ${EXT_ARG}
-            -o ${OUTDIR} 
-        )
+    set(__CMD ${Python3_EXECUTABLE} -m peakrdl halcpp
+        ${RDL_FILES} ${EXT_ARG} -o ${OUTDIR}
+    )
 
     target_include_directories(${IP_LIB} INTERFACE ${OUTDIR} ${OUTDIR}/include)
 
@@ -96,12 +94,14 @@ function(peakrdl_halcpp IP_LIB)
 
 endfunction()
 
-# Find headers that have _ext.h extension and compare with libraries
-# If there is a library that matches the file name add it to list
+#[[[
+# Find headers that have _ext.h extension and compare with libraries. If there is a library that
+# matches the file name add it to list.
+#]]
 function(__ext_header_provided LIB libs)
-    get_rtl_target_property(HEADERS ${LIB} HEADER_SET)
-    get_rtl_target_property(FLAT_GRAPH ${LIB} FLAT_GRAPH)
-    
+    get_ip_property(HEADERS ${LIB} HEADER_SET)
+    get_ip_property(FLAT_GRAPH ${LIB} FLAT_GRAPH)
+
     foreach(h ${HEADERS})
         get_filename_component(fn ${h} NAME)
         string(FIND ${fn} "_ext.h" ext_found)

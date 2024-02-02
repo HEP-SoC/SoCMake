@@ -1,6 +1,3 @@
-#[[[ @module peakrdl_ipblocksvg
-#]]
-
 #[[[
 # Create a target for invoking PeakRDL-ipblocksvg on IP_LIB.
 #
@@ -11,33 +8,39 @@
 #  :alt: Generated IP block diagram
 #
 #
-# PeakRDL-ipblocksvg can be found on this `link <https://github.com/Risto97/PeakRDL-ipblocksvg>`_
-#
-# It is important to have `inkscape <https://inkscape.org/>`_ installed on the system for this function to work.
-#
-# Function expects that **IP_LIB** *INTERFACE_LIBRARY* has **RDL_FILES** property set with a list of SystemRDL files to be used as inputs.
-# To set the RDL_FILES property use `set_property() <https://cmake.org/cmake/help/latest/command/set_property.html>`_ CMake function:
+# PeakRDL-ipblocksvg can be found on this `link <https://github.com/Risto97/PeakRDL-ipblocksvg>`_.
+# It is important to have `inkscape <https://inkscape.org/>`_ installed on the system for this
+# function to work. Function expects that **IP_LIB** *INTERFACE_LIBRARY* has **SYSTEMRDL_SOURCES**
+# property set with a list of SystemRDL files to be used as inputs. To set the SYSTEMRDL_SOURCES
+# property use the ip_sources() function from SoCMake (internally using `set_property()
+# <https://cmake.org/cmake/help/latest/command/set_property.html>`_ CMake function):
 #
 # .. code-block:: cmake
 #
-#    set_property(TARGET <your-lib> PROPERTY RDL_FILES ${PROJECT_SOURCE_DIR}/file.rdl)
+#    ip_sources(IP_LIB LANGUAGE [SYSTEMRDL|SYSTEMVERILOG|...] ${PROJECT_SOURCE_DIR}/file.rdl)
+#
+# This function will append .png files to the **GRAPHIC_FILES** of the **IP_LIB**.
 #
 #
-# Function will append  .png files to the **GRAPHIC_FILES** of the **IP_LIB**.
-#
-#
-# :param IP_LIB: RTL interface library, it needs to have RDL_FILES property set with a list of SystemRDL files.
+# :param IP_LIB: RTL interface library, it needs to have SYSTEMRDL_SOURCES property set with a list
+# of SystemRDL files.
 # :type IP_LIB: INTERFACE_LIBRARY
 #
 # **Keyword Arguments**
 #
-# :keyword OUTDIR: output directory in which the files will be generated, if ommited ${BINARY_DIR}/ipblocksvg will be used.
+# :keyword OUTDIR: output directory in which the files will be generated, if ommited
+# ${BINARY_DIR}/ipblocksvg will be used.
 # :type OUTDIR: string path
-# :keyword TRAVERSE: option argument if passed, it will traverse the hierarchy and generate a .png file for each addrmap
+# :keyword TRAVERSE: option argument if passed, it will traverse the hierarchy and generate a .png
+# file for each addrmap
 # :type TRAVERSE: option
-# :keyword APPEND_HIERPATH: Append hierarchical path to the output directory, for example if outdir is /home/user/test/ and hierarchy of Addrmap is soc.apb_subsystem.plic the output directory will be /home/user/test/soc/apb_subsystem/plic, use PATH_SUFFIX to append additional suffix to this path
+# :keyword APPEND_HIERPATH: Append hierarchical path to the output directory, for example if outdir
+# is /home/user/test/ and hierarchy of Addrmap is soc.apb_subsystem.plic the output directory will be /home/user/test/soc/apb_subsystem/plic, use PATH_SUFFIX to append additional suffix to this path
 # :type APPEND_HIERPATH: option
-# :keyword PATH_SUFFIX: Append a path suffix to the output directory, for example if --path-suffix=docs/pictures and outdir is /home/user/test/, and APPEND_HIERPATH is active, addrmap hierarchy is soc.apb_subsystem.plic, the real output path will be /home/user/test/soc/apb_subsystem/plic/docs/pictures/
+# :keyword PATH_SUFFIX: Append a path suffix to the output directory, for example if
+# --path-suffix=docs/pictures and outdir is /home/user/test/, and APPEND_HIERPATH is active,
+# addrmap hierarchy is soc.apb_subsystem.plic, the real output path will be
+# /home/user/test/soc/apb_subsystem/plic/docs/pictures/
 # :type PATH_SUFFIX: string
 # :keyword LOGO: a logo can be placed in the middle of generated picture like shown in figure above.
 # :type LOGO: string path
@@ -45,7 +48,8 @@
 function(peakrdl_ipblocksvg IP_LIB)
     cmake_parse_arguments(ARG "TRAVERSE;APPEND_HIERPATH" "OUTDIR;LOGO;PATH_SUFFIX" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
+                "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
@@ -83,12 +87,13 @@ function(peakrdl_ipblocksvg IP_LIB)
     get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
 
     if(NOT RDL_FILES)
-        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
+        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
+                unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
     find_python3()
-    set(__CMD 
-        ${Python3_EXECUTABLE} -m peakrdl ipblocksvg 
+    set(__CMD
+        ${Python3_EXECUTABLE} -m peakrdl ipblocksvg
             ${RDL_FILES}
             ${ARG_LOGO}
             ${ARG_TRAVERSE}
@@ -109,7 +114,9 @@ function(peakrdl_ipblocksvg IP_LIB)
         list(REMOVE_DUPLICATES GRAPHIC_FILES)
     else()
         string(REPLACE ";" " " __CMD_STR "${__CMD}")
-        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${IP_LIB}, output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n Command Called: \n ${__CMD_STR}")
+        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${IP_LIB},
+                output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n
+                Command Called: \n ${__CMD_STR}")
     endif()
 
     set_source_files_properties(${GRAPHIC_FILES} PROPERTIES GENERATED TRUE)
@@ -130,7 +137,6 @@ function(peakrdl_ipblocksvg IP_LIB)
         DEPENDS ${GRAPHIC_FILES} ${STAMP_FILE}
         )
 
-    # set_property(TARGET ${IP_LIB} APPEND PROPERTY DEPENDS ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
-    add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} )
-endfunction()
+    add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
 
+endfunction()

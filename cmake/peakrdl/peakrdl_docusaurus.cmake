@@ -31,14 +31,15 @@ function(peakrdl_docusaurus IP_LIB)
     get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
 
     if(NOT RDL_FILES)
-        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
+        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
+                unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
     find_python3()
-    set(__CMD 
+    set(__CMD
         ${Python3_EXECUTABLE} -m peakrdl docusaurus
             -o ${OUTDIR}
-            ${RDL_FILES} 
+            ${RDL_FILES}
             ${_ARG_SIDEBAR_TEMPLATE}
             ${_ARG_LOGO}
         )

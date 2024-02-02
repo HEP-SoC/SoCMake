@@ -8,10 +8,11 @@ pages:
   stage: deploy
   script:
     - mkdir -p public
-    - cd docs
-    - npm install docusaurus
-    - npm run build
-    - cp -R build/* ../public/
+    - mkdir -p docs/build
+    - cd docs/build
+    - cmake ../
+    - make docusaurus_doc
+    - cp -R docusaurus/* ../public/
   artifacts:
     paths:
       - public

@@ -1,52 +1,5 @@
 include_guard(GLOBAL)
 
-include("${CMAKE_CURRENT_LIST_DIR}/utils/safe_get_target_property.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/hwip.cmake")
-
-function(get_rtl_target_property OUT_VAR TARGET PROPERTY)
-
-    if((${PROPERTY} STREQUAL SOURCES) OR (${PROPERTY} STREQUAL INTERFACE_SOURCES))
-        message(WARNING "Use function get_rtl_target_sources(OUT_VAR TARGET) to get verilog sources")
-    endif()
-
-    flatten_graph(${TARGET})
-    get_target_property(DEPS ${TARGET} FLAT_GRAPH)
-
-    set(OUT_LIST "")
-    foreach(d ${DEPS})
-        safe_get_target_property(PROP ${d} ${PROPERTY} "")
-        list(APPEND OUT_LIST ${PROP})
-    endforeach()
-
-    set(${OUT_VAR} ${OUT_LIST} PARENT_SCOPE)
-endfunction()
-
-# Sources get added to different properties depending if they are added with add_library(TARGET INTERFACE ...) or target_sources(TARGET INTERFACE ...)
-function(get_rtl_target_sources OUT_VAR TARGET)
-    flatten_graph(${TARGET})
-    get_target_property(DEPS ${TARGET} FLAT_GRAPH)
-    foreach(d ${DEPS})
-        safe_get_target_property(INTERFACE_SOURCES ${d} INTERFACE_SOURCES "")
-        safe_get_target_property(SOURCES ${d} SOURCES "")
-        list(APPEND V_SOURCES ${SOURCES} ${INTERFACE_SOURCES})
-    endforeach()
-
-    set(${OUT_VAR} ${V_SOURCES} PARENT_SCOPE)
-endfunction()
-
-# ========================================================== #
-# ======== Print all RTL sources =========================== #
-# ========================================================== #
-
-function(print_rtl_sources RTLLIB)
-    get_rtl_target_sources(SOURCES ${RTLLIB})
-    message(STATUS "------------ RTL sources for ${RTLLIB}: ")
-    foreach(source ${SOURCES})
-        message(${source})
-    endforeach()
-
-endfunction()
-
 # ========================================================== #
 # ======== Internal graph flattening functions ============= #
 # ========================================================== #
