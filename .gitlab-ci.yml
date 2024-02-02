@@ -7,6 +7,7 @@ before_script:
 pages:
   stage: deploy
   script:
+    - pip install -U sphinx
     - mkdir -p public
     - mkdir -p docs/build
     - cd docs/build
