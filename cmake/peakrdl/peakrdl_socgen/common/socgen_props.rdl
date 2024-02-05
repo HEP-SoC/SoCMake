@@ -21,6 +21,11 @@ property input {
     component = signal;
 };
 
+property datatype {
+    type = string;
+    component = signal;
+};
+
 property signal_type {
     type = SignalType;
     component = signal;
