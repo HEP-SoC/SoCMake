@@ -97,6 +97,8 @@ function(peakrdl_socgen IP_LIB)
         set_source_files_properties(${SOCGEN_DOT_FILES} PROPERTIES GENERATED TRUE)
         ip_sources(${IP_LIB} GRAPHVIZ  ${SOCGEN_DOT_FILES})
         set(ARG_GEN_DOT --gen-dot)
+    else()
+        unset(ARG_GEN_DOT)
     endif()
 
     get_ip_sources(RDL_SOCGEN_GLUE ${IP_LIB} SYSTEMRDL_SOCGEN)
