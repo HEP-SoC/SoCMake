@@ -51,9 +51,11 @@ function(verilate_xml IP_LIB)
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
     list(PREPEND SOURCES ${V_SOURCES})
 
-    get_ip_compile_definitions(COMP_DEFS ${IP_LIB})
+    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
+    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG)
+    set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
     foreach(def ${COMP_DEFS})
-        list(APPEND VERILATOR_ARGS -D${def})
+        list(APPEND ARG_VERILATOR_ARGS -D${def})
     endforeach()
 
     if(NOT SOURCES)
