@@ -67,7 +67,7 @@ def process_h_tmpl(context : dict) -> str:
 def main(
         xml_file : str,
         outdir : str,
-        prefix : str | None,
+        prefix : "str | None",
         vlt : bool,
         reg_list : bool,
         reg_h : bool,
