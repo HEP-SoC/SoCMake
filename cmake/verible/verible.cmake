@@ -37,7 +37,7 @@
 #]]
 
 function(verible_lint IP_LIB)
-    cmake_parse_arguments(ARG "REQUIRED" "OUTDIR;AUTOFIX;RULES_FILE" "RULES;WAIVER_FILES" ${ARGN})
+    cmake_parse_arguments(ARG "REQUIRED;ONLY_TOP;SKIP_GENERATED" "OUTDIR;AUTOFIX;RULES_FILE" "RULES;WAIVER_FILES" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -78,16 +78,30 @@ function(verible_lint IP_LIB)
         set(ARG_WAIVER_FILES --waiver_files=${WAIVER_FILES})
     endif()
 
-    get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
-    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
-    list(PREPEND SOURCES ${V_SOURCES})
+    if(ARG_ONLY_TOP)
+        safe_get_target_property(V_SOURCES ${IP_LIB} VERILOG_SOURCES "")
+        safe_get_target_property(SV_SOURCES ${IP_LIB} SYSTEMVERILOG_SOURCES "")
+    else()
+        get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
+        get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG)
+    endif()
+    set(__sources ${SV_SOURCES} ${V_SOURCES})
+
+    if(ARG_SKIP_GENERATED)
+        foreach(fn ${__sources})
+            get_property(__file_is_gen SOURCE ${fn} PROPERTY GENERATED)
+            if(__file_is_gen)
+                list(REMOVE_ITEM __sources ${fn})
+            endif()
+        endforeach()
+    endif()
 
     find_program(VERIBLE_LINTER NAMES verible-verilog-lint)
     set(__CMD ${VERIBLE_LINTER}
             ${ARG_AUTOFIX} ${AUTOFIX_OUTFILE_ARG}
             ${ARG_RULES} ${ARG_RULES_FILE}
             ${ARG_WAIVER_FILES}
-            ${SOURCES}
+            ${__sources}
         )
 
     if(ARG_REQUIRED)
@@ -95,12 +109,12 @@ function(verible_lint IP_LIB)
         add_custom_command(OUTPUT ${STAMP_FILE}
             COMMAND ${__CMD}
             COMMAND touch ${STAMP_FILE}
-            DEPENDS ${SOURCES}
+            DEPENDS ${__sources}
             COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
             )
 
         add_custom_target(${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-            DEPENDS ${SOURCES} ${STAMP_FILE}
+            DEPENDS ${__sources} ${STAMP_FILE}
             )
         add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
     else()
