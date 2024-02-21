@@ -4,20 +4,11 @@ sidebar_position: 2
 
 # Getting Started
 
-The SoCMake source code is available on the following [link](https://gitlab.cern.ch/socmake/SoCMake-Ibex).
+The SoCMake source code is available on the following [link](https://gitlab.cern.ch/socmake/SoCMake).
 
 ## Dependencies
 
-Using SoCMake is pretty straight forward, and does not require alot of dependencies for the base installation.
-
-:::info
-
-Depending on which EDA tools you are using, you will have to install the EDA tool in question.
-Sometimes the install script is provided as CMake function in SoCMake, and it will be mentioned in the documentation, in other cases you will have to install them manually.
-
-:::
-
-The first and logical dependency is CMake `(>3.25.0)`, which can be installed by one of the following options:
+Only mandatory SoCMake dependencies are `CMake>=3.25.0` and `make`.
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -54,14 +45,10 @@ apt-get install cmake
 </Tabs>
 ```
 
-:::caution
-At the moment it is required to install a version of CMake greater than `3.25.0`, however this might be lowered in the future when older versions are verified.
-:::
-
-
 ## Usage
 
-To use SoCMake in an CMake project no installation is required.
+Since `SoCMake` runs on CMake scripting language, no installation is required. <br />
+It is recommended to fetch the SoCMake locally within your `CMake` project. <br />
 There are multiple ways to add SoCMake within project, 2 of them are with `CPM` or inbuilt `FetchContent`.
 In both cases SoCMake will be downloaded during configuration phase of the project, only the first time.
 
@@ -86,11 +73,6 @@ FetchContent_MakeAvailable(SoCMake)
 
 FetchContent is a built in CMake function for handling dependencies.
 
-:::caution
-It is easier to setup with FetchContent, but CPM provides a bit more options, so it is recommended to use that instead.
-:::
-
-
 ```mdx-code-block
 </TabItem>
 <TabItem value="CPM.cmake">
@@ -109,9 +91,6 @@ CPMAddPackage(              # Add SoCMake as a package
 This is the recomended way of adding SoCMake.
 
 In the line 2 we are including `deps/CPM.cmake` installation script, which needs to be placed in the repository.
-
-<details>
-  <summary>CPM.cmake</summary>
 
 ```cmake title="deps/CPM.cmake"
 if(CPM_SOURCE_CACHE)
@@ -147,12 +126,6 @@ endif()
 include(${CPM_DOWNLOAD_LOCATION})
 ```
 
-</details>
-
-:::info
-`CPM.cmake` is using FetchContent in the background, so all of the [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html) documentation is still relevant.
-:::
-
 ```mdx-code-block
 </TabItem>
 </Tabs>
@@ -160,7 +133,7 @@ include(${CPM_DOWNLOAD_LOCATION})
 
 ### CMakeLists.txt
 
-Then in the main `CMakeLists.txt` include `deps/deps.cmake`.
+In the main `CMakeLists.txt` include `deps/deps.cmake`.
 It should look like this:
 
 ```cmake
@@ -175,10 +148,6 @@ After the previous code block, all of the SoCMake functions are available.
 ### Directory structure
 
 The directory tree of the project should look like this
-
-:::note
-It is possible to put content of `CPM.cmake` and `deps.cmake` inside the `CMakeLists.txt`, but it is not recommended for code organization purposes.
-:::
 
 ```cmake
 ├── CMakeLists.txt

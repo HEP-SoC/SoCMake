@@ -6,8 +6,8 @@ sidebar_position: 2
 
 import { Graphviz } from 'graphviz-react';
 import CodeBlock from '@theme/CodeBlock';
-const graph = require('!!raw-loader!../../..//examples/linking_ips/graph.dot')?.default;
-const cmakelists = require('!!raw-loader!../../../examples/linking_ips/CMakeLists.txt')?.default;
+export const graph = require('!!raw-loader!../../..//examples/linking_ips/graph.dot')?.default;
+export const cmakelists = require('!!raw-loader!../../../examples/linking_ips/CMakeLists.txt')?.default;
 
 SoCMake promotes hierarchical design, by organizing IP blocks into IP libraries, we can easily reuse IP blocks into different designs.
 

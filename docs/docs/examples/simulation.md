@@ -14,8 +14,8 @@ For this step make sure you have Iverilog and/or Verilator installed on your sys
 Lets create a simple verilog testbench file:
 
 import CodeBlock from '@theme/CodeBlock';
-const tb_v = require('!!raw-loader!../../../examples/sim_example/tb.v')?.default;
-const cmakelists = require('!!raw-loader!../../../examples/sim_example/CMakeLists.txt')?.default;
+export const tb_v = require('!!raw-loader!../../../examples/sim_example/tb.v')?.default;
+export const cmakelists = require('!!raw-loader!../../../examples/sim_example/CMakeLists.txt')?.default;
 
 ## tb.v 
 
@@ -34,12 +34,12 @@ The following `CMakeLists.txt` will create a library, add sources and create ver
 
 We are creating an `IP` library called `tb` using `add_ip()` function.
 Function add_ip takes the following arguments:
-*   First argument is positional ** NAME ** of the defined library
-*   ** VENDOR ** - name of the vendor (your company, organization, ...)
-*   ** LIBRARY ** - name of the library which the IP is part of
-*   ** VERSION ** - Version number of the IP
+*   First argument is positional **NAME** of the defined library
+*   **VENDOR** - name of the vendor (your company, organization, ...)
+*   **LIBRARY** - name of the library which the IP is part of
+*   **VERSION** - Version number of the IP
 
-The library that will be created will hold a name **{VENDOR}**\_\_**{LIBRARY}**\_\_**{NAME}**\_\_**{VERSION}**, there will be also a CMake [alias library](https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries) that is created with the name **{VENDOR}**::**{LIBRARY}**::**{NAME}**::**{VERSION}**.
+The library that will be created will hold a name **\<VENDOR\>**\_\_**\<LIBRARY\>**\_\_**\<NAME\>**\_\_**\<VERSION\>**, there will be also a CMake [alias library](https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries) that is created with the name **\<VENDOR\>**::**\<LIBRARY\>**::**\<NAME\>**::**\<VERSION\>**.
 
 In this a library called **cern::ip::tb::0.0.1** is created.<br/>
 This function also sets `IP` variable in the current scope from where it was called. The IP will hold the non alias full library name.
@@ -49,9 +49,9 @@ This function also sets `IP` variable in the current scope from where it was cal
 
 To add design sources to the `IP` library, we can use `ip_sources()` function.
 The function takes
-*   First argument is positional ** NAME ** of the library to add sources to.
-*   Second argument is positional ** TYPE ** and represents the file type to be added. 
-*   Third argument is positional ** SOURCES ** and is a list of source files to be added
+*   First argument is positional **NAME** of the library to add sources to.
+*   Second argument is positional **TYPE** and represents the file type to be added. 
+*   Third argument is positional **SOURCES** and is a list of source files to be added
 
 :::info
 Using just the name of the library `tb` is possible only if the add_ip() call is in the same CMakeLists.txt (subdirectory), and it was the last library added.

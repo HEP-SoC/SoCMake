@@ -13,7 +13,8 @@ pages:
     - cd docs/build
     - cmake ../
     - make docusaurus_doc
-    - cp -R docusaurus/* ../public/
+    - cp -R docusaurus/* ../../public/
+    - ls ../../public
   artifacts:
     paths:
       - public
