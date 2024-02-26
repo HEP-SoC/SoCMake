@@ -23,7 +23,7 @@ function(option_str variable docstring default)
 endfunction()
 
 function(option_int variable docstring default)
-  set(${variable} ${default} CACHE STRING "${docstring}")
+  set(${variable} ${default} CACHE STRING "${docstring}" FORCE)
   if(NOT ${${variable}} MATCHES "^[0-9]+$")
     message(FATAL_ERROR "The value of option \"${variable}\" must be a non-negative integer.")
   endif()
