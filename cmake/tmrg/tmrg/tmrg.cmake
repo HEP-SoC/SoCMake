@@ -3,7 +3,7 @@
 include_guard(GLOBAL)
 
 function(tmrg IP_LIB)
-    cmake_parse_arguments(ARG "REPLACE;SED_WOR;NO_COMMON_DEFINITIONS" "OUTDIR" "" ${ARGN})
+    cmake_parse_arguments(ARG "REPLACE;SED_WOR;NO_COMMON_DEFINITIONS" "OUTDIR;CONFIG_FILE" "" ${ARGN})
 
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -21,6 +21,12 @@ function(tmrg IP_LIB)
     endif()
     execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR})
 
+    if(ARG_CONFIG_FILE)
+        set(ARG_CONFIG_FILE -c ${ARG_CONFIG_FILE})
+    else()
+        unset(ARG_CONFIG_FILE)
+    endif()
+
     get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
     list(PREPEND SOURCES ${V_SOURCES})
@@ -35,7 +41,7 @@ function(tmrg IP_LIB)
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
 
     set(TMRG_COMMAND 
-        tmrg --stats --tmr-dir=${OUTDIR} ${SOURCES};
+        tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${SOURCES};
         )
 
     if(ARG_SED_WOR)
