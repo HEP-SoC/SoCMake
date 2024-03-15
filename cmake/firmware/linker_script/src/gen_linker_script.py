@@ -175,21 +175,22 @@ def main():
     parser.add_argument('--rdlfiles', nargs="+", help='RDL input files')
     parser.add_argument('--outfile', required=True, help='Output lds file')
     parser.add_argument('--debug', type=bool, default=False, help='Include debug section in the lds or discard it')
+    parser.add_argument('-p', '--param', nargs='+', help="Parameter to overwrite on top RDL module in the format 'PARAM=VALUE'")
 
     args = parser.parse_args()
 
-    # args = sys.argv[1:]
-    # outfile = args[0]
-    # args = args[1:]
-    #
-    # rdl_files = args
+    overwritten_params_dict = {}
+    if args.param is not None:
+        for param in args.param:
+            key, value = param.split('=')
+            overwritten_params_dict[key] = int(value)
 
     rdlc = RDLCompiler()
 
     try:
         for input_file in args.rdlfiles:
             rdlc.compile_file(input_file)
-        root = rdlc.elaborate()
+        root = rdlc.elaborate(parameters=overwritten_params_dict)
     except RDLCompileError:
         sys.exit(1)
 

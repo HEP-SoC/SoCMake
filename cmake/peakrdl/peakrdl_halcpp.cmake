@@ -39,7 +39,7 @@
 # :type OUTDIR: string path
 #]]
 function(peakrdl_halcpp IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR" "" ${ARGN})
+    cmake_parse_arguments(ARG "" "OUTDIR" "PARAMETERS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -54,6 +54,14 @@ function(peakrdl_halcpp IP_LIB)
         set(OUTDIR ${BINARY_DIR}/halcpp)
     else()
         set(OUTDIR ${ARG_OUTDIR})
+    endif()
+
+    # Used to overwrite the top level parameters
+    set(OVERWRITTEN_PARAMETERS "")
+    if(ARG_PARAMETERS)
+        foreach(PARAM ${ARG_PARAMETERS})
+            string(APPEND OVERWRITTEN_PARAMETERS "-P${PARAM}")
+        endforeach()
     endif()
 
     get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
@@ -71,7 +79,7 @@ function(peakrdl_halcpp IP_LIB)
 
     find_python3()
     set(__CMD ${Python3_EXECUTABLE} -m peakrdl halcpp
-        ${RDL_FILES} ${EXT_ARG} -o ${OUTDIR}
+        ${RDL_FILES} ${EXT_ARG} -o ${OUTDIR} ${OVERWRITTEN_PARAMETERS}
     )
 
     target_include_directories(${IP_LIB} INTERFACE ${OUTDIR} ${OUTDIR}/include)

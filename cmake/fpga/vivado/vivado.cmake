@@ -22,7 +22,7 @@ function(vivado IP_LIB)
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
     list(PREPEND SOURCES ${V_SOURCES})
     list(FILTER SOURCES EXCLUDE REGEX ".vlt$")
-    
+
     if(NOT ARG_TOP)
         set(TOP ${IP_LIB})
     else()
@@ -33,7 +33,8 @@ function(vivado IP_LIB)
         string(REPLACE "=" ";" vdef_l ${vdef})
     endforeach()
 
-    get_ip_sources(XDC_FILES ${IP_LIB} XDC)
+    # get_ip_sources(XDC_FILES ${IP_LIB} XDC)
+    get_target_property(XDC_FILES ${IP_LIB} XDC)
     get_target_property(FPGA_PART ${IP_LIB} FPGA_PART)
 
     get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
