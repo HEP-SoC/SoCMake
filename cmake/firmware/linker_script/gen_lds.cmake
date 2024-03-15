@@ -1,5 +1,5 @@
 function(gen_lds IP_LIB)
-    cmake_parse_arguments(ARG "NODEBUG" "OUTDIR" "" ${ARGN})
+    cmake_parse_arguments(ARG "NODEBUG" "OUTDIR" "PARAMETERS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -26,6 +26,14 @@ function(gen_lds IP_LIB)
         set(ARG_NODEBUG --debug)
     endif()
 
+    # Used to overwrite the top level parameters
+    set(OVERWRITTEN_PARAMETERS "")
+    if(ARG_PARAMETERS)
+        foreach(PARAM ${ARG_PARAMETERS})
+            string(APPEND OVERWRITTEN_PARAMETERS "-p${PARAM}")
+        endforeach()
+    endif()
+
     execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR})
 
     get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
@@ -45,6 +53,7 @@ function(gen_lds IP_LIB)
             --rdlfiles ${RDL_FILES}
             --outfile ${LDS_FILE}
             ${ARG_NODEBUG}
+            ${OVERWRITTEN_PARAMETERS}
 
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES}

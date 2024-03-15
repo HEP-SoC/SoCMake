@@ -49,7 +49,7 @@
 # :type INJECT_V_FILES: List[string path]
 #]]
 function(peakrdl_socgen IP_LIB)
-    cmake_parse_arguments(ARG "USE_INCLUDE;GEN_DOT" "OUTDIR" "INJECT_V_FILES" ${ARGN})
+    cmake_parse_arguments(ARG "USE_INCLUDE;GEN_DOT" "OUTDIR" "INJECT_V_FILES;PARAMETERS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
                 "${ARG_UNPARSED_ARGUMENTS}")
@@ -101,6 +101,14 @@ function(peakrdl_socgen IP_LIB)
         unset(ARG_GEN_DOT)
     endif()
 
+    # Used to overwrite the top level parameters
+    set(OVERWRITTEN_PARAMETERS "")
+    if(ARG_PARAMETERS)
+        foreach(PARAM ${ARG_PARAMETERS})
+            string(APPEND OVERWRITTEN_PARAMETERS "-P${PARAM}")
+        endforeach()
+    endif()
+
     get_ip_sources(RDL_SOCGEN_GLUE ${IP_LIB} SYSTEMRDL_SOCGEN)
     get_ip_sources(SYSTEMRDL_SOURCES ${IP_LIB} SYSTEMRDL)
 
@@ -118,6 +126,7 @@ function(peakrdl_socgen IP_LIB)
             ${ARG_USE_INCLUDE}
             ${ARG_INJECT_V_FILES}
             ${ARG_GEN_DOT}
+            ${OVERWRITTEN_PARAMETERS}
         )
     set(__CMD_LF ${__CMD} --list-files)
 
