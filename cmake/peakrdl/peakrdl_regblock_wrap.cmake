@@ -51,7 +51,7 @@ function(peakrdl_regblock_wrap IP_LIB)
     set(SV_GEN
         ${OUTDIR}/${IP_NAME}_regblock_pkg.sv
         ${OUTDIR}/${IP_NAME}_regblock.sv
-        ${OUTDIR}/${IP_NAME}_wrap.sv
+        ${OUTDIR}/${IP_NAME}.sv
         )
     # Prepend the generated files to the IP sources
     ip_sources(${IP_LIB} SYSTEMVERILOG PREPEND ${SV_GEN})
