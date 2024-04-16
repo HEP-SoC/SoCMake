@@ -1,6 +1,6 @@
 function(peakrdl_regblock_wrap IP_LIB)
     # Parse keyword arguments
-    cmake_parse_arguments(ARG "" "OUTDIR;RENAME;INTF" "" ${ARGN})
+    cmake_parse_arguments(ARG "SV2V" "OUTDIR;RENAME;INTF" "" ${ARGN})
     # Check for any unknown argument
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
@@ -40,6 +40,7 @@ function(peakrdl_regblock_wrap IP_LIB)
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
+    # Generate the regblock and wrapper
     find_python3()
     set(__CMD ${Python3_EXECUTABLE} -m peakrdl regblock_wrap
             # --rename ${IP_NAME}
@@ -66,13 +67,38 @@ function(peakrdl_regblock_wrap IP_LIB)
         DEPENDS ${RDL_SOURCES}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
     )
+
     # This target triggers the systemverilog register block generation using peakRDL regblock tool (_CMD)
+    set(WRAP_TNAME ${IP_LIB}_regblock_wrap)
     add_custom_target(
-        ${IP_LIB}_regblock_wrap
+        ${WRAP_TNAME}
         DEPENDS ${SV_GEN} ${STAMP_FILE}
     )
 
-    add_dependencies(${IP_LIB} ${IP_LIB}_regblock_wrap)
+    # Add command to convert to simple Verilog
+    if(ARG_SV2V)
+        set(V_GEN ${OUTDIR}/${IP_NAME}.v)
+        set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
 
+        add_custom_command(
+            OUTPUT ${STAMP_FILE} ${V_GEN}
+            COMMAND  sv2v ${SV_GEN} -w ${V_GEN}
+
+            COMMAND touch ${STAMP_FILE}
+            DEPENDS ${SV_GEN}
+            COMMENT "Running sv2v for regblock_wrap on ${IP_LIB}"
+        )
+
+        set(SV2V_TNAME ${IP_LIB}_regblock_wrap_sv2v)
+        add_custom_target(
+            ${SV2V_TNAME}
+            DEPENDS ${V_GEN} ${STAMP_FILE}
+        )
+
+        add_dependencies(${SV2V_TNAME} ${WRAP_TNAME})
+        add_dependencies(${IP_LIB} ${SV2V_TNAME})
+    else()
+        add_dependencies(${IP_LIB} ${WRAP_TNAME})
+    endif()
 endfunction()
 
