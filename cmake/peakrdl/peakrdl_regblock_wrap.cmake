@@ -94,7 +94,6 @@ function(peakrdl_regblock_wrap IP_LIB)
         )
 
         ip_sources(${IP_LIB} VERILOG PREPEND ${V_GEN})
-        # add_dependencies(${SV2V_TNAME} ${WRAP_TNAME})
         add_dependencies(${IP_LIB} ${SV2V_TNAME})
     else()
         ip_sources(${IP_LIB} SYSTEMVERILOG PREPEND ${SV_GEN})
