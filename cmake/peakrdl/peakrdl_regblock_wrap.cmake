@@ -54,8 +54,6 @@ function(peakrdl_regblock_wrap IP_LIB)
         ${OUTDIR}/${IP_NAME}_regblock.sv
         ${OUTDIR}/${IP_NAME}.sv
         )
-    # Prepend the generated files to the IP sources
-    ip_sources(${IP_LIB} SYSTEMVERILOG PREPEND ${SV_GEN})
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
@@ -95,9 +93,11 @@ function(peakrdl_regblock_wrap IP_LIB)
             DEPENDS ${V_GEN} ${STAMP_FILE}
         )
 
-        add_dependencies(${SV2V_TNAME} ${WRAP_TNAME})
+        ip_sources(${IP_LIB} VERILOG PREPEND ${V_GEN})
+        # add_dependencies(${SV2V_TNAME} ${WRAP_TNAME})
         add_dependencies(${IP_LIB} ${SV2V_TNAME})
     else()
+        ip_sources(${IP_LIB} SYSTEMVERILOG PREPEND ${SV_GEN})
         add_dependencies(${IP_LIB} ${WRAP_TNAME})
     endif()
 endfunction()
