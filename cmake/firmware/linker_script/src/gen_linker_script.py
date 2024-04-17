@@ -40,10 +40,10 @@ class RDL2LdsExporter(RDLListener):
 
     def enter_Reg(self, node):
         if node.get_property("linker_symbol", default=False):
-            assert (not any(reg.inst_name == node.inst_name for reg in self.regs),
-            f"Only one register with linker_symbol property and the same instance
-            name can exist, you probably instantiated \"{node.parent.orig_type_name}\"
-            Addrmap multiple times")
+            assert not any(reg.inst_name == node.inst_name for reg in self.regs), \
+                    f"Only one register with linker_symbol property and the same \
+                    instance name can exist, you probably instantiated \
+                    {node.parent.orig_type_name} Addrmap multiple times"
 
             self.regs.append(node)
 
@@ -207,7 +207,7 @@ def main():
 
     parser.add_argument('--rdlfiles', nargs="+", help='RDL input files')
     parser.add_argument('--outfile', required=True, help='Output lds file')
-    parser.add_argument('--debug', type=bool, default=False, help='Include debug section in the lds or discard it')
+    parser.add_argument('--debug', default=False, action="store_true", help='Include debug section in the lds or discard it')
     parser.add_argument('-p', '--param', nargs='+', help="Parameter to overwrite on top RDL module in the format 'PARAM=VALUE'")
 
     args = parser.parse_args()
@@ -228,6 +228,7 @@ def main():
         sys.exit(1)
 
     top_gen = root.children(unroll=True)
+    # Is this really needed?
     top = None
     for top in top_gen:
         top = top

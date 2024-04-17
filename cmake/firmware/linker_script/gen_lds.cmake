@@ -6,7 +6,7 @@
 #]]
 function(gen_lds IP_LIB)
     # Parse the arguments passed to the function
-    cmake_parse_arguments(ARG "NODEBUG" "OUTDIR;PARAMETERS" ${ARGN})
+    cmake_parse_arguments(ARG "NODEBUG" "OUTDIR" "PARAMETERS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
