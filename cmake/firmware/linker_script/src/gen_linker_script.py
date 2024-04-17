@@ -75,6 +75,13 @@ class RDL2LdsExporter(RDLListener):
             return True
         return False
 
+    def isHeap(self, mem : MemNode) -> bool:
+        """Returns True if section contains the heap."""
+        sections = self.get_sections_prop(mem)
+        if "heap" in sections:
+            return True
+        return False
+
     def isData(self, mem : MemNode) -> bool:
         """Returns True if section contains data."""
         sections = self.get_sections_prop(mem)
@@ -94,7 +101,7 @@ class RDL2LdsExporter(RDLListener):
         sections = m.get_property('sections').split('|')
         for s in sections:
             assert_m = f"Illegal property for sections: {s} of memory: {m.inst_name} in addrmap: {m.parent.inst_name}"
-            assert s in ['text', 'data', 'bss', 'boot', 'stack'], assert_m
+            assert s in ['text', 'data', 'bss', 'boot', 'stack', 'heap'], assert_m
 
         return sections
 
@@ -106,6 +113,15 @@ class RDL2LdsExporter(RDLListener):
         assert len(stack_mems) == 1, f"Exactly 1 memory with section stack is allowed and required {stack_mems}" # TODO
 
         return stack_mems[0]
+
+    def getHeapMem(self, mems: List[MemNode]) -> MemNode:
+        heap_mems = []
+        for m in mems:
+            if self.isHeap(m):
+                heap_mems.append(m)
+        assert len(heap_mems) == 1, f"Exactly 1 memory with section heap is allowed and required {heap_mems}" # TODO
+
+        return heap_mems[0]
 
 
     def getProgramMem(self, mems: List[MemNode]) -> MemNode:
@@ -168,7 +184,8 @@ class RDL2LdsExporter(RDLListener):
                    'regs'  : self.regs
                    }
 
-        text = self.process_template(context, "lds.j2")
+        # text = self.process_template(context, "lds.j2")
+        text = self.process_template(context, "linker.lds.j2")
 
         # assert(node.type_name is not None)
         # out_file = os.path.join(outfile, node.type_name + ".lds")
