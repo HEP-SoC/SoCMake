@@ -90,7 +90,7 @@ function(peakrdl_regblock_wrap IP_LIB)
         set(SV2V_TNAME ${IP_LIB}_regblock_wrap_sv2v)
         add_custom_target(
             ${SV2V_TNAME}
-            DEPENDS ${V_GEN} ${STAMP_FILE}
+            DEPENDS ${V_GEN} ${STAMP_FILE} ${WRAP_TNAME}
         )
 
         ip_sources(${IP_LIB} VERILOG PREPEND ${V_GEN})
