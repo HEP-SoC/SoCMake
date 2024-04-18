@@ -41,7 +41,7 @@ function(tmrg IP_LIB)
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
 
     set(TMRG_COMMAND 
-        tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${SOURCES};
+        ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${SOURCES};
         )
 
     if(ARG_SED_WOR)
