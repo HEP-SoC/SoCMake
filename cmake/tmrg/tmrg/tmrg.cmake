@@ -72,13 +72,6 @@ function(tmrg IP_LIB)
         set_property(TARGET ${IP_LIB} PROPERTY VERILOG_SOURCES ${V_GEN})
         set_property(TARGET ${IP_LIB} PROPERTY SYSTEMVERILOG_SOURCES "")
         add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
-
-        # Add explicit dependency if a regblock_wrap_sv2v target exists
-        get_property(TARGET_NAMES DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
-        set(SEARCH_TARGET ${IP_LIB}_regblock_wrap_sv2v)
-        if (${SEARCH_TARGET} IN_LIST TARGET_NAMES)
-            add_dependencies(${IP_LIB}_${CMAKE_CURRENT_FUNCTION} ${SEARCH_TARGET})
-        endif()
     endif()
 
 endfunction()
