@@ -1,5 +1,3 @@
-# TODO iterate over linked libraries and replace SYSTEMVERILOG_SOURCES with VERILOG_SOURCES instead
-# TODO create a new library instead???
 include_guard(GLOBAL)
 
 function(set_tmrg_sources IP_LIB)

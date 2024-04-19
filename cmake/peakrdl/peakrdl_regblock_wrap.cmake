@@ -1,6 +1,6 @@
 function(peakrdl_regblock_wrap IP_LIB)
     # Parse keyword arguments
-    cmake_parse_arguments(ARG "SV2V" "OUTDIR;RENAME;INTF" "" ${ARGN})
+    cmake_parse_arguments(ARG "TMR" "OUTDIR;RENAME;INTF" "" ${ARGN})
     # Check for any unknown argument
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
@@ -49,55 +49,55 @@ function(peakrdl_regblock_wrap IP_LIB)
             ${RDL_SOURCES}
         )
 
-    set(SV_GEN
-        ${OUTDIR}/${IP_NAME}_regblock_pkg.sv
-        ${OUTDIR}/${IP_NAME}_regblock.sv
-        ${OUTDIR}/${IP_NAME}.sv
-        )
-
+    set(REGBLOCK_SV_GEN ${OUTDIR}/${IP_NAME}_regblock_pkg.sv ${OUTDIR}/${IP_NAME}_regblock.sv)
+    set(WRAP_SV_GEN ${OUTDIR}/${IP_NAME}.sv)
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+
     add_custom_command(
         # The output files are automtically marked as GENERATED (deleted by make clean among other things)
-        OUTPUT ${SV_GEN} ${STAMP_FILE}
+        OUTPUT ${REGBLOCK_SV_GEN} ${WRAP_SV_GEN} ${STAMP_FILE}
         COMMAND ${__CMD}
-
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_SOURCES}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
     )
 
     # This target triggers the systemverilog register block generation using peakRDL regblock tool (_CMD)
-    set(WRAP_TNAME ${IP_LIB}_regblock_wrap)
+    set(TNAME ${IP_LIB}_regblock_wrap)
     add_custom_target(
-        ${WRAP_TNAME}
-        DEPENDS ${SV_GEN} ${STAMP_FILE}
+        ${TNAME}
+        DEPENDS ${REGBLOCK_SV_GEN} ${WRAP_SV_GEN} ${STAMP_FILE}
     )
+    ip_sources(${IP_LIB} SYSTEMVERILOG PREPEND ${REGBLOCK_SV_GEN} ${WRAP_SV_GEN})
 
     # Add command to convert to simple Verilog
-    if(ARG_SV2V)
-        set(V_GEN ${OUTDIR}/${IP_NAME}.v)
-        set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
-
-        add_custom_command(
-            OUTPUT ${STAMP_FILE} ${V_GEN}
-            COMMAND  sv2v ${SV_GEN} -w ${V_GEN}
-
-            COMMAND touch ${STAMP_FILE}
-            DEPENDS ${SV_GEN}
-            COMMENT "Running sv2v for regblock_wrap on ${IP_LIB}"
-        )
-
-        set(SV2V_TNAME ${IP_LIB}_regblock_wrap_sv2v)
-        add_custom_target(
-            ${SV2V_TNAME}
-            DEPENDS ${V_GEN} ${STAMP_FILE} ${WRAP_TNAME}
-        )
-
-        ip_sources(${IP_LIB} VERILOG PREPEND ${V_GEN})
-        add_dependencies(${IP_LIB} ${SV2V_TNAME})
+    if(ARG_TMR)
+        # set(SV2V_DIR ${BINARY_DIR}/sv2v)
+        # set(REGBLOCK_V_GEN ${SV2V_DIR}/${IP_NAME}_regblock.v)
+        # set_source_files_properties(${REGBLOCK_V_GEN} PROPERTIES GENERATED TRUE)
+        #
+        # add_custom_command(
+        #     OUTPUT ${STAMP_FILE} ${REGBLOCK_V_GEN}
+        #     COMMAND ${CMAKE_COMMAND} -E make_directory ${SV2V_DIR}
+        #     COMMAND sv2v ${REGBLOCK_SV_GEN} -w ${REGBLOCK_V_GEN}
+        #     COMMAND touch ${STAMP_FILE}
+        #     DEPENDS ${REGBLOCK_SV_GEN}
+        #     COMMENT "Running sv2v for regblock_wrap on ${IP_LIB}"
+        # )
+        #
+        # set(SV2V_TNAME ${IP_LIB}_regblock_wrap_sv2v)
+        # add_custom_target(
+        #     ${SV2V_TNAME}
+        #     DEPENDS ${REGBLOCK_V_GEN} ${STAMP_FILE} ${WRAP_TNAME}
+        # )
+        #
+        # ip_sources(${IP_LIB} VERILOG PREPEND ${REGBLOCK_V_GEN})
+        # set_tmrg_sources(${IP_LIB} ${REGBLOCK_V_GEN})
+        # add_dependencies(${IP_LIB} ${SV2V_TNAME})
+        set_tmrg_sources(${IP_LIB} ${REGBLOCK_SV_GEN})
+        set_sv2v_sources(${IP_LIB} ${REGBLOCK_SV_GEN})
     else()
-        ip_sources(${IP_LIB} SYSTEMVERILOG PREPEND ${SV_GEN})
-        add_dependencies(${IP_LIB} ${WRAP_TNAME})
+        add_dependencies(${IP_LIB} ${TNAME})
     endif()
 endfunction()
 
