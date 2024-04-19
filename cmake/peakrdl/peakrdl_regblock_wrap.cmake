@@ -42,7 +42,11 @@ function(peakrdl_regblock_wrap IP_LIB)
 
     # Generate the regblock and wrapper
     find_python3()
+    if(ARG_TMR)
+        set(TMR_OPT "--tmr")
+    endif()
     set(__CMD ${Python3_EXECUTABLE} -m peakrdl regblock_wrap
+            ${TMR_OPT}
             # --rename ${IP_NAME}
             # ${INTF_ARG}
             -o ${OUTDIR}
@@ -70,30 +74,7 @@ function(peakrdl_regblock_wrap IP_LIB)
     )
     ip_sources(${IP_LIB} SYSTEMVERILOG PREPEND ${REGBLOCK_SV_GEN} ${WRAP_SV_GEN})
 
-    # Add command to convert to simple Verilog
     if(ARG_TMR)
-        # set(SV2V_DIR ${BINARY_DIR}/sv2v)
-        # set(REGBLOCK_V_GEN ${SV2V_DIR}/${IP_NAME}_regblock.v)
-        # set_source_files_properties(${REGBLOCK_V_GEN} PROPERTIES GENERATED TRUE)
-        #
-        # add_custom_command(
-        #     OUTPUT ${STAMP_FILE} ${REGBLOCK_V_GEN}
-        #     COMMAND ${CMAKE_COMMAND} -E make_directory ${SV2V_DIR}
-        #     COMMAND sv2v ${REGBLOCK_SV_GEN} -w ${REGBLOCK_V_GEN}
-        #     COMMAND touch ${STAMP_FILE}
-        #     DEPENDS ${REGBLOCK_SV_GEN}
-        #     COMMENT "Running sv2v for regblock_wrap on ${IP_LIB}"
-        # )
-        #
-        # set(SV2V_TNAME ${IP_LIB}_regblock_wrap_sv2v)
-        # add_custom_target(
-        #     ${SV2V_TNAME}
-        #     DEPENDS ${REGBLOCK_V_GEN} ${STAMP_FILE} ${WRAP_TNAME}
-        # )
-        #
-        # ip_sources(${IP_LIB} VERILOG PREPEND ${REGBLOCK_V_GEN})
-        # set_tmrg_sources(${IP_LIB} ${REGBLOCK_V_GEN})
-        # add_dependencies(${IP_LIB} ${SV2V_TNAME})
         set_tmrg_sources(${IP_LIB} ${REGBLOCK_SV_GEN})
         set_sv2v_sources(${IP_LIB} ${REGBLOCK_SV_GEN})
     else()
