@@ -1,6 +1,6 @@
 function(print_link_map EXE)
     get_target_property(BINARY_DIR ${EXE} BINARY_DIR)
-     
+
     add_custom_command(TARGET ${EXE}
         POST_BUILD
         COMMAND cat ${BINARY_DIR}/map_file.map # TODO find where it is
@@ -108,7 +108,7 @@ function(set_linker_scripts EXE)
         message(FATAL_ERROR "Must provide one or more linker_scripts: LDS [fn,...]")
     endif()
 
-    set(LINKER_SCRIPT_ARG "-Wl")
+    # set(LINKER_SCRIPT_ARG "-Wl")
     foreach(lds ${ARG_LDS})
         target_link_options(${PROJECT_NAME} PUBLIC
             -T${lds}
