@@ -8,11 +8,11 @@ else()
     message("TOOLCHAIN: GETTING CPM PACKAGE (ENV: $ENV{RISCV_TOOLCHAIN})")
     CPMAddPackage(
         NAME toolchain
-        URL "https://github.com/lowRISC/lowrisc-toolchains/releases/download/20230427-1/lowrisc-toolchain-gcc-rv32imcb-20230427-1.tar.xz"
+        URL "https://github.com/HEP-SoC/riscv-gnu-toolchain/releases/download/2024.04.18/riscv_toolchain-rv32imac_zicsr-ilp32.tar.xz"
         )
-    # set(RISCV_GNU_PATH ${toolchain_SOURCE_DIR})
+    set(RISCV_GNU_PATH ${toolchain_SOURCE_DIR})
     message("TOOLCHAIN: NOVAR DETECTED")
-    set(RISCV_GNU_PATH $ENV{RISCV_TOOLCHAIN})
+    # set(RISCV_GNU_PATH $ENV{RISCV_TOOLCHAIN})
 endif()
 
 set(CMAKE_SYSTEM_PROCESSOR riscv32)
@@ -20,6 +20,7 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_ABI elf)
 
 set(TOOLCHAIN_PREFIX "${CMAKE_SYSTEM_PROCESSOR}-unknown-${CMAKE_SYSTEM_ABI}")
+set(TOOLCHAIN_PREFIX "riscv64-unknown-${CMAKE_SYSTEM_ABI}")
 
 find_program(RISCV_C_COMPILER   ${TOOLCHAIN_PREFIX}-gcc     HINTS ${RISCV_GNU_PATH}/bin)
 find_program(RISCV_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++     HINTS ${RISCV_GNU_PATH}/bin)
