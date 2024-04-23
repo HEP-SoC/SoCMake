@@ -13,7 +13,7 @@ endfunction()
 function(disassemble EXE)
     get_target_property(BINARY_DIR ${EXE} BINARY_DIR)
     set(EXECUTABLE ${BINARY_DIR}/${EXE})
-    set(OUT_ASM_FILE "${BINARY_DIR}/${EXE}_asm.S")
+    set(OUT_ASM_FILE "${BINARY_DIR}/${EXE}_disasm.S")
 
     add_custom_command(TARGET ${EXE}
         POST_BUILD
@@ -28,32 +28,32 @@ function(disassemble EXE)
         )
 endfunction()
 
-function(gen_bin EXE)
-    get_target_property(BINARY_DIR ${EXE} BINARY_DIR)
-    set(EXECUTABLE ${BINARY_DIR}/${EXE})
-    set(BIN_FILE "${BINARY_DIR}/${EXE}.bin")
-    set(BIN_TEXT_FILE "${BINARY_DIR}/${EXE}_text.bin")
-    set(BIN_DATA_FILE "${BINARY_DIR}/${EXE}_data.bin")
+# function(gen_bin EXE)
+#     get_target_property(BINARY_DIR ${EXE} BINARY_DIR)
+#     set(EXECUTABLE ${BINARY_DIR}/${EXE})
+#     set(BIN_FILE "${BINARY_DIR}/${EXE}.bin")
+#     set(BIN_TEXT_FILE "${BINARY_DIR}/${EXE}_text.bin")
+#     set(BIN_DATA_FILE "${BINARY_DIR}/${EXE}_data.bin")
 
-    get_target_property(BOOTLOADER ${EXE} BOOTLOADER)
-    if(BOOTLOADER)
-        set(TEXT_SECTION .bootloader)
-    else()
-        set(TEXT_SECTION .text)
-    endif()
-    add_custom_command(TARGET ${EXE}
-        POST_BUILD
-        BYPRODUCTS ${BIN_FILE} ${BIN_TEXT_FILE} ${BIN_DATA_FILE}
-        COMMAND ${CMAKE_OBJCOPY} -O binary ${EXECUTABLE} ${BIN_FILE}
-        COMMAND ${CMAKE_OBJCOPY} -O binary --only-section=${TEXT_SECTION} ${EXECUTABLE} ${BIN_TEXT_FILE}
-        COMMAND ${CMAKE_OBJCOPY} -O binary --remove-section=${TEXT_SECTION} ${EXECUTABLE} ${BIN_DATA_FILE}
-        COMMENT "Generating bin file from ${EXE}"
-        )
+#     get_target_property(BOOTLOADER ${EXE} BOOTLOADER)
+#     if(BOOTLOADER)
+#         set(TEXT_SECTION .bootloader)
+#     else()
+#         set(TEXT_SECTION .text)
+#     endif()
+#     add_custom_command(TARGET ${EXE}
+#         POST_BUILD
+#         BYPRODUCTS ${BIN_FILE} ${BIN_TEXT_FILE} ${BIN_DATA_FILE}
+#         COMMAND ${CMAKE_OBJCOPY} -O binary ${EXECUTABLE} ${BIN_FILE}
+#         COMMAND ${CMAKE_OBJCOPY} -O binary --only-section=${TEXT_SECTION} ${EXECUTABLE} ${BIN_TEXT_FILE}
+#         COMMAND ${CMAKE_OBJCOPY} -O binary --remove-section=${TEXT_SECTION} ${EXECUTABLE} ${BIN_DATA_FILE}
+#         COMMENT "Generating bin file from ${EXE}"
+#         )
 
-    set_property(TARGET ${EXE} PROPERTY BIN_FILE ${BIN_FILE})
-    set_property(TARGET ${EXE} PROPERTY BIN_TEXT_FILE ${BIN_TEXT_FILE})
-    set_property(TARGET ${EXE} PROPERTY BIN_DATA_FILE ${BIN_DATA_FILE})
-endfunction()
+#     set_property(TARGET ${EXE} PROPERTY BIN_FILE ${BIN_FILE})
+#     set_property(TARGET ${EXE} PROPERTY BIN_TEXT_FILE ${BIN_TEXT_FILE})
+#     set_property(TARGET ${EXE} PROPERTY BIN_DATA_FILE ${BIN_DATA_FILE})
+# endfunction()
 
 function(gen_hex_files EXE)
     get_target_property(BINARY_DIR ${EXE} BINARY_DIR)
@@ -64,8 +64,7 @@ function(gen_hex_files EXE)
     find_python3()
 
     set(EXECUTABLE ${BINARY_DIR}/${EXE})
-    set(SOCMAKE_MAKEHEX_TOOL       "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/scripts/makehex.py" CACHE STRING "Makehex tool")
-    gen_bin(${EXE})
+
     get_property(BIN_FILE TARGET ${EXE} PROPERTY BIN_FILE)
     get_property(BIN_TEXT_FILE TARGET ${EXE} PROPERTY BIN_TEXT_FILE)
     get_property(BIN_DATA_FILE TARGET ${EXE} PROPERTY BIN_DATA_FILE)
@@ -73,6 +72,15 @@ function(gen_hex_files EXE)
     if(NOT ARG_WIDTHS)
         set(ARG_WIDTHS 32)
     endif()
+
+    get_target_property(BOOTLOADER ${EXE} BOOTLOADER)
+    if(BOOTLOADER)
+        set(TEXT_SECTION .bootloader)
+    else()
+        set(TEXT_SECTION .text)
+    endif()
+
+    set(DATA_SECTION .data)
 
     set(ALLOWED_WIDTHS 8 16 32 64)
     foreach(width ${ARG_WIDTHS})
@@ -85,9 +93,9 @@ function(gen_hex_files EXE)
             add_custom_command(TARGET ${EXE}
                 POST_BUILD
                 BYPRODUCTS ${HEX_FILE} ${HEX_TEXT_FILE} ${HEX_DATA_FILE}
-                COMMAND ${Python3_EXECUTABLE} ${SOCMAKE_MAKEHEX_TOOL} --width ${width} ${BIN_FILE} ${HEX_FILE}          # TODO this is slowing down
-                COMMAND ${Python3_EXECUTABLE} ${SOCMAKE_MAKEHEX_TOOL} --width ${width} ${BIN_TEXT_FILE} ${HEX_TEXT_FILE}
-                COMMAND ${Python3_EXECUTABLE} ${SOCMAKE_MAKEHEX_TOOL} --width ${width} ${BIN_DATA_FILE} ${HEX_DATA_FILE}
+                COMMAND ${CMAKE_OBJCOPY} -O verilog ${EXECUTABLE} ${HEX_FILE}
+                COMMAND ${CMAKE_OBJCOPY} -O verilog --only-section=${TEXT_SECTION} ${EXECUTABLE} ${HEX_TEXT_FILE}
+                COMMAND ${CMAKE_OBJCOPY} -O verilog --only-section=${DATA_SECTION} ${EXECUTABLE} ${HEX_DATA_FILE}
                 COMMENT "Generating ${width} bit hex file file for ${EXE}"
                 )
 
