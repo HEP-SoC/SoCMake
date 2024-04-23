@@ -75,12 +75,23 @@ function(gen_hex_files EXE)
 
     get_target_property(BOOTLOADER ${EXE} BOOTLOADER)
     if(BOOTLOADER)
-        set(TEXT_SECTION .bootloader)
+        set(TEXT_SECTION --only-section=.bootloader)
     else()
-        set(TEXT_SECTION .text)
+        set(TEXT_SECTION
+            --only-section=.vectors
+            --only-section=.init
+            --only-section=.fini
+            --only-section=.text
+        )
     endif()
 
-    set(DATA_SECTION .data)
+    set(DATA_SECTION
+        --remove-section=.bootloader
+        --remove-section=.vectors
+        --remove-section=.init
+        --remove-section=.fini
+        --remove-section=.text
+    )
 
     set(ALLOWED_WIDTHS 8 16 32 64)
     foreach(width ${ARG_WIDTHS})
@@ -94,8 +105,8 @@ function(gen_hex_files EXE)
                 POST_BUILD
                 BYPRODUCTS ${HEX_FILE} ${HEX_TEXT_FILE} ${HEX_DATA_FILE}
                 COMMAND ${CMAKE_OBJCOPY} -O verilog ${EXECUTABLE} ${HEX_FILE}
-                COMMAND ${CMAKE_OBJCOPY} -O verilog --only-section=${TEXT_SECTION} ${EXECUTABLE} ${HEX_TEXT_FILE}
-                COMMAND ${CMAKE_OBJCOPY} -O verilog --only-section=${DATA_SECTION} ${EXECUTABLE} ${HEX_DATA_FILE}
+                COMMAND ${CMAKE_OBJCOPY} -O verilog ${TEXT_SECTION} ${EXECUTABLE} ${HEX_TEXT_FILE}
+                COMMAND ${CMAKE_OBJCOPY} -O verilog ${DATA_SECTION} ${EXECUTABLE} ${HEX_DATA_FILE}
                 COMMENT "Generating ${width} bit hex file file for ${EXE}"
                 )
 
