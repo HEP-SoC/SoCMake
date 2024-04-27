@@ -106,7 +106,7 @@ function(gen_hex_files EXE)
                 BYPRODUCTS ${HEX_FILE} ${HEX_TEXT_FILE} ${HEX_DATA_FILE}
                 COMMAND ${CMAKE_OBJCOPY} -O verilog ${EXECUTABLE} ${HEX_FILE}
                 COMMAND ${CMAKE_OBJCOPY} -O verilog ${TEXT_SECTION} ${EXECUTABLE} ${HEX_TEXT_FILE}
-                COMMAND ${CMAKE_OBJCOPY} -O verilog ${DATA_SECTION} ${EXECUTABLE} ${HEX_DATA_FILE}
+                COMMAND ${CMAKE_OBJCOPY} -O verilog --adjust-vma=-0x10000000 ${DATA_SECTION} ${EXECUTABLE} ${HEX_DATA_FILE}
                 COMMENT "Generating ${width} bit hex file file for ${EXE}"
                 )
 
