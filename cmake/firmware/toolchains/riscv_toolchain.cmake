@@ -1,3 +1,5 @@
+
+# GET THE RISCV TOOLCHAIN
 if(ENV{RISCV_TOOLCHAIN})
     set(RISCV_GNU_PATH $ENV{RISCV_TOOLCHAIN})
 elseif(RISCV_TOOLCHAIN)
@@ -5,16 +7,16 @@ elseif(RISCV_TOOLCHAIN)
 else()
     CPMAddPackage(
         NAME toolchain
-        URL "https://github.com/HEP-SoC/riscv-gnu-toolchain/releases/download/2024.04.18/riscv_toolchain-rv32imac_zicsr-ilp32.tar.xz"
+        URL "https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v13.2.0-2/xpack-riscv-none-elf-gcc-13.2.0-2-linux-x64.tar.gz"
         )
     set(RISCV_GNU_PATH ${toolchain_SOURCE_DIR})
 endif()
 
-set(CMAKE_SYSTEM_PROCESSOR riscv32)
+set(CMAKE_SYSTEM_PROCESSOR riscv)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_ABI elf)
 
-set(TOOLCHAIN_PREFIX "${CMAKE_SYSTEM_PROCESSOR}-unknown-${CMAKE_SYSTEM_ABI}")
+set(TOOLCHAIN_PREFIX "${CMAKE_SYSTEM_PROCESSOR}-none-${CMAKE_SYSTEM_ABI}")
 
 find_program(RISCV_C_COMPILER   ${TOOLCHAIN_PREFIX}-gcc     HINTS ${RISCV_GNU_PATH}/bin)
 find_program(RISCV_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++     HINTS ${RISCV_GNU_PATH}/bin)
