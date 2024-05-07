@@ -65,8 +65,8 @@ function(sv2v IP_LIB)
     # HACK ALERT!!
     if(ARG_HWIF_WIRE)
         get_target_property(TOP_MODULE ${IP_LIB} IP_NAME)
-        set(AWK_COMMAND
-            COMMAND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/hwif_awk.sh ${OUTDIR}/${TOP_MODULE}_regblock.v ${OUTDIR}/../regblock/${TOP_MODULE}.sv
+        set(SED_COMMAND
+            COMMAND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/hwif_sed.sh ${OUTDIR}/${TOP_MODULE}_regblock.v ${OUTDIR}/../regblock/${TOP_MODULE}.sv
         )
     endif()
 
@@ -74,7 +74,7 @@ function(sv2v IP_LIB)
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${V_GEN}
         COMMAND sv2v ${SV2V_SRC} ${INCDIR_ARG} ${CMP_DEFS_ARG} -w ${OUTDIR}
-        ${AWK_COMMAND}
+        ${SED_COMMAND}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SV2V_SRC}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
