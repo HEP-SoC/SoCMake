@@ -24,7 +24,7 @@ function(get_sv2v_sources OUT_VAR IP_LIB)
 endfunction()
 
 function(sv2v IP_LIB)
-    cmake_parse_arguments(ARG "REPLACE;TMR" "OUTDIR" "" ${ARGN})
+    cmake_parse_arguments(ARG "REPLACE;TMR;HWIF_WIRE" "OUTDIR" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -62,10 +62,19 @@ function(sv2v IP_LIB)
         list(APPEND CMP_DEFS_ARG -D${def})
     endforeach()
 
+    # HACK ALERT!!
+    if(ARG_HWIF_WIRE)
+        get_target_property(TOP_MODULE ${IP_LIB} IP_NAME)
+        set(AWK_COMMAND
+            COMMAND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/hwif_awk.sh ${OUTDIR}/${TOP_MODULE}_regblock.v ${OUTDIR}/../regblock/${TOP_MODULE}.sv
+        )
+    endif()
+
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${V_GEN}
         COMMAND sv2v ${SV2V_SRC} ${INCDIR_ARG} ${CMP_DEFS_ARG} -w ${OUTDIR}
+        ${AWK_COMMAND}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SV2V_SRC}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"

@@ -54,13 +54,15 @@ function(tmrg IP_LIB)
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
 
     set(TMRG_COMMAND 
-        ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${TMRG_SRC};
+        ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${TMRG_SRC}
     )
 
+    if(ARG_NO_COMMON_DEFINITIONS)
+        set(TMRG_COMMAND ${TMRG_COMMAND} --no-common-definitions)
+    endif()
+
     if(ARG_SED_WOR)
-        set(SED_COMMAND
-            COMMAND sed -i "s/wor/wire/g" ${V_GEN}
-        )
+        set(SED_COMMAND COMMAND sed -i "s/wor/wire/g" ${V_GEN})
     endif()
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
