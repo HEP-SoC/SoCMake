@@ -57,6 +57,7 @@ function(xcelium IP_LIB)
         COMMAND xrun
         # Enable parameters without default value
         -setenv CADENCE_ENABLE_AVSREQ_44905_PHASE_1=1 -setenv CADENCE_ENABLE_AVSREQ_63188_PHASE_1=1
+        -define COMMON_CELLS_ASSERTS_OFF
         ${SOURCES}
         ${ARG_INCDIRS}
         ${CMP_DEFS_ARG}
