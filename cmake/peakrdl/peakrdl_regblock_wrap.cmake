@@ -15,7 +15,11 @@ function(peakrdl_regblock_wrap IP_LIB)
 
     # Default output directory is regblock/
     if(NOT ARG_OUTDIR)
-        set(OUTDIR ${BINARY_DIR}/regblock)
+        if(NOT ARG_TMR)
+            set(OUTDIR ${BINARY_DIR}/regblock)
+        else()
+            set(OUTDIR ${BINARY_DIR}/regblock_tmr)
+        endif()
     else()
         set(OUTDIR ${ARG_OUTDIR})
     endif()
