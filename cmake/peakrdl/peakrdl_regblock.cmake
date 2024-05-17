@@ -35,7 +35,7 @@
 #]]
 function(peakrdl_regblock IP_LIB)
     # Parse keyword arguments
-    cmake_parse_arguments(ARG "" "OUTDIR;RENAME;INTF" "" ${ARGN})
+    cmake_parse_arguments(ARG "" "OUTDIR;RENAME;INTF;RESET" "" ${ARGN})
     # Check for any unknown argument
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
@@ -71,6 +71,12 @@ function(peakrdl_regblock IP_LIB)
     if(ARG_INTF)
         set(INTF_ARG --cpuif ${ARG_INTF})
     endif()
+
+    # The default reset is active-high and synchronous
+    if(ARG_RESET)
+        set(RESET_ARG --default-reset ${ARG_RESET})
+    endif()
+
     # Get the SystemRDL sources to generate the register block
     # This function gets the IP sources and the deps
     get_ip_sources(RDL_SOURCES ${IP_LIB} SYSTEMRDL)
@@ -84,6 +90,7 @@ function(peakrdl_regblock IP_LIB)
     set(__CMD ${Python3_EXECUTABLE} -m peakrdl regblock
             --rename ${REGBLOCK_NAME}
             ${INTF_ARG}
+            ${RESET_ARG}
             -o ${OUTDIR}
             ${RDL_SOURCES}
         )
