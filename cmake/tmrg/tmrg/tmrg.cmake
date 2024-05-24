@@ -23,7 +23,7 @@ function(get_tmrg_sources OUT_VAR IP_LIB)
 endfunction()
 
 function(tmrg IP_LIB)
-    cmake_parse_arguments(ARG "REPLACE;SED_WOR;NO_COMMON_DEFINITIONS" "OUTDIR;CONFIG_FILE" "" ${ARGN})
+    cmake_parse_arguments(ARG "REPLACE;SED_WOR;NO_COMMON_DEFINITIONS;SDC" "OUTDIR;CONFIG_FILE" "" ${ARGN})
 
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -56,6 +56,10 @@ function(tmrg IP_LIB)
     set(TMRG_COMMAND 
         ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${TMRG_SRC}
     )
+
+    if(ARG_SDC)
+        set(TMRG_COMMAND ${TMRG_COMMAND} --sdc-generate --sdc-file-name=${OUTDIR}/${IP_LIB}_tmrg.sdc)
+    endif()
 
     if(ARG_NO_COMMON_DEFINITIONS)
         set(TMRG_COMMAND ${TMRG_COMMAND} --no-common-definitions)
