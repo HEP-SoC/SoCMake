@@ -62,12 +62,18 @@ SECTIONS
      * and must be placed at the beginning of the program */
     KEEP (*(.text.entry))
     KEEP (*(SORT_NONE(.init)))
+    /* Align on 4 bytes to avoid errors during hex generation */
+    FILL(0xDEAD)
+    . = ALIGN(4);
   } > {{ prog_mem.parent.inst_name }}
 
   /* not used by RISC-V */
   .fini :
   {
     KEEP (*(SORT_NONE(.fini)))
+    /* Align on 4 bytes to avoid errors during hex generation */
+    FILL(0xDEAD)
+    . = ALIGN(4);
   } > {{ prog_mem.parent.inst_name }}
 
   .text :
