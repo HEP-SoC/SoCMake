@@ -50,43 +50,71 @@ set(CMAKE_C_STANDARD 17)
 set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_FLAGS "")
 set(CMAKE_C_FLAGS "")
+set(CMAKE_CXX_FLAGS "")
 set(CMAKE_EXE_LINKER_FLAGS "")
 
-string(APPEND CMAKE_CXX_FLAGS " -march=rv32imac_zicsr") # RV32 Integer, Compressed instruction set
-string(APPEND CMAKE_CXX_FLAGS " -mabi=ilp32")         # int and pointers are 32bit, long 64bit, char 8bit, short 16bit
+#############################
+# Machine-Dependent Options #
+#############################
+# RV32
+# i : Integer
+# m : Integer Multiplication and Division
+# a : Atomic instructions
+# c : Compressed instructions
+# zicsr : CSR Instructions (explicitely required with latest specs)
+string(APPEND CMAKE_C_FLAGS " -march=rv32imac_zicsr")
+# int and pointers are 32bit, long 64bit, char 8bit, short 16bit
+string(APPEND CMAKE_C_FLAGS " -mabi=ilp32")
 
-string(APPEND CMAKE_CXX_FLAGS " -static")
-string(APPEND CMAKE_CXX_FLAGS " -nostartfiles")
-string(APPEND CMAKE_CXX_FLAGS " -nostdlib") # Do not use the standard system startup files or libraries when linking https://cs107e.github.io/guides/gcc/
+################################
+# Options for Directory Search #
+################################
+# Add the directory dir to the list of directories to be searched for header files during preprocessing
+# string(APPEND CMAKE_C_FLAGS " -I${RISCV_GNU_PATH}/${TOOLCHAIN_PREFIX}/include/")
 
-if(DEBUG)
-    string(APPEND CMAKE_CXX_FLAGS " -g -O0")              # Debug flags
-    string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,-g")
-else()
-    string(APPEND CMAKE_CXX_FLAGS " -Os")                 # Optimize for code size TODO move to release
-    # string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,--strip-debug") # https://web.archive.org/web/20220530212919/https://linux.die.net/man/1/ld
-    # string(APPEND CMAKE_EXE_LINKER_FLAGS " --strip-debug") # https://web.archive.org/web/20220530212919/https://linux.die.net/man/1/ld
-endif()
+#####################################
+# Options that Control Optimization #
+#####################################
+# Place each function or data item into its own section in the output file
+# if the target supports arbitrary sections. The name of the function or
+# the name of the data item determines the section’s name in the output file.
+# string(APPEND CMAKE_C_FLAGS " -ffunction-sections")
+# string(APPEND CMAKE_C_FLAGS " -fdata-sections")
 
-string(APPEND CMAKE_CXX_FLAGS " -DHOST_BUILD")
+# Optimize for size by default
+string(APPEND CMAKE_C_FLAGS " -Os")
 
-string(APPEND CMAKE_CXX_FLAGS " -I${RISCV_GNU_PATH}/${TOOLCHAIN_PREFIX}/include/")
-string(APPEND CMAKE_CXX_FLAGS " -I${RISCV_GNU_PATH}/${TOOLCHAIN_PREFIX}/include")
+# Pass common flags for c++ compilation flow
+set(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
 
-string(APPEND CMAKE_CXX_FLAGS " -specs=nano.specs")
+#######################
+# Options for Linking #
+#######################
+# Do not use the standard system startup
+string(APPEND CMAKE_EXE_LINKER_FLAGS " -nostartfiles")
+# Prevents linking with the shared libraries
+string(APPEND CMAKE_EXE_LINKER_FLAGS " -static")
 
-# Until now both C and C++ and Linker have common flag settings
-set(CMAKE_C_FLAGS ${CMAKE_CXX_FLAGS})
-
-# Linker specific flags
-string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,--print-memory-usage") # Print memory usage
+# Print memory usage
+string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,--print-memory-usage")
+# Generate executable map file
 string(APPEND CMAKE_EXE_LINKER_FLAGS " -Wl,-Map=map_file.map")
 
-string(APPEND CMAKE_EXE_LINKER_FLAGS " -L${RISCV_GNU_PATH}/${TOOLCHAIN_PREFIX}/lib") # TODO Is this needed?
-string(APPEND CMAKE_EXE_LINKER_FLAGS " -lc -lm -lgcc -flto")
-string(APPEND CMAKE_EXE_LINKER_FLAGS " -ffunction-sections -fdata-sections")
+##########################################
+# Options Controlling the Kind of Output #
+##########################################
+# Use embedded class libnano_c
+string(APPEND CMAKE_EXE_LINKER_FLAGS " -specs=nano.specs")
+
+################################
+# Options for Directory Search #
+################################
+# Add directory dir to the list of directories to be searched for -l
+# string(APPEND CMAKE_EXE_LINKER_FLAGS " -L${RISCV_GNU_PATH}/${TOOLCHAIN_PREFIX}/lib")
+
+# Search the library named library when linking.
+# string(APPEND CMAKE_EXE_LINKER_FLAGS " -lc -lgcc -lm")
 
 
 # set(CMAKE_C_FLAGS_DEBUG         <c_flags_for_debug>) # TODO
