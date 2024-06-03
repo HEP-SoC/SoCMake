@@ -24,7 +24,7 @@ function(get_sv2v_sources OUT_VAR IP_LIB)
 endfunction()
 
 function(sv2v IP_LIB)
-    cmake_parse_arguments(ARG "REPLACE;TMR;HWIF_WIRE" "OUTDIR" "" ${ARGN})
+    cmake_parse_arguments(ARG "REPLACE;TMR;HWIF_WIRE" "OUTDIR;REGBLOCK_OUTDIR" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -38,6 +38,18 @@ function(sv2v IP_LIB)
         set(OUTDIR ${ARG_OUTDIR})
     endif()
     execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR})
+
+    # Default regblock output directory is regblock/
+    if(NOT ARG_REGBLOCK_OUTDIR)
+        if(NOT ARG_TMR)
+            set(REGBLOCK_OUTDIR_ARG regblock)
+        else()
+            set(REGBLOCK_OUTDIR_ARG regblock_tmr)
+        endif()
+    else()
+        set(REGBLOCK_OUTDIR_ARG ${ARG_REGBLOCK_OUTDIR})
+    endif()
+
 
     get_sv2v_sources(SV2V_SRC ${IP_LIB})
     foreach(vfile ${SV2V_SRC})
@@ -66,7 +78,7 @@ function(sv2v IP_LIB)
     if(ARG_HWIF_WIRE)
         get_target_property(TOP_MODULE ${IP_LIB} IP_NAME)
         set(SED_COMMAND
-            COMMAND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/hwif_sed.sh ${OUTDIR}/${TOP_MODULE}_regblock.v ${OUTDIR}/../regblock/${TOP_MODULE}.sv
+            COMMAND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/hwif_sed.sh ${OUTDIR}/${TOP_MODULE}_regblock.v ${OUTDIR}/../${REGBLOCK_OUTDIR_ARG}/${TOP_MODULE}.sv
         )
     endif()
 
