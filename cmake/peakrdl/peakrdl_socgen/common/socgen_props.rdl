@@ -1,33 +1,30 @@
 `ifndef COMMON_RDL
 `define COMMON_RDL
 
-enum SignalType {
-    output   = 0;
-    input    = 1;
-    bidir    = 2;
-    tri      = 3;
-    clk      = 4;
-    rst      = 5;
-    wire     = 6;
-    blank    = 7;
-};
-
+// input or output property is needed to be detected by socgen
 property output {
     type = boolean;
     component = signal;
 };
+
 property input {
+    type = boolean;
+    component = signal;
+};
+
+property clock {
+    type = boolean;
+    component = signal;
+};
+
+// reset property is a a built-in SystemRDL property but not for signals
+property reset_signal {
     type = boolean;
     component = signal;
 };
 
 property datatype {
     type = string;
-    component = signal;
-};
-
-property signal_type {
-    type = SignalType;
     component = signal;
 };
 
@@ -61,12 +58,6 @@ property path {
     component = signal;
 };
 
-property propagate {
-    type = boolean;
-    component = signal;
-};
-
-
 struct intc {
     string name;
     string slv_ports[];
@@ -77,7 +68,6 @@ property intc_l {
     type = intc[];
     component = addrmap;
 };
-
 
 // desc = "Slave select signal, should not be shared between slaves";
 property ss {
@@ -100,25 +90,28 @@ property miso {
     component = signal;
 };
 
-signal  clk {
+signal clk {
+    input;
+    clock;
     signalwidth=1;
     desc = "Input clock";
-    signal_type = SignalType::clk;
-    };
+};
 
 signal rstn {
+    input;
+    reset_signal;
     signalwidth=1;
     desc = "Input reset, active low";
     activelow = true;
-    signal_type = SignalType::rst;
-    };
+};
 
 signal rst {
+    input;
+    reset_signal;
     signalwidth=1;
     desc = "Input reset, active high";
     activehigh = true;
-    signal_type = SignalType::rst;
-    };
+};
 
 property intf {
     type = boolean;
@@ -149,8 +142,6 @@ struct data_intf : base_intf {
 struct addr_intf : data_intf {
     longint unsigned ADDR_WIDTH;
 };
-
-
 
 property intf_inst{
     component = addrmap;

@@ -3,7 +3,7 @@ function(verilate IP_LIB)
     set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY;EXECUTABLE_NAME")
     set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL")
 
-    cmake_parse_arguments(ARG 
+    cmake_parse_arguments(ARG
         "${OPTIONS}"
         "${ONE_PARAM_ARGS}"
         "${MULTI_PARAM_ARGS}"
@@ -161,11 +161,11 @@ function(verilate IP_LIB)
         INSTALL_COMMAND ""
         DEPENDS ${IP_LIB}
         EXCLUDE_FROM_ALL 1
-        ) 
+        )
 
     set_property(
         TARGET ${VERILATE_TARGET}
-        APPEND PROPERTY ADDITIONAL_CLEAN_FILES 
+        APPEND PROPERTY ADDITIONAL_CLEAN_FILES
             ${DIRECTORY}
             ${EXECUTABLE_PATH}
     )

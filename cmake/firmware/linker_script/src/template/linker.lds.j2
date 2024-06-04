@@ -1,4 +1,10 @@
-OUTPUT_ARCH(riscv) /* TODO allow other architectures */
+/* Copyright (c) 2024 CERN */
+/* SPDX-License-Identifier: Apache-2.0 */
+
+OUTPUT_FORMAT("elf32-littleriscv")
+OUTPUT_ARCH(riscv)
+
+ENTRY(_entry)
 
 MEMORY {
 {% for m in mems %}
@@ -6,99 +12,108 @@ MEMORY {
 {% endfor %}
 }
 
-{% set stack_mem = mems|getStackMem %}
+{# {% set stack_mem = mems|getStackMem %}
+{% set heap_mem = mems|getHeapMem %} #}
 {% set prog_mem = mems|getProgramMem %}
 {% set boot_mem = mems|getBootMem %}
 {% set data_mem = mems|getDataMem %}
 {% set bss_mem = mems|getBssMem %}
 
-PROVIDE(_estack = ORIGIN( {{ stack_mem.parent.inst_name }}) + LENGTH( {{ stack_mem.parent.inst_name }} ));
-
-PROVIDE(_stext = ORIGIN( {{ prog_mem.parent.inst_name }} ));
-PROVIDE(_start = ORIGIN( {{ prog_mem.parent.inst_name }} ));
-PROVIDE(_program_memory = ORIGIN( {{ prog_mem.parent.inst_name }} ));
-
-PROVIDE (__executable_start = SEGMENT_START("text-segment", _start)); . = SEGMENT_START("text-segment", _start) + SIZEOF_HEADERS;
-
 {% for reg in regs %}
 PROVIDE({{reg.inst_name}} = 0x{{ '%08x' % reg.absolute_address }});
 {% endfor %}
 
+SECTIONS
+{
+  /* we want a fixed boot point */
+  PROVIDE(__boot_address = ORIGIN( {{ boot_mem.parent.inst_name }} ));
 
-SECTIONS {
+  {% if boot_mem is not none %}
+  .bootloader : {
+      *bootloader.S.o*(*);
+      *bootloader.cpp.o*(*);
+      . = ALIGN(4);
+  } > {{ boot_mem.parent.inst_name }}
+  {% endif %}
 
-    {% if boot_mem is not none %}
-    .bootloader : {
-        *bootloader.S.o(.vectors);
-        *bootloader.S.o*(*);
-        *bootloader.cpp.o*(*);
-        . = ALIGN(4);
-    } > {{ boot_mem.parent.inst_name }}
-    {% endif %}
+  /* we want a fixed entry point */
+  PROVIDE(__entry_address = ORIGIN( {{ prog_mem.parent.inst_name }} ) + 0x180);
+
+  /* stack and heap related settings */
+  __stack_size = DEFINED(__stack_size) ? __stack_size : 0x800;
+  PROVIDE(__stack_size = __stack_size);
+  __heap_size = DEFINED(__heap_size) ? __heap_size : 0x800;
+
+  /***************************************/
+  /* PROGRAM / TEXT / READ-ONLY SECTIONS */
+  /***************************************/
+
+  /* interrupt vectors */
+  .vectors (ORIGIN( {{ prog_mem.parent.inst_name }} )):
+  {
+    PROVIDE(__vector_start = .);
+    KEEP(*(.vectors));
+  } > {{ prog_mem.parent.inst_name }}
+
+  /* crt0 init code */
+  .init (__entry_address):
+  {
+    /* The _enter symbol is placed in the .text.entry section
+     * and must be placed at the beginning of the program */
+    KEEP (*(.text.entry))
+    KEEP (*(SORT_NONE(.init)))
+    /* Align on 4 bytes to avoid errors during hex generation */
+    FILL(0xDEAD)
+    . = ALIGN(4);
+  } > {{ prog_mem.parent.inst_name }}
+
+  /* not used by RISC-V */
+  .fini :
+  {
+    KEEP (*(SORT_NONE(.fini)))
+    /* Align on 4 bytes to avoid errors during hex generation */
+    FILL(0xDEAD)
+    . = ALIGN(4);
+  } > {{ prog_mem.parent.inst_name }}
 
   .text :
   {
-    . = ALIGN(4);
-    *crt0.S.o(.vectors);
-    *crt0.S.o(.start_section);
-    *crt0.S.o(.text);
-
-    /* TODO maybe more relaxed garbage collection */
-    KEEP (*crt0.S.o(*))
-
-    KEEP (*(SORT_NONE(.init)))
-
-    *(.text.unlikely .text.*_unlikely .text.unlikely.*)
-    *(.text.exit .text.exit.*)
+    *(.text.unlikely .text.unlikely.*)
     *(.text.startup .text.startup.*)
-    *(.text.hot .text.hot.*)
-    *(.text .stub .text.* .gnu.linkonce.t.*)
-    /* .gnu.warning sections are handled specially by elf32.em.  */
-    *(.gnu.warning)
-
-    KEEP (*(SORT_NONE(.fini)))
+    *(.text .text.*)
+    *(.gnu.linkonce.t.*)
   } > {{ prog_mem.parent.inst_name }}
 
-  PROVIDE (__etext = .);
-  PROVIDE (_etext = .);
-  PROVIDE (etext = .);
+  /*****************/
+  /* DATA SECTIONS */
+  /*****************/
 
-  .rodata         : 
-  {
-    *(.rodata .rodata.* .gnu.linkonce.r.*) 
-    *(.rodata1)
-    *(.sdata2 .sdata2.* .gnu.linkonce.s2.*)
-  } > {{ data_mem.parent.inst_name }}
-
-    .sbss2          : { *(.sbss2 .sbss2.* .gnu.linkonce.sb2.*) } > {{ data_mem.parent.inst_name }}
-                    
-
-  /* Adjust the address for the data segment.  We want to adjust up to
-     the same address within the page on the next page up.  */
-  . = DATA_SEGMENT_ALIGN (CONSTANT (MAXPAGESIZE), CONSTANT (COMMONPAGESIZE));
-  /* Exception handling  */
-  .preinit_array     :
+  /* initialization and termination routines */
+  .preinit_array : ALIGN(8)
   {
     PROVIDE_HIDDEN (__preinit_array_start = .);
     KEEP (*(.preinit_array))
     PROVIDE_HIDDEN (__preinit_array_end = .);
-    } > {{ data_mem.parent.inst_name }}
-  .init_array     :
-      {
+  } > {{ data_mem.parent.inst_name }}
+
+  .init_array : ALIGN(8)
+  {
     PROVIDE_HIDDEN (__init_array_start = .);
     KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
     KEEP (*(.init_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .ctors))
     PROVIDE_HIDDEN (__init_array_end = .);
-    } > {{ data_mem.parent.inst_name }}
-  .fini_array     :
-      {
+  } > {{ data_mem.parent.inst_name }}
+
+  .fini_array : ALIGN(8)
+  {
     PROVIDE_HIDDEN (__fini_array_start = .);
     KEEP (*(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))
     KEEP (*(.fini_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
     PROVIDE_HIDDEN (__fini_array_end = .);
-    } > {{ data_mem.parent.inst_name }}
-  .ctors          :
-      {
+  } > {{ data_mem.parent.inst_name }}
+
+  .ctors :
+  {
     /* gcc uses crtbegin.o to find the start of
        the constructors, so we make sure it is
        first.  Because this is a wildcard, it
@@ -107,7 +122,7 @@ SECTIONS {
        linker won't look for a file to match a
        wildcard.  The wildcard also means that it
        doesn't matter which directory crtbegin.o
-       is in.  */
+       is in. */
     KEEP (*crtbegin.o(.ctors))
     KEEP (*crtbegin?.o(.ctors))
     /* We don't want to include the .ctor section from
@@ -117,67 +132,94 @@ SECTIONS {
     KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))
     KEEP (*(SORT(.ctors.*)))
     KEEP (*(.ctors))
-    } > {{ data_mem.parent.inst_name }}
+  } > {{ data_mem.parent.inst_name }}
+
   .dtors          :
-      {
+  {
     KEEP (*crtbegin.o(.dtors))
     KEEP (*crtbegin?.o(.dtors))
     KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .dtors))
     KEEP (*(SORT(.dtors.*)))
     KEEP (*(.dtors))
-    } > {{ data_mem.parent.inst_name }}
-    .data.rel.ro : { *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*) } > {{ data_mem.parent.inst_name }}
-    .dynamic        : { *(.dynamic) } > {{ data_mem.parent.inst_name }}
-  . = DATA_SEGMENT_RELRO_END (0, .);
-  .data           :
-      {
-    __DATA_BEGIN__ = .;
-    *(.data .data.* .gnu.linkonce.d.*)
+  } > {{ data_mem.parent.inst_name }}
+
+  .rodata : {
+    *(.rdata)
+    *(.rodata .rodata.*)
+    *(.gnu.linkonce.r.*)
+    . = ALIGN(8);
+    *(.srodata.cst16)
+    *(.srodata.cst8)
+    *(.srodata.cst4)
+    *(.srodata.cst2)
+    *(.srodata .srodata.*)
+  } > {{ data_mem.parent.inst_name }}
+
+  /* data sections for initalized data */
+  .data : ALIGN(8)
+  {
+    *(.data .data.*)
+    *(.gnu.linkonce.d.*)
     SORT(CONSTRUCTORS)
-      *(.data1) 
-    *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata .srodata.*)
-    *(.sdata .sdata.* .gnu.linkonce.s.*)
-      . = ALIGN(4);
-      } > {{ data_mem.parent.inst_name }}
-  _edata = .; PROVIDE (edata = .);
+    /* The compiler uses this to access data in the .sdata, .data, .sbss and .bss
+       sections with fewer instructions (relaxation). This reduces code size.
+     */
+    PROVIDE( __global_pointer$ = . + 0x800 );
+    *(.sdata .sdata.*)
+    *(.gnu.linkonce.s.*)
+  } > {{ data_mem.parent.inst_name }}
 
+  /* Thread Local Storage sections */
+  .tdata : ALIGN(8)
+  {
+    PROVIDE_HIDDEN ( __tdata_start = . );
+    *(.tdata .tdata.*)
+    *(.gnu.linkonce.td.*)
+  } > {{ data_mem.parent.inst_name }}
 
-                    
+  PROVIDE ( __edata = . );
 
-  __bss_start = .;
-  __BSS_START__ = .;
-  _bss_start = .;
-  .sbss           :
-      {
-    *(.dynsbss)
-    *(.sbss .sbss.* .gnu.linkonce.sb.*)
-    *(.scommon)
-    } > {{ bss_mem.parent.inst_name }}
-  .bss            : ALIGN(4)
-      {
-   *(.dynbss)
-   *(.bss .bss.* .gnu.linkonce.b.*)
-   *(COMMON)
-   /* Align here to ensure that the .bss section occupies space up to
-      _end.  Align after .bss to ensure correct alignment even if the
-      .bss section disappears because there are no input sections.
-      FIXME: Why do we need it? When there is no .bss section, we don't
-      pad the .data section.  */
-   . = ALIGN(. != 0 ? 32 / 8 : 1); 
-   } > {{ bss_mem.parent.inst_name }}
-  . = ALIGN(32 / 8);
-  . = SEGMENT_START("ldata-segment", .);
-  . = ALIGN(32 / 8);
-  __BSS_END__ = .;
-  _bss_end = .;
-  _align_begin = .;
-  .align_mem0 : {
-    . = ALIGN(3);
-    } > {{ bss_mem.parent.inst_name }}
-    __global_pointer$ = 0x{{ '%08x' % data_mem.absolute_address }} + 0x{{ '%08x' % (data_mem.size/2)|int }};
-  _end = .; PROVIDE (end = .);
-  . = DATA_SEGMENT_END (.);
-  
+  /* zero initialized sections */
+  .tbss : ALIGN(8)
+  {
+    PROVIDE( __bss_start = . );
+    *(.tbss .tbss.* .gnu.linkonce.tb.*)
+    *(.tcommon)
+  } > {{ data_mem.parent.inst_name }}
+
+  .bss (NOLOAD): ALIGN(8) {
+    *(.sbss*)
+    *(.gnu.linkonce.sb.*)
+    *(.bss .bss.*)
+    *(.gnu.linkonce.b.*)
+    *(COMMON)
+    PROVIDE( __bss_end = . );
+  } > {{ data_mem.parent.inst_name }}
+
+  /* second level sbss and sdata, not needed for now */
+  /* .sdata2 : {*(.sdata2 .sdata2.* .gnu.linkonce.s2.*)} */
+  /* .sbss2  : {*(.sbss2 .sbss2.* .gnu.linkonce.sb2.*) } */
+
+  .stack (NOLOAD) : ALIGN(16) /* This is a requirement of the ABI */
+  {
+    PROVIDE( __stack_start = . );
+    . = __stack_size;
+    PROVIDE( _sp = . );
+    PROVIDE( __stack_end = . );
+  } > {{ data_mem.parent.inst_name }}
+
+  .heap (NOLOAD) : ALIGN(8)
+  {
+    PROVIDE( __end = . );
+    PROVIDE( __heap_start = . );
+    . = __heap_size;
+    PROVIDE( __heap_end = . );
+  } > {{ data_mem.parent.inst_name }}
+
+  /******************/
+  /* DEBUG SECTIONS */
+  /******************/
+
   {% if debug %}
   /* Stabs debugging sections.  */
   .stab          0 : { *(.stab) } > {{ data_mem.parent.inst_name }}
@@ -221,5 +263,6 @@ SECTIONS {
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) } > {{ data_mem.parent.inst_name }}
   {% endif %}
   /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) *(*) } > {{ data_mem.parent.inst_name }}
+
 };
 

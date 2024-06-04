@@ -148,7 +148,7 @@ function(peakrdl_socgen IP_LIB)
     endif()
 
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
-    ip_sources(${IP_LIB} VERILOG ${V_GEN})
+    ip_sources(${IP_LIB} SYSTEMVERILOG ${V_GEN})
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(

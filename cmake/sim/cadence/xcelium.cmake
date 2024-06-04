@@ -55,13 +55,15 @@ function(xcelium IP_LIB)
 
     add_custom_target( run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         COMMAND xrun
-        ${V_FILES}
+        # Enable parameters without default value
+        -setenv CADENCE_ENABLE_AVSREQ_44905_PHASE_1=1 -setenv CADENCE_ENABLE_AVSREQ_63188_PHASE_1=1
+        -define COMMON_CELLS_ASSERTS_OFF
+        ${SOURCES}
         ${ARG_INCDIRS}
         ${CMP_DEFS_ARG}
         ${ARG_GUI}
-        DEPENDS ${V_FILES}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
-        DEPENDS ${V_FILES} ${IP_LIB}
+        DEPENDS ${SOURCES} ${IP_LIB}
         )
 
     # add_dependencies(${IP_LIB}_${CMAKE_CURRENT_FUNCTION} ${IP_LIB})
