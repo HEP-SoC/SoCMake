@@ -32,6 +32,8 @@ class RDL2LdsExporter(RDLListener):
     """
     def __init__(self):
         self.memories = []
+        # SystemRDL registers with the UDP linker_symbol set to true
+        # These register adresses are exposed in the linker script
         self.regs = []
 
     def enter_Mem(self, node):
