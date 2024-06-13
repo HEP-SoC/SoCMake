@@ -22,7 +22,7 @@ macro(sail_install)
     # Install SAIL if executable not found
     if(NOT RISCV32_SAIL_EXE)
         execute_process(COMMAND ${Python3_EXECUTABE} -m pip install -e ${SAIL_INSTALL_LIST_DIR}/requirements.txt)
-        execute_process(COMMAND /bin/sh ${SAIL_INSTALL_LIST_DIR}/install_sail.sh
+        execute_process(COMMAND /bin/bash ${SAIL_INSTALL_LIST_DIR}/install_sail.sh
                 --prefix ${FETCHCONTENT_BASE_DIR}/sail
                 --build-dir ${FETCHCONTENT_BASE_DIR}/sail-build
         )
