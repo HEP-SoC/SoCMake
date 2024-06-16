@@ -80,6 +80,8 @@ SECTIONS
   {
     *(.text.unlikely .text.unlikely.*)
     *(.text.startup .text.startup.*)
+    /* Keep interrupt handlers close to vector table */
+    *(.text.vecs*)
     *(.text .text.*)
     *(.gnu.linkonce.t.*)
   } > {{ prog_mem.parent.inst_name }}
