@@ -3,7 +3,7 @@ function(add_tests EXECUTABLE DIRECTORY)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
-     
+
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/subdirectory_search.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/colours.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/fw_utils.cmake")
@@ -18,7 +18,7 @@ function(add_tests EXECUTABLE DIRECTORY)
     else()
         set(PREFIX --)
     endif()
-    
+
     unset(msg)
     list(APPEND _msg "-------------------------------------------------------------------------\n")
     string(REPLACE "__" "::" ALIAS_NAME ${SOC_NAME})
@@ -40,16 +40,16 @@ function(add_tests EXECUTABLE DIRECTORY)
             get_target_property(HEX_DATA_FILE ${fw_prj} HEX_DATA_${ARG_WIDTH}bit_FILE)
             add_test(
                 NAME ${fw_prj}
-                COMMAND ./${EXECUTABLE} 
-                    ${PREFIX}firmware=${HEX_FILE} 
+                COMMAND ./${EXECUTABLE}
+                    ${PREFIX}firmware=${HEX_FILE}
                     ${PREFIX}firmware_text=${HEX_TEXT_FILE}
                     ${PREFIX}firmware_data=${HEX_DATA_FILE}
                     ${ARG_ARGS}
                 )
 
             add_custom_target(run_${fw_prj}
-                COMMAND ./${EXECUTABLE} 
-                    ${PREFIX}firmware=${HEX_FILE} 
+                COMMAND ./${EXECUTABLE}
+                    ${PREFIX}firmware=${HEX_FILE}
                     ${PREFIX}firmware_text=${HEX_TEXT_FILE}
                     ${PREFIX}firmware_data=${HEX_DATA_FILE}
                     ${ARG_ARGS}

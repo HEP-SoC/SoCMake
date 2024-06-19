@@ -63,7 +63,7 @@ set(CMAKE_EXE_LINKER_FLAGS "")
 # a : Atomic instructions
 # c : Compressed instructions
 # zicsr : CSR Instructions (explicitely required with latest specs)
-string(APPEND CMAKE_C_FLAGS " -march=rv32imac_zicsr")
+string(APPEND CMAKE_C_FLAGS " -march=rv32imc_zicsr")
 # int and pointers are 32bit, long 64bit, char 8bit, short 16bit
 string(APPEND CMAKE_C_FLAGS " -mabi=ilp32")
 

@@ -3,6 +3,8 @@ property sections {
     component = mem;
 };
 
+// This property generate a symbol with the register
+// absolute address in the linker script
 property linker_symbol { // MOve to LDS_gen
     type = boolean;
     component = reg;
