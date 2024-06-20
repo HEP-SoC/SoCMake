@@ -102,3 +102,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/ghdl/vhdl_linter.cmake")
 # ====================================
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/riscv/sail/sail_install.cmake")
+
+# ====================================
+# ====== Tmake =======================
+# ====================================
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/tmake/tmake.cmake")

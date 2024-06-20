@@ -1,0 +1,8 @@
+target(
+    name="{{ name }}",
+    top="{{ top }}",
+    rtl_files=[
+        {% for file in rtl_files %}"{{ file }}",
+        {% endfor %}
+    ],
+)
