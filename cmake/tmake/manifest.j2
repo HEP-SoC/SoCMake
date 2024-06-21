@@ -1,6 +1,7 @@
 target(
     name="{{ name }}",
-    top="{{ top }}",
+    {% if top is defined %}top="{{ top }}",
+    {% endif %}
     rtl_files=[
         {% for file in rtl_files %}"{{ file }}",
         {% endfor %}

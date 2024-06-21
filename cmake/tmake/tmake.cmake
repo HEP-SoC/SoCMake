@@ -1,6 +1,6 @@
 include_guard(GLOBAL)
 
-function(list_syn_src IP_LIB)
+function(tmake_manifest IP_LIB)
     cmake_parse_arguments(ARG "" "OUTDIR" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -25,7 +25,7 @@ function(list_syn_src IP_LIB)
     
     add_custom_command(
         OUTPUT ${OUTDIR}/manifest
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/manifest_gen.py -t ${TOP_MODULE} -f ${SOURCES}
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/manifest_gen.py -n ${TOP_MODULE} -f ${SOURCES}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
     )
 

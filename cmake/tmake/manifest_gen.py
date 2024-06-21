@@ -6,7 +6,8 @@ def init_argparse() -> ArgumentParser:
 
     parser = ArgumentParser()
 
-    parser.add_argument('-t', '--top', type=str, help='Name of the top', required=True)
+    parser.add_argument('-n', '--name', type=str, help='Name of the top', required=True)
+    parser.add_argument('-t', '--top', type=str, help='Name of the top')
     parser.add_argument('-i', '--include', nargs='*', type=str, help='Include directories')
     parser.add_argument('-f', '--files', nargs='*', type=str, help='Source files', required=True)
 
@@ -17,11 +18,12 @@ args = parser.parse_args()
 
 environment = Environment(loader=FileSystemLoader(os.path.dirname(__file__)))
 template = environment.get_template('manifest.j2')
-content = template.render(
-    name = args.top,
-    top = args.top,
-    rtl_files = args.files
-)
+content = {
+    'name': args.name,
+    'rtl_files': args.files,
+}
+if args.top is not None:
+    content['top'] = args.top
 
 with open('manifest', mode='w') as manifest:
-    manifest.write(content)
+    manifest.write(template.render(content))
