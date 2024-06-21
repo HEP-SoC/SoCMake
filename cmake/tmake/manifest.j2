@@ -1,3 +1,6 @@
+import os
+from tmake import target
+
 target(
     name="{{ name }}",
     {% if top is defined %}top="{{ top }}",

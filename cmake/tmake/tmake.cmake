@@ -31,6 +31,7 @@ function(tmake_manifest IP_LIB)
 
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        DEPENDS ${IP_LIB}
         DEPENDS ${OUTDIR}/manifest
     )
 
