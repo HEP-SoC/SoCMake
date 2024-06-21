@@ -16,8 +16,7 @@ function(vcs_vlogan IP_LIB)
     ip_assume_last(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
-    get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
-    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
+    get_ip_rtl_sources(SOURCES ${IP_LIB})
     list(PREPEND SOURCES ${V_SOURCES})
 
     get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
