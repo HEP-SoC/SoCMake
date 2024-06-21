@@ -17,8 +17,7 @@ function(iverilog IP_LIB)
         set(OUTDIR ${ARG_OUTDIR})
     endif()
 
-    get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
-    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
+    get_ip_rtl_sources(SOURCES ${IP_LIB})
     list(PREPEND SOURCES ${V_SOURCES})
 
     get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)

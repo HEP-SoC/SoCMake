@@ -70,8 +70,7 @@ function(verilate IP_LIB)
         list(APPEND ARG_VERILATOR_ARGS -D${def})
     endforeach()
 
-    get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
-    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
+    get_ip_rtl_sources(SOURCES ${IP_LIB})
     list(PREPEND SOURCES ${V_SOURCES})
 
     get_ip_sources(CFG_FILE ${IP_LIB} VERILATOR_CFG)

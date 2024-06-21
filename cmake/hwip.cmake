@@ -177,8 +177,8 @@ endfunction()
 # :type OUT_VAR: string
 # :param IP_LIB: The target IP library.
 # :type IP_LIB: string
-# :param TYPE: The type of source file(s).
-# :type TYPE: string
+# :param LANGUAGE: The type of source file(s).
+# :type LANGUAGE: string
 #
 #]]
 function(get_ip_sources OUT_VAR IP_LIB LANGUAGE)
@@ -187,6 +187,59 @@ function(get_ip_sources OUT_VAR IP_LIB LANGUAGE)
     get_ip_property(SOURCES ${IP_LIB} ${LANGUAGE}_SOURCES)
     list(REMOVE_DUPLICATES SOURCES)
     set(${OUT_VAR} ${SOURCES} PARENT_SCOPE)
+endfunction()
+
+#[[[
+# This function retrieves RTL source files of a target library.
+#
+# :param OUT_VAR: The variable containing the retrieved source file.
+# :type OUT_VAR: string
+# :param IP_LIB: The target IP library.
+# :type IP_LIB: string
+#
+#]]
+function(get_ip_rtl_sources OUT_VAR IP_LIB)
+    get_ip_sources(V_SRC ${IP_LIB} VERILOG)
+    get_ip_sources(VH_SRC ${IP_LIB} VHDL)
+    list(PREPEND VH_SRC ${V_SRC})
+    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG)
+    list(PREPEND SRC ${VH_SRC})
+    list(REMOVE_DUPLICATES SRC)
+    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
+endfunction()
+
+#[[[
+# This function retrieves simulation-only RTL source files of a target library.
+#
+# :param OUT_VAR: The variable containing the retrieved source file.
+# :type OUT_VAR: string
+# :param IP_LIB: The target IP library.
+# :type IP_LIB: string
+#
+#]]
+function(get_ip_sim_only_sources OUT_VAR IP_LIB)
+    get_ip_sources(V_SRC ${IP_LIB} VERILOG_SIM)
+    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_SIM)
+    list(PREPEND SRC ${V_SRC})
+    list(REMOVE_DUPLICATES SRC)
+    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
+endfunction()
+
+#[[[
+# This function retrieves FPGA-only RTL source files of a target library.
+#
+# :param OUT_VAR: The variable containing the retrieved source file.
+# :type OUT_VAR: string
+# :param IP_LIB: The target IP library.
+# :type IP_LIB: string
+#
+#]]
+function(get_ip_fpga_only_sources OUT_VAR IP_LIB)
+    get_ip_sources(V_SRC ${IP_LIB} VERILOG_FPGA)
+    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_FPGA)
+    list(PREPEND SRC ${V_SRC})
+    list(REMOVE_DUPLICATES SRC)
+    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
 endfunction()
 
 #[[[
@@ -255,7 +308,7 @@ endfunction()
 function(check_languages LANGUAGE)
     # The default supported languages
     # The user can add addition languages using the SOCMAKE_ADDITIONAL_LANGUAGES variable
-    set(SOCMAKE_SUPPORTED_LANGUAGES SYSTEMVERILOG VERILOG VHDL SYSTEMRDL SYSTEMRDL_SOCGEN
+    set(SOCMAKE_SUPPORTED_LANGUAGES SYSTEMVERILOG SYSTEMVERILOG_SIM SYSTEMVERILOG_FPGA VERILOG VHDL SYSTEMRDL SYSTEMRDL_SOCGEN
         ${SOCMAKE_ADDITIONAL_LANGUAGES})
 
     if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
