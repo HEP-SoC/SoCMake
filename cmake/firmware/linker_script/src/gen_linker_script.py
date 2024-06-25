@@ -16,17 +16,12 @@ class RDL2LdsExporter(RDLListener):
         - :func:`isSwEx`
         - :func:`isSwWr`
         - :func:`isBoot`
-        - :func:`isStack`
         - :func:`isData`
-        - :func:`isBss`
         - :func:`get_sections_prop`
-        - :func:`getStackMem`
-        - :func:`getProgramMem`
+        - :func:`getTextMem`
         - :func:`getDataMem`
-        - :func:`getBssMem`
         - :func:`getBootMem`
         - :func:`getSwAcc`
-        - :func:`write_sections`
         - :func:`export`
         - :func:`process_template``
     """
@@ -63,24 +58,17 @@ class RDL2LdsExporter(RDLListener):
             return True
         return False
 
+    def isText(self, mem : MemNode) -> bool:
+        """Returns True if section is contains the bootloader."""
+        sections = self.get_sections_prop(mem)
+        if "text" in sections:
+            return True
+        return False
+
     def isBoot(self, mem : MemNode) -> bool:
         """Returns True if section is contains the bootloader."""
         sections = self.get_sections_prop(mem)
         if "boot" in sections:
-            return True
-        return False
-
-    def isStack(self, mem : MemNode) -> bool:
-        """Returns True if section contains the stack."""
-        sections = self.get_sections_prop(mem)
-        if "stack" in sections:
-            return True
-        return False
-
-    def isHeap(self, mem : MemNode) -> bool:
-        """Returns True if section contains the heap."""
-        sections = self.get_sections_prop(mem)
-        if "heap" in sections:
             return True
         return False
 
@@ -91,46 +79,20 @@ class RDL2LdsExporter(RDLListener):
             return True
         return False
 
-    def isBss(self, mem : MemNode) -> bool:
-        """Returns True if section contains the bss (uninitialized global or static variables)."""
-        sections = self.get_sections_prop(mem)
-        if "bss" in sections:
-            return True
-        return False
-
     def get_sections_prop(self, m : MemNode) -> List[str]:
         """Returns a list of string corresponding to the section properties."""
         sections = m.get_property('sections').split('|')
         for s in sections:
             assert_m = f"Illegal property for sections: {s} of memory: {m.inst_name} in addrmap: {m.parent.inst_name}"
-            assert s in ['text', 'data', 'bss', 'boot', 'stack', 'heap'], assert_m
+            assert s in ['text', 'data', 'boot'], assert_m
 
         return sections
 
-    def getStackMem(self, mems: List[MemNode]) -> MemNode:
-        stack_mems = []
-        for m in mems:
-            if self.isStack(m):
-                stack_mems.append(m)
-        assert len(stack_mems) == 1, f"Exactly 1 memory with section stack is allowed and required {stack_mems}" # TODO
-
-        return stack_mems[0]
-
-    def getHeapMem(self, mems: List[MemNode]) -> MemNode:
-        heap_mems = []
-        for m in mems:
-            if self.isHeap(m):
-                heap_mems.append(m)
-        assert len(heap_mems) == 1, f"Exactly 1 memory with section heap is allowed and required {heap_mems}" # TODO
-
-        return heap_mems[0]
-
-
-    def getProgramMem(self, mems: List[MemNode]) -> MemNode:
+    def getTextMem(self, mems: List[MemNode]) -> MemNode:
         """Returns the program/instruction/text MemNode."""
         prog_mems = []
         for m in mems:
-            if self.isSwEx(m) and not self.isBoot(m):
+            if self.isSwEx(m) and self.isText(m):
                 prog_mems.append(m)
         assert len(prog_mems) == 1, f"Exactly 1 memory with program memory is allowed and required {prog_mems}" # TODO
 
@@ -138,16 +100,6 @@ class RDL2LdsExporter(RDLListener):
 
     def getDataMem(self, mems: List[MemNode]) -> MemNode:
         """Returns the data MemNode."""
-        data_mems = []
-        for m in mems:
-            if self.isData(m):
-                data_mems.append(m)
-        assert len(data_mems) == 1, f"Exactly 1 memory with program memory is allowed and required {data_mems}" # TODO
-
-        return data_mems[0]
-
-    def getBssMem(self, mems: List[MemNode]) -> MemNode:
-        """Returns the bss MemNode."""
         data_mems = []
         for m in mems:
             if self.isData(m):
@@ -186,11 +138,8 @@ class RDL2LdsExporter(RDLListener):
                    'regs'  : self.regs
                    }
 
-        # text = self.process_template(context, "lds.j2")
         text = self.process_template(context, "linker.lds.j2")
 
-        # assert(node.type_name is not None)
-        # out_file = os.path.join(outfile, node.type_name + ".lds")
         with open(outfile, 'w') as f:
             f.write(text)
 
@@ -204,16 +153,13 @@ class RDL2LdsExporter(RDLListener):
         env.filters.update({
             'zip' : zip,
             'int' : int,
-            'isBoot' : self.isBoot,
             'isSwWr' : self.isSwWr,
             'isSwEx' : self.isSwEx,
             'getSwAcc' : self.getSwAcc,
-            'getStackMem' : self.getStackMem,
-            'getProgramMem' : self.getProgramMem,
+            'getTextMem' : self.getTextMem,
             'getBootMem' : self.getBootMem,
             'getDataMem' : self.getDataMem,
-            'getBssMem' : self.getBssMem,
-            })
+        })
 
         res = env.get_template(template).render(context)
         return res
@@ -262,7 +208,6 @@ def main():
             outfile=args.outfile,
             debug=args.debug,
             )
-
 
 
 if __name__ == "__main__":
