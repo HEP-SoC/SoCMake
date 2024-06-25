@@ -12,12 +12,9 @@ MEMORY {
 {% endfor %}
 }
 
-{# {% set stack_mem = mems|getStackMem %}
-{% set heap_mem = mems|getHeapMem %} #}
-{% set prog_mem = mems|getProgramMem %}
+{% set prog_mem = mems|getTextMem %}
 {% set boot_mem = mems|getBootMem %}
 {% set data_mem = mems|getDataMem %}
-{% set bss_mem = mems|getBssMem %}
 
 {% for reg in regs %}
 PROVIDE({{reg.inst_name}} = 0x{{ '%08x' % reg.absolute_address }});
