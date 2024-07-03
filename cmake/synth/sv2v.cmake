@@ -33,7 +33,7 @@ function(sv2v IP_LIB)
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)
-        set(OUTDIR ${BINARY_DIR}/sv2v)
+        set(OUTDIR ${BINARY_DIR}/sv2v_${IP_LIB})
     else()
         set(OUTDIR ${ARG_OUTDIR})
     endif()
@@ -53,9 +53,11 @@ function(sv2v IP_LIB)
 
     get_sv2v_sources(SV2V_SRC ${IP_LIB})
     foreach(vfile ${SV2V_SRC})
+        message("SV2V source: ${vfile}")
         get_filename_component(V_SOURCE_WO_EXT ${vfile} NAME_WE)
         if(NOT ${V_SOURCE_WO_EXT} MATCHES ".*regblock_pkg$")
             list(APPEND V_GEN "${OUTDIR}/${V_SOURCE_WO_EXT}.v")
+            message("V_GEN source: ${OUTDIR}/${V_SOURCE_WO_EXT}.v")
         endif()
     endforeach()
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
@@ -103,26 +105,26 @@ function(sv2v IP_LIB)
         get_ip_sources(V_SRC ${IP_LIB} VERILOG)
 
         # Remove SV2V files from original sources
-        list(REMOVE_ITEM SV_SRC ${SV2V_SRC}) 
-        list(REMOVE_ITEM V_SRC ${SV2V_SRC}) 
+        list(REMOVE_ITEM SV_SRC ${SV2V_SRC})
+        list(REMOVE_ITEM V_SRC ${SV2V_SRC})
 
         # Append generated files to Verilog source lists
         list(APPEND V_SRC ${V_GEN})
-            
+
         # Set the file list properties
         set_property(TARGET ${IP_LIB} PROPERTY SYSTEMVERILOG_SOURCES ${SV_SRC})
         set_property(TARGET ${IP_LIB} PROPERTY VERILOG_SOURCES ${V_SRC})
-        
+
         # If TMR is set, remove original .sv files from TMRG list and replace with .v outputs
         if(ARG_TMR)
             get_tmrg_sources(TMRG_SRC ${IP_LIB})
             foreach(i ${SV2V_SRC})
                 if(i IN_LIST TMRG_SRC)
-                    list(REMOVE_ITEM TMRG_SRC ${i}) 
+                    list(REMOVE_ITEM TMRG_SRC ${i})
                     get_filename_component(V_SOURCE_WO_EXT ${i} NAME_WE)
                     set(_i_v "${OUTDIR}/${V_SOURCE_WO_EXT}.v")
                     if(_i_v IN_LIST V_GEN)
-                        list(APPEND TMRG_SRC ${_i_v}) 
+                        list(APPEND TMRG_SRC ${_i_v})
                     endif()
                 endif()
             endforeach()

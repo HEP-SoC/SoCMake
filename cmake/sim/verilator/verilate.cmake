@@ -71,6 +71,7 @@ function(verilate IP_LIB)
     endforeach()
 
     get_ip_rtl_sources(SOURCES ${IP_LIB})
+    # Where is defined V_SOURCES (or is it always empty)?
     list(PREPEND SOURCES ${V_SOURCES})
 
     get_ip_sources(CFG_FILE ${IP_LIB} VERILATOR_CFG)

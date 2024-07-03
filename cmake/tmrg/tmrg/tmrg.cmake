@@ -53,7 +53,7 @@ function(tmrg IP_LIB)
     endforeach()
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
 
-    set(TMRG_COMMAND 
+    set(TMRG_COMMAND
         ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${TMRG_SRC}
     )
 
@@ -65,8 +65,11 @@ function(tmrg IP_LIB)
         set(TMRG_COMMAND ${TMRG_COMMAND} --no-common-definitions)
     endif()
 
+    # To avoid replacing unwanted 'wor' character sequence, assume real wor (i.e., wired-or)
+    # sequence is always followed by a space. Otherwise, if 'wor' is used in a name (e.g., word_address)
+    # it will also be replaced (e.g., to wird_address).
     if(ARG_SED_WOR)
-        set(SED_COMMAND COMMAND sed -i "s/wor/wire/g" ${V_GEN})
+        set(SED_COMMAND COMMAND sed -i "s/wor /wire /g" ${V_GEN})
     endif()
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
@@ -94,8 +97,8 @@ function(tmrg IP_LIB)
         get_ip_sources(V_SRC ${IP_LIB} VERILOG)
 
         # Remove TMRG files from original sources
-        list(REMOVE_ITEM SV_SRC ${TMRG_SRC}) 
-        list(REMOVE_ITEM V_SRC ${TMRG_SRC}) 
+        list(REMOVE_ITEM SV_SRC ${TMRG_SRC})
+        list(REMOVE_ITEM V_SRC ${TMRG_SRC})
 
         # Append generated files to correct source lists
         foreach(i ${V_GEN})
@@ -106,7 +109,7 @@ function(tmrg IP_LIB)
                 list(APPEND V_SRC ${i})
             endif()
         endforeach()
-            
+
         # Set the file list properties
         set_property(TARGET ${IP_LIB} PROPERTY SYSTEMVERILOG_SOURCES ${SV_SRC})
         set_property(TARGET ${IP_LIB} PROPERTY VERILOG_SOURCES ${V_SRC})

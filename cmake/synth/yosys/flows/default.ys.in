@@ -1,4 +1,4 @@
-read_verilog @V_FILES_STR@
+read_verilog -sv @V_FILES_STR@
 
 hierarchy -check -top @TOP_MODULE@
 
@@ -8,4 +8,3 @@ clean
 stat -top @TOP_MODULE@
 
 write_verilog @V_GEN@
-
