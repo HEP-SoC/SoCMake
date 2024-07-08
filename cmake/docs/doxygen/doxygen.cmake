@@ -27,7 +27,7 @@ function(doxygen IP_LIB)
         string(REGEX MATCH "${regex_pattern}" extracted_path ${dir})
 
         if(CMAKE_MATCH_1)
-            message("${dir} ${CMAKE_MATCH_1}")
+            # message("${dir} ${CMAKE_MATCH_1}")
             list(APPEND INCDIRS ${CMAKE_MATCH_1})
         else()
             # list(APPEND INCDIRS ${dir})
