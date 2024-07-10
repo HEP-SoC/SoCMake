@@ -18,7 +18,7 @@ include_guard(GLOBAL)
 # ]]]
 function(iverilog IP_LIB)
     # Parse the function arguments
-    cmake_parse_arguments(ARG "" "OUTDIR;EXECUTABLE" "" ${ARGN})
+    cmake_parse_arguments(ARG "" "TOP_MODULE;OUTDIR;EXECUTABLE;CLI_FLAGS" "" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -37,6 +37,10 @@ function(iverilog IP_LIB)
         set(OUTDIR ${BINARY_DIR})
     else()
         set(OUTDIR ${ARG_OUTDIR})
+    endif()
+
+    if(ARG_TOP_MODULE)
+        set(TOP_MODULE "-s${ARG_TOP_MODULE}")
     endif()
 
     # Get the IP RTL sources
@@ -73,8 +77,10 @@ function(iverilog IP_LIB)
     add_custom_command(
         OUTPUT ${ARG_EXECUTABLE} ${STAMP_FILE}
         COMMAND iverilog
+        ${TOP_MODULE}
         ${ARG_INCDIRS}
         ${CMP_DEFS_ARG}
+        ${ARG_CLI_FLAGS}
         -o ${ARG_EXECUTABLE}
         ${SOURCES}
         COMMAND touch ${STAMP_FILE}
