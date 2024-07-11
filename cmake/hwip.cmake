@@ -51,29 +51,29 @@ function(add_ip IP_NAME)
         string(REPLACE "__" "::" ALIAS_NAME "${IP_LIB}")
         if(NOT "${IP_LIB}" STREQUAL "${ALIAS_NAME}")
             add_library(${ALIAS_NAME} ALIAS ${IP_LIB})
-            endif()
+        endif()
 
-            # TODO Maybe delete short name without version
-            get_ipname(IP_LIB_SHORT ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "")
-            string(REPLACE "__" "::" ALIAS_NAME_SHORT "${IP_LIB_SHORT}")
-            if(NOT "${IP_LIB}" STREQUAL "${ALIAS_NAME_SHORT}")
+        # TODO Maybe delete short name without version
+        get_ipname(IP_LIB_SHORT ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "")
+        string(REPLACE "__" "::" ALIAS_NAME_SHORT "${IP_LIB_SHORT}")
+        if(NOT "${IP_LIB}" STREQUAL "${ALIAS_NAME_SHORT}")
             add_library(${ALIAS_NAME_SHORT} ALIAS ${IP_LIB})
-            endif()
-            endif()
+        endif()
+    endif()
 
     if(ARG_VENDOR)
         set(IP_VENDOR ${ARG_VENDOR} PARENT_SCOPE)
         set_target_properties(${IP_LIB} PROPERTIES VENDOR ${ARG_VENDOR})
-        endif()
-        if(ARG_LIBRARY)
+    endif()
+    if(ARG_LIBRARY)
         set(IP_LIBRARY ${ARG_LIBRARY} PARENT_SCOPE)
         set_target_properties(${IP_LIB} PROPERTIES LIBRARY ${ARG_LIBRARY})
-        endif()
+    endif()
         set_target_properties(${IP_LIB} PROPERTIES IP_NAME ${IP_NAME})
-        if(ARG_VERSION)
+    if(ARG_VERSION)
         set(IP_VERSION ${ARG_VERSION} PARENT_SCOPE)
         set_target_properties(${IP_LIB} PROPERTIES VERSION ${ARG_VERSION})
-        endif()
+    endif()
 
     set(IP_NAME ${IP_NAME} PARENT_SCOPE)
     set(IP ${IP_LIB} PARENT_SCOPE)
@@ -177,8 +177,8 @@ endfunction()
 # :type OUT_VAR: string
 # :param IP_LIB: The target IP library.
 # :type IP_LIB: string
-# :param TYPE: The type of source file(s).
-# :type TYPE: string
+# :param LANGUAGE: The type of source file(s).
+# :type LANGUAGE: string
 #
 #]]
 function(get_ip_sources OUT_VAR IP_LIB LANGUAGE)
@@ -187,6 +187,59 @@ function(get_ip_sources OUT_VAR IP_LIB LANGUAGE)
     get_ip_property(SOURCES ${IP_LIB} ${LANGUAGE}_SOURCES)
     list(REMOVE_DUPLICATES SOURCES)
     set(${OUT_VAR} ${SOURCES} PARENT_SCOPE)
+endfunction()
+
+#[[[
+# This function retrieves RTL source files of a target library.
+#
+# :param OUT_VAR: The variable containing the retrieved source file.
+# :type OUT_VAR: string
+# :param IP_LIB: The target IP library.
+# :type IP_LIB: string
+#
+#]]
+function(get_ip_rtl_sources OUT_VAR IP_LIB)
+    get_ip_sources(V_SRC ${IP_LIB} VERILOG)
+    get_ip_sources(VH_SRC ${IP_LIB} VHDL)
+    list(PREPEND VH_SRC ${V_SRC})
+    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG)
+    list(PREPEND SRC ${VH_SRC})
+    list(REMOVE_DUPLICATES SRC)
+    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
+endfunction()
+
+#[[[
+# This function retrieves simulation-only RTL source files of a target library.
+#
+# :param OUT_VAR: The variable containing the retrieved source file.
+# :type OUT_VAR: string
+# :param IP_LIB: The target IP library.
+# :type IP_LIB: string
+#
+#]]
+function(get_ip_sim_only_sources OUT_VAR IP_LIB)
+    get_ip_sources(V_SRC ${IP_LIB} VERILOG_SIM)
+    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_SIM)
+    list(PREPEND SRC ${V_SRC})
+    list(REMOVE_DUPLICATES SRC)
+    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
+endfunction()
+
+#[[[
+# This function retrieves FPGA-only RTL source files of a target library.
+#
+# :param OUT_VAR: The variable containing the retrieved source file.
+# :type OUT_VAR: string
+# :param IP_LIB: The target IP library.
+# :type IP_LIB: string
+#
+#]]
+function(get_ip_fpga_only_sources OUT_VAR IP_LIB)
+    get_ip_sources(V_SRC ${IP_LIB} VERILOG_FPGA)
+    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_FPGA)
+    list(PREPEND SRC ${V_SRC})
+    list(REMOVE_DUPLICATES SRC)
+    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
 endfunction()
 
 #[[[
@@ -255,7 +308,7 @@ endfunction()
 function(check_languages LANGUAGE)
     # The default supported languages
     # The user can add addition languages using the SOCMAKE_ADDITIONAL_LANGUAGES variable
-    set(SOCMAKE_SUPPORTED_LANGUAGES SYSTEMVERILOG VERILOG VHDL SYSTEMRDL SYSTEMRDL_SOCGEN
+    set(SOCMAKE_SUPPORTED_LANGUAGES SYSTEMVERILOG SYSTEMVERILOG_SIM SYSTEMVERILOG_FPGA VERILOG VHDL SYSTEMRDL SYSTEMRDL_SOCGEN
         ${SOCMAKE_ADDITIONAL_LANGUAGES})
 
     if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
@@ -349,14 +402,14 @@ function(get_ip_property OUTVAR TARGET PROPERTY)
 endfunction()
 
 #[[[
-# Set a compile definition on a IP for a given language
+# Set a compile definition on a IP for a given language inside property <LANGUAGE>_COMPILE_DEFINITIONS.
 #
 # Any leading `-D` on an item will be removed. Empty items are ignored. For example, the following are all equivalent:
 #
 # ip_compile_definitions(foo VERILOG FOO)
 # ip_compile_definitions(foo VERILOG -DFOO)  # -D removed
 # ip_compile_definitions(foo VERILOG "" FOO) # "" ignored
-# ip_compile_definitions(foo VERILOG -D FOO) # -D becomes "", then ignoredOMPILE_DEFINITIONS property.
+# ip_compile_definitions(foo VERILOG -D FOO) # -D becomes "", then ignored.
 #
 # :param IP_LIB: The target IP library name.
 # :type IP_LIB: string
@@ -381,7 +434,7 @@ endfunction()
 
 #[[[
 # This function is a hardcoded version of get_ip_property() for the
-# INTERFACE_COMPILE_DEFINITIONS property.
+# <LANGUAGE>_COMPILE_DEFINITIONS property.
 #
 # :param OUT_VAR: Variable containing the requested property.
 # :type OUT_VAR: string

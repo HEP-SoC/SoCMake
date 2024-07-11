@@ -47,8 +47,7 @@ function(verilate_xml IP_LIB)
     get_ip_property(VERILATOR_ARGS ${IP_LIB} VERILATOR_ARGS)
     list(APPEND VERILATOR_ARGS ${ARG_VERILATOR_ARGS})
 
-    get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
-    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
+    get_ip_rtl_sources(SOURCES ${IP_LIB})
     list(PREPEND SOURCES ${V_SOURCES})
 
     get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)

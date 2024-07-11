@@ -18,9 +18,9 @@ function(vivado IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
-    get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
-    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
-    list(PREPEND SOURCES ${V_SOURCES})
+    get_ip_rtl_sources(SOURCES ${IP_LIB})
+    get_ip_fpga_only_sources(FPGA_SOURCES ${IP_LIB})
+    list(PREPEND SOURCES ${FPGA_SOURCES})
     list(FILTER SOURCES EXCLUDE REGEX ".vlt$")
 
     if(NOT ARG_TOP)

@@ -1,0 +1,12 @@
+import os
+from tmake import target
+
+target(
+    name="{{ name }}",
+    {% if top is defined %}top="{{ top }}",
+    {% endif %}
+    rtl_files=[
+        {% for file in rtl_files %}"{{ file }}",
+        {% endfor %}
+    ],
+)

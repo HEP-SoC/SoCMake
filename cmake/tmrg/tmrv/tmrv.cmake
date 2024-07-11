@@ -21,8 +21,7 @@ function(tmrv IP_LIB)
     endif()
     execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR})
 
-    get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)          # TODO make merge source files group function
-    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG)
+    get_ip_rtl_sources(SOURCES ${IP_LIB})
     list(PREPEND SOURCES ${V_SOURCES})
     list(REMOVE_DUPLICATES SOURCES)
 
