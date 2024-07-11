@@ -18,7 +18,7 @@ include_guard(GLOBAL)
 # ]]]
 function(cocotb_iverilog IP_LIB)
     # Parse the function arguments
-    cmake_parse_arguments(ARG "" "TOP_MODULE;OUTDIR;EXECUTABLE;IVERILOG_CLI_FLAGS;TIMEUNIT;TIMEPRECISION;TOPLEVEL_LANG;TESTCASE;MODULE" "SIM_ARGS;PLUSARGS" ${ARGN})
+    cmake_parse_arguments(ARG "" "TOP_MODULE;OUTDIR;EXECUTABLE;IVERILOG_CLI_FLAGS;TIMEUNIT;TIMEPRECISION;TOPLEVEL_LANG;TESTCASE;PATH_MODULE;MODULE" "SIM_ARGS;PLUSARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -41,7 +41,7 @@ function(cocotb_iverilog IP_LIB)
 
     # iverilog top module
     if(ARG_TOP_MODULE)
-        set(TOP_MODULE "-s${ARG_TOP_MODULE}")
+        set(TOP_MODULE ${ARG_TOP_MODULE})
     else()
         message(FATAL_ERROR "No simulation top module provided. Use the function argument TOP_MODULE.")
     endif()
@@ -63,10 +63,16 @@ function(cocotb_iverilog IP_LIB)
     set(COCOTB_RESULTS_FILE "${OUTDIR}/cocotb_results.xml")
 
     # Cocotb simulation options
+    # Cocotb module to run (python script)
     if(ARG_MODULE)
         set(MODULE ${ARG_MODULE})
     else()
         message(FATAL_ERROR "No cocotb module provided. Use the function argument MODULE.")
+    endif()
+    if(ARG_PATH_MODULE)
+        set(PATH_MODULE ${ARG_PATH_MODULE})
+    else()
+        message(FATAL_ERROR "No cocotb module path provided. Use the function argument PATH_MODULE.")
     endif()
     # This one is optional:
     if(ARG_TESTCASE)
@@ -114,12 +120,13 @@ function(cocotb_iverilog IP_LIB)
         OUTPUT ${ARG_EXECUTABLE} ${STAMP_FILE}
         # iverilog must be in your path
         COMMAND iverilog
-        ${TOP_MODULE}
+        "-s${TOP_MODULE}"
         ${ARG_INCDIRS}
         ${CMP_DEFS_ARG}
         ${ARG_IVERILOG_CLI_FLAGS}
         "-DCOCOTB_SIM=1"
         # "+timescale+${COCOTB_HDL_TIMEUNIT}/${COCOTB_HDL_TIMEPRECISION}"
+        "-fcmds.f"
         -o ${ARG_EXECUTABLE}
         ${SOURCES}
         COMMAND touch ${STAMP_FILE}
@@ -140,17 +147,46 @@ function(cocotb_iverilog IP_LIB)
     #     DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${SOURCES} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
     # )
 
+    # Get cocotb lib directory
+    set(_CMD ${Python3_VIRTUAL_ENV}/bin/cocotb-config --lib-dir)
+    execute_process(
+        OUTPUT_VARIABLE COCOTB_LIB_DIR
+        ERROR_VARIABLE ERROR_MSG
+        COMMAND ${_CMD}
+    )
+    # Check the lib path is found
+    if(NOT COCOTB_LIB_DIR)
+        message(FATAL_ERROR "Cocotb lib directory variable not found. Make sure cocotb package is installed in the python venv. Error output: ${ERROR_MSG}.")
+    endif()
+    # Remove the line feed of the variable otherwise if breaks the below command
+    string(STRIP ${COCOTB_LIB_DIR} COCOTB_LIB_DIR)
+
+    # Get cocotb vpi library for icarus verilog
+    set(_CMD ${Python3_VIRTUAL_ENV}/bin/cocotb-config --lib-name vpi icarus)
+    execute_process(
+        OUTPUT_VARIABLE COCOTB_LIB_VPI_ICARUS
+        ERROR_VARIABLE ERROR_MSG
+        COMMAND ${_CMD}
+    )
+    # Check the lib is found
+    if(NOT COCOTB_LIB_VPI_ICARUS)
+        message(FATAL_ERROR "Cocotb lib vpi icarus variable not found. Make sure cocotb package is installed in the python venv. Error output: ${ERROR_MSG}.")
+    endif()
+    # Remove the line feed of the variable otherwise if breaks the below command
+    string(STRIP ${COCOTB_LIB_VPI_ICARUS} COCOTB_LIB_VPI_ICARUS)
+
     # Add a custom command to run cocotb
     add_custom_command(
         OUTPUT ${COCOTB_RESULTS_FILE}
-        COMMAND MODULE=${MODULE}
+        COMMAND PYTHONPATH=${PATH_MODULE}
+        MODULE=${MODULE}
         TESTCASE=${TESTCASE}
         TOPLEVEL=${TOP_MODULE}
         TOPLEVEL_LANG=${TOPLEVEL_LANG}
+        # sim command prefix, e.g., for debugging: 'gdb --args'
+        ${ARG_SIM_CMD_PREFIX}
         # iverilog run-time engine must be in your path
-        vvp
-        "-M${Python3_VIRTUAL_ENV}/bin/cocotb-config --lib-dir"
-        "-m${Python3_VIRTUAL_ENV}/bin/cocotb-config --lib-name vpi icarus"
+        vvp -M${COCOTB_LIB_DIR} -m${COCOTB_LIB_VPI_ICARUS}
         # Arguments to pass to execution of compiled simulation
         ${ARG_SIM_ARGS}
         ${ARG_EXECUTABLE}
@@ -162,9 +198,10 @@ function(cocotb_iverilog IP_LIB)
 
     # Add a custom target that depends on the executable and stamp file
     add_custom_target(
-        run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        run_${MODULE}_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${COCOTB_RESULTS_FILE}
     )
 
 endfunction()
+
 
