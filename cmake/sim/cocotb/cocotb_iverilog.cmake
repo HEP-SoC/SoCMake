@@ -112,6 +112,23 @@ function(cocotb_iverilog IP_LIB)
         set(ARG_EXECUTABLE "${OUTDIR}/${IP_LIB}_iv")
     endif()
 
+    # A command file as to be created to pass the timescale information to iverilog
+    if(ARG_OUTDIR)
+        set(CMDS_FILE ${OUTDIR}/cmds.f)
+    else()
+        set(CMDS_FILE cmds.f)
+    endif()
+    # Generate the cmds.f file
+    execute_process(
+        ERROR_VARIABLE ERROR_MSG
+        COMMAND touch ${CMDS_FILE}
+    )
+    write_file(${CMDS_FILE} "+timescale+${COCOTB_HDL_TIMEUNIT}/${COCOTB_HDL_TIMEPRECISION}")
+    # Check the file is generated
+    if(NOT EXISTS ${CMDS_FILE})
+        message(FATAL_ERROR "${CMDS_FILE} file not generated.")
+    endif()
+
     # Set the stamp file path (is the stamp file really needed?)
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
 
@@ -120,13 +137,12 @@ function(cocotb_iverilog IP_LIB)
         OUTPUT ${ARG_EXECUTABLE} ${STAMP_FILE}
         # iverilog must be in your path
         COMMAND iverilog
-        "-s${TOP_MODULE}"
+        -s ${TOP_MODULE}
         ${ARG_INCDIRS}
         ${CMP_DEFS_ARG}
         ${ARG_IVERILOG_CLI_FLAGS}
-        "-DCOCOTB_SIM=1"
-        # "+timescale+${COCOTB_HDL_TIMEUNIT}/${COCOTB_HDL_TIMEPRECISION}"
-        "-fcmds.f"
+        -DCOCOTB_SIM=1
+        -f ${CMDS_FILE}
         -o ${ARG_EXECUTABLE}
         ${SOURCES}
         COMMAND touch ${STAMP_FILE}
@@ -139,13 +155,6 @@ function(cocotb_iverilog IP_LIB)
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${IP_LIB}
     )
-
-    # # Add a custom target to run the generated executable
-    # add_custom_target(
-    #     run_${IP_LIB}_iv
-    #     COMMAND exec ${ARG_EXECUTABLE}
-    #     DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${SOURCES} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-    # )
 
     # Get cocotb lib directory
     set(_CMD ${Python3_VIRTUAL_ENV}/bin/cocotb-config --lib-dir)
