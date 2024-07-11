@@ -35,6 +35,9 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/fc4sc/fc4sc_merge_coverage.cmake")
 # ----- VeriSC --------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/verisc/verisc_install.cmake")
 
+# ----- Cocotb --------
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/cocotb_iverilog.cmake")
+
 # ====================================
 # ======== PeakRDL ===================
 # ====================================
