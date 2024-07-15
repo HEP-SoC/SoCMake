@@ -101,7 +101,7 @@ function(gen_hex_files EXE)
             add_custom_command(TARGET ${EXE}
                 POST_BUILD
                 BYPRODUCTS ${HEX_FILE} ${HEX_TEXT_FILE} ${HEX_DATA_FILE}
-                COMMAND ${CMAKE_OBJCOPY} -O verilog --verilog-data-width=4 ${EXECUTABLE} ${HEX_FILE}
+                COMMAND ${CMAKE_OBJCOPY} -O verilog ${EXECUTABLE} ${HEX_FILE}
                 COMMAND ${CMAKE_OBJCOPY} -O verilog --verilog-data-width=4 --gap-fill 0x0000 ${TEXT_SECTION} ${EXECUTABLE} ${HEX_TEXT_FILE}
                 # TODO: find an automatic way to 'correct' the VMA for loading during simulation
                 COMMAND ${CMAKE_OBJCOPY} -O verilog --verilog-data-width=4 --gap-fill 0x0000 --adjust-vma=-0x10000000 ${DATA_SECTION} ${EXECUTABLE} ${HEX_DATA_FILE}
