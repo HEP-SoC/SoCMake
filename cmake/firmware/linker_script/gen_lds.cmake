@@ -45,7 +45,7 @@ function(gen_lds IP_LIB)
     # Process any specified parameters to overwrite
     if(ARG_PARAMETERS)
         foreach(PARAM ${ARG_PARAMETERS})
-            string(APPEND OVERWRITTEN_PARAMETERS "-p${PARAM}")
+            set(OVERWRITTEN_PARAMETERS "${OVERWRITTEN_PARAMETERS}" "-p${PARAM}")
         endforeach()
     endif()
 
