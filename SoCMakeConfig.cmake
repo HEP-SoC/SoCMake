@@ -8,7 +8,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/add_subdirs.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/graphviz.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/multi_option.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/find_python.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/copy_rtl_files/copy_rtl_files.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/copy_ip_sources/copy_ip_sources.cmake")
 
 # ====================================
 # ======== Simulation ================
