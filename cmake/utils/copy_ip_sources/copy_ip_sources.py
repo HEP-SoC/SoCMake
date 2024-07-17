@@ -114,25 +114,26 @@ def main():
 
         # Remove common path of the files
         files_striped = remove_common_path(files)
-        # Change file paths to copy directory
+        # Get absolute path of the dst directory
+        abs_path = os.path.abspath(args.path)
+        # Change file paths to dst directory
+        for f_dst in files_striped:
+            files_dst = abs_path + '/' + f_dst
 
         # Only print the files if argument is passed
         if args.list_files:
-            print(*files)
+            print(*files_dst)
         else:
-            # Get absolute path if relative
-            abs_path = os.path.abspath(args.path)
             file_list_path = abs_path + '/file_list.txt'
             # Check if the file list exist, otherwise create it
             os.makedirs(os.path.dirname(file_list_path), exist_ok=True)
             # Write the files to the file list
             with open(abs_path + '/file_list.txt', 'w') as outfile:
-                for f_src, f_dst in zip(files, files_striped):
-                    abs_f_dst = abs_path + f_dst
+                for f_src, f_dst in zip(files, files_dst):
                     # Write the path to the list of path file
-                    outfile.write(abs_f_dst + '\n')
+                    outfile.write(f_dst + '\n')
                     # Copy the file
-                    shutil.copyfile(f_src, abs_f_dst)
+                    # shutil.copyfile(f_src, f_dst)
 
                 # Add empty line at the end of the file
                 outfile.write('\n')

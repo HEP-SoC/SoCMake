@@ -63,7 +63,7 @@ function(copy_ip_sources IP_LIB)
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RTL_SOURCES}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
-        )
+    )
 
     add_custom_target(
         ${IP_LIB}_copy_ip_sources
