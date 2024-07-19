@@ -60,7 +60,7 @@ function(peakrdl_halcpp IP_LIB)
     set(OVERWRITTEN_PARAMETERS "")
     if(ARG_PARAMETERS)
         foreach(PARAM ${ARG_PARAMETERS})
-            string(APPEND OVERWRITTEN_PARAMETERS "-P${PARAM}")
+            set(OVERWRITTEN_PARAMETERS "${OVERWRITTEN_PARAMETERS}" "-P${PARAM}")
         endforeach()
     endif()
 
