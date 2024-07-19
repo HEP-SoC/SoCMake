@@ -16,9 +16,10 @@ function(copy_rtl_files IP_LIB)
     endif()
 
     # Check it a top is provided. In this case only the modules in its hierarchy are kept
-    if(ARG_TOP)
-        set(TOP --top ${ARG_TOP})
-    endif()
+    # NOT WORKING FOR NOW
+    # if(ARG_TOP)
+    #     set(TOP --top ${ARG_TOP})
+    # endif()
 
     # Get the list of RTL sources
     get_ip_rtl_sources(RTL_SOURCES ${SOC_NAME})
@@ -38,8 +39,6 @@ function(copy_rtl_files IP_LIB)
     set(STAMP_FILE "${CMAKE_BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${STAMP_FILE}
-        # COMMAND ${CMAKE_COMMAND} -E env
-        #     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/copy_rtl_files.py ${OUTDIR} ${RTL_FILES_ARGS}
         COMMAND ${__CMD}
         COMMENT "Copying RTL files to ${OUTDIR}"
         VERBATIM
