@@ -124,7 +124,7 @@ def remove_common_path(file_paths):
 
 def main():
     parser = argparse.ArgumentParser(description="Filter RTL files based on module hierarchy.")
-    parser.add_argument('--top', help='Top module name')
+    # parser.add_argument('--top', help='Top module name')
     parser.add_argument('--outdir', help='Output directory where files will be copied')
     parser.add_argument('--list-files', action="store_true", help="Don't generate files, but instead just list the files that will be generated")
     parser.add_argument('files', metavar='F', type=str, nargs='+', help='List of RTL file paths')
@@ -132,11 +132,13 @@ def main():
     args = parser.parse_args()
 
     try:
+        # VERILOG PARSING IS NOT WORKING FOR NOW #
         # If a top is given parse the files
-        if args.top is not None:
-            files = filter_files(args.files, args.top)
-        else:
-            files = args.files
+        # if args.top is not None:
+        #     files = filter_files(args.files, args.top)
+        # else:
+        
+        files = args.files
 
         # Remove common path of the files
         files_striped = remove_common_path(files)
