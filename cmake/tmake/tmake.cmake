@@ -22,6 +22,7 @@ function(tmake_manifest IP_LIB)
     add_custom_command(
         OUTPUT ${OUTDIR}/manifest
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/manifest_gen.py -n ${TOP_MODULE} -f ${SOURCES}
+        COMMAND cp -u ${SOURCES} ${CMAKE_CURRENT_LIST_DIR}/src
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
     )
 
