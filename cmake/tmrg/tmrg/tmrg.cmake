@@ -17,9 +17,9 @@ endfunction()
 function(get_tmrg_sources OUT_VAR IP_LIB)
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(IP_LIB ${IP_LIB})
-    get_ip_property(TMRG_SRC ${IP_LIB} TMRG)
-    list(REMOVE_DUPLICATES TMRG_SRC)
-    set(${OUT_VAR} ${TMRG_SRC} PARENT_SCOPE)
+    get_ip_property(TMRG_SRC_IP ${IP_LIB} TMRG)
+    list(REMOVE_DUPLICATES TMRG_SRC_IP)
+    set(${OUT_VAR} ${TMRG_SRC_IP} PARENT_SCOPE)
 endfunction()
 
 function(tmrg IP_LIB)
@@ -45,8 +45,30 @@ function(tmrg IP_LIB)
         unset(ARG_CONFIG_FILE)
     endif()
 
-    get_tmrg_sources(TMRG_SRC ${IP_LIB})
-    foreach(vfile ${TMRG_SRC})
+    # Get all the TMRG sources (core+dependencies)
+    get_tmrg_sources(TMRG_SRC_ALL ${IP_LIB})
+    # Get only the IP sources (not the dependencies)
+    safe_get_target_property(TMRG_SRC_IP ${IP_LIB} TMRG "FATAL")
+    list(REMOVE_DUPLICATES TMRG_SRC_IP)
+
+    set(TMRG_SRC_DEPS)
+    # Find the deps TMRG sources
+    foreach(file ${TMRG_SRC_ALL})
+        list(FIND TMRG_SRC_IP ${file} index)
+        if(index EQUAL -1)
+            list(APPEND TMRG_SRC_DEPS ${file})
+        endif()
+    endforeach()
+
+    # What about module that are not inth deps TMRG sources but still inside a triplicated
+    # module of IP_LIB?
+
+    # Only the IP sources (not the dependencies) are triplicated
+    # The dependency sources are passed as libraries and its up
+    # to the dependencies to provide triplicated (or not triplicated)
+    # module definitions.
+
+    foreach(vfile ${TMRG_SRC_IP})
         get_filename_component(V_SOURCE_WO_EXT ${vfile} NAME_WE)
         get_filename_component(V_SOURCE_EXT ${vfile} EXT)
         list(APPEND V_GEN "${OUTDIR}/${V_SOURCE_WO_EXT}TMR${V_SOURCE_EXT}")
@@ -54,7 +76,7 @@ function(tmrg IP_LIB)
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
 
     set(TMRG_COMMAND
-        ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${TMRG_SRC}
+        ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${TMRG_SRC_IP} -l ${TMRG_SRC_DEPS}
     )
 
     if(ARG_SDC)
@@ -78,13 +100,13 @@ function(tmrg IP_LIB)
         COMMAND ${TMRG_COMMAND}
         ${SED_COMMAND}
         COMMAND touch ${STAMP_FILE}
-        DEPENDS ${TMRG_SRC}
+        DEPENDS ${TMRG_SRC_IP}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
     )
 
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-        DEPENDS ${STAMP_FILE} ${TMRG_SRC} ${V_GEN}
+        DEPENDS ${STAMP_FILE} ${TMRG_SRC_IP} ${V_GEN}
     )
 
     if(ARG_REPLACE)
@@ -97,8 +119,8 @@ function(tmrg IP_LIB)
         get_ip_sources(V_SRC ${IP_LIB} VERILOG)
 
         # Remove TMRG files from original sources
-        list(REMOVE_ITEM SV_SRC ${TMRG_SRC})
-        list(REMOVE_ITEM V_SRC ${TMRG_SRC})
+        list(REMOVE_ITEM SV_SRC ${TMRG_SRC_IP})
+        list(REMOVE_ITEM V_SRC ${TMRG_SRC_IP})
 
         # Append generated files to correct source lists
         foreach(i ${V_GEN})
