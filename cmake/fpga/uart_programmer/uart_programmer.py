@@ -19,18 +19,30 @@ def program(
     text_bytes = b''
     for line in text_lines:
         line = line.strip()
-        byte_data = bytes.fromhex(line)
-        byte_data = bytearray(byte_data)
-        byte_data.reverse()
-        text_bytes += byte_data
+        
+        if line.startswith('@') or line == '':
+            continue
+        
+        words = line.split()
+        for word in words:
+            byte_data = bytes.fromhex(word)
+            byte_data = bytearray(byte_data)
+            byte_data.reverse()
+            text_bytes += byte_data
 
     data_bytes = b''
     for line in data_lines:
         line = line.strip()
-        byte_data = bytes.fromhex(line)
-        byte_data = bytearray(byte_data)
-        byte_data.reverse()
-        data_bytes += byte_data
+        
+        if line.startswith('@') or line == '':
+            continue
+        
+        words = line.split()
+        for word in words:
+            byte_data = bytes.fromhex(word)
+            byte_data = bytearray(byte_data)
+            byte_data.reverse()
+            data_bytes += byte_data
 
     num_text_bytes = len(text_bytes).to_bytes(4, byteorder='little')
     num_data_bytes = (len(data_bytes)).to_bytes(4, byteorder='little')
