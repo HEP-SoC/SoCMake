@@ -6,24 +6,24 @@ function(set_tmrg_sources IP_LIB)
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(_reallib ${IP_LIB})
 
-    # Get any prior TMRG sources
-    get_tmrg_sources(_tmrg_src ${IP_LIB})
+    # Get any prior TMRG sources (only of the IP, not the deps)
+    safe_get_target_property(_tmrg_src ${_reallib} TMRG_SOURCES "")
 
     set(_tmrg_src ${_tmrg_src} ${ARGN})
     # Set the target property with the new list of source files
-    set_property(TARGET ${_reallib} PROPERTY TMRG ${_tmrg_src})
+    set_property(TARGET ${_reallib} PROPERTY TMRG_SOURCES ${_tmrg_src})
 endfunction()
 
 function(get_tmrg_sources OUT_VAR IP_LIB)
     # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(IP_LIB ${IP_LIB})
-    get_ip_property(TMRG_SRC_IP ${IP_LIB} TMRG)
+    ip_assume_last(_reallib ${IP_LIB})
+    get_ip_property(TMRG_SRC_IP ${_reallib} TMRG_SOURCES)
     list(REMOVE_DUPLICATES TMRG_SRC_IP)
     set(${OUT_VAR} ${TMRG_SRC_IP} PARENT_SCOPE)
 endfunction()
 
 function(tmrg IP_LIB)
-    cmake_parse_arguments(ARG "REPLACE;SED_WOR;NO_COMMON_DEFINITIONS;SDC" "OUTDIR;CONFIG_FILE" "" ${ARGN})
+    cmake_parse_arguments(ARG "REPLACE;SED_WOR;NO_COMMON_DEFINITIONS;SDC" "OUTDIR;CONFIG_FILE;TOP_MODULE" "" ${ARGN})
 
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -45,23 +45,55 @@ function(tmrg IP_LIB)
         unset(ARG_CONFIG_FILE)
     endif()
 
-    # Get all the TMRG sources (core+dependencies)
+    # Get all the TMRG sources (ip+dependencies)
     get_tmrg_sources(TMRG_SRC_ALL ${IP_LIB})
-    # Get only the IP sources (not the dependencies)
-    safe_get_target_property(TMRG_SRC_IP ${IP_LIB} TMRG "FATAL")
+    # Get only the IP TMRG sources (not the dependencies)
+    safe_get_target_property(TMRG_SRC_IP ${IP_LIB} TMRG_SOURCES "FATAL")
+    # get_target_property(TMRG_SRC_IP ${IP_LIB} TMRG_SOURCES)
     list(REMOVE_DUPLICATES TMRG_SRC_IP)
 
+    # message("TMRG_FUNC: TMRG_SRC_ALL=${TMRG_SRC_ALL}")
+    # message("TMRG_FUNC: TMRG_SRC_IP=${TMRG_SRC_IP}")
+
     set(TMRG_SRC_DEPS)
-    # Find the deps TMRG sources
+    # Find the deps TMRG sources only
     foreach(file ${TMRG_SRC_ALL})
         list(FIND TMRG_SRC_IP ${file} index)
+        # message("TMRG_FUNC: searching ${file} in ${TMRG_SRC_IP}")
         if(index EQUAL -1)
             list(APPEND TMRG_SRC_DEPS ${file})
+            # message("File not found")
         endif()
     endforeach()
 
-    # What about module that are not inth deps TMRG sources but still inside a triplicated
-    # module of IP_LIB?
+    # message("TMRG_FUNC: TMRG_SRC_DEPS=${TMRG_SRC_DEPS}")
+
+    # We also get the non-triplicated sources
+    # For example, primitive cells are not all triplicated
+    # and instantiating them 3 times is fine
+
+    # Get all the IP sources (ip+dependencies)
+    get_ip_rtl_sources(IP_SRC_ALL ${IP_LIB})
+    # Get only the IP sources (not the dependencies)
+    safe_get_target_property(SV_SRC_IP ${IP_LIB} SYSTEMVERILOG_SOURCES "")
+    safe_get_target_property(V_SRC_IP ${IP_LIB} VERILOG_SOURCES "")
+    list(PREPEND SV_SRC_IP ${V_SRC_IP})
+
+    # message("TMRG_FUNC: SV_SRC_IP=${SV_SRC_IP}")
+
+    set(SRC_DEPS)
+    # Find the deps sources only
+    foreach(file ${IP_SRC_ALL})
+        list(FIND SV_SRC_IP ${file} index)
+        if(index EQUAL -1)
+            list(APPEND SRC_DEPS ${file})
+        endif()
+    endforeach()
+
+    # message("TMRG_FUNC: SRC_DEPS=${SRC_DEPS}")
+    # message("")
+    # message("")
+    # message("")
 
     # Only the IP sources (not the dependencies) are triplicated
     # The dependency sources are passed as libraries and its up
@@ -76,11 +108,35 @@ function(tmrg IP_LIB)
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
 
     set(TMRG_COMMAND
-        ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${TMRG_SRC_IP} -l ${TMRG_SRC_DEPS}
+        ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${TMRG_SRC_IP}
     )
 
+    # Add the dependencies as libraries if they exist
+    # If a triplicated version of a module exists, it will be used
+    # This is enforced by providing the triplicated sources after
+    # the not triplicated ones when linking the IPs
+
+    # SRC_DEPS contains non-triplicated and triplicated sources as
+    # long as the deps use tmrg with the REPLACE argument.
+    # Each dep source is passed as libraries
+    if(SRC_DEPS)
+        set(SRC_LIBS)
+        # Each file needs to be passed with the '-l' option
+        foreach(file ${SRC_DEPS})
+            list(APPEND SRC_LIBS -l ${file})
+        endforeach()
+        set(TMRG_COMMAND ${TMRG_COMMAND} ${SRC_LIBS})
+    endif()
+
+    # Specify the top module if provided
+    if(ARG_TOP_MODULE)
+        set(SDC_FILE_TOP ${OUTDIR}/${ARG_TOP_MODULE}TMR.sdc)
+        set(TMRG_COMMAND ${TMRG_COMMAND} --top-module ${ARG_TOP_MODULE})
+    endif()
+
     if(ARG_SDC)
-        set(TMRG_COMMAND ${TMRG_COMMAND} --sdc-generate --sdc-file-name=${OUTDIR}/${IP_LIB}_tmrg.sdc)
+        set(SDC_FILE ${OUTDIR}/${IP_LIB}_tmrg.sdc)
+        set(TMRG_COMMAND ${TMRG_COMMAND} --sdc-generate --sdc-file-name=${SDC_FILE})
     endif()
 
     if(ARG_NO_COMMON_DEFINITIONS)
@@ -110,9 +166,10 @@ function(tmrg IP_LIB)
     )
 
     if(ARG_REPLACE)
-        # Replace top module name adding TMR
-        get_target_property(TOP_MODULE ${IP_LIB} IP_NAME)
-        set_property(TARGET ${IP_LIB} PROPERTY IP_NAME ${TOP_MODULE}TMR)
+        # # Replace top module name adding TMR
+        # get_target_property(TOP_MODULE ${IP_LIB} IP_NAME)
+        # # THIS DOES NOT IMPACT ANYTHING I BELIEVE (Benoit)
+        # set_property(TARGET ${IP_LIB} PROPERTY IP_NAME ${TOP_MODULE}TMR)
 
         # Get original sources
         get_ip_sources(SV_SRC ${IP_LIB} SYSTEMVERILOG)
@@ -132,13 +189,37 @@ function(tmrg IP_LIB)
             endif()
         endforeach()
 
-        # Set the file list properties
+        # Set the file list properties (overwrite the existing property)
         set_property(TARGET ${IP_LIB} PROPERTY SYSTEMVERILOG_SOURCES ${SV_SRC})
         set_property(TARGET ${IP_LIB} PROPERTY VERILOG_SOURCES ${V_SRC})
 
-        # Add dependency to the IP
-        add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
+    # else()
+    #     # Append the triplicated source to the existing ones?
+
     endif()
+
+    # Add dependency to the IP
+    add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
+
+    # Get the existing linked libraries
+    get_target_property(LINKED_IP ${IP_LIB} INTERFACE_LINK_LIBRARIES)
+    # Trigger the dependencies tmrg targets f they exist
+    foreach(linked_lib ${LINKED_IP})
+        alias_dereference(linked_lib ${linked_lib})
+        # Check if a tmrg target exists
+        if(TARGET ${linked_lib}_${CMAKE_CURRENT_FUNCTION})
+            add_dependencies(${IP_LIB}_${CMAKE_CURRENT_FUNCTION} ${linked_lib}_${CMAKE_CURRENT_FUNCTION})
+        endif()
+    endforeach()
+
+    # Add additional clean files to project
+    set_property(
+        TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        APPEND
+        PROPERTY ADDITIONAL_CLEAN_FILES
+        ${SDC_FILE}
+        ${SDC_FILE_TOP}
+    )
 
 endfunction()
 
