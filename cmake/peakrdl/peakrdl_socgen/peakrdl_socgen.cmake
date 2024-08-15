@@ -102,10 +102,11 @@ function(peakrdl_socgen IP_LIB)
     endif()
 
     # Used to overwrite the top level parameters
+    set(OVERWRITTEN_PARAMETERS_TARGET "")
     set(OVERWRITTEN_PARAMETERS "")
     if(ARG_PARAMETERS)
         foreach(PARAM ${ARG_PARAMETERS})
-            string(APPEND OVERWRITTEN_PARAMETERS "-P${PARAM}")
+            set(OVERWRITTEN_PARAMETERS "${OVERWRITTEN_PARAMETERS}" "-P${PARAM}")
         endforeach()
     endif()
 
@@ -141,7 +142,7 @@ function(peakrdl_socgen IP_LIB)
         string(REPLACE "\n" "" V_GEN "${V_GEN}")
         list(REMOVE_DUPLICATES V_GEN)
     else()
-        string(REPLACE ";" " " __CMD_STR "${__CMD}")
+        string(REPLACE ";" " " __CMD_STR "${__CMD_LF}")
         message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${IP_LIB},
                 output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n
                 Command Called: \n ${__CMD_STR}")

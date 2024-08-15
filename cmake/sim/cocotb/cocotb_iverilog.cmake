@@ -167,7 +167,7 @@ function(cocotb_iverilog IP_LIB)
     if(NOT COCOTB_LIB_DIR)
         message(FATAL_ERROR "Cocotb lib directory variable not found. Make sure cocotb package is installed in the python venv. Error output: ${ERROR_MSG}.")
     endif()
-    # Remove the line feed of the variable otherwise if breaks the below command
+    # Remove the line feed of the variable otherwise it breaks the below command
     string(STRIP ${COCOTB_LIB_DIR} COCOTB_LIB_DIR)
 
     # Get cocotb vpi library for icarus verilog
