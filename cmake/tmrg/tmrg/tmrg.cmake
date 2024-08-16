@@ -166,11 +166,6 @@ function(tmrg IP_LIB)
     )
 
     if(ARG_REPLACE)
-        # # Replace top module name adding TMR
-        # get_target_property(TOP_MODULE ${IP_LIB} IP_NAME)
-        # # THIS DOES NOT IMPACT ANYTHING I BELIEVE (Benoit)
-        # set_property(TARGET ${IP_LIB} PROPERTY IP_NAME ${TOP_MODULE}TMR)
-
         # Get original sources
         get_ip_sources(SV_SRC ${IP_LIB} SYSTEMVERILOG)
         get_ip_sources(V_SRC ${IP_LIB} VERILOG)
