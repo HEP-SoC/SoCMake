@@ -78,7 +78,7 @@ string(APPEND CMAKE_C_FLAGS " -mabi=ilp32")
 #####################################
 # Place each function or data item into its own section in the output file
 # if the target supports arbitrary sections. The name of the function or
-# the name of the data item determines the section’s name in the output file.
+# the name of the data item determines the section name in the output file.
 # string(APPEND CMAKE_C_FLAGS " -ffunction-sections")
 # string(APPEND CMAKE_C_FLAGS " -fdata-sections")
 
