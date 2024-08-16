@@ -202,7 +202,7 @@ function(tmrg IP_LIB)
     add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
 
     # Get the existing linked libraries
-    get_target_property(LINKED_IP ${IP_LIB} INTERFACE_LINK_LIBRARIES)
+    safe_get_target_property(LINKED_IP ${IP_LIB} INTERFACE_LINK_LIBRARIES "")
     # Trigger the dependencies tmrg targets f they exist
     foreach(linked_lib ${LINKED_IP})
         alias_dereference(linked_lib ${linked_lib})

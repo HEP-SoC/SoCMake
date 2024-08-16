@@ -88,7 +88,8 @@ function(cocotb_iverilog IP_LIB)
     # Get the IP RTL sources
     get_ip_rtl_sources(SOURCES ${IP_LIB})
     get_ip_sim_only_sources(SIM_SOURCES ${IP_LIB})
-    list(PREPEND SIM_SOURCES ${V_SOURCES})
+    list(PREPEND SOURCES ${SIM_SOURCES})
+
     # Get IP include directories
     get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
     get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
