@@ -21,11 +21,15 @@ def generate_implementation_lib(fname_in, fname_out):
             # Additional check to skip packages
             if line_stripped.startswith("package %s" % module_name):
                 in_package = True
-                break
-            if line_stripped.startswith("module %s" % module_name):
+                fout.write(line)
+            elif line_stripped.startswith("module %s" % module_name):
                 in_module_header = True
                 in_module = True
-            if in_module_header:
+
+            if in_package and line_stripped.startswith("endpackage"):
+                fout.write(line)
+                in_package = False
+            elif in_module_header:
                 fout.write(line)
                 if line_stripped.endswith(");"):
                     in_module_header = False
@@ -38,9 +42,6 @@ def generate_implementation_lib(fname_in, fname_out):
             elif in_module and line_stripped.startswith("endmodule"):
                 fout.write(line)
                 in_module = False
-    # If we have a package file just copy it
-    if in_package:
-        shutil.copyfile(fname_in, fname_out)
 
 parser = argparse.ArgumentParser(description='Systemverilog module stripping')
 
@@ -65,4 +66,6 @@ for file in options.files:
     # Take the file basename
     basename = os.path.basename(file)
     stripped_file = f'{outdir}/{basename}'
+    # print(f'{file}')
+    # print(f'-> {stripped_file}')
     generate_implementation_lib(file, stripped_file)
