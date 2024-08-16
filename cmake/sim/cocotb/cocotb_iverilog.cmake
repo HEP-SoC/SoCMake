@@ -153,7 +153,8 @@ function(cocotb_iverilog IP_LIB)
 
     # Add a custom target that depends on the executable and stamp file
     add_custom_target(
-        ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        # Add cocotb module name to be able to create multiple targets
+        ${MODULE}_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${IP_LIB}
     )
 
@@ -202,7 +203,7 @@ function(cocotb_iverilog IP_LIB)
         ${ARG_EXECUTABLE}
         # Plusargs to pass to the simulator
         ${ARG_PLUSARGS}
-        DEPENDS ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        DEPENDS ${MODULE}_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         COMMENT "Running cocotb simulation on ${IP_LIB}"
     )
 
