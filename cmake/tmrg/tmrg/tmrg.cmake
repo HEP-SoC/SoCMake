@@ -45,28 +45,9 @@ function(tmrg IP_LIB)
         unset(ARG_CONFIG_FILE)
     endif()
 
-    # Get all the TMRG sources (ip+dependencies)
-    get_tmrg_sources(TMRG_SRC_ALL ${IP_LIB})
-    # Get only the IP TMRG sources (not the dependencies)
+    # Get only the IP TMRG sources only (not the dependencies)
     safe_get_target_property(TMRG_SRC_IP ${IP_LIB} TMRG_SOURCES "FATAL")
-    # get_target_property(TMRG_SRC_IP ${IP_LIB} TMRG_SOURCES)
     list(REMOVE_DUPLICATES TMRG_SRC_IP)
-
-    # message("TMRG_FUNC: TMRG_SRC_ALL=${TMRG_SRC_ALL}")
-    # message("TMRG_FUNC: TMRG_SRC_IP=${TMRG_SRC_IP}")
-
-    set(TMRG_SRC_DEPS)
-    # Find the deps TMRG sources only
-    foreach(file ${TMRG_SRC_ALL})
-        list(FIND TMRG_SRC_IP ${file} index)
-        # message("TMRG_FUNC: searching ${file} in ${TMRG_SRC_IP}")
-        if(index EQUAL -1)
-            list(APPEND TMRG_SRC_DEPS ${file})
-            # message("File not found")
-        endif()
-    endforeach()
-
-    # message("TMRG_FUNC: TMRG_SRC_DEPS=${TMRG_SRC_DEPS}")
 
     # We also get the non-triplicated sources
     # For example, primitive cells are not all triplicated
@@ -79,8 +60,10 @@ function(tmrg IP_LIB)
     safe_get_target_property(V_SRC_IP ${IP_LIB} VERILOG_SOURCES "")
     list(PREPEND SV_SRC_IP ${V_SRC_IP})
 
-    # message("TMRG_FUNC: SV_SRC_IP=${SV_SRC_IP}")
-
+    # Only the IP sources (not the dependencies) are triplicated
+    # The dependency sources are passed as libraries and its up
+    # to the dependencies to provide triplicated (or not triplicated)
+    # module definitions.
     set(SRC_DEPS)
     # Find the deps sources only
     foreach(file ${IP_SRC_ALL})
@@ -90,15 +73,27 @@ function(tmrg IP_LIB)
         endif()
     endforeach()
 
-    # message("TMRG_FUNC: SRC_DEPS=${SRC_DEPS}")
-    # message("")
-    # message("")
-    # message("")
+    # Files passed as lib are stripped of their content to avoid
+    # missing module definition. For example, if one lib file instantiate
+    # a triplicated module of another lib file this creates an undefined module
+    # error by tmrg because tmrg tracks the non-triplicated module names.
+    set(LIB_STRIP_CMD
+        ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lib_module_strip.py --files ${SRC_DEPS}
+    )
 
-    # Only the IP sources (not the dependencies) are triplicated
-    # The dependency sources are passed as libraries and its up
-    # to the dependencies to provide triplicated (or not triplicated)
-    # module definitions.
+    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_LIB_STRIP.stamp")
+    add_custom_command(
+        OUTPUT ${STAMP_FILE}
+        COMMAND ${LIB_STRIP_CMD}
+        COMMAND touch ${STAMP_FILE}
+        DEPENDS ${SRC_DEPS}
+        COMMENT "Running module stripping on deps files of ${IP_LIB}"
+    )
+
+    add_custom_target(
+        ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_LIB_STRIP
+        DEPENDS ${STAMP_FILE} ${TMRG_SRC_IP} ${V_GEN}
+    )
 
     foreach(vfile ${TMRG_SRC_IP})
         get_filename_component(V_SOURCE_WO_EXT ${vfile} NAME_WE)
