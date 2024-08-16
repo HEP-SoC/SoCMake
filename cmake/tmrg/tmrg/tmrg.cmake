@@ -77,13 +77,28 @@ function(tmrg IP_LIB)
     # missing module definition. For example, if one lib file instantiate
     # a triplicated module of another lib file this creates an undefined module
     # error by tmrg because tmrg tracks the non-triplicated module names.
-    set(LIB_STRIP_CMD
-        ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lib_module_strip.py --files ${SRC_DEPS}
-    )
+    set(LIB_STRIP_DIR ${OUTDIR}/lib_strip)
+    if(SRC_DEPS)
+        set(LIB_STRIP_CMD
+            ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lib_module_strip.py --files ${SRC_DEPS} --outdir ${LIB_STRIP_DIR}
+        )
+    else()
+        set(LIB_STRIP_CMD
+            ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lib_module_strip.py --outdir ${LIB_STRIP_DIR}
+        )
+    endif()
 
-    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_LIB_STRIP.stamp")
+    set(SCR_DEPS_STRIPPED)
+    foreach(file ${SRC_DEPS})
+        get_filename_component(BASE_NAME ${file} NAME)
+        set(NEW_FILE_PATH "${LIB_STRIP_DIR}/${BASE_NAME}")
+        list(APPEND SCR_DEPS_STRIPPED ${NEW_FILE_PATH})
+    endforeach()
+
+
+    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_lib_strip.stamp")
     add_custom_command(
-        OUTPUT ${STAMP_FILE}
+        OUTPUT ${STAMP_FILE} ${SCR_DEPS_STRIPPED}
         COMMAND ${LIB_STRIP_CMD}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SRC_DEPS}
@@ -91,16 +106,16 @@ function(tmrg IP_LIB)
     )
 
     add_custom_target(
-        ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_LIB_STRIP
-        DEPENDS ${STAMP_FILE} ${TMRG_SRC_IP} ${V_GEN}
+        ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_lib_strip
+        DEPENDS ${STAMP_FILE} ${SCR_DEPS_STRIPPED}
     )
 
     foreach(vfile ${TMRG_SRC_IP})
         get_filename_component(V_SOURCE_WO_EXT ${vfile} NAME_WE)
         get_filename_component(V_SOURCE_EXT ${vfile} EXT)
-        list(APPEND V_GEN "${OUTDIR}/${V_SOURCE_WO_EXT}TMR${V_SOURCE_EXT}")
+        list(APPEND TRMG_GEN "${OUTDIR}/${V_SOURCE_WO_EXT}TMR${V_SOURCE_EXT}")
     endforeach()
-    set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
+    set_source_files_properties(${TRMG_GEN} PROPERTIES GENERATED TRUE)
 
     set(TMRG_COMMAND
         ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${TMRG_SRC_IP}
@@ -114,10 +129,10 @@ function(tmrg IP_LIB)
     # SRC_DEPS contains non-triplicated and triplicated sources as
     # long as the deps use tmrg with the REPLACE argument.
     # Each dep source is passed as libraries
-    if(SRC_DEPS)
+    if(SCR_DEPS_STRIPPED)
         set(SRC_LIBS)
         # Each file needs to be passed with the '-l' option
-        foreach(file ${SRC_DEPS})
+        foreach(file ${SCR_DEPS_STRIPPED})
             list(APPEND SRC_LIBS -l ${file})
         endforeach()
         set(TMRG_COMMAND ${TMRG_COMMAND} ${SRC_LIBS})
@@ -142,22 +157,22 @@ function(tmrg IP_LIB)
     # sequence is always followed by a space. Otherwise, if 'wor' is used in a name (e.g., word_address)
     # it will also be replaced (e.g., to wird_address).
     if(ARG_SED_WOR)
-        set(SED_COMMAND COMMAND sed -i "s/wor /wire /g" ${V_GEN})
+        set(SED_COMMAND COMMAND sed -i "s/wor /wire /g" ${TRMG_GEN})
     endif()
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
-        OUTPUT ${V_GEN} ${STAMP_FILE}
+        OUTPUT ${TRMG_GEN} ${STAMP_FILE}
         COMMAND ${TMRG_COMMAND}
         ${SED_COMMAND}
         COMMAND touch ${STAMP_FILE}
-        DEPENDS ${TMRG_SRC_IP}
+        DEPENDS ${TMRG_SRC_IP} ${SCR_DEPS_STRIPPED}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
     )
 
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-        DEPENDS ${STAMP_FILE} ${TMRG_SRC_IP} ${V_GEN}
+        DEPENDS ${STAMP_FILE} ${TRMG_GEN}
     )
 
     if(ARG_REPLACE)
@@ -170,7 +185,7 @@ function(tmrg IP_LIB)
         list(REMOVE_ITEM V_SRC ${TMRG_SRC_IP})
 
         # Append generated files to correct source lists
-        foreach(i ${V_GEN})
+        foreach(i ${TRMG_GEN})
             get_filename_component(FILE_EXT ${i} EXT)
             if("${FILE_EXT}" STREQUAL ".sv")
                 list(APPEND SV_SRC ${i})
