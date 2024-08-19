@@ -1,4 +1,10 @@
 function(add_cocotb_iverilog_tests IP_LIB DIRECTORY)
+function(add_cocotb_iverilog_tests IP DIRECTORY)
+    # cmake_parse_arguments(ARG "" "WIDTH" "ARGS;DEPS" ${ARGN})
+    # if(ARG_UNPARSED_ARGUMENTS)
+    #     message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    # endif()
+
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/subdirectory_search.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/colours.cmake")
 
@@ -11,6 +17,10 @@ function(add_cocotb_iverilog_tests IP_LIB DIRECTORY)
     list(APPEND _msg "-------------------------------------------------------------------------\n")
     string(REPLACE "__" "::" ALIAS_NAME ${IP_LIB})
     list(APPEND _msg "------------ Adding tests for IP_LIB: \"${ALIAS_NAME}\"\n")
+    unset(msg)
+    list(APPEND _msg "-------------------------------------------------------------------------\n")
+    string(REPLACE "__" "::" ALIAS_NAME ${IP})
+    list(APPEND _msg "------------ Adding tests for IP: \"${ALIAS_NAME}\"\n")
     list(APPEND _msg "Added tests:\n")
 
     enable_testing()
@@ -40,6 +50,11 @@ function(add_cocotb_iverilog_tests IP_LIB DIRECTORY)
             set_property(TEST ${cocotb_test} PROPERTY
                 PASS_REGULAR_EXPRESSION "[^a-z]FAIL=0"
             )
+            get_target_property(COCOTB_IVERILOG_TEST_CMD ${IP} COCOTB_IVERILOG_${COCOTB_TEST_PROP})
+            add_test(
+                NAME ${cocotb_test}
+                COMMAND ${COCOTB_IVERILOG_TEST_CMD}
+                )
         endforeach()
     endforeach()
 
@@ -49,6 +64,8 @@ function(add_cocotb_iverilog_tests IP_LIB DIRECTORY)
         COMMAND ${CMAKE_CTEST_COMMAND} -j${NPROC}
         DEPENDS ${test_list} ${IP_LIB}
     )
+        DEPENDS ${test_list} ${IP}
+        )
 
     list(APPEND _msg "\nTo run ctest on all of the tests run:\n")
     list(APPEND _msg "    make check\n")
