@@ -186,7 +186,8 @@ function(cocotb_iverilog IP_LIB)
     # Remove the line feed of the variable otherwise if breaks the below command
     string(STRIP ${COCOTB_LIB_VPI_ICARUS} COCOTB_LIB_VPI_ICARUS)
 
-    set(COCOTB_CMD PYTHONPATH=${PATH_MODULE}
+    set(COCOTB_CMD ${ARG_EXECUTABLE}
+        PYTHONPATH=${PATH_MODULE}
         MODULE=${COCOTB_TEST}
         TESTCASE=${TESTCASE}
         TOPLEVEL=${TOP_MODULE}
@@ -197,7 +198,7 @@ function(cocotb_iverilog IP_LIB)
         vvp -M${COCOTB_LIB_DIR} -m${COCOTB_LIB_VPI_ICARUS}
         # Arguments to pass to execution of compiled simulation
         ${ARG_SIM_ARGS}
-        ${ARG_EXECUTABLE}
+        # ${ARG_EXECUTABLE}
         # Plusargs to pass to the simulator
         ${ARG_PLUSARGS}
     )
