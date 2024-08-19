@@ -1,18 +1,16 @@
-function(add_cocotb_iverilog_tests IP DIRECTORY)
-    # cmake_parse_arguments(ARG "" "WIDTH" "ARGS;DEPS" ${ARGN})
-    # if(ARG_UNPARSED_ARGUMENTS)
-    #     message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    # endif()
-
+function(add_cocotb_iverilog_tests IP_LIB DIRECTORY)
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/subdirectory_search.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/colours.cmake")
 
     SUBDIRLIST(TEST_SUBDIRS ${DIRECTORY})
 
+    # Assume the IP library is the latest one provided if full name is not given
+    ip_assume_last(IP_LIB ${IP_LIB})
+
     unset(msg)
     list(APPEND _msg "-------------------------------------------------------------------------\n")
-    string(REPLACE "__" "::" ALIAS_NAME ${IP})
-    list(APPEND _msg "------------ Adding tests for IP: \"${ALIAS_NAME}\"\n")
+    string(REPLACE "__" "::" ALIAS_NAME ${IP_LIB})
+    list(APPEND _msg "------------ Adding tests for IP_LIB: \"${ALIAS_NAME}\"\n")
     list(APPEND _msg "Added tests:\n")
 
     enable_testing()
@@ -26,11 +24,18 @@ function(add_cocotb_iverilog_tests IP DIRECTORY)
             list(APPEND _msg "   ${cocotb_test}:         ${${cocotb_test}_DESCRIPTION}\n")
             list(APPEND test_list ${cocotb_test})
             string(TOUPPER ${cocotb_test} COCOTB_TEST_PROP)
-            get_target_property(COCOTB_IVERILOG_TEST_CMD ${IP} COCOTB_IVERILOG_${COCOTB_TEST_PROP})
+            get_target_property(COCOTB_IVERILOG_TEST_CMD ${IP_LIB} COCOTB_IVERILOG_${COCOTB_TEST_PROP}_CMD)
+            get_target_property(COCOTB_IVERILOG_TEST_ENV ${IP_LIB} COCOTB_IVERILOG_${COCOTB_TEST_PROP}_ENV)
             add_test(
                 NAME ${cocotb_test}
                 COMMAND ${COCOTB_IVERILOG_TEST_CMD}
-                )
+            )
+            # string(REPLACE ";" "\:" COCOTB_IVERILOG_TEST_ENV ${COCOTB_IVERILOG_TEST_ENV})
+            foreach(prop ${COCOTB_IVERILOG_TEST_ENV})
+                set_property(TEST ${cocotb_test} APPEND PROPERTY ENVIRONMENT ${prop})
+            endforeach()
+            # set_tests_properties(${cocotb_test} PROPERTIES ENVIRONMENT ${COCOTB_IVERILOG_TEST_ENV})
+            message("ADD_TEST ENV: ${COCOTB_IVERILOG_TEST_ENV}")
         endforeach()
     endforeach()
 
@@ -38,8 +43,8 @@ function(add_cocotb_iverilog_tests IP DIRECTORY)
     ProcessorCount(NPROC)
     add_custom_target(check
         COMMAND ${CMAKE_CTEST_COMMAND} -j${NPROC}
-        DEPENDS ${test_list} ${IP}
-        )
+        DEPENDS ${test_list} ${IP_LIB}
+    )
 
     list(APPEND _msg "\nTo run ctest on all of the tests run:\n")
     list(APPEND _msg "    make check\n")

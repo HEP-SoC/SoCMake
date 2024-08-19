@@ -186,19 +186,19 @@ function(cocotb_iverilog IP_LIB)
     # Remove the line feed of the variable otherwise if breaks the below command
     string(STRIP ${COCOTB_LIB_VPI_ICARUS} COCOTB_LIB_VPI_ICARUS)
 
-    set(COCOTB_CMD ${ARG_EXECUTABLE}
+    set(COCOTB_ENV_VARS
         PYTHONPATH=${PATH_MODULE}
         MODULE=${COCOTB_TEST}
         TESTCASE=${TESTCASE}
         TOPLEVEL=${TOP_MODULE}
         TOPLEVEL_LANG=${TOPLEVEL_LANG}
-        # sim command prefix, e.g., for debugging: 'gdb --args'
-        ${ARG_SIM_CMD_PREFIX}
+    )
+    set(COCOTB_IVERILOG_CMD 
         # iverilog run-time engine must be in your path
         vvp -M${COCOTB_LIB_DIR} -m${COCOTB_LIB_VPI_ICARUS}
         # Arguments to pass to execution of compiled simulation
         ${ARG_SIM_ARGS}
-        # ${ARG_EXECUTABLE}
+        ${ARG_EXECUTABLE}
         # Plusargs to pass to the simulator
         ${ARG_PLUSARGS}
     )
@@ -206,14 +206,18 @@ function(cocotb_iverilog IP_LIB)
     # Add a custom command to run cocotb
     add_custom_command(
         OUTPUT ${COCOTB_RESULTS_FILE}
-        COMMAND ${COCOTB_CMD}
+        COMMAND ${COCOTB_ENV_VARS}
+        # sim command prefix, e.g., for debugging: 'gdb --args'
+        ${ARG_SIM_CMD_PREFIX}
+        ${COCOTB_IVERILOG_CMD}
         DEPENDS ${COCOTB_TEST}
         COMMENT "Running cocotb simulation on ${IP_LIB}"
         )
         
     # Set the command as a property to be easily found by add_test()
     string(TOUPPER ${COCOTB_TEST} COCOTB_TEST_PROP)
-    set_target_properties(${IP} PROPERTIES COCOTB_IVERILOG_${COCOTB_TEST_PROP} ${COCOTB_CMD})
+    set_target_properties(${IP_LIB} PROPERTIES COCOTB_IVERILOG_${COCOTB_TEST_PROP}_CMD "${COCOTB_IVERILOG_CMD}")
+    set_target_properties(${IP_LIB} PROPERTIES COCOTB_IVERILOG_${COCOTB_TEST_PROP}_ENV "${COCOTB_ENV_VARS}")
 
     # Add a custom target that depends on the executable and stamp file
     add_custom_target(
