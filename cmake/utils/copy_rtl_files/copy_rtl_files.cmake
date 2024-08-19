@@ -58,7 +58,7 @@ function(copy_rtl_files IP_LIB)
 
     find_python3()
     set(__CMD ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/copy_rtl_files.py
-        ${TOP} --outdir ${OUTDIR} ${RTL_FILES_ARGS}
+        ${TOP_MODULE} --outdir ${OUTDIR} ${RTL_FILES_ARGS}
     )
 
     # Call the Python script with the output directory and the RTL files

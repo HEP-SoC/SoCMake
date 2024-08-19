@@ -3,6 +3,7 @@ import re
 import shutil
 import argparse
 from collections import defaultdict
+from tmrg.verilog_elaborator import VerilogElaborator
 
 # Define regex patterns to match module and instance declarations
 # Matches module declarations like `module my_module;`
@@ -46,12 +47,12 @@ def extract_modules_and_instances(file_content):
 
     for module in module_matches:
         modules.add(module)
-    
+
     for instance in instance_matches:
         module_type, _, instance_name = instance
         if (module_type not in verilog_keywords) and (instance_name not in verilog_keywords):
             instances[module_type].append(instance_name)
-    
+
     print(f"instances: {instances}")
     print()
 
@@ -67,7 +68,7 @@ def find_all_modules(top_module, instances):
         if current not in explored:
             explored.add(current)
             to_explore.extend(instances.get(current, []))
-    
+
     return explored
 
 # Main function to filter files
@@ -82,18 +83,18 @@ def filter_files(file_paths, top_module):
     for file_path in file_paths:
         with open(file_path, 'r') as file:
             content = file.read()
-        
+
         modules, instances = extract_modules_and_instances(content)
         # print(f'module:instance detected: {modules}:{instances}')
         all_modules.update(modules)
         for key, value in instances.items():
             all_instances[key].extend(value)
-        
+
         for module in modules:
             file_module_map[module] = file_path
             if module == top_module:
                 top_module_defined = True
-    
+
     # Check if top module is defined
     if not top_module_defined:
         raise ValueError(f"Top module '{top_module}' is not defined in any of the provided files.")
@@ -109,17 +110,17 @@ def filter_files(file_paths, top_module):
 def remove_common_path(file_paths):
     # Find the common path
     common_path = os.path.commonpath(file_paths)
-    
+
     # Get the last common directory
     last_common_directory = os.path.basename(common_path)
-    
+
     # Iterate over each file path and remove the common path
     updated_paths = []
     for path in file_paths:
         relative_path = os.path.relpath(path, common_path)
         updated_path = os.path.join(last_common_directory, relative_path)
         updated_paths.append(updated_path)
-    
+
     return updated_paths
 
 def main():
@@ -127,6 +128,14 @@ def main():
     # parser.add_argument('--top', help='Top module name')
     parser.add_argument('--outdir', help='Output directory where files will be copied')
     parser.add_argument('--list-files', action="store_true", help="Don't generate files, but instead just list the files that will be generated")
+    parser.add_argument("--inc-dir", dest="inc_dir", action="append", default=[],
+                        help="Directory where to look for include files (use option --include to actualy include the files during preprocessing)")
+    parser.add_argument("--include", dest="include",
+                        action="store_true", default=False, help="Include include files")
+    parser.add_argument("--generate-report", dest="generateBugReport",
+                        action="store_true", default=False, help="Generate bug report")
+    parser.add_argument("--stats", dest="stats", action="store_true", help="Print statistics")
+    parser.add_argument("--top-module", dest="top_module", action="store", default="", help="Specify top module name")
     parser.add_argument('files', metavar='F', type=str, nargs='+', help='List of RTL file paths')
 
     args = parser.parse_args()
@@ -137,8 +146,18 @@ def main():
         # if args.top is not None:
         #     files = filter_files(args.files, args.top)
         # else:
-        
+
+        # We use TMRG libraries to elaborate our design
+        # We manually add some attributes to be compliant with the expected options
+        args.libs = []
+
         files = args.files
+        velab = VerilogElaborator(args, files, "")
+        # First files have to be parsed
+        velab.parse()
+        # Then the design can be elaborated
+        velab.elaborate()
+
 
         # Remove common path of the files
         files_striped = remove_common_path(files)
