@@ -1,5 +1,5 @@
 function(copy_rtl_files IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR;TOP" "" ${ARGN})
+    cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -15,11 +15,10 @@ function(copy_rtl_files IP_LIB)
         set(OUTDIR ${ARG_OUTDIR})
     endif()
 
-    # Check it a top is provided. In this case only the modules in its hierarchy are kept
-    # NOT WORKING FOR NOW
-    # if(ARG_TOP)
-    #     set(TOP --top ${ARG_TOP})
-    # endif()
+    # Check if a top module is provided. In this case only the modules in its hierarchy are kept
+    if(ARG_TOP_MODULE)
+        set(TOP_MODULE --top-module ${ARG_TOP_MODULE})
+    endif()
 
     # Get the list of RTL sources
     get_ip_rtl_sources(RTL_SOURCES ${IP_LIB})
@@ -32,7 +31,7 @@ function(copy_rtl_files IP_LIB)
 
     find_python3()
     set(__CMD ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/copy_rtl_files.py
-        ${TOP} --outdir ${OUTDIR} ${RTL_FILES_ARGS}
+        ${TOP_MODULE} --outdir ${OUTDIR} ${RTL_FILES_ARGS}
     )
 
     # Call the Python script with the output directory and the RTL files
