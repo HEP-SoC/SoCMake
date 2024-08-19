@@ -30,12 +30,15 @@ function(add_cocotb_iverilog_tests IP_LIB DIRECTORY)
                 NAME ${cocotb_test}
                 COMMAND ${COCOTB_IVERILOG_TEST_CMD}
             )
-            # string(REPLACE ";" "\:" COCOTB_IVERILOG_TEST_ENV ${COCOTB_IVERILOG_TEST_ENV})
+            # The ENVIRONMENT property expect the variables in a specific format so its safer to
+            # set them one by one and let the function do the correct formating
             foreach(prop ${COCOTB_IVERILOG_TEST_ENV})
                 set_property(TEST ${cocotb_test} APPEND PROPERTY ENVIRONMENT ${prop})
             endforeach()
-            # set_tests_properties(${cocotb_test} PROPERTIES ENVIRONMENT ${COCOTB_IVERILOG_TEST_ENV})
-            message("ADD_TEST ENV: ${COCOTB_IVERILOG_TEST_ENV}")
+            # vvp (iverilog) always returns 0 (pass) so check the output to detect a failure
+            set_property(TEST ${cocotb_test} PROPERTY
+                FAIL_REGULAR_EXPRESSION "[^a-z]FAIL"
+            )
         endforeach()
     endforeach()
 
