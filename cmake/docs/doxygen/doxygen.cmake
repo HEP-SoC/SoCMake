@@ -28,7 +28,6 @@ function(doxygen IP_LIB)
 
         if(CMAKE_MATCH_1)
             list(APPEND INCDIRS ${CMAKE_MATCH_1})
-        else()
         endif()
     endforeach()
     string(REPLACE ";" "," INCDIRS "${INCDIRS}")
