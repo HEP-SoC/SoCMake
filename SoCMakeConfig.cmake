@@ -8,6 +8,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/add_subdirs.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/graphviz.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/multi_option.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/find_python.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/copy_rtl_files/copy_rtl_files.cmake")
 
 # ====================================
 # ======== Simulation ================
@@ -37,6 +38,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/verisc/verisc_install.cmake")
 
 # ----- Cocotb --------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/cocotb_iverilog.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/add_cocotb_iverilog_tests.cmake")
 
 # ====================================
 # ======== PeakRDL ===================

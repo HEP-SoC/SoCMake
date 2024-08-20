@@ -18,7 +18,7 @@ include_guard(GLOBAL)
 # ]]]
 function(cocotb_iverilog IP_LIB)
     # Parse the function arguments
-    cmake_parse_arguments(ARG "" "TOP_MODULE;OUTDIR;EXECUTABLE;IVERILOG_CLI_FLAGS;TIMEUNIT;TIMEPRECISION;TOPLEVEL_LANG;TESTCASE;PATH_MODULE;MODULE" "SIM_ARGS;PLUSARGS" ${ARGN})
+    cmake_parse_arguments(ARG "" "TOP_MODULE;OUTDIR;EXECUTABLE;IVERILOG_CLI_FLAGS;TIMEUNIT;TIMEPRECISION;TOPLEVEL_LANG;TESTCASE;PATH_MODULE;COCOTB_TEST" "SIM_ARGS;PLUSARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -64,10 +64,10 @@ function(cocotb_iverilog IP_LIB)
 
     # Cocotb simulation options
     # Cocotb module to run (python script)
-    if(ARG_MODULE)
-        set(MODULE ${ARG_MODULE})
+    if(ARG_COCOTB_TEST)
+        set(COCOTB_TEST ${ARG_COCOTB_TEST})
     else()
-        message(FATAL_ERROR "No cocotb module provided. Use the function argument MODULE.")
+        message(FATAL_ERROR "No cocotb module provided. Use the function argument COCOTB_TEST.")
     endif()
     if(ARG_PATH_MODULE)
         set(PATH_MODULE ${ARG_PATH_MODULE})
@@ -154,7 +154,7 @@ function(cocotb_iverilog IP_LIB)
     # Add a custom target that depends on the executable and stamp file
     add_custom_target(
         # Add cocotb module name to be able to create multiple targets
-        ${MODULE}_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        ${COCOTB_TEST}
         DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${IP_LIB}
     )
 
@@ -186,16 +186,14 @@ function(cocotb_iverilog IP_LIB)
     # Remove the line feed of the variable otherwise if breaks the below command
     string(STRIP ${COCOTB_LIB_VPI_ICARUS} COCOTB_LIB_VPI_ICARUS)
 
-    # Add a custom command to run cocotb
-    add_custom_command(
-        OUTPUT ${COCOTB_RESULTS_FILE}
-        COMMAND PYTHONPATH=${PATH_MODULE}
-        MODULE=${MODULE}
+    set(COCOTB_ENV_VARS
+        PYTHONPATH=${PATH_MODULE}
+        MODULE=${COCOTB_TEST}
         TESTCASE=${TESTCASE}
         TOPLEVEL=${TOP_MODULE}
         TOPLEVEL_LANG=${TOPLEVEL_LANG}
-        # sim command prefix, e.g., for debugging: 'gdb --args'
-        ${ARG_SIM_CMD_PREFIX}
+    )
+    set(COCOTB_IVERILOG_CMD 
         # iverilog run-time engine must be in your path
         vvp -M${COCOTB_LIB_DIR} -m${COCOTB_LIB_VPI_ICARUS}
         # Arguments to pass to execution of compiled simulation
@@ -203,13 +201,27 @@ function(cocotb_iverilog IP_LIB)
         ${ARG_EXECUTABLE}
         # Plusargs to pass to the simulator
         ${ARG_PLUSARGS}
-        DEPENDS ${MODULE}_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-        COMMENT "Running cocotb simulation on ${IP_LIB}"
     )
+
+    # Add a custom command to run cocotb
+    add_custom_command(
+        OUTPUT ${COCOTB_RESULTS_FILE}
+        COMMAND ${COCOTB_ENV_VARS}
+        # sim command prefix, e.g., for debugging: 'gdb --args'
+        ${ARG_SIM_CMD_PREFIX}
+        ${COCOTB_IVERILOG_CMD}
+        DEPENDS ${COCOTB_TEST}
+        COMMENT "Running cocotb simulation on ${IP_LIB}"
+        )
+        
+    # Set the command as a property to be easily found by add_test()
+    string(TOUPPER ${COCOTB_TEST} COCOTB_TEST_PROP)
+    set_target_properties(${IP_LIB} PROPERTIES COCOTB_IVERILOG_${COCOTB_TEST_PROP}_CMD "${COCOTB_IVERILOG_CMD}")
+    set_target_properties(${IP_LIB} PROPERTIES COCOTB_IVERILOG_${COCOTB_TEST_PROP}_ENV "${COCOTB_ENV_VARS}")
 
     # Add a custom target that depends on the executable and stamp file
     add_custom_target(
-        run_${MODULE}_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        run_${COCOTB_TEST}
         DEPENDS ${COCOTB_RESULTS_FILE}
     )
 
