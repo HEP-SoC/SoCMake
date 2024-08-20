@@ -22,6 +22,36 @@ function(get_tmrg_sources OUT_VAR IP_LIB)
     set(${OUT_VAR} ${TMRG_SRC_IP} PARENT_SCOPE)
 endfunction()
 
+# function(get_ip_rtl_tmrg_sources OUT_VAR IP_LIB)
+#     # If only IP name is given without full VLNV, assume rest from the project variables
+#     ip_assume_last(_reallib ${IP_LIB})
+#     get_ip_sources(V_SRC ${IP_LIB} VERILOG_TMRG)
+#     get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_TMRG)
+#     list(PREPEND SRC ${V_SRC})
+#     list(REMOVE_DUPLICATES SRC)
+#     set(${OUT_VAR} ${SRC} PARENT_SCOPE)
+# endfunction()
+
+# function(get_ip_rtl_sim_only_tmrg_sources OUT_VAR IP_LIB)
+#     # If only IP name is given without full VLNV, assume rest from the project variables
+#     ip_assume_last(_reallib ${IP_LIB})
+#     get_ip_sources(V_SRC ${IP_LIB} VERILOG_SIM_TMRG)
+#     get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_SIM_TMRG)
+#     list(PREPEND SRC ${V_SRC})
+#     list(REMOVE_DUPLICATES SRC)
+#     set(${OUT_VAR} ${SRC} PARENT_SCOPE)
+# endfunction()
+
+# function(get_ip_rtl_fpga_only_tmrg_sources OUT_VAR IP_LIB)
+#     # If only IP name is given without full VLNV, assume rest from the project variables
+#     ip_assume_last(_reallib ${IP_LIB})
+#     get_ip_sources(V_SRC ${IP_LIB} VERILOG_FPGA_TMRG)
+#     get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_FPGA_TMRG)
+#     list(PREPEND SRC ${V_SRC})
+#     list(REMOVE_DUPLICATES SRC)
+#     set(${OUT_VAR} ${SRC} PARENT_SCOPE)
+# endfunction()
+
 function(tmrg IP_LIB)
     cmake_parse_arguments(ARG "REPLACE;SED_WOR;NO_COMMON_DEFINITIONS;SDC" "OUTDIR;CONFIG_FILE;TOP_MODULE" "" ${ARGN})
 
