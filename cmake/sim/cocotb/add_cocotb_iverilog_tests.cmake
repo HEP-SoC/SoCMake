@@ -36,8 +36,10 @@ function(add_cocotb_iverilog_tests IP_LIB DIRECTORY)
                 set_property(TEST ${cocotb_test} APPEND PROPERTY ENVIRONMENT ${prop})
             endforeach()
             # vvp (iverilog) always returns 0 (pass) so check the output to detect a failure
+            # Also detect if python env is not correct otherwise we have a silent failure
+            # In general Error is not expected
             set_property(TEST ${cocotb_test} PROPERTY
-                FAIL_REGULAR_EXPRESSION "[^a-z]FAIL"
+                FAIL_REGULAR_EXPRESSION "[^a-z]FAIL;Error;ERROR;error"
             )
         endforeach()
     endforeach()
