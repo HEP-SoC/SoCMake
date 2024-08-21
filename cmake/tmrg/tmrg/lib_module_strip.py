@@ -42,6 +42,9 @@ def generate_implementation_lib(fname_in, fname_out):
             elif in_module and line_stripped.startswith("endmodule"):
                 fout.write(line)
                 in_module = False
+            elif not in_package and not in_module and not in_module_header:
+                fout.write(line)
+        
 
 parser = argparse.ArgumentParser(description='Systemverilog module stripping')
 
