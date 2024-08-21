@@ -10,8 +10,8 @@ def generate_implementation_lib(fname_in, fname_out):
     generates a simplified version retaining only port information
     of the top module.
     """
-    module_name = os.path.splitext(os.path.basename(fname_in))[0]
-    _, file_extension = os.path.splitext('/path/to/somefile.ext')
+    # module_name = os.path.splitext(os.path.basename(fname_in))[0]
+    _, file_extension = os.path.splitext(os.path.basename(fname_in))
     in_package = False
     in_module = False
     in_module_header = False
@@ -19,10 +19,10 @@ def generate_implementation_lib(fname_in, fname_out):
         for line in fin.readlines():
             line_stripped = line.strip()
             # Additional check to skip packages
-            if line_stripped.startswith("package %s" % module_name):
+            if line_stripped.startswith("package"):
                 in_package = True
                 fout.write(line)
-            elif line_stripped.startswith("module %s" % module_name):
+            elif line_stripped.startswith("module"):
                 in_module_header = True
                 in_module = True
 
