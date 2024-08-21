@@ -87,7 +87,10 @@ function(cocotb_iverilog IP_LIB)
 
     # Get the IP RTL sources
     get_ip_rtl_sources(SOURCES ${IP_LIB})
-    get_ip_sim_only_sources(SIM_SOURCES ${IP_LIB})
+    # Get the sim_only sources only if we are not running a technology-independent flow
+    if(NOT TECH_FLOW)
+        get_ip_sim_only_sources(SIM_SOURCES ${IP_LIB})
+    endif()
     list(PREPEND SOURCES ${SIM_SOURCES})
 
     # Get IP include directories
@@ -193,7 +196,7 @@ function(cocotb_iverilog IP_LIB)
         TOPLEVEL=${TOP_MODULE}
         TOPLEVEL_LANG=${TOPLEVEL_LANG}
     )
-    set(COCOTB_IVERILOG_CMD 
+    set(COCOTB_IVERILOG_CMD
         # iverilog run-time engine must be in your path
         vvp -M${COCOTB_LIB_DIR} -m${COCOTB_LIB_VPI_ICARUS}
         # Arguments to pass to execution of compiled simulation
@@ -213,7 +216,7 @@ function(cocotb_iverilog IP_LIB)
         DEPENDS ${COCOTB_TEST}
         COMMENT "Running cocotb simulation on ${IP_LIB}"
         )
-        
+
     # Set the command as a property to be easily found by add_test()
     string(TOUPPER ${COCOTB_TEST} COCOTB_TEST_PROP)
     set_target_properties(${IP_LIB} PROPERTIES COCOTB_IVERILOG_${COCOTB_TEST_PROP}_CMD "${COCOTB_IVERILOG_CMD}")
