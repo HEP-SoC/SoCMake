@@ -31,11 +31,14 @@ jobs:
       - name: make the sphinx docs
         run: |
           # sphinx-apidoc -f -o docs/source . -H Test -e -t docs/source/_templates
-          make -C docs html
+          mkdir -p docs/build
+          cd docs/build
+          cmake ../
+          make api_doc
 
       - name: Init new repo in dist folder and commit generated files
         run: |
-          cd docs/_build/html/
+          cd html/
           git init
           touch .nojekyll
           git add -A
