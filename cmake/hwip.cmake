@@ -401,51 +401,6 @@ function(get_ip_property OUTVAR TARGET PROPERTY)
     set(${OUTVAR} ${OUT_LIST} PARENT_SCOPE)
 endfunction()
 
-function(get_ip_deps OUT_VAR TARGET)
-    # Retrieve the real library name in case an alias is used
-    alias_dereference(TARGET ${TARGET})
-
-    message("get_ip_deps -- TOP IP: ${TARGET}")
-
-    # Get the existing linked libraries
-    # get_target_property(LINKED_LIBS ${TARGET} INTERFACE_LINK_LIBRARIES)
-    safe_get_target_property(LINKED_LIBS ${TARGET} INTERFACE_LINK_LIBRARIES "")
-
-    set(OUT_LIST "")
-    # # Append the property of all the deps into a single list (e.g., the source files of an IP)
-    foreach(lib ${LINKED_LIBS})
-        _get_ip_deps_recursive(DEPS ${lib})
-        list(APPEND OUT_LIST ${DEPS})
-    endforeach()
-
-    list(APPEND OUT_LIST ${LINKED_LIBS})
-
-    set(${OUT_VAR} ${OUT_LIST} PARENT_SCOPE)
-endfunction()
-
-function(_get_ip_deps_recursive OUT_VAR TARGET)
-
-    # Get the existing linked libraries
-    # get_target_property(LINKED_LIBS ${TARGET} INTERFACE_LINK_LIBRARIES)
-    safe_get_target_property(LINKED_LIBS ${TARGET} INTERFACE_LINK_LIBRARIES "")
-
-    message("_get_ip_deps_recursive -- DEP IP: ${TARGET}")
-
-    set(OUT_LIST_TMP "")
-    # # Append the property of all the deps into a single list (e.g., the source files of an IP)
-    foreach(lib ${LINKED_LIBS})
-        _get_ip_deps_recursive(DEPS ${lib})
-        list(APPEND OUT_LIST_TMP ${DEPS})
-        message("_get_ip_deps_recursive -- OUT_LIST_TMP: ${OUT_LIST_TMP} (${DEPS})")
-    endforeach()
-
-    list(APPEND OUT_LIST_TMP ${LINKED_LIBS})
-
-    message("_get_ip_deps_recursive -- IP DEPS: ${OUT_LIST_TMP}")
-
-    set(${OUT_VAR} ${OUT_LIST_TMP} PARENT_SCOPE)
-endfunction()
-
 #[[[
 # Set a compile definition on a IP for a given language inside property <LANGUAGE>_COMPILE_DEFINITIONS.
 #
