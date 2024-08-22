@@ -22,11 +22,12 @@ def find_src_dep_name(file_paths, inc_f = False):
 
         # If we have a list of include directories we put the files to includes
         if inc_f:
-            last_directory = 'includes'
+            # Add the file to the dependencies list
+            dep_names.append(f'{dep_name}/includes')
         else:
             last_directory = os.path.basename(os.path.dirname(path))
-        # Add the file to the dependencies list
-        dep_names.append(f'{dep_name}/{last_directory}/{os.path.basename(path)}')
+            # Add the file to the dependencies list
+            dep_names.append(f'{dep_name}/{last_directory}/{os.path.basename(path)}')
 
     return dep_names
 
@@ -37,12 +38,13 @@ def parse_input_files(velab):
         for instName, inst in velab.global_namespace.modules[module].instances:
             if inst.module_name in velab.global_namespace.modules:
                 print(i+"- "+instName+":"+inst.module_name)
-                hierarchy_files.append(velab.global_namespace.modules[inst.module_name].file.filename)
-                if id(inst) in done:
-                    continue
-                else:
+                if id(inst) not in done:
                     done.append(id(inst))
                     _enterH(velab, inst.module_name, i, done, hierarchy_files, hierarchy_missing_files)
+                # Add the file after so the lowest level modules are first in the list
+                module_file_path = velab.global_namespace.modules[inst.module_name].file.filename
+                if module_file_path not in hierarchy_files:
+                    hierarchy_files.append(module_file_path)
             else:
                 print(i+"- [!] "+instName+":"+inst.module_name)
                 if inst.module_name not in hierarchy_missing_files:
@@ -53,13 +55,16 @@ def parse_input_files(velab):
     hierarchy_missing_files = []
     _enterH(velab, velab.topModule, "", done, hierarchy_files, hierarchy_missing_files)
 
+    # Add the top file to the list
+    hierarchy_files.append(velab.global_namespace.modules[velab.topModule].file.filename)
+
     for module in hierarchy_missing_files:
         print(f"WARNING: Module {module} missing")
 
     return hierarchy_files
 
-
 def main():
+
     parser = argparse.ArgumentParser(description="Filter RTL files based on module hierarchy.")
 
     parser.add_argument('--outdir', help='Output directory where files will be copied')
@@ -135,24 +140,37 @@ def main():
                 # Close the rtl_deps_files list
                 outfile.write(']\n')
                 # Add empty line at the end of the file
-                outfile.write('\n')\
+                outfile.write('\n')
+
                 # Write the include directories
-                outfile.write('rtl_deps_incdirs = [\n')
+                any_inc_file_found = False
                 for inc_src, inc_dst in zip(inc_dirs, inc_dirs_dst):
-                    # Write the path to the list of path file
-                    outfile.write(f'  "{inc_src}",\n')
-                    # Create the folder hierarchy
-                    os.makedirs(os.path.dirname(inc_dst), exist_ok=True)
-                    # Copy the file to src directory
+                    current_inc_file_found = False
+                    # Copy the file to src directory)
                     for inc_file in os.listdir(inc_src):
-                        if os.path.isfile(inc_file):
+                        # Only copy files not directories
+                        inc_src_abs_path = os.path.join(inc_src, inc_file)
+                        inc_dst_abs_path = os.path.join(inc_dst, inc_file)
+                        if os.path.isfile(inc_src_abs_path):
                             _, file_ext = os.path.splitext(inc_file)
                             # We only copy files ending with svh
-                            if file_ext == 'svh':
+                            if file_ext == '.svh':
+                                # Add the list when first inc file is found
+                                if not any_inc_file_found:
+                                    outfile.write('rtl_deps_incdirs = [\n')
+                                    any_inc_file_found = True
+                                # Add the path when the first valid inc file is found for the current include directory
+                                if not current_inc_file_found:
+                                    # Create the folder hierarchy
+                                    os.makedirs(os.path.dirname(inc_dst), exist_ok=True)
+                                    # Add the include path to the output file
+                                    outfile.write(f'  "{inc_src}",\n')
+                                    current_inc_file_found = True
                                 # Copy the file to the new location
-                                shutil.copy2(os.join(inc_src, inc_file), os.join(inc_dst, inc_file))
+                                shutil.copy2(inc_src_abs_path, inc_dst_abs_path)
                 # Close the rtl_deps_incdirs list
-                outfile.write(']\n')
+                if any_inc_file_found:
+                    outfile.write(']\n')
                 # Add empty line at the end of the file
                 outfile.write('\n')
 
