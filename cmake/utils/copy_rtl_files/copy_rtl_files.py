@@ -69,7 +69,7 @@ def main():
     args = parser.parse_args()
 
     try:
-        files = args.files
+        files = [f for f in args.files if not "_pkg" in f]
 
         # We manually add some attributes to be compliant with the expected options
         args.libs = []
