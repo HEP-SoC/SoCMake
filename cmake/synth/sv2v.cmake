@@ -1,4 +1,3 @@
-# TODO iterate over linked libraries and replace SYSTEMVERILOG_SOURCES with VERILOG_SOURCES instead
 include_guard(GLOBAL)
 
 function(set_sv2v_sources IP_LIB)
@@ -7,24 +6,32 @@ function(set_sv2v_sources IP_LIB)
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(_reallib ${IP_LIB})
 
-    # Get any prior TMRG sources
+    # Get any prior SV2V sources
     get_sv2v_sources(_sv2v_src ${IP_LIB})
 
     set(_sv2v_src ${_sv2v_src} ${ARGN})
     # Set the target property with the new list of source files
-    set_property(TARGET ${_reallib} PROPERTY SV2V ${_sv2v_src})
+    set_property(TARGET ${_reallib} PROPERTY SV2V_SOURCES ${_sv2v_src})
 endfunction()
 
 function(get_sv2v_sources OUT_VAR IP_LIB)
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    set(_no_deps)
+    if(ARG_NO_DEPS)
+        set(_no_deps "NO_DEPS")
+    endif()
+
     # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(IP_LIB ${IP_LIB})
-    get_ip_property(SV2V_SRC ${IP_LIB} SV2V)
-    list(REMOVE_DUPLICATES SV2V_SRC)
-    set(${OUT_VAR} ${SV2V_SRC} PARENT_SCOPE)
+    ip_assume_last(_reallib ${IP_LIB})
+
+    get_ip_property(_sv2v_src ${_reallib} SV2V_SOURCES ${_no_deps})
+
+    list(REMOVE_DUPLICATES _sv2v_src)
+    set(${OUT_VAR} ${_sv2v_src} PARENT_SCOPE)
 endfunction()
 
 function(sv2v IP_LIB)
-    cmake_parse_arguments(ARG "REPLACE;TMR;HWIF_WIRE" "OUTDIR;REGBLOCK_OUTDIR" "" ${ARGN})
+    cmake_parse_arguments(ARG "REPLACE;TMR;HWIF_WIRE" "OUTDIR;REGBLOCK_OUTDIR;OUT_LIST" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -97,6 +104,10 @@ function(sv2v IP_LIB)
         DEPENDS ${STAMP_FILE} ${SV2V_SRC} ${V_GEN}
     )
 
+    if(ARG_OUT_LIST)
+        set(${ARG_OUT_LIST} ${V_GEN} PARENT_SCOPE)
+    endif()
+
     if(ARG_REPLACE)
         # Get original sources
         get_ip_sources(SV_SRC ${IP_LIB} SYSTEMVERILOG)
@@ -113,24 +124,24 @@ function(sv2v IP_LIB)
         set_property(TARGET ${IP_LIB} PROPERTY SYSTEMVERILOG_SOURCES ${SV_SRC})
         set_property(TARGET ${IP_LIB} PROPERTY VERILOG_SOURCES ${V_SRC})
 
-        # If TMR is set, remove original .sv files from TMRG list and replace with .v outputs
-        if(ARG_TMR)
-            get_tmrg_sources(TMRG_SRC ${IP_LIB})
-            foreach(i ${SV2V_SRC})
-                if(i IN_LIST TMRG_SRC)
-                    list(REMOVE_ITEM TMRG_SRC ${i})
-                    get_filename_component(V_SOURCE_WO_EXT ${i} NAME_WE)
-                    set(_i_v "${OUTDIR}/${V_SOURCE_WO_EXT}.v")
-                    if(_i_v IN_LIST V_GEN)
-                        list(APPEND TMRG_SRC ${_i_v})
-                    endif()
-                endif()
-            endforeach()
-            set_property(TARGET ${IP_LIB} PROPERTY TMRG ${TMRG_SRC})
-        else()
-            # Add dependency to the IP
-            add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
-        endif()
+        # # If TMR is set, remove original .sv files from TMRG list and replace with .v outputs
+        # if(ARG_TMR)
+        #     get_tmrg_sources(TMRG_SRC ${IP_LIB})
+        #     foreach(i ${SV2V_SRC})
+        #         if(i IN_LIST TMRG_SRC)
+        #             list(REMOVE_ITEM TMRG_SRC ${i})
+        #             get_filename_component(V_SOURCE_WO_EXT ${i} NAME_WE)
+        #             set(_i_v "${OUTDIR}/${V_SOURCE_WO_EXT}.v")
+        #             if(_i_v IN_LIST V_GEN)
+        #                 list(APPEND TMRG_SRC ${_i_v})
+        #             endif()
+        #         endif()
+        #     endforeach()
+        #     set_property(TARGET ${IP_LIB} PROPERTY TMRG ${TMRG_SRC})
+        # else()
+        #     # Add dependency to the IP
+        #     add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
+        # endif()
     endif()
 
 endfunction()

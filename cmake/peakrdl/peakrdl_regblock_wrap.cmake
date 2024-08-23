@@ -113,7 +113,6 @@ function(peakrdl_regblock_wrap IP_LIB)
     ip_sources(${IP_LIB} SYSTEMVERILOG PREPEND ${REGBLOCK_SV_GEN} ${WRAP_SV_GEN})
 
     if(ARG_TMR)
-        set_tmrg_sources(${IP_LIB} ${REGBLOCK_SV_GEN})
         set_sv2v_sources(${IP_LIB} ${REGBLOCK_SV_GEN})
     else()
         add_dependencies(${IP_LIB} ${TNAME})

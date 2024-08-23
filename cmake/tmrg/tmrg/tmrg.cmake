@@ -7,7 +7,7 @@ function(set_tmrg_sources IP_LIB)
     ip_assume_last(_reallib ${IP_LIB})
 
     # Get any prior TMRG sources (only of the IP, not the deps)
-    safe_get_target_property(_tmrg_src ${_reallib} TMRG_SOURCES "")
+    get_tmrg_sources(_tmrg_src ${_reallib} NO_DEPS)
 
     set(_tmrg_src ${_tmrg_src} ${ARGN})
     # Set the target property with the new list of source files
@@ -15,11 +15,19 @@ function(set_tmrg_sources IP_LIB)
 endfunction()
 
 function(get_tmrg_sources OUT_VAR IP_LIB)
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    set(_no_deps)
+    if(ARG_NO_DEPS)
+        set(_no_deps "NO_DEPS")
+    endif()
+
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(_reallib ${IP_LIB})
-    get_ip_property(TMRG_SRC_IP ${_reallib} TMRG_SOURCES)
-    list(REMOVE_DUPLICATES TMRG_SRC_IP)
-    set(${OUT_VAR} ${TMRG_SRC_IP} PARENT_SCOPE)
+
+    get_ip_property(_tmrg_src ${_reallib} TMRG_SOURCES ${_no_deps})
+
+    list(REMOVE_DUPLICATES _tmrg_src)
+    set(${OUT_VAR} ${_tmrg_src} PARENT_SCOPE)
 endfunction()
 
 function(tmrg IP_LIB)
@@ -46,8 +54,8 @@ function(tmrg IP_LIB)
     endif()
 
     # Get only the IP TMRG sources only (not the dependencies)
-    safe_get_target_property(TMRG_SRC_IP ${IP_LIB} TMRG_SOURCES "FATAL")
-    list(REMOVE_DUPLICATES TMRG_SRC_IP)
+    get_tmrg_sources(IP_TMRG_SRC ${IP_LIB} NO_DEPS)
+    list(REMOVE_DUPLICATES IP_TMRG_SRC)
 
     # We also get the non-triplicated sources
     # For example, primitive cells are not all triplicated
@@ -56,9 +64,7 @@ function(tmrg IP_LIB)
     # Get all the IP sources (ip+dependencies)
     get_ip_rtl_sources(IP_SRC_ALL ${IP_LIB})
     # Get only the IP sources (not the dependencies)
-    safe_get_target_property(SV_SRC_IP ${IP_LIB} SYSTEMVERILOG_SOURCES "")
-    safe_get_target_property(V_SRC_IP ${IP_LIB} VERILOG_SOURCES "")
-    list(PREPEND SV_SRC_IP ${V_SRC_IP})
+    get_ip_rtl_sources(IP_SRC ${IP_LIB} NO_DEPS)
 
     # Only the IP sources (not the dependencies) are triplicated
     # The dependency sources are passed as libraries and its up
@@ -67,7 +73,7 @@ function(tmrg IP_LIB)
     set(SRC_DEPS)
     # Find the deps sources only
     foreach(file ${IP_SRC_ALL})
-        list(FIND SV_SRC_IP ${file} index)
+        list(FIND IP_SRC ${file} index)
         if(index EQUAL -1)
             list(APPEND SRC_DEPS ${file})
         endif()
@@ -110,7 +116,7 @@ function(tmrg IP_LIB)
         DEPENDS ${STAMP_FILE} ${SCR_DEPS_STRIPPED}
     )
 
-    foreach(vfile ${TMRG_SRC_IP})
+    foreach(vfile ${IP_TMRG_SRC})
         get_filename_component(V_SOURCE_WO_EXT ${vfile} NAME_WE)
         get_filename_component(V_SOURCE_EXT ${vfile} EXT)
         list(APPEND TRMG_GEN "${OUTDIR}/${V_SOURCE_WO_EXT}TMR${V_SOURCE_EXT}")
@@ -118,7 +124,7 @@ function(tmrg IP_LIB)
     set_source_files_properties(${TRMG_GEN} PROPERTIES GENERATED TRUE)
 
     set(TMRG_COMMAND
-        ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${TMRG_SRC_IP}
+        ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${IP_TMRG_SRC}
     )
 
     # Add the dependencies as libraries if they exist
@@ -166,7 +172,7 @@ function(tmrg IP_LIB)
         COMMAND ${TMRG_COMMAND}
         ${SED_COMMAND}
         COMMAND touch ${STAMP_FILE}
-        DEPENDS ${TMRG_SRC_IP} ${SCR_DEPS_STRIPPED}
+        DEPENDS ${IP_TMRG_SRC} ${SCR_DEPS_STRIPPED}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
     )
 
@@ -181,8 +187,8 @@ function(tmrg IP_LIB)
         get_ip_sources(V_SRC ${IP_LIB} VERILOG)
 
         # Remove TMRG files from original sources
-        list(REMOVE_ITEM SV_SRC ${TMRG_SRC_IP})
-        list(REMOVE_ITEM V_SRC ${TMRG_SRC_IP})
+        list(REMOVE_ITEM SV_SRC ${IP_TMRG_SRC})
+        list(REMOVE_ITEM V_SRC ${IP_TMRG_SRC})
 
         # Append generated files to correct source lists
         foreach(i ${TRMG_GEN})
