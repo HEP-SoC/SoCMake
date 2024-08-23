@@ -66,8 +66,12 @@ def getport(dev):
     ports = serial.tools.list_ports.comports()
     port_names = [port.device for port in ports]
     
-    default_port = dev if dev in port_names else "/dev/ttyUSB0"
-    
+    default_port = port_names[0]
+    if dev in port_names:
+        default_port = dev
+    elif "/dev/ttyUSB0" in port_names:
+        default_port = "/dev/ttyUSB0"
+        
     print(f"Available ports:")
     for index,port in enumerate(port_names):
         print(f"{index+1}: {port}", end="")
