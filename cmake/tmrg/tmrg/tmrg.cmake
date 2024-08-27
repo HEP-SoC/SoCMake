@@ -67,7 +67,7 @@ function(tmrg IP_LIB)
     get_ip_rtl_sources(IP_SRC ${IP_LIB} NO_DEPS)
 
     # Only the IP sources (not the dependencies) are triplicated
-    # The dependency sources are passed as libraries and its up
+    # The dependency sources are passed as libraries and it's up
     # to the dependencies to provide triplicated (or not triplicated)
     # module definitions.
     set(SRC_DEPS)
@@ -88,10 +88,10 @@ function(tmrg IP_LIB)
         set(LIB_STRIP_CMD
             ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lib_module_strip.py --files ${SRC_DEPS} --outdir ${LIB_STRIP_DIR}
         )
-    else()
-        set(LIB_STRIP_CMD
-            ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lib_module_strip.py --outdir ${LIB_STRIP_DIR}
-        )
+    # else()
+    #     set(LIB_STRIP_CMD
+    #         ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lib_module_strip.py --outdir ${LIB_STRIP_DIR}
+    #     )
     endif()
 
     set(SCR_DEPS_STRIPPED)
