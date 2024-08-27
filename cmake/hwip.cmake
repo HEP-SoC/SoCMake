@@ -151,13 +151,18 @@ endfunction()
 # :type PREPEND: string
 #]]
 function(ip_sources IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "PREPEND" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "PREPEND;REPLACE" "" "" ${ARGN})
 
     check_languages(${LANGUAGE})
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(_reallib ${IP_LIB})
-    # Get the existing source files if any
-    get_ip_sources(_sources ${_reallib} ${LANGUAGE})
+
+    if(NOT ARG_REPLACE)
+        # Get the existing source files if any
+        get_ip_sources(_sources ${_reallib} ${LANGUAGE} NO_DEPS)
+    else()
+        list(REMOVE_ITEM ARGN "REPLACE")
+    endif()
 
     # If the PREPEND option is passed first remove it from the list of file and prepend the new sources
     if(ARG_PREPEND)

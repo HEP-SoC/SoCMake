@@ -1,6 +1,6 @@
 function(peakrdl_regblock_wrap IP_LIB)
     # Parse keyword arguments
-    cmake_parse_arguments(ARG "TMR" "OUTDIR;RENAME;INTF;RESET" "" ${ARGN})
+    cmake_parse_arguments(ARG "TMR" "OUTDIR;RENAME;INTF;RESET;OUT_LIST" "" ${ARGN})
     # Check for any unknown argument
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
@@ -72,16 +72,14 @@ function(peakrdl_regblock_wrap IP_LIB)
 
     # Create the reblog_wrap python command
     set(__CMD ${Python3_EXECUTABLE} -m peakrdl regblock_wrap
-            --rename ${REGBLOCK_NAME}
-            ${INTF_ARG}
-            ${RESET_ARG}
-            ${TMR_OPT}
-            -o ${OUTDIR}
-            ${RDL_SOURCES}
-        )
+        --rename ${REGBLOCK_NAME}
+        ${INTF_ARG}
+        ${RESET_ARG}
+        ${TMR_OPT}
+        -o ${OUTDIR}
+        ${RDL_SOURCES}
+    )
 
-    set(REGBLOCK_SV_GEN ${OUTDIR}/${IP_NAME}_pkg.sv ${OUTDIR}/${IP_NAME}.sv)
-    set(WRAP_SV_GEN ${OUTDIR}/${IP_NAME}.sv)
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
 
     # Regblock generated files (pkg + logic)
@@ -109,13 +107,9 @@ function(peakrdl_regblock_wrap IP_LIB)
         DEPENDS ${REGBLOCK_SV_GEN} ${WRAP_SV_GEN} ${STAMP_FILE}
     )
 
-    # Add the generated sources to the IP sources
-    ip_sources(${IP_LIB} SYSTEMVERILOG PREPEND ${REGBLOCK_SV_GEN} ${WRAP_SV_GEN})
-
-    if(ARG_TMR)
-        set_sv2v_sources(${IP_LIB} ${REGBLOCK_SV_GEN})
-    else()
-        add_dependencies(${IP_LIB} ${TNAME})
+    # Set the generated sources to the output variable
+    if(ARG_OUT_LIST)
+        set(${ARG_OUT_LIST} ${REGBLOCK_SV_GEN} ${WRAP_SV_GEN} PARENT_SCOPE)
     endif()
 endfunction()
 
