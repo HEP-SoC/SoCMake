@@ -1,11 +1,11 @@
 function(copy_rtl_files IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE" "" ${ARGN})
+    cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE;SKIPLIST_FILE" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
-    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../find_python.cmake")
+    # include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../find_python.cmake")
 
     ip_assume_last(IP_LIB ${IP_LIB})
 
@@ -17,22 +17,35 @@ function(copy_rtl_files IP_LIB)
 
     # Check if a top module is provided. In this case only the modules in its hierarchy are kept
     if(ARG_TOP_MODULE)
-        set(TOP_MODULE --top-module ${ARG_TOP_MODULE})
+        set(TOP_MODULE_ARG --top-module ${ARG_TOP_MODULE})
+    endif()
+
+    if(ARG_SKIPLIST_FILE)
+        set(SKIPLIST_ARG --skiplist ${ARG_SKIPLIST_FILE})
     endif()
 
     # Get the list of RTL sources
     get_ip_rtl_sources(RTL_SOURCES ${IP_LIB})
-    # Create a list to hold the RTL files as arguments for the Python script
-    set(RTL_FILES_ARGS)
-    # Add each RTL file to the list of arguments
-    foreach(file ${RTL_SOURCES})
-        list(APPEND RTL_FILES_ARGS ${file})
+    get_ip_include_directories(RTL_INCDIRS ${IP_LIB} SYSTEMVERILOG)
+    foreach(_i ${RTL_INCDIRS})
+        list(APPEND INCDIR_ARG +incdir+${_i})
     endforeach()
 
-    find_python3()
-    set(__CMD ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/copy_rtl_files.py
-        ${TOP_MODULE} --stats --outdir ${OUTDIR} ${RTL_FILES_ARGS}
-    )
+    set(__CMD vhier ${TOP_MODULE_ARG} ${SKIPLIST_ARG} --no-missing --module-files ${INCDIR_ARG} -o sources.txt ${RTL_SOURCES})
+
+
+
+    # Create a list to hold the RTL files as arguments for the Python script
+    # set(RTL_FILES_ARGS)
+    # # Add each RTL file to the list of arguments
+    # foreach(file ${RTL_SOURCES})
+    #     list(APPEND RTL_FILES_ARGS ${file})
+    # endforeach()
+
+    # find_python3()
+    # set(__CMD ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/copy_rtl_files.py
+    #     ${TOP_MODULE} --stats --outdir ${OUTDIR} ${RTL_FILES_ARGS}
+    # )
 
     # Call the Python script with the output directory and the RTL files
     set(STAMP_FILE "${CMAKE_BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
