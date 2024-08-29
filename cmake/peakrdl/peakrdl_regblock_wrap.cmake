@@ -111,5 +111,8 @@ function(peakrdl_regblock_wrap IP_LIB)
     if(ARG_OUT_LIST)
         set(${ARG_OUT_LIST} ${REGBLOCK_SV_GEN} ${WRAP_SV_GEN} PARENT_SCOPE)
     endif()
+
+    # Add dependency to the IP
+    add_dependencies(${IP_LIB} ${IP_LIB}_regblock_wrap)
 endfunction()
 
