@@ -39,20 +39,6 @@ function(copy_rtl_files IP_LIB)
         ${RTL_SOURCES}
     )
 
-
-
-    # Create a list to hold the RTL files as arguments for the Python script
-    # set(RTL_FILES_ARGS)
-    # # Add each RTL file to the list of arguments
-    # foreach(file ${RTL_SOURCES})
-    #     list(APPEND RTL_FILES_ARGS ${file})
-    # endforeach()
-
-    # find_python3()
-    # set(__CMD ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/copy_rtl_files.py
-    #     ${TOP_MODULE} --stats --outdir ${OUTDIR} ${RTL_FILES_ARGS}
-    # )
-
     # Call the Python script with the output directory and the RTL files
     set(STAMP_FILE "${CMAKE_BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
