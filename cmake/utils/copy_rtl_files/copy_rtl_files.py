@@ -49,7 +49,7 @@ def main():
     # Copy files to output directory
     copied_src = []
     for i in output_src:
-        dest_dir = os.path.join(args.outdir, i.replace(args.deps_dir, '').split('/')[1].split('-')[0])
+        dest_dir = os.path.join(args.outdir, i.replace(args.deps_dir, '').split('/')[1].rsplit('-', 1)[0])
         os.makedirs(dest_dir, exist_ok=True)
         copied_src.append(shutil.copy2(i, dest_dir))
         
