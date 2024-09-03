@@ -191,7 +191,6 @@ function(cocotb_iverilog IP_LIB)
 
     set(COCOTB_ENV_VARS
         PYTHONPATH=${PATH_MODULE}
-    set(COCOTB_CMD PYTHONPATH=${PATH_MODULE}
         MODULE=${COCOTB_TEST}
         TESTCASE=${TESTCASE}
         TOPLEVEL=${TOP_MODULE}
@@ -222,14 +221,6 @@ function(cocotb_iverilog IP_LIB)
     string(TOUPPER ${COCOTB_TEST} COCOTB_TEST_PROP)
     set_target_properties(${IP_LIB} PROPERTIES COCOTB_IVERILOG_${COCOTB_TEST_PROP}_CMD "${COCOTB_IVERILOG_CMD}")
     set_target_properties(${IP_LIB} PROPERTIES COCOTB_IVERILOG_${COCOTB_TEST_PROP}_ENV "${COCOTB_ENV_VARS}")
-        COMMAND ${COCOTB_CMD}
-        DEPENDS ${COCOTB_TEST}
-        COMMENT "Running cocotb simulation on ${IP_LIB}"
-        )
-        
-    # Set the command as a property to be easily found by add_test()
-    string(TOUPPER ${COCOTB_TEST} COCOTB_TEST_PROP)
-    set_target_properties(${IP} PROPERTIES COCOTB_IVERILOG_${COCOTB_TEST_PROP} ${COCOTB_CMD})
 
     # Add a custom target that depends on the executable and stamp file
     add_custom_target(
@@ -238,5 +229,4 @@ function(cocotb_iverilog IP_LIB)
     )
 
 endfunction()
-
 
