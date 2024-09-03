@@ -84,15 +84,9 @@ function(tmrg IP_LIB)
     # a triplicated module of another lib file this creates an undefined module
     # error by tmrg because tmrg tracks the non-triplicated module names.
     set(LIB_STRIP_DIR ${OUTDIR}/lib_strip)
-    if(SRC_DEPS)
-        set(LIB_STRIP_CMD
+    set(LIB_STRIP_CMD
             ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lib_module_strip.py --files ${SRC_DEPS} --outdir ${LIB_STRIP_DIR}
-        )
-    # else()
-    #     set(LIB_STRIP_CMD
-    #         ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lib_module_strip.py --outdir ${LIB_STRIP_DIR}
-    #     )
-    endif()
+    )
 
     set(SCR_DEPS_STRIPPED)
     foreach(file ${SRC_DEPS})

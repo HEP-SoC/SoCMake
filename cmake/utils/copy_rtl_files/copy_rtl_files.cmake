@@ -5,7 +5,6 @@ function(copy_rtl_files IP_LIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
-    # include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../find_python.cmake")
 
     ip_assume_last(IP_LIB ${IP_LIB})
 

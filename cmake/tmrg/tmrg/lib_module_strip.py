@@ -10,7 +10,6 @@ def generate_implementation_lib(fname_in, fname_out):
     generates a simplified version retaining only port information
     of the top module.
     """
-    # module_name = os.path.splitext(os.path.basename(fname_in))[0]
     _, file_extension = os.path.splitext(os.path.basename(fname_in))
     in_package = False
     in_module = False
@@ -44,7 +43,7 @@ def generate_implementation_lib(fname_in, fname_out):
                 in_module = False
             elif not in_package and not in_module and not in_module_header:
                 fout.write(line)
-        
+
 
 parser = argparse.ArgumentParser(description='Systemverilog module stripping')
 
