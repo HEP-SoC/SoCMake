@@ -58,4 +58,3 @@ function(add_cocotb_iverilog_tests IP_LIB DIRECTORY)
     string(REPLACE ";" "" _msg "${_msg}")
     msg("${_msg}" Blue)
 endfunction()
-

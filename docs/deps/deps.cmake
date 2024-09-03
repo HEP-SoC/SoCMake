@@ -1,4 +1,3 @@
-
 # Options for the virtual env creation
 option(UPDATE_PYTHON_DEPS "Force update dependencies" OFF)
 option(DEPS_USE_VENV "Create a Python virtual environment and install dependencies locally" ON)

@@ -151,13 +151,18 @@ endfunction()
 # :type PREPEND: string
 #]]
 function(ip_sources IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "PREPEND" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "PREPEND;REPLACE" "" "" ${ARGN})
 
     check_languages(${LANGUAGE})
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(_reallib ${IP_LIB})
-    # Get the existing source files if any
-    get_ip_sources(_sources ${_reallib} ${LANGUAGE})
+
+    if(NOT ARG_REPLACE)
+        # Get the existing source files if any
+        get_ip_sources(_sources ${_reallib} ${LANGUAGE} NO_DEPS)
+    else()
+        list(REMOVE_ITEM ARGN "REPLACE")
+    endif()
 
     # If the PREPEND option is passed first remove it from the list of file and prepend the new sources
     if(ARG_PREPEND)
@@ -182,9 +187,17 @@ endfunction()
 #
 #]]
 function(get_ip_sources OUT_VAR IP_LIB LANGUAGE)
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    set(_no_deps)
+    if(ARG_NO_DEPS)
+        set(_no_deps "NO_DEPS")
+    endif()
+
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(IP_LIB ${IP_LIB})
-    get_ip_property(SOURCES ${IP_LIB} ${LANGUAGE}_SOURCES)
+
+    get_ip_property(SOURCES ${IP_LIB} ${LANGUAGE}_SOURCES ${_no_deps})
+
     list(REMOVE_DUPLICATES SOURCES)
     set(${OUT_VAR} ${SOURCES} PARENT_SCOPE)
 endfunction()
@@ -199,10 +212,16 @@ endfunction()
 #
 #]]
 function(get_ip_rtl_sources OUT_VAR IP_LIB)
-    get_ip_sources(V_SRC ${IP_LIB} VERILOG)
-    get_ip_sources(VH_SRC ${IP_LIB} VHDL)
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    set(_no_deps)
+    if(ARG_NO_DEPS)
+        set(_no_deps "NO_DEPS")
+    endif()
+
+    get_ip_sources(V_SRC ${IP_LIB} VERILOG ${_no_deps})
+    get_ip_sources(VH_SRC ${IP_LIB} VHDL ${_no_deps})
     list(PREPEND VH_SRC ${V_SRC})
-    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG)
+    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG ${_no_deps})
     list(PREPEND SRC ${VH_SRC})
     list(REMOVE_DUPLICATES SRC)
     set(${OUT_VAR} ${SRC} PARENT_SCOPE)
@@ -218,8 +237,14 @@ endfunction()
 #
 #]]
 function(get_ip_sim_only_sources OUT_VAR IP_LIB)
-    get_ip_sources(V_SRC ${IP_LIB} VERILOG_SIM)
-    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_SIM)
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    set(_no_deps)
+    if(ARG_NO_DEPS)
+        set(_no_deps "NO_DEPS")
+    endif()
+
+    get_ip_sources(V_SRC ${IP_LIB} VERILOG_SIM ${_no_deps})
+    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_SIM ${_no_deps})
     list(PREPEND SRC ${V_SRC})
     list(REMOVE_DUPLICATES SRC)
     set(${OUT_VAR} ${SRC} PARENT_SCOPE)
@@ -235,8 +260,14 @@ endfunction()
 #
 #]]
 function(get_ip_fpga_only_sources OUT_VAR IP_LIB)
-    get_ip_sources(V_SRC ${IP_LIB} VERILOG_FPGA)
-    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_FPGA)
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    set(_no_deps)
+    if(ARG_NO_DEPS)
+        set(_no_deps "NO_DEPS")
+    endif()
+
+    get_ip_sources(V_SRC ${IP_LIB} VERILOG_FPGA ${_no_deps})
+    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_FPGA ${_no_deps})
     list(PREPEND SRC ${V_SRC})
     list(REMOVE_DUPLICATES SRC)
     set(${OUT_VAR} ${SRC} PARENT_SCOPE)
@@ -384,19 +415,26 @@ endfunction()
 #
 #]]
 function(get_ip_property OUTVAR TARGET PROPERTY)
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+
     # Retrieve the real library name in case an alias is used
     alias_dereference(TARGET ${TARGET})
-    # Flatten the target graph to get all the dependencies in the correct order
-    flatten_graph(${TARGET})
-    # Get all the dependencies
-    get_target_property(DEPS ${TARGET} FLAT_GRAPH)
 
     set(OUT_LIST "")
-    # Append the property of all the deps into a single list (e.g., the source files of an IP)
-    foreach(d ${DEPS})
-        safe_get_target_property(PROP ${d} ${PROPERTY} "")
-        list(APPEND OUT_LIST ${PROP})
-    endforeach()
+    if(ARG_NO_DEPS)
+        safe_get_target_property(OUT_LIST ${TARGET} ${PROPERTY} "")
+    else()
+        # Flatten the target graph to get all the dependencies in the correct order
+        flatten_graph(${TARGET})
+        # Get all the dependencies
+        get_target_property(DEPS ${TARGET} FLAT_GRAPH)
+
+        # Append the property of all the deps into a single list (e.g., the source files of an IP)
+        foreach(d ${DEPS})
+            safe_get_target_property(PROP ${d} ${PROPERTY} "")
+            list(APPEND OUT_LIST ${PROP})
+        endforeach()
+    endif()
 
     set(${OUTVAR} ${OUT_LIST} PARENT_SCOPE)
 endfunction()
