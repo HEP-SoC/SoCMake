@@ -43,7 +43,12 @@ def main():
     ]
     
     # Get the used files list from vhier
-    cells_output = subprocess.run([*vhier_base_args, '--cells'], capture_output=True)
+    try:
+        cells_output = subprocess.run([*vhier_base_args, '--cells'], capture_output=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print("Fatal: ", e.returncode, e.stderr)
+        raise
+
     output_src.extend(sorted(set([f.decode() for f in cells_output.stdout.split()])))
     
     # Copy files to output directory
@@ -52,14 +57,19 @@ def main():
         dest_dir = os.path.join(args.outdir, i.replace(args.deps_dir, '').split('/')[1].rsplit('-', 1)[0])
         os.makedirs(dest_dir, exist_ok=True)
         copied_src.append(shutil.copy2(i, dest_dir))
-        
+
     # Write copied files list to outdir
     with open(os.path.join(args.outdir, 'rtl_sources.f'), 'w') as outfile:
         for i in copied_src:
             outfile.write(f'{i}\n')
 
     # Get the includes list from vhier
-    includes_output = subprocess.run([*vhier_base_args, '--includes'], capture_output=True)
+    try:
+        includes_output = subprocess.run([*vhier_base_args, '--includes'], capture_output=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print("Fatal: ", e.returncode, e.stderr)
+        raise
+
     output_inc = sorted(set([f.decode() for f in includes_output.stdout.split()]))
     
     # Copy the include files in a include folder
