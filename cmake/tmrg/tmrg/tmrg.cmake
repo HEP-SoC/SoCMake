@@ -153,6 +153,10 @@ function(tmrg IP_LIB)
         set(TMRG_COMMAND ${TMRG_COMMAND} --no-common-definitions)
     endif()
 
+    if(NOT ARG_HEADER)
+        set(TMRG_COMMAND ${TMRG_COMMAND} --no-header)
+    endif()
+
     # To avoid replacing unwanted 'wor' character sequence, assume real wor (i.e., wired-or)
     # sequence is always followed by a space. Otherwise, if 'wor' is used in a name (e.g., word_address)
     # it will also be replaced (e.g., to wird_address).
@@ -165,7 +169,7 @@ function(tmrg IP_LIB)
         OUTPUT ${TRMG_GEN} ${STAMP_FILE}
         COMMAND ${TMRG_COMMAND}
         ${SED_COMMAND}
-        COMMAND touch ${STAMP_FILE}
+        COMMAND /bin/sh -c date > ${STAMP_FILE}
         DEPENDS ${IP_TMRG_SRC} ${SCR_DEPS_STRIPPED}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
     )
