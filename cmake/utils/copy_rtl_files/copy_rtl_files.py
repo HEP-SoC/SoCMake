@@ -51,12 +51,6 @@ def main():
 
     output_src.extend(sorted(set([f.decode() for f in cells_output.stdout.split()])))
 
-    vhier_cmd = ''
-    for arg in vhier_base_args:
-        vhier_cmd += f" {arg}"
-    vhier_cmd += ' --cells'
-    print(f'\n\n vhier_cmd : {vhier_cmd}')
-
     # Copy files to output directory
     copied_src = []
     for i in output_src:
