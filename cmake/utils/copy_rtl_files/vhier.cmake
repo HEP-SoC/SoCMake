@@ -38,7 +38,9 @@ function(vhier IP_LIB)
     set(STAMP_FILE "${CMAKE_BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${OUT_FILE}
+        COMMAND touch ${STAMP_FILE}
         COMMAND ${__CMD} | tee ${OUT_FILE}
+        DEPENDS ${RTL_SOURCES} ${IP_LIB}
         COMMENT "Printing verilog hierarchy of ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}"
     )
 
