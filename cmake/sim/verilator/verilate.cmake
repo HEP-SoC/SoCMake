@@ -72,51 +72,12 @@ function(verilate IP_LIB)
 
     get_ip_rtl_sources(SOURCES ${IP_LIB})
     
-    # String replace "wor " with "wire " in TMR files, since Verilator does not support "wor"
-    # TODO: Remove this if Verilator ever supports "wor"
     if(ARG_SED_WOR)
-        file(MAKE_DIRECTORY ${BINARY_DIR}/sed_wor)
-        set(MODIFIED_SOURCES "")
-
-        foreach(source ${SOURCES})
-            get_filename_component(source_name ${source} NAME)
-            if(source_name MATCHES "TMR")
-                set(output_file "${BINARY_DIR}/sed_wor/${source_name}")
-                list(APPEND MODIFIED_SOURCES ${output_file}) 
-
-                add_custom_command(
-                    OUTPUT ${output_file}
-                    COMMAND sed "s/wor /wire /g" ${source} > ${output_file}
-                    DEPENDS ${source}
-                    COMMENT "Replacing wor with wire in ${source_name}."
-                )
-            else()
-                list(APPEND MODIFIED_SOURCES ${source})
-            endif()
-        endforeach()
-
-        # Update sources to use modified sources
-        set(SOURCES ${MODIFIED_SOURCES})
-
-        # Create stamp file for sed command
-        set(STAMP_FILE "${BINARY_DIR}/sed_wor/${IP_LIB}_sed_wor.stamp")
-
-        add_custom_command(
-            OUTPUT ${STAMP_FILE}
-            COMMAND /bin/sh -c date > ${STAMP_FILE}
-            DEPENDS ${MODIFIED_SOURCES}
-            COMMENT "Generating stamp file after sed commands."
-        )
-
-        add_custom_target(
-            ${IP_LIB}_sed_wor ALL 
-            DEPENDS  ${STAMP_FILE}
-        )
-
-        add_dependencies(${IP_LIB} ${IP_LIB}_sed_wor)
+        include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/sed_wor/sed_wor.cmake)
+        sed_wor(${IP_LIB} ${BINARY_DIR} "${SOURCES}")
         # unset, so argument is not further passed to verilator bin
         unset(ARG_SED_WOR)
-    endif()
+    endif() 
 
     get_ip_sim_only_sources(SIM_SOURCES ${IP_LIB})
     list(PREPEND SOURCES ${SIM_SOURCES})
