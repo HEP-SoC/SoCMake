@@ -1,0 +1,11 @@
+addrmap top {
+    reg {
+        bar = "random";
+        regwidth = 32;
+        field {
+            fieldwidth = 32;
+        } f1;
+    } testreg3;
+
+    ip2 ip2_i;
+};

@@ -4,6 +4,7 @@ add_custom_target(check
     )
 
 add_subdirectory(iverilog)
+add_subdirectory(peakrdl)
 
 include("getcmaketest.cmake")
 include(cmake_test/cmake_test)

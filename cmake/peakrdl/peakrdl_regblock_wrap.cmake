@@ -61,11 +61,23 @@ function(peakrdl_regblock_wrap IP_LIB)
     # Get the SystemRDL sources to generate the register block
     # This function gets the IP sources and the deps
     get_ip_sources(RDL_SOURCES ${IP_LIB} SYSTEMRDL)
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMRDL)
 
     if(NOT RDL_SOURCES)
         message(FATAL_ERROR "Library ${IP_LIB} does not have SYSTEMRDL_SOURCES property set,
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
+
+    unset(INCDIRS_ARG)
+    foreach(__incdir ${INC_DIRS})
+        list(APPEND INCDIRS_ARG -I${__incdir})
+    endforeach()
+
+    unset(COMPDEFS_ARG)
+    foreach(__compdefs ${COMP_DEFS})
+        list(APPEND COMPDEFS_ARG -D${__compdefs})
+    endforeach()
 
     # Generate the regblock and wrapper
     find_python3()
@@ -73,6 +85,8 @@ function(peakrdl_regblock_wrap IP_LIB)
     # Create the reblog_wrap python command
     set(__CMD ${Python3_EXECUTABLE} -m peakrdl regblock_wrap
         --rename ${REGBLOCK_NAME}
+        ${INCDIRS_ARG}
+        ${COMPDEFS_ARG}
         ${INTF_ARG}
         ${RESET_ARG}
         ${TMR_OPT}
