@@ -1,5 +1,5 @@
 function(verilate IP_LIB)
-    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;SED_WOR;MAIN")
+    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN")
     set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY;EXECUTABLE_NAME")
     set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL")
 
@@ -44,9 +44,7 @@ function(verilate IP_LIB)
     set(VERILATOR_ROOT ${VERILATOR_INCLUDE_DIR}/../)
     ##################################
 
-    get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
-    get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
-    set(INCLUDE_DIRS ${SYSTEMVERILOG_INCLUDE_DIRS} ${VERILOG_INCLUDE_DIRS})
+    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG)
 
     if(ARG_TOP_MODULE)
         set(ARG_TOP_MODULE ${ARG_TOP_MODULE})
@@ -63,66 +61,12 @@ function(verilate IP_LIB)
     get_ip_property(VERILATOR_ARGS ${IP_LIB} VERILATOR_ARGS)
     list(APPEND ARG_VERILATOR_ARGS ${VERILATOR_ARGS})
 
-    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
-    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG)
-    set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG)
     foreach(def ${COMP_DEFS})
         list(APPEND ARG_VERILATOR_ARGS -D${def})
     endforeach()
 
-    get_ip_rtl_sources(SOURCES ${IP_LIB})
-    
-    # String replace "wor " with "wire " in TMR files, since Verilator does not support "wor"
-    # TODO: Remove this if Verilator ever supports "wor"
-    if(ARG_SED_WOR)
-        file(MAKE_DIRECTORY ${BINARY_DIR}/sed_wor)
-        set(MODIFIED_SOURCES "")
-
-        foreach(source ${SOURCES})
-            get_filename_component(source_name ${source} NAME)
-            if(source_name MATCHES "TMR")
-                set(output_file "${BINARY_DIR}/sed_wor/${source_name}")
-                list(APPEND MODIFIED_SOURCES ${output_file}) 
-
-                add_custom_command(
-                    OUTPUT ${output_file}
-                    COMMAND sed "s/wor /wire /g" ${source} > ${output_file}
-                    DEPENDS ${source}
-                    COMMENT "Replacing wor with wire in ${source_name}."
-                )
-            else()
-                list(APPEND MODIFIED_SOURCES ${source})
-            endif()
-        endforeach()
-
-        # Update sources to use modified sources
-        set(SOURCES ${MODIFIED_SOURCES})
-
-        # Create stamp file for sed command
-        set(STAMP_FILE "${BINARY_DIR}/sed_wor/${IP_LIB}_sed_wor.stamp")
-
-        add_custom_command(
-            OUTPUT ${STAMP_FILE}
-            COMMAND /bin/sh -c date > ${STAMP_FILE}
-            DEPENDS ${MODIFIED_SOURCES}
-            COMMENT "Generating stamp file after sed commands."
-        )
-
-        add_custom_target(
-            ${IP_LIB}_sed_wor ALL 
-            DEPENDS  ${STAMP_FILE}
-        )
-
-        add_dependencies(${IP_LIB} ${IP_LIB}_sed_wor)
-        # unset, so argument is not further passed to verilator bin
-        unset(ARG_SED_WOR)
-    endif()
-
-    get_ip_sim_only_sources(SIM_SOURCES ${IP_LIB})
-    list(PREPEND SOURCES ${SIM_SOURCES})
-
-    get_ip_sources(CFG_FILE ${IP_LIB} VERILATOR_CFG)
-    list(PREPEND SOURCES ${CFG_FILE})
+    get_ip_sources(SOURCES ${IP_LIB} VERILATOR_CFG SYSTEMVERILOG_SIM VERILOG_SIM SYSTEMVERILOG VERILOG)
 
     if(NOT SOURCES)
         message(FATAL_ERROR "Verilate function needs at least one VERILOG or SYSTEMVERILOG source added to the IP")
@@ -219,11 +163,6 @@ function(verilate IP_LIB)
 
     set(VLT_STATIC_LIB "${DIRECTORY}/lib${ARG_TOP_MODULE}.a")
     set(INC_DIR ${DIRECTORY})
-
-    # TODO: Remove this if Verilator ever supports "wor"
-    if(TARGET ${IP_LIB}__sed_wor)
-        add_dependencies(${VERILATE_TARGET} ${IP_LIB}__sed_wor)
-    endif()
 
     set(VERILATED_LIB ${IP_LIB}__vlt)
     add_library(${VERILATED_LIB} STATIC IMPORTED)

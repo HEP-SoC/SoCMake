@@ -18,9 +18,7 @@ function(vivado IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
-    get_ip_rtl_sources(SOURCES ${IP_LIB})
-    get_ip_fpga_only_sources(FPGA_SOURCES ${IP_LIB})
-    list(PREPEND SOURCES ${FPGA_SOURCES})
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG_FPGA VERILOG_FPGA VHDL_FPGA SYSTEMVERILOG VERILOG VHDL)
     list(FILTER SOURCES EXCLUDE REGEX ".vlt$")
 
     if(NOT ARG_TOP)
@@ -37,14 +35,8 @@ function(vivado IP_LIB)
     get_target_property(XDC_FILES ${IP_LIB} XDC)
     get_target_property(FPGA_PART ${IP_LIB} FPGA_PART)
 
-    get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
-    get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
-    get_ip_include_directories(VHDL_INCLUDE_DIRS ${IP_LIB} VHDL)
-    set(INCLUDE_DIRS ${SYSTEMVERILOG_INCLUDE_DIRS} ${VERILOG_INCLUDE_DIRS} ${VHDL_INCLUDE_DIRS})
-
-    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
-    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG) # TODO Add VHDL??
-    set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
+    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
     foreach(def ${COMP_DEFS})
         list(APPEND CMP_DEFS_ARG -D${def})
     endforeach()

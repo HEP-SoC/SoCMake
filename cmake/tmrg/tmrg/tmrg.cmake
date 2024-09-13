@@ -62,9 +62,9 @@ function(tmrg IP_LIB)
     # and instantiating them 3 times is fine
 
     # Get all the IP sources (ip+dependencies)
-    get_ip_rtl_sources(IP_SRC_ALL ${IP_LIB})
+    get_ip_sources(IP_SRC_ALL ${IP_LIB} SYSTEMVERILOG VERILOG)
     # Get only the IP sources (not the dependencies)
-    get_ip_rtl_sources(IP_SRC ${IP_LIB} NO_DEPS)
+    get_ip_sources(IP_SRC ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS)
 
     # Only the IP sources (not the dependencies) are triplicated
     # The dependency sources are passed as libraries and it's up

@@ -86,26 +86,22 @@ function(cocotb_iverilog IP_LIB)
     endif()
 
     # Get the IP RTL sources
-    get_ip_rtl_sources(SOURCES ${IP_LIB})
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
     # Get the sim_only sources only if we are not running a technology-independent flow
     if(NOT TECH_FLOW)
-        get_ip_sim_only_sources(SIM_SOURCES ${IP_LIB})
+        get_ip_sources(SIM_SOURCES ${IP_LIB} SYSTEMVERILOG_SIM VERILOG_SIM)
     endif()
     list(PREPEND SOURCES ${SIM_SOURCES})
 
     # Get IP include directories
-    get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
-    get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
-    set(INC_DIRS ${SYSTEMVERILOG_INCLUDE_DIRS} ${VERILOG_INCLUDE_DIRS})
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG)
     # Prepare include directories arguments for iverilog
     foreach(dir ${INC_DIRS})
         list(APPEND ARG_INCDIRS -I ${dir})
     endforeach()
 
     # Get IP compile definitions
-    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
-    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG)
-    set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
     # Prepare compile definitions arguments for iverilog
     foreach(def ${COMP_DEFS})
         list(APPEND CMP_DEFS_ARG -D${def})

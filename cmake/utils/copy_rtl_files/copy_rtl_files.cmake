@@ -24,12 +24,13 @@ function(copy_rtl_files IP_LIB)
     endif()
 
     # Get the list of RTL sources
-    get_ip_rtl_sources(RTL_SOURCES ${IP_LIB})
+    get_ip_sources(RTL_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
     get_ip_include_directories(RTL_INCDIRS ${IP_LIB} SYSTEMVERILOG)
     foreach(_i ${RTL_INCDIRS})
         set(INCDIR_ARG ${INCDIR_ARG} --include ${_i})
     endforeach()
 
+    find_python3()
     set(__CMD ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/copy_rtl_files.py
         ${TOP_MODULE_ARG} ${SKIPLIST_ARG}
         --deps_dir ${FETCHCONTENT_BASE_DIR}
