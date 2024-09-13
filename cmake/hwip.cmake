@@ -393,6 +393,10 @@ function(ip_link IP_LIB)
         if(NOT TARGET ${lib})
             message(FATAL_ERROR "Library ${lib} linked to ${IP_LIB} is not defined")
         endif()
+        # In case user tries to link library to itself, raise an error
+        if(${lib} STREQUAL ${IP_LIB})
+            message(FATAL_ERROR "Cannot link library ${lib} to ${IP_LIB} (itself)")
+        endif()
         # Link the library to the target
         target_link_libraries(${_reallib} INTERFACE ${lib})
         if(NOT ARG_NODEPEND)

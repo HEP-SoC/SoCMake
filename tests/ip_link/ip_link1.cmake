@@ -1,6 +1,6 @@
 include("${CMAKE_CURRENT_LIST_DIR}/../../CMakeLists.txt")
 
-set(TEST_NAME ip_link)
+set(TEST_NAME ip_link1)
 
 ct_add_test(NAME ${TEST_NAME})
 function(${${TEST_NAME}})
