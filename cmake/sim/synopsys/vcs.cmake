@@ -16,20 +16,15 @@ function(vcs_vlogan IP_LIB)
     ip_assume_last(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
-    get_ip_rtl_sources(SOURCES ${IP_LIB})
-    list(PREPEND SOURCES ${V_SOURCES})
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
 
-    get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
-    get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
-    set(INC_DIRS ${SYSTEMVERILOG_INCLUDE_DIRS} ${VERILOG_INCLUDE_DIRS})
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
 
     foreach(dir ${INC_DIRS})
         list(APPEND ARG_INCDIRS -incdir ${dir})
     endforeach()
 
-    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG) 
-    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG) # TODO add VHDL?
-    set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
     foreach(def ${COMP_DEFS})
         list(APPEND CMP_DEFS_ARG -D${def})
     endforeach()

@@ -16,7 +16,7 @@ function(tmake_manifest IP_LIB)
     endif()
     execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR})
 
-    get_ip_rtl_sources(SOURCES ${IP_LIB})
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
     get_target_property(TOP_MODULE ${IP_LIB} IP_NAME)
     
     add_custom_command(

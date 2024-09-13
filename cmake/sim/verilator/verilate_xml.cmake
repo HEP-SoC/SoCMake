@@ -30,9 +30,7 @@ function(verilate_xml IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
-    get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
-    get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
-    set(INCLUDE_DIRS ${SYSTEMVERILOG_INCLUDE_DIRS} ${VERILOG_INCLUDE_DIRS})
+    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG)
 
     foreach(INC_DIR ${INCLUDE_DIRS})
         list(APPEND INC_DIRS_ARG -I${INC_DIR})
@@ -47,12 +45,11 @@ function(verilate_xml IP_LIB)
     get_ip_property(VERILATOR_ARGS ${IP_LIB} VERILATOR_ARGS)
     list(APPEND VERILATOR_ARGS ${ARG_VERILATOR_ARGS})
 
-    get_ip_rtl_sources(SOURCES ${IP_LIB})
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
     list(PREPEND SOURCES ${V_SOURCES})
 
-    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
-    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG)
-    foreach(def ${COMP_DEFS_SV} ${COMP_DEFS_V})
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
+    foreach(def ${COMP_DEFS})
         list(APPEND VERILATOR_ARGS -D${def})
     endforeach()
 

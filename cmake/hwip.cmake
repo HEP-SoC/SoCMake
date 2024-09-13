@@ -178,17 +178,17 @@ endfunction()
 #[[[
 # This function retrieves the specific source files of a target library.
 #
-# :param OUT_VAR: The variable containing the retrieved source file.
-# :type OUT_VAR: string
+# :param OUTVAR: The variable containing the retrieved source file.
+# :type OUTVAR: string
 # :param IP_LIB: The target IP library.
 # :type IP_LIB: string
 # :param LANGUAGE: The type of source file(s).
 # :type LANGUAGE: string
 #
 #]]
-function(get_ip_sources OUT_VAR IP_LIB LANGUAGE)
+function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
-    set(_no_deps)
+    unset(_no_deps)
     if(ARG_NO_DEPS)
         set(_no_deps "NO_DEPS")
     endif()
@@ -196,81 +196,18 @@ function(get_ip_sources OUT_VAR IP_LIB LANGUAGE)
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(IP_LIB ${IP_LIB})
 
-    get_ip_property(SOURCES ${IP_LIB} ${LANGUAGE}_SOURCES ${_no_deps})
+    # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
+    list(REMOVE_ITEM ARGN NO_DEPS)
+    unset(SOURCES)
+    # Get all the <LANGUAGE>_SOURCES lists in order
+    foreach(_lang ${LANGUAGE} ${ARGN})
+        check_languages(${_lang})
+        get_ip_property(_lang_sources ${IP_LIB} ${_lang}_SOURCES ${_no_deps})
+        list(APPEND SOURCES ${_lang_sources})
+    endforeach()
 
     list(REMOVE_DUPLICATES SOURCES)
-    set(${OUT_VAR} ${SOURCES} PARENT_SCOPE)
-endfunction()
-
-#[[[
-# This function retrieves RTL source files of a target library.
-#
-# :param OUT_VAR: The variable containing the retrieved source file.
-# :type OUT_VAR: string
-# :param IP_LIB: The target IP library.
-# :type IP_LIB: string
-#
-#]]
-function(get_ip_rtl_sources OUT_VAR IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
-    set(_no_deps)
-    if(ARG_NO_DEPS)
-        set(_no_deps "NO_DEPS")
-    endif()
-
-    get_ip_sources(V_SRC ${IP_LIB} VERILOG ${_no_deps})
-    get_ip_sources(VH_SRC ${IP_LIB} VHDL ${_no_deps})
-    list(PREPEND VH_SRC ${V_SRC})
-    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG ${_no_deps})
-    list(PREPEND SRC ${VH_SRC})
-    list(REMOVE_DUPLICATES SRC)
-    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
-endfunction()
-
-#[[[
-# This function retrieves simulation-only RTL source files of a target library.
-#
-# :param OUT_VAR: The variable containing the retrieved source file.
-# :type OUT_VAR: string
-# :param IP_LIB: The target IP library.
-# :type IP_LIB: string
-#
-#]]
-function(get_ip_sim_only_sources OUT_VAR IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
-    set(_no_deps)
-    if(ARG_NO_DEPS)
-        set(_no_deps "NO_DEPS")
-    endif()
-
-    get_ip_sources(V_SRC ${IP_LIB} VERILOG_SIM ${_no_deps})
-    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_SIM ${_no_deps})
-    list(PREPEND SRC ${V_SRC})
-    list(REMOVE_DUPLICATES SRC)
-    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
-endfunction()
-
-#[[[
-# This function retrieves FPGA-only RTL source files of a target library.
-#
-# :param OUT_VAR: The variable containing the retrieved source file.
-# :type OUT_VAR: string
-# :param IP_LIB: The target IP library.
-# :type IP_LIB: string
-#
-#]]
-function(get_ip_fpga_only_sources OUT_VAR IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
-    set(_no_deps)
-    if(ARG_NO_DEPS)
-        set(_no_deps "NO_DEPS")
-    endif()
-
-    get_ip_sources(V_SRC ${IP_LIB} VERILOG_FPGA ${_no_deps})
-    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_FPGA ${_no_deps})
-    list(PREPEND SRC ${V_SRC})
-    list(REMOVE_DUPLICATES SRC)
-    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
+    set(${OUTVAR} ${SOURCES} PARENT_SCOPE)
 endfunction()
 
 #[[[
@@ -307,20 +244,26 @@ endfunction()
 #
 #]]
 function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
-    # Check that the file language is supported by SoCMake
-    check_languages(${LANGUAGE})
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    unset(_no_deps)
+    if(ARG_NO_DEPS)
+        set(_no_deps "NO_DEPS")
+    endif()
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(_reallib ${IP_LIB})
 
-    flatten_graph(${_reallib})
-    get_target_property(DEPS ${_reallib} FLAT_GRAPH)
-
-    foreach(d ${DEPS})
-        safe_get_target_property(${LANGUAGE}_INCLUDE_DIRECTORIES ${d} ${LANGUAGE}_INCLUDE_DIRECTORIES "")
-        list(PREPEND ${LANGUAGE}_INCDIRS ${${LANGUAGE}_INCLUDE_DIRECTORIES})
+    # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
+    list(REMOVE_ITEM ARGN NO_DEPS)
+    unset(INCDIRS)
+    # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
+    foreach(_lang ${LANGUAGE} ${ARGN})
+        check_languages(${_lang})
+        get_ip_property(_lang_incdirs ${IP_LIB} ${_lang}_INCLUDE_DIRECTORIES ${_no_deps})
+        list(APPEND INCDIRS ${_lang_incdirs})
     endforeach()
 
-    set(${OUTVAR} ${${LANGUAGE}_INCDIRS} PARENT_SCOPE)
+    list(REMOVE_DUPLICATES INCDIRS)
+    set(${OUTVAR} ${INCDIRS} PARENT_SCOPE)
 endfunction()
 
 #[[[
@@ -339,8 +282,12 @@ endfunction()
 function(check_languages LANGUAGE)
     # The default supported languages
     # The user can add addition languages using the SOCMAKE_ADDITIONAL_LANGUAGES variable
-    set(SOCMAKE_SUPPORTED_LANGUAGES SYSTEMVERILOG SYSTEMVERILOG_SIM SYSTEMVERILOG_FPGA VERILOG VHDL SYSTEMRDL SYSTEMRDL_SOCGEN
-        ${SOCMAKE_ADDITIONAL_LANGUAGES})
+    set(SOCMAKE_SUPPORTED_LANGUAGES 
+            SYSTEMVERILOG SYSTEMVERILOG_SIM SYSTEMVERILOG_FPGA
+            VERILOG VERILOG_SIM VERILOG_FPGA
+            VHDL VHDL_SIM VHDL_FPGA
+            SYSTEMRDL SYSTEMRDL_SOCGEN
+            ${SOCMAKE_ADDITIONAL_LANGUAGES})
 
     if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
         if(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL)
@@ -410,8 +357,8 @@ endfunction()
 #[[[
 # This function retrieves a specific property from a target library and its dependencies.
 #
-# :param OUT_VAR: Variable containing the requested property.
-# :type OUT_VAR: string
+# :param OUTVAR: Variable containing the requested property.
+# :type OUTVAR: string
 # :param TARGET: The target IP library name.
 # :type TARGET: string
 # :param PROPERTY: Property to retrieve from IP_LIB.
@@ -478,8 +425,8 @@ endfunction()
 # This function is a hardcoded version of get_ip_property() for the
 # <LANGUAGE>_COMPILE_DEFINITIONS property.
 #
-# :param OUT_VAR: Variable containing the requested property.
-# :type OUT_VAR: string
+# :param OUTVAR: Variable containing the requested property.
+# :type OUTVAR: string
 # :param IP_LIB: The target IP library name.
 # :type IP_LIB: string
 # :param LANGUAGE: Language to which the definition apply.
@@ -487,9 +434,24 @@ endfunction()
 #
 #]]
 function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
-    check_languages(${LANGUAGE})
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    unset(_no_deps)
+    if(ARG_NO_DEPS)
+        set(_no_deps "NO_DEPS")
+    endif()
     # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(IP_LIB ${IP_LIB})
-    get_ip_property(__comp_defs ${IP_LIB} ${LANGUAGE}_COMPILE_DEFINITIONS)
-    set(${OUTVAR} ${__comp_defs} PARENT_SCOPE)
+    ip_assume_last(_reallib ${IP_LIB})
+
+    # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
+    list(REMOVE_ITEM ARGN NO_DEPS)
+    unset(COMPDEFS)
+    # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
+    foreach(_lang ${LANGUAGE} ${ARGN})
+        check_languages(${_lang})
+        get_ip_property(_lang_compdefs ${IP_LIB} ${_lang}_COMPILE_DEFINITIONS ${_no_deps})
+        list(APPEND COMPDEFS ${_lang_compdefs})
+    endforeach()
+
+    list(REMOVE_DUPLICATES COMPDEFS)
+    set(${OUTVAR} ${COMPDEFS} PARENT_SCOPE)
 endfunction()
