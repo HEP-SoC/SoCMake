@@ -31,7 +31,7 @@ function(sed_wor IP_LIB BINARY_DIR SOURCES)
 
     add_custom_command(
         OUTPUT ${STAMP_FILE}
-        COMMAND /bin/sh -c "date > ${STAMP_FILE}"
+        COMMAND /bin/sh -c date > ${STAMP_FILE}
         DEPENDS ${MODIFIED_SOURCES}
         COMMENT "Generating stamp file after sed commands."
     )
