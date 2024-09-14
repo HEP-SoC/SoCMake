@@ -84,52 +84,16 @@ cmake.hwip
    
 
 
-.. function:: get_ip_sources(OUT_VAR IP_LIB LANGUAGE **kwargs)
+.. function:: get_ip_sources(OUTVAR IP_LIB LANGUAGE **kwargs)
 
    This function retrieves the specific source files of a target library.
    
-   :param OUT_VAR: The variable containing the retrieved source file.
-   :type OUT_VAR: string
+   :param OUTVAR: The variable containing the retrieved source file.
+   :type OUTVAR: string
    :param IP_LIB: The target IP library.
    :type IP_LIB: string
    :param LANGUAGE: The type of source file(s).
    :type LANGUAGE: string
-   
-   
-
-
-.. function:: get_ip_rtl_sources(OUT_VAR IP_LIB **kwargs)
-
-   This function retrieves RTL source files of a target library.
-   
-   :param OUT_VAR: The variable containing the retrieved source file.
-   :type OUT_VAR: string
-   :param IP_LIB: The target IP library.
-   :type IP_LIB: string
-   
-   
-
-
-.. function:: get_ip_sim_only_sources(OUT_VAR IP_LIB **kwargs)
-
-   This function retrieves simulation-only RTL source files of a target library.
-   
-   :param OUT_VAR: The variable containing the retrieved source file.
-   :type OUT_VAR: string
-   :param IP_LIB: The target IP library.
-   :type IP_LIB: string
-   
-   
-
-
-.. function:: get_ip_fpga_only_sources(OUT_VAR IP_LIB **kwargs)
-
-   This function retrieves FPGA-only RTL source files of a target library.
-   
-   :param OUT_VAR: The variable containing the retrieved source file.
-   :type OUT_VAR: string
-   :param IP_LIB: The target IP library.
-   :type IP_LIB: string
    
    
 
@@ -150,7 +114,7 @@ cmake.hwip
    
 
 
-.. function:: get_ip_include_directories(OUTVAR IP_LIB LANGUAGE)
+.. function:: get_ip_include_directories(OUTVAR IP_LIB LANGUAGE **kwargs)
 
    This function retrieves the included directories of a target library and its dependencies.
    
@@ -204,8 +168,8 @@ cmake.hwip
 
    This function retrieves a specific property from a target library and its dependencies.
    
-   :param OUT_VAR: Variable containing the requested property.
-   :type OUT_VAR: string
+   :param OUTVAR: Variable containing the requested property.
+   :type OUTVAR: string
    :param TARGET: The target IP library name.
    :type TARGET: string
    :param PROPERTY: Property to retrieve from IP_LIB.
@@ -233,13 +197,13 @@ cmake.hwip
    
 
 
-.. function:: get_ip_compile_definitions(OUTVAR IP_LIB LANGUAGE)
+.. function:: get_ip_compile_definitions(OUTVAR IP_LIB LANGUAGE **kwargs)
 
    This function is a hardcoded version of get_ip_property() for the
    <LANGUAGE>_COMPILE_DEFINITIONS property.
    
-   :param OUT_VAR: Variable containing the requested property.
-   :type OUT_VAR: string
+   :param OUTVAR: Variable containing the requested property.
+   :type OUTVAR: string
    :param IP_LIB: The target IP library name.
    :type IP_LIB: string
    :param LANGUAGE: Language to which the definition apply.
