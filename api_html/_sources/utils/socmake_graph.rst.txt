@@ -1,0 +1,32 @@
+
+#########################
+cmake.utils/socmake_graph
+#########################
+
+.. module:: cmake.utils/socmake_graph
+
+
+.. function:: flatten_graph(NODE)
+
+   
+
+
+.. function:: __flatten_graph_recursive(NODE RET)
+
+   
+
+
+.. function:: __append_rm_list_unique(NODE RM_EL)
+
+   
+
+
+.. function:: compare_lists(L1 L2 RET)
+
+   
+
+
+.. function:: __all_vertices_removed(NODE RET)
+
+   
+

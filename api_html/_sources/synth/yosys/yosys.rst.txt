@@ -1,0 +1,12 @@
+
+#######################
+cmake.synth/yosys/yosys
+#######################
+
+.. module:: cmake.synth/yosys/yosys
+
+
+.. function:: yosys(IP_LIB **kwargs)
+
+   
+

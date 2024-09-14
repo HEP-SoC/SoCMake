@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>cmake.hwip &#8212; SoCMake 0.1.20 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=17aaaefc"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="verible" href="verible/verible.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-cmake.hwip">
+<span id="cmake-hwip"></span><h1>cmake.hwip<a class="headerlink" href="#module-cmake.hwip" title="Link to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.add_ip">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">add_ip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IP_NAME</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.add_ip" title="Link to this definition">¶</a></dt>
+<dd><p>This function creates an INTERFACE library for a given IP.</p>
+<p>This function is a wrapper around the cmake built-in
+<a class="reference external" href="https://cmake.org/cmake/help/latest/command/add_library.html">add_library()</a> function.
+It generates the library name using the vendor, library, name, and version (VLNV) information passed
+in arguments (see get_ipname()). It creates two alias libraries to the default &lt;vendor&gt;__&lt;library&gt;__&lt;name&gt;__&lt;version&gt;:</p>
+<ul class="simple">
+<li><p>&lt;vendor&gt;::&lt;library&gt;::&lt;name&gt;::&lt;version&gt; (‘__’ replaced by ‘::’)</p></li>
+<li><p>&lt;vendor&gt;::&lt;library&gt;::&lt;name&gt; (short name without the version)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>IP_NAME</strong> (<em>string</em>) – The name of the IP.</p>
+</dd>
+</dl>
+<p><strong>Keyword Arguments</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>VENDOR</strong> (<em>string</em>) – Name of the IP vendor.</p></li>
+<li><p><strong>LIBRARY</strong> (<em>string</em>) – Name of the IP library.</p></li>
+<li><p><strong>VERSION</strong> (<em>string</em>) – Version of the IP following a three-part version number (Major.Minor.Patch, e.g., 1.0.13).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.get_ipname">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">get_ipname</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">OUTVAR</span> <span class="pre">IP_NAME</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.get_ipname" title="Link to this definition">¶</a></dt>
+<dd><p>This function creates an IP name provided vendor, library, name, and version (VLNV) information.</p>
+<p>This functions appends the vendor, library, name, and version (VLNV) information separated by ‘__’
+to create a unique string representing an IP name. This string is used as the library name when
+when calling the cmake built-in
+<a class="reference external" href="https://cmake.org/cmake/help/latest/command/add_library.html">add_library()</a> function (see add_ip()).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>OUTVAR</strong> (<em>string</em>) – The generate IP name.</p></li>
+<li><p><strong>IP_NAME</strong> (<em>string</em>) – The name of the IP.</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Keyword Arguments</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>VENDOR</strong> (<em>string</em>) – Name of the IP vendor.</p></li>
+<li><p><strong>LIBRARY</strong> (<em>string</em>) – Name of the IP library.</p></li>
+<li><p><strong>VERSION</strong> (<em>string</em>) – Version of the IP following a three-part version number (Major.Minor.Patch, e.g., 1.0.13).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.ip_assume_last">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">ip_assume_last</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">VLNV</span> <span class="pre">IP_NAME</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.ip_assume_last" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.ip_sources">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">ip_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IP_LIB</span> <span class="pre">LANGUAGE</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.ip_sources" title="Link to this definition">¶</a></dt>
+<dd><p>This function adds source file(s) to an IP target.</p>
+<p>This functions adds source file(s) to an IP target as a property named after the type of source file(s)
+and the suffix ‘__SOURCES’. If source files of the same type already exist they are appended to the
+existing list. Ne source files can also be prepended with the optional keyword PREPEND. The source
+files are later used to create the list of files to be compiled (e.g., by a simulator) by a tool to
+execute its tasks. The source files are passed as a list after the parameters and keywords.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library.</p></li>
+<li><p><strong>TYPE</strong> (<em>string</em>) – The type of source file(s).</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Keyword Arguments</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>PREPEND</strong> (<em>string</em>) – This keyword enable prepending the new source files with respect to the existing ones.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.get_ip_sources">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">get_ip_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">OUT_VAR</span> <span class="pre">IP_LIB</span> <span class="pre">LANGUAGE</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.get_ip_sources" title="Link to this definition">¶</a></dt>
+<dd><p>This function retrieves the specific source files of a target library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>OUT_VAR</strong> (<em>string</em>) – The variable containing the retrieved source file.</p></li>
+<li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library.</p></li>
+<li><p><strong>LANGUAGE</strong> (<em>string</em>) – The type of source file(s).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.get_ip_rtl_sources">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">get_ip_rtl_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">OUT_VAR</span> <span class="pre">IP_LIB</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.get_ip_rtl_sources" title="Link to this definition">¶</a></dt>
+<dd><p>This function retrieves RTL source files of a target library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>OUT_VAR</strong> (<em>string</em>) – The variable containing the retrieved source file.</p></li>
+<li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.get_ip_sim_only_sources">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">get_ip_sim_only_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">OUT_VAR</span> <span class="pre">IP_LIB</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.get_ip_sim_only_sources" title="Link to this definition">¶</a></dt>
+<dd><p>This function retrieves simulation-only RTL source files of a target library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>OUT_VAR</strong> (<em>string</em>) – The variable containing the retrieved source file.</p></li>
+<li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.get_ip_fpga_only_sources">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">get_ip_fpga_only_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">OUT_VAR</span> <span class="pre">IP_LIB</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.get_ip_fpga_only_sources" title="Link to this definition">¶</a></dt>
+<dd><p>This function retrieves FPGA-only RTL source files of a target library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>OUT_VAR</strong> (<em>string</em>) – The variable containing the retrieved source file.</p></li>
+<li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.ip_include_directories">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">ip_include_directories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IP_LIB</span> <span class="pre">LANGUAGE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.ip_include_directories" title="Link to this definition">¶</a></dt>
+<dd><p>This function adds include directory(ies) to a target library.</p>
+<p>This function adds an interface include directory(ies) to a target library. The include directory(ies)
+is added with the INTERFACE option (i.e., passed to targets depending on this one). The include
+directories are passed as a list after the parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library.</p></li>
+<li><p><strong>LANGUAGE</strong> (<em>string</em>) – Language of the included files.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.get_ip_include_directories">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">get_ip_include_directories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">OUTVAR</span> <span class="pre">IP_LIB</span> <span class="pre">LANGUAGE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.get_ip_include_directories" title="Link to this definition">¶</a></dt>
+<dd><p>This function retrieves the included directories of a target library and its dependencies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>OUTVAR</strong> (<em>string</em>) – The variable containing the retrieved included directory(ies).</p></li>
+<li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library.</p></li>
+<li><p><strong>LANGUAGE</strong> (<em>string</em>) – Language of the included files.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.check_languages">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">check_languages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">LANGUAGE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.check_languages" title="Link to this definition">¶</a></dt>
+<dd><p>This function checks the the language is supported by SoCMake.</p>
+<p>This function checks the the language is supported by SoCMake and issue a warning/error depending
+on the verbosity level. The supported languages can be augmented using the variable
+SOCMAKE_ADDITIONAL_LANGUAGES.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>OUT</strong> (<em>string</em>) – The variable in which to store the original retrieved name.</p></li>
+<li><p><strong>LIB</strong> (<em>string</em>) – The target IP library name.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.ip_link">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">ip_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IP_LIB</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.ip_link" title="Link to this definition">¶</a></dt>
+<dd><p>This function adds a target link library and a dependency to an IP target.</p>
+<p>This function gets the original target and dependency names in case an alias is given. Then it checks
+if the link library exists and adds it (if it’s not already added). Finally, the link library is added
+as a dependency. This last step can be skipped with the keyword NODEPEND. The dependencies are passed
+as a list after the parameters and the keyword.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library name.</p>
+</dd>
+</dl>
+<p><strong>Keyword Arguments</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NODEPEND</strong> (<em>string</em>) – This keyword disable the dependency between the targets.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.get_ip_property">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">get_ip_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">OUTVAR</span> <span class="pre">TARGET</span> <span class="pre">PROPERTY</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.get_ip_property" title="Link to this definition">¶</a></dt>
+<dd><p>This function retrieves a specific property from a target library and its dependencies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>OUT_VAR</strong> (<em>string</em>) – Variable containing the requested property.</p></li>
+<li><p><strong>TARGET</strong> (<em>string</em>) – The target IP library name.</p></li>
+<li><p><strong>PROPERTY</strong> (<em>string</em>) – Property to retrieve from IP_LIB.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.ip_compile_definitions">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">ip_compile_definitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IP_LIB</span> <span class="pre">LANGUAGE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.ip_compile_definitions" title="Link to this definition">¶</a></dt>
+<dd><p>Set a compile definition on a IP for a given language inside property &lt;LANGUAGE&gt;_COMPILE_DEFINITIONS.</p>
+<p>Any leading <cite>-D</cite> on an item will be removed. Empty items are ignored. For example, the following are all equivalent:</p>
+<p>ip_compile_definitions(foo VERILOG FOO)
+ip_compile_definitions(foo VERILOG -DFOO)  # -D removed
+ip_compile_definitions(foo VERILOG “” FOO) # “” ignored
+ip_compile_definitions(foo VERILOG -D FOO) # -D becomes “”, then ignored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library name.</p></li>
+<li><p><strong>LANGUAGE</strong> (<em>string</em>) – Language to which the definition should apply.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.get_ip_compile_definitions">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">get_ip_compile_definitions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">OUTVAR</span> <span class="pre">IP_LIB</span> <span class="pre">LANGUAGE</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.get_ip_compile_definitions" title="Link to this definition">¶</a></dt>
+<dd><p>This function is a hardcoded version of get_ip_property() for the
+&lt;LANGUAGE&gt;_COMPILE_DEFINITIONS property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>OUT_VAR</strong> (<em>string</em>) – Variable containing the requested property.</p></li>
+<li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library name.</p></li>
+<li><p><strong>LANGUAGE</strong> (<em>string</em>) – Language to which the definition apply.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">SoCMake</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="firmware/index.html">cmake.firmware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="peakrdl/index.html">cmake.peakrdl</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synth/index.html">cmake.synth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tmake/index.html">cmake.tmake</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils/index.html">cmake.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="verible/index.html">cmake.verible</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">cmake.hwip</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.add_ip"><code class="docutils literal notranslate"><span class="pre">add_ip()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.get_ipname"><code class="docutils literal notranslate"><span class="pre">get_ipname()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.ip_assume_last"><code class="docutils literal notranslate"><span class="pre">ip_assume_last()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.ip_sources"><code class="docutils literal notranslate"><span class="pre">ip_sources()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.get_ip_sources"><code class="docutils literal notranslate"><span class="pre">get_ip_sources()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.get_ip_rtl_sources"><code class="docutils literal notranslate"><span class="pre">get_ip_rtl_sources()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.get_ip_sim_only_sources"><code class="docutils literal notranslate"><span class="pre">get_ip_sim_only_sources()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.get_ip_fpga_only_sources"><code class="docutils literal notranslate"><span class="pre">get_ip_fpga_only_sources()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.ip_include_directories"><code class="docutils literal notranslate"><span class="pre">ip_include_directories()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.get_ip_include_directories"><code class="docutils literal notranslate"><span class="pre">get_ip_include_directories()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.check_languages"><code class="docutils literal notranslate"><span class="pre">check_languages()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.ip_link"><code class="docutils literal notranslate"><span class="pre">ip_link()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.get_ip_property"><code class="docutils literal notranslate"><span class="pre">get_ip_property()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.ip_compile_definitions"><code class="docutils literal notranslate"><span class="pre">ip_compile_definitions()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.get_ip_compile_definitions"><code class="docutils literal notranslate"><span class="pre">get_ip_compile_definitions()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="verible/verible.html" title="previous chapter">verible</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, CERN.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/hwip.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,17 @@
+
+####################################
+cmake.utils/safe_get_target_property
+####################################
+
+.. module:: cmake.utils/safe_get_target_property
+
+
+.. function:: safe_get_target_property(OUT_VAR TARGET PROPERTY WARNING_LEVEL)
+
+   
+
+
+.. function:: get_interface_sources(OUT_VAR TARGET)
+
+   
+

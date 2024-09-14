@@ -1,0 +1,44 @@
+
+#######
+verible
+#######
+
+.. module:: verible
+
+
+.. function:: verible_lint(IP_LIB **kwargs)
+
+   Verible lint tool interface
+   
+   Verible-lint is a SystemVerilog linter...
+   
+   Verible can be found `here <https://github.com/chipsalliance/verible>`_
+   
+   Function expects that **IP_LIB** *INTERFACE_LIBRARY* has **SOURCES** property set with a list of System Verilog files to be used as inputs.
+   To set the SOURCES property use `target_sources() <https://cmake.org/cmake/help/latest/command/target_sources.html>`_ CMake function:
+   
+   .. code-block:: cmake
+   
+      target_sources(<your-lib> INTERFACE <sources>...)
+   
+   Function will create targets for linting or formatting depending on passed option
+   
+   :param IP_LIB: RTL interface library, it needs to have SOURCES property set with a list of System Verilog files.
+   :type IP_LIB: INTERFACE_LIBRARY
+   
+   **Keyword Arguments**
+   
+   :keyword REQUIRED: if option REQUIRED is passed, the **IP_LIB** will depend on linting target, meaning that the linting will be done as soon as all the Verilog files are generated. By default only a new target <IP_LIB>_verible_lint is created and can be run optionally.
+   :type REQUIRED: boolean
+   :keyword OUTDIR: output directory in which the files will be generated, if ommited ${BINARY_DIR}/verible will be used.
+   :type OUTDIR: string path
+   :keyword AUTOFIX: autofix the linting errors
+   :type AUTOFIX: [no|patch-interactive|patch|inplace-interactive|inplace|generate-waiver]
+   :keyword RULES: list of rules to enable or disable for reference look at verible `documentation <https://github.com/chipsalliance/verible/tree/master/verilog/tools/lint#rule-configuration>`_
+   :type RULES: List[string]
+   :keyword RULES_FILE: Additionally, the RULES_FILE flag can be used to read configuration stored in a file. The syntax is the same as RULES, except the rules can be also separated with the newline character
+   :type RULES_FILE: path string
+   :keyword WAIVER_FILES: (Path to waiver config files (comma-separated). Please refer to the README file for information about its format.)
+   :type WAIVER_FILES: List[path string]
+   
+

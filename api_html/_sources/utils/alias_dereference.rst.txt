@@ -1,0 +1,19 @@
+
+#############################
+cmake.utils/alias_dereference
+#############################
+
+.. module:: cmake.utils/alias_dereference
+
+
+.. function:: alias_dereference(OUT LIB)
+
+   This function returns the original library name if the given one is an alias.
+   
+   :param OUT: The variable in which to store the original retrieved name.
+   :type OUT: string
+   :param LIB: The target IP library name.
+   :type LIB: string
+   
+   
+

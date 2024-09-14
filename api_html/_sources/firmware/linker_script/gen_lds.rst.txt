@@ -1,0 +1,16 @@
+
+####################################
+cmake.firmware/linker_script/gen_lds
+####################################
+
+.. module:: cmake.firmware/linker_script/gen_lds
+
+
+.. function:: gen_lds(IP_LIB **kwargs)
+
+   This function generates linker script (LDS) file for the specified IP library.
+   
+   :param IP_LIB: The name of the IP library target.
+   :type IP_LIB: str
+   
+

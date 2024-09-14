@@ -1,0 +1,12 @@
+
+###################
+cmake.utils/colours
+###################
+
+.. module:: cmake.utils/colours
+
+
+.. function:: msg(TEXT COLOUR **kwargs)
+
+   
+

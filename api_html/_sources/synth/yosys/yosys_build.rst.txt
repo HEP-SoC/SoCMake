@@ -1,0 +1,12 @@
+
+#############################
+cmake.synth/yosys/yosys_build
+#############################
+
+.. module:: cmake.synth/yosys/yosys_build
+
+
+.. function:: yosys_build(**kwargs)
+
+   
+

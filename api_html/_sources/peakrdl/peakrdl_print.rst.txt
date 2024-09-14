@@ -1,0 +1,14 @@
+
+###########################
+cmake.peakrdl/peakrdl_print
+###########################
+
+.. module:: cmake.peakrdl/peakrdl_print
+
+
+.. function:: peakrdl_print(IP_LIB)
+
+   Creates a target <IP_LIB>_peakrdl_print that prints address map in terminal.
+   
+   
+

@@ -1,0 +1,10 @@
+
+###################################
+cmake.peakrdl/peakrdl_socgen/common
+###################################
+
+.. toctree:: 
+   :maxdepth: 2
+
+   socgen_props
+

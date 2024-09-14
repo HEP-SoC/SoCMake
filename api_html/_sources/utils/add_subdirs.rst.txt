@@ -1,0 +1,15 @@
+
+#######################
+cmake.utils/add_subdirs
+#######################
+
+.. module:: cmake.utils/add_subdirs
+
+
+.. function:: add_subdirs()
+
+
+   .. note:: This is a macro, and so does not introduce a new scope.
+
+   
+

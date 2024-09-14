@@ -1,0 +1,17 @@
+
+#############
+cmake.peakrdl
+#############
+
+.. toctree:: 
+   :maxdepth: 2
+
+   peakrdl_html/index.rst
+   peakrdl_socgen/index.rst
+   peakrdl_docusaurus
+   peakrdl_halcpp
+   peakrdl_ipblocksvg
+   peakrdl_print
+   peakrdl_regblock
+   peakrdl_regblock_wrap
+

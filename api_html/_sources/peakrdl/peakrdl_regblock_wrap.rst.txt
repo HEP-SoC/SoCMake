@@ -1,0 +1,12 @@
+
+###################################
+cmake.peakrdl/peakrdl_regblock_wrap
+###################################
+
+.. module:: cmake.peakrdl/peakrdl_regblock_wrap
+
+
+.. function:: peakrdl_regblock_wrap(IP_LIB **kwargs)
+
+   
+

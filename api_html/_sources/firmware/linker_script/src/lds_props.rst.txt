@@ -1,0 +1,7 @@
+
+##########################################
+cmake.firmware/linker_script/src/lds_props
+##########################################
+
+.. module:: cmake.firmware/linker_script/src/lds_props
+

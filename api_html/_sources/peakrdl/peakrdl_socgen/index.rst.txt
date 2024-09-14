@@ -1,0 +1,11 @@
+
+############################
+cmake.peakrdl/peakrdl_socgen
+############################
+
+.. toctree:: 
+   :maxdepth: 2
+
+   common/index.rst
+   peakrdl_socgen
+

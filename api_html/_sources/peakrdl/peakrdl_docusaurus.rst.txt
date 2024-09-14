@@ -1,0 +1,12 @@
+
+################################
+cmake.peakrdl/peakrdl_docusaurus
+################################
+
+.. module:: cmake.peakrdl/peakrdl_docusaurus
+
+
+.. function:: peakrdl_docusaurus(IP_LIB **kwargs)
+
+   
+

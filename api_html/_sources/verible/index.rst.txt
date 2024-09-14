@@ -1,0 +1,10 @@
+
+#############
+cmake.verible
+#############
+
+.. toctree:: 
+   :maxdepth: 2
+
+   verible
+

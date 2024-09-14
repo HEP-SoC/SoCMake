@@ -1,0 +1,12 @@
+
+#########################################
+cmake.utils/copy_rtl_files/copy_rtl_files
+#########################################
+
+.. module:: cmake.utils/copy_rtl_files/copy_rtl_files
+
+
+.. function:: copy_rtl_files(IP_LIB **kwargs)
+
+   
+

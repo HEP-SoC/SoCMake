@@ -1,0 +1,21 @@
+
+###########
+cmake.utils
+###########
+
+.. toctree:: 
+   :maxdepth: 2
+
+   copy_rtl_files/index.rst
+   graphviz/index.rst
+   add_subdirs
+   alias_dereference
+   colours
+   find_python
+   graphviz
+   multi_option
+   print_list
+   safe_get_target_property
+   socmake_graph
+   subdirectory_search
+

@@ -1,0 +1,15 @@
+
+###############################
+cmake.utils/subdirectory_search
+###############################
+
+.. module:: cmake.utils/subdirectory_search
+
+
+.. function:: SUBDIRLIST(result curdir)
+
+
+   .. note:: This is a macro, and so does not introduce a new scope.
+
+   
+

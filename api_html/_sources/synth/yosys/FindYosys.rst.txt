@@ -1,0 +1,7 @@
+
+###########################
+cmake.synth/yosys/FindYosys
+###########################
+
+.. module:: cmake.synth/yosys/FindYosys
+

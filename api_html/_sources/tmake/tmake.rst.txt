@@ -1,0 +1,12 @@
+
+#################
+cmake.tmake/tmake
+#################
+
+.. module:: cmake.tmake/tmake
+
+
+.. function:: tmake_manifest(IP_LIB **kwargs)
+
+   
+

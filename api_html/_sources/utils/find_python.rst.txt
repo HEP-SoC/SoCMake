@@ -1,0 +1,15 @@
+
+#######################
+cmake.utils/find_python
+#######################
+
+.. module:: cmake.utils/find_python
+
+
+.. function:: find_python3()
+
+
+   .. note:: This is a macro, and so does not introduce a new scope.
+
+   
+
