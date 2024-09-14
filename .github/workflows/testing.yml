@@ -22,7 +22,10 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get install cmake sudo iverilog make g++ perl cpanminus
-          sudo cpanm Verilog::Perl
+          cpanm --mirror http://www.cpan.org --mirror-only --local-lib=$HOME/perl5 Verilog::Perl
+          # Ensure Perl environment is set up correctly
+          echo 'eval $(perl -I$HOME/perl5/lib/perl5 -Mlocal::lib)' >> $BASH_ENV
+
           pip install peakrdl
 
       - name: run tests
