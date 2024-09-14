@@ -9,10 +9,32 @@ include("${CMAKE_CURRENT_LIST_DIR}/utils/safe_get_target_property.cmake")
 # This function is a wrapper around the cmake built-in
 # `add_library() <https://cmake.org/cmake/help/latest/command/add_library.html>`_ function.
 # It generates the library name using the vendor, library, name, and version (VLNV) information passed
-# in arguments (see get_ipname()). It creates two alias libraries to the default <vendor>__<library>__<name>__<version>:
-#
+# in arguments (see create_ip_vlnv()). It creates two alias libraries to the default <vendor>__<library>__<name>__<version>:
+# 
 # * <vendor>::<library>::<name>::<version> ('__' replaced by '::')
 # * <vendor>::<library>::<name> (short name without the version)
+#
+# This function can be used in FULL and SHORT form:
+# Full form:
+# ```
+# add_ip(ip
+#     VENDOR vendor
+#     LIBRARY lib
+#     VERSION 1.2.3
+#     )
+# ```
+# In full form it is possible to ommit VENDOR, LIBRARY and VERSION, although it is not recommended.
+#
+# Ommiting them all would have following signature:
+# ```
+# add_ip(ip2)
+# ```
+#
+# Short form:
+# ```
+# add_ip(vendor2::lib2::ip2::1.2.2)
+# ```
+# In short form only the full VLNV format is accepted
 #
 # :param IP_NAME: The name of the IP.
 # :type IP_NAME: string
@@ -27,24 +49,33 @@ include("${CMAKE_CURRENT_LIST_DIR}/utils/safe_get_target_property.cmake")
 # :type VERSION: string
 #]]
 function(add_ip IP_NAME)
-    cmake_parse_arguments(ARG "" "VERSION;DESCRIPTION;VENDOR;LIBRARY" "" ${ARGN})
+    cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
 
     # Vendor and library arguments are expected at the minimum
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
                             "${ARG_UNPARSED_ARGUMENTS}")
     endif()
+    
+    # If none of optional arguments VENDOR, LIBRARY, VERSION are passed expect to receive VLNV format in IP_NAME like vendor::lib::ip::0.0.1
+    if(NOT ARG_VENDOR AND NOT ARG_LIBRARY AND NOT ARG_VERSION)
+        unset(ARG_VENDOR)
+        parse_ip_vlnv(${IP_NAME} VENDOR LIBRARY IP_NAME VERSION)
+        set(ARG_VENDOR ${VENDOR})
+        set(ARG_LIBRARY ${LIBRARY})
+        set(ARG_VERSION ${VERSION})
+    endif()
     # Issue a warning if one of the VLNV information is not passed (this triggers an error later anyway)
     if((NOT ARG_VERSION OR NOT ARG_VENDOR OR NOT ARG_LIBRARY) AND NOT SOCMAKE_NOWARN_VLNV)
-    message(WARNING "Consider using full VLNV format\n\
-                    IP block: ${IP_NAME}\n\
-                    VENDOR: ${ARG_VENDOR}\n\
-                    LIBRARY: ${ARG_LIBRARY}\n\
-                    VERSION: ${ARG_VERSION}")
+        message(WARNING "Consider using full VLNV format\n\
+                        IP block: ${IP_NAME}\n\
+                        VENDOR: ${ARG_VENDOR}\n\
+                        LIBRARY: ${ARG_LIBRARY}\n\
+                        VERSION: ${ARG_VERSION}")
     endif()
     # Create the IP unique name using VLNV information
-    get_ipname(IP_LIB ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "${ARG_VERSION}")
-
+    create_ip_vlnv(IP_LIB ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "${ARG_VERSION}")
+ 
     if(NOT TARGET ${IP_LIB})
         add_library(${IP_LIB} INTERFACE)
 
@@ -54,13 +85,20 @@ function(add_ip IP_NAME)
         endif()
 
         # TODO Maybe delete short name without version
-        get_ipname(IP_LIB_SHORT ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "")
-        string(REPLACE "__" "::" ALIAS_NAME_SHORT "${IP_LIB_SHORT}")
-        if(NOT "${IP_LIB}" STREQUAL "${ALIAS_NAME_SHORT}")
-            add_library(${ALIAS_NAME_SHORT} ALIAS ${IP_LIB})
+        if(ARG_VERSION)
+            create_ip_vlnv(IP_LIB_SHORT ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "")
+            string(REPLACE "__" "::" ALIAS_NAME_SHORT "${IP_LIB_SHORT}")
+            if(NOT "${IP_LIB}" STREQUAL "${ALIAS_NAME_SHORT}")
+                add_library(${ALIAS_NAME_SHORT} ALIAS ${IP_LIB})
+            endif()
         endif()
     endif()
 
+    # Unset the parent variables that might have been set by previous add_ip() call
+    unset(IP_VENDOR PARENT_SCOPE)
+    unset(IP_LIBRARY PARENT_SCOPE)
+    unset(IP_NAME PARENT_SCOPE)
+    unset(IP_VERSION PARENT_SCOPE)
     if(ARG_VENDOR)
         set(IP_VENDOR ${ARG_VENDOR} PARENT_SCOPE)
         set_target_properties(${IP_LIB} PROPERTIES VENDOR ${ARG_VENDOR})
@@ -101,7 +139,7 @@ endfunction()
 # :keyword VERSION: Version of the IP following a three-part version number (Major.Minor.Patch, e.g., 1.0.13).
 # :type VERSION: string
 #]]
-function(get_ipname OUTVAR IP_NAME)
+function(create_ip_vlnv OUTVAR IP_NAME)
     cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -121,11 +159,73 @@ function(get_ipname OUTVAR IP_NAME)
     set(${OUTVAR} ${LIB_NAME} PARENT_SCOPE)
 endfunction()
 
+#[[[
+# This function parses IP name from the VLNV format e.g. (vendor::lib::ip::0.0.1)
+#
+# This functions appends the vendor, library, name, and version (VLNV) information separated by '__'
+# to create a unique string representing an IP name. This string is used as the library name when
+# when calling the cmake built-in
+# `add_library() <https://cmake.org/cmake/help/latest/command/add_library.html>`_ function (see add_ip()).
+#
+# :param OUTVAR: The generate IP name.
+# :type OUTVAR: string
+# :param IP_NAME: The name of the IP.
+# :type IP_NAME: string
+#
+# **Keyword Arguments**
+#
+# :keyword VENDOR: Name of the IP vendor.
+# :type VENDOR: string
+# :keyword LIBRARY: Name of the IP library.
+# :type LIBRARY: string
+# :keyword VERSION: Version of the IP following a three-part version number (Major.Minor.Patch, e.g., 1.0.13).
+# :type VERSION: string
+#]]
+function(parse_ip_vlnv IP_VLNV VENDOR LIBRARY IP_NAME VERSION)
+    message("IP_VLNV: ${IP_VLNV}")
+    cmake_parse_arguments(ARG "" "" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    # Convert IP_VLNV into a list of tokens by replacing :: with ;
+    string(REPLACE "::" ";" IP_TOKENS ${IP_VLNV})
+    # Remove empty list elements in case something like vendor::::ip::1.2.3 is passed
+    list(REMOVE_ITEM IP_TOKENS "")
+
+    # Raise an error if there are different than 4 tokens provided (`add_ip(vendor::lib::ip::0.0.1)`), unless its only 1 (`add_ip(ip)`) 
+    list(LENGTH IP_TOKENS TOKEN_CNT)
+
+    # Its alowed for IP_VLNV to have 4 tokens (FULL) `add_ip(vendor::lib::ip::0.0.1)`
+    if(TOKEN_CNT EQUAL 4)
+        # Get elements of the list
+        list(GET IP_TOKENS 0 VENDOR)
+        list(GET IP_TOKENS 1 LIBRARY)
+        list(GET IP_TOKENS 2 IP_NAME)
+        list(GET IP_TOKENS 3 VERSION)
+    # Its alowed for IP_VLNV to have 1 token (SHORT) `add_ip(ip)`
+    elseif(TOKEN_CNT EQUAL 1)
+        set(IP_NAME ${IP_VLNV})
+        unset(VENDOR)
+        unset(LIBRARY)
+        unset(VERSION)
+    # Anything else is not allowed and will throw an error
+    else()
+        message(FATAL_ERROR "Please specify full VLNV format for IP: ${IP_VLNV}")
+    endif()
+
+    # Set output variables
+    set(VENDOR ${VENDOR} PARENT_SCOPE)
+    set(LIBRARY ${LIBRARY} PARENT_SCOPE)
+    set(IP_NAME ${IP_NAME} PARENT_SCOPE)
+    set(VERSION ${VERSION} PARENT_SCOPE)
+endfunction()
+
 # IS THIS REALLY NECESSARY?
 # If only IP name is given without full VLNV, assume rest from the project variables
 function(ip_assume_last VLNV IP_NAME) # TODO check SOURCE DIR if its the same as current
     if(NOT TARGET ${IP_NAME})
-        get_ipname(IP_LIB ${IP_NAME} VENDOR "${IP_VENDOR}" LIBRARY "${IP_LIBRARY}" VERSION "${IP_VERSION}")
+        create_ip_vlnv(IP_LIB ${IP_NAME} VENDOR "${IP_VENDOR}" LIBRARY "${IP_LIBRARY}" VERSION "${IP_VERSION}")
     endif()
     alias_dereference(IP_LIB ${IP_LIB})
     set(${VLNV} ${IP_LIB} PARENT_SCOPE)
@@ -178,17 +278,17 @@ endfunction()
 #[[[
 # This function retrieves the specific source files of a target library.
 #
-# :param OUT_VAR: The variable containing the retrieved source file.
-# :type OUT_VAR: string
+# :param OUTVAR: The variable containing the retrieved source file.
+# :type OUTVAR: string
 # :param IP_LIB: The target IP library.
 # :type IP_LIB: string
 # :param LANGUAGE: The type of source file(s).
 # :type LANGUAGE: string
 #
 #]]
-function(get_ip_sources OUT_VAR IP_LIB LANGUAGE)
+function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
-    set(_no_deps)
+    unset(_no_deps)
     if(ARG_NO_DEPS)
         set(_no_deps "NO_DEPS")
     endif()
@@ -196,81 +296,18 @@ function(get_ip_sources OUT_VAR IP_LIB LANGUAGE)
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(IP_LIB ${IP_LIB})
 
-    get_ip_property(SOURCES ${IP_LIB} ${LANGUAGE}_SOURCES ${_no_deps})
+    # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
+    list(REMOVE_ITEM ARGN NO_DEPS)
+    unset(SOURCES)
+    # Get all the <LANGUAGE>_SOURCES lists in order
+    foreach(_lang ${LANGUAGE} ${ARGN})
+        check_languages(${_lang})
+        get_ip_property(_lang_sources ${IP_LIB} ${_lang}_SOURCES ${_no_deps})
+        list(APPEND SOURCES ${_lang_sources})
+    endforeach()
 
     list(REMOVE_DUPLICATES SOURCES)
-    set(${OUT_VAR} ${SOURCES} PARENT_SCOPE)
-endfunction()
-
-#[[[
-# This function retrieves RTL source files of a target library.
-#
-# :param OUT_VAR: The variable containing the retrieved source file.
-# :type OUT_VAR: string
-# :param IP_LIB: The target IP library.
-# :type IP_LIB: string
-#
-#]]
-function(get_ip_rtl_sources OUT_VAR IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
-    set(_no_deps)
-    if(ARG_NO_DEPS)
-        set(_no_deps "NO_DEPS")
-    endif()
-
-    get_ip_sources(V_SRC ${IP_LIB} VERILOG ${_no_deps})
-    get_ip_sources(VH_SRC ${IP_LIB} VHDL ${_no_deps})
-    list(PREPEND VH_SRC ${V_SRC})
-    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG ${_no_deps})
-    list(PREPEND SRC ${VH_SRC})
-    list(REMOVE_DUPLICATES SRC)
-    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
-endfunction()
-
-#[[[
-# This function retrieves simulation-only RTL source files of a target library.
-#
-# :param OUT_VAR: The variable containing the retrieved source file.
-# :type OUT_VAR: string
-# :param IP_LIB: The target IP library.
-# :type IP_LIB: string
-#
-#]]
-function(get_ip_sim_only_sources OUT_VAR IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
-    set(_no_deps)
-    if(ARG_NO_DEPS)
-        set(_no_deps "NO_DEPS")
-    endif()
-
-    get_ip_sources(V_SRC ${IP_LIB} VERILOG_SIM ${_no_deps})
-    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_SIM ${_no_deps})
-    list(PREPEND SRC ${V_SRC})
-    list(REMOVE_DUPLICATES SRC)
-    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
-endfunction()
-
-#[[[
-# This function retrieves FPGA-only RTL source files of a target library.
-#
-# :param OUT_VAR: The variable containing the retrieved source file.
-# :type OUT_VAR: string
-# :param IP_LIB: The target IP library.
-# :type IP_LIB: string
-#
-#]]
-function(get_ip_fpga_only_sources OUT_VAR IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
-    set(_no_deps)
-    if(ARG_NO_DEPS)
-        set(_no_deps "NO_DEPS")
-    endif()
-
-    get_ip_sources(V_SRC ${IP_LIB} VERILOG_FPGA ${_no_deps})
-    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_FPGA ${_no_deps})
-    list(PREPEND SRC ${V_SRC})
-    list(REMOVE_DUPLICATES SRC)
-    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
+    set(${OUTVAR} ${SOURCES} PARENT_SCOPE)
 endfunction()
 
 #[[[
@@ -307,20 +344,26 @@ endfunction()
 #
 #]]
 function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
-    # Check that the file language is supported by SoCMake
-    check_languages(${LANGUAGE})
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    unset(_no_deps)
+    if(ARG_NO_DEPS)
+        set(_no_deps "NO_DEPS")
+    endif()
     # If only IP name is given without full VLNV, assume rest from the project variables
     ip_assume_last(_reallib ${IP_LIB})
 
-    flatten_graph(${_reallib})
-    get_target_property(DEPS ${_reallib} FLAT_GRAPH)
-
-    foreach(d ${DEPS})
-        safe_get_target_property(${LANGUAGE}_INCLUDE_DIRECTORIES ${d} ${LANGUAGE}_INCLUDE_DIRECTORIES "")
-        list(PREPEND ${LANGUAGE}_INCDIRS ${${LANGUAGE}_INCLUDE_DIRECTORIES})
+    # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
+    list(REMOVE_ITEM ARGN NO_DEPS)
+    unset(INCDIRS)
+    # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
+    foreach(_lang ${LANGUAGE} ${ARGN})
+        check_languages(${_lang})
+        get_ip_property(_lang_incdirs ${IP_LIB} ${_lang}_INCLUDE_DIRECTORIES ${_no_deps})
+        list(APPEND INCDIRS ${_lang_incdirs})
     endforeach()
 
-    set(${OUTVAR} ${${LANGUAGE}_INCDIRS} PARENT_SCOPE)
+    list(REMOVE_DUPLICATES INCDIRS)
+    set(${OUTVAR} ${INCDIRS} PARENT_SCOPE)
 endfunction()
 
 #[[[
@@ -339,8 +382,12 @@ endfunction()
 function(check_languages LANGUAGE)
     # The default supported languages
     # The user can add addition languages using the SOCMAKE_ADDITIONAL_LANGUAGES variable
-    set(SOCMAKE_SUPPORTED_LANGUAGES SYSTEMVERILOG SYSTEMVERILOG_SIM SYSTEMVERILOG_FPGA VERILOG VHDL SYSTEMRDL SYSTEMRDL_SOCGEN
-        ${SOCMAKE_ADDITIONAL_LANGUAGES})
+    set(SOCMAKE_SUPPORTED_LANGUAGES 
+            SYSTEMVERILOG SYSTEMVERILOG_SIM SYSTEMVERILOG_FPGA
+            VERILOG VERILOG_SIM VERILOG_FPGA
+            VHDL VHDL_SIM VHDL_FPGA
+            SYSTEMRDL SYSTEMRDL_SOCGEN
+            ${SOCMAKE_ADDITIONAL_LANGUAGES})
 
     if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
         if(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL)
@@ -393,6 +440,10 @@ function(ip_link IP_LIB)
         if(NOT TARGET ${lib})
             message(FATAL_ERROR "Library ${lib} linked to ${IP_LIB} is not defined")
         endif()
+        # In case user tries to link library to itself, raise an error
+        if(${lib} STREQUAL ${IP_LIB})
+            message(FATAL_ERROR "Cannot link library ${lib} to ${IP_LIB} (itself)")
+        endif()
         # Link the library to the target
         target_link_libraries(${_reallib} INTERFACE ${lib})
         if(NOT ARG_NODEPEND)
@@ -406,8 +457,8 @@ endfunction()
 #[[[
 # This function retrieves a specific property from a target library and its dependencies.
 #
-# :param OUT_VAR: Variable containing the requested property.
-# :type OUT_VAR: string
+# :param OUTVAR: Variable containing the requested property.
+# :type OUTVAR: string
 # :param TARGET: The target IP library name.
 # :type TARGET: string
 # :param PROPERTY: Property to retrieve from IP_LIB.
@@ -474,8 +525,8 @@ endfunction()
 # This function is a hardcoded version of get_ip_property() for the
 # <LANGUAGE>_COMPILE_DEFINITIONS property.
 #
-# :param OUT_VAR: Variable containing the requested property.
-# :type OUT_VAR: string
+# :param OUTVAR: Variable containing the requested property.
+# :type OUTVAR: string
 # :param IP_LIB: The target IP library name.
 # :type IP_LIB: string
 # :param LANGUAGE: Language to which the definition apply.
@@ -483,9 +534,24 @@ endfunction()
 #
 #]]
 function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
-    check_languages(${LANGUAGE})
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    unset(_no_deps)
+    if(ARG_NO_DEPS)
+        set(_no_deps "NO_DEPS")
+    endif()
     # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(IP_LIB ${IP_LIB})
-    get_ip_property(__comp_defs ${IP_LIB} ${LANGUAGE}_COMPILE_DEFINITIONS)
-    set(${OUTVAR} ${__comp_defs} PARENT_SCOPE)
+    ip_assume_last(_reallib ${IP_LIB})
+
+    # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
+    list(REMOVE_ITEM ARGN NO_DEPS)
+    unset(COMPDEFS)
+    # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
+    foreach(_lang ${LANGUAGE} ${ARGN})
+        check_languages(${_lang})
+        get_ip_property(_lang_compdefs ${IP_LIB} ${_lang}_COMPILE_DEFINITIONS ${_no_deps})
+        list(APPEND COMPDEFS ${_lang_compdefs})
+    endforeach()
+
+    list(REMOVE_DUPLICATES COMPDEFS)
+    set(${OUTVAR} ${COMPDEFS} PARENT_SCOPE)
 endfunction()

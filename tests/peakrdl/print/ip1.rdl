@@ -1,0 +1,13 @@
+`include "udp.rdl"
+
+addrmap ip1 {
+    foo = "asd";
+
+    reg {
+        name = "some_reg";
+        regwidth = 32;
+        field {
+            fieldwidth = 32;
+        } f1;
+    } some_reg;
+};

@@ -73,13 +73,12 @@ function(yosys IP_LIB)
     else()
         message("Yosys ${IP_LIB}: sv2v argument NOT call")
         # Otherwise use original source files
-        get_ip_rtl_sources(SOURCES ${IP_LIB})
-        list(PREPEND SOURCES ${V_SOURCES})
+        get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
         list(REMOVE_DUPLICATES SOURCES)
     endif()
 
     # Get the RTL sources (sv files are replaced if SV2V arg is passed)
-    get_ip_rtl_sources(SOURCES ${IP_LIB})
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
 
     # Format the string for config file format
     string (REPLACE ";" " " V_FILES_STR "${SOURCES}")
@@ -87,10 +86,8 @@ function(yosys IP_LIB)
     message("Yosys V_FILES_STR: ${V_FILES_STR}")
 
     # Get the IP compile definitions (e.g., )
-    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
-    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG)
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG)
     # Prepend '-D' to all definitions
-    set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
     foreach(def ${COMP_DEFS})
         list(APPEND CMP_DEFS_ARG -D${def})
     endforeach()

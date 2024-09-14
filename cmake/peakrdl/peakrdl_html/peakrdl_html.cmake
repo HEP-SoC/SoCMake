@@ -28,56 +28,71 @@
 # # :keyword SERVER_TARGET: option argument if passed it will also launch the local server on `https://0.0.0.0:8000 <https://0.0.0.0:8000>`_
 # # :type SERVER_TARGET: option
 # #]]
-# function(peakrdl_html IP_LIB)
-#     cmake_parse_arguments(ARG "SERVER_TARGET" "OUTDIR" "" ${ARGN})
-#     if(ARG_UNPARSED_ARGUMENTS)
-#         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-#     endif()
-#
-#     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
-#     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/find_python.cmake")
-#
-#     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
-#
-#     if(NOT ARG_OUTDIR)
-#         set(OUTDIR ${BINARY_DIR}/html)
-#     else()
-#         set(OUTDIR ${ARG_OUTDIR})
-#     endif()
-#
-#     get_rtl_target_property(RDL_FILES ${IP_LIB} RDL_FILES)
-#
-#     if(RDL_FILES STREQUAL "RDL_FILES-NOTFOUND")
-#         message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
-#     endif()
-#
-#     find_python3()
-#     set(__CMD 
-#         ${Python3_EXECUTABLE} -m peakrdl html
-#             -o ${OUTDIR}
-#             ${RDL_FILES}
-#             )
-#
-#     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
-#     add_custom_command(
-#         OUTPUT ${OUTDIR} ${STAMP_FILE}
-#         COMMAND ${__CMD}
-#
-#         COMMAND touch ${STAMP_FILE}
-#         DEPENDS ${RDL_FILES} ${GRAPHIC_FILES}
-#         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
-#         )
-#
-#     add_custom_target(
-#         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-#         DEPENDS ${OUTDIR} ${STAMP_FILE}
-#         )
-#
-#     if(ARG_SERVER_TARGET)
-#         add_custom_target(${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_server
-#             COMMAND python3 -m http.server -d "${OUTDIR}"
-#             DEPENDS ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-#             )
-#     endif()
-#
-# endfunction()
+function(peakrdl_html IP_LIB)
+    cmake_parse_arguments(ARG "SERVER_TARGET" "OUTDIR" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/find_python.cmake")
+
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
+
+    if(NOT ARG_OUTDIR)
+        set(OUTDIR ${BINARY_DIR}/html)
+    else()
+        set(OUTDIR ${ARG_OUTDIR})
+    endif()
+
+    get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMRDL)
+
+    if(NOT RDL_FILES)
+        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
+    endif()
+
+    unset(INCDIRS_ARG)
+    foreach(__incdir ${INC_DIRS})
+        list(APPEND INCDIRS_ARG -I${__incdir})
+    endforeach()
+
+    unset(COMPDEFS_ARG)
+    foreach(__compdefs ${COMP_DEFS})
+        list(APPEND COMPDEFS_ARG -D${__compdefs})
+    endforeach()
+
+    find_python3()
+    set(__CMD 
+        ${Python3_EXECUTABLE} -m peakrdl html
+            -o ${OUTDIR}
+            ${INCDIRS_ARG}
+            ${COMPDEFS_ARG}
+            ${RDL_FILES}
+            )
+
+    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    add_custom_command(
+        OUTPUT ${OUTDIR} ${STAMP_FILE}
+        COMMAND ${__CMD}
+
+        COMMAND touch ${STAMP_FILE}
+        DEPENDS ${RDL_FILES} ${GRAPHIC_FILES} ${IP_LIB}
+        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
+        )
+
+    add_custom_target(
+        ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        DEPENDS ${OUTDIR} ${STAMP_FILE}
+        )
+
+    if(ARG_SERVER_TARGET)
+        add_custom_target(${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_server
+            WORKING_DIRECTORY ${OUTDIR}
+            COMMAND python3 -m http.server
+            DEPENDS ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+            )
+    endif()
+
+endfunction()

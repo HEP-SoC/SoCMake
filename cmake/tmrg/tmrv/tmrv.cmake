@@ -21,11 +21,11 @@ function(tmrv IP_LIB)
     endif()
     execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR})
 
-    get_ip_rtl_sources(SOURCES ${IP_LIB})
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
     list(PREPEND SOURCES ${V_SOURCES})
     list(REMOVE_DUPLICATES SOURCES)
 
-    get_ip_include_directories(INCDIRS ${IP_LIB})
+    get_ip_include_directories(INCDIRS ${IP_LIB} VERILOG SYSTEMVERILOG)
     foreach(dir ${INCDIRS})
         list(APPEND INCDIR_ARG -I${dir})
     endforeach()
