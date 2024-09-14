@@ -1,5 +1,11 @@
+include(CTest)
+
 add_custom_target(check
     COMMAND ctest $(JOBS) --output-on-failure
+    )
+
+add_custom_target(check_cdash
+    COMMAND ctest $(JOBS) --output-on-failure -D Continous
     )
 
 add_subdirectory(iverilog)
