@@ -1,3 +1,4 @@
+# This test is expected to throw FATAL_ERROR because `ip_link()` links ip1 to itself
 include("${CMAKE_CURRENT_LIST_DIR}/../../CMakeLists.txt")
 
 set(TEST_NAME ip_link_self_link_fatal)
