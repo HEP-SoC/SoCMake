@@ -9,16 +9,14 @@ function(vhier IP_LIB)
 
     get_target_property(IP_NAME ${IP_LIB} IP_NAME)
 
-    get_ip_rtl_sources(RTL_SOURCES ${IP_LIB})
-    get_ip_include_directories(SV_INCDIRS ${IP_LIB} SYSTEMVERILOG)
-    get_ip_include_directories(V_INCDIRS ${IP_LIB} VERILOG)
-    foreach(_i ${SV_INCDIRS} ${V_INCDIRS})
+    get_ip_sources(RTL_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
+    get_ip_include_directories(INCDIRS ${IP_LIB} SYSTEMVERILOG VERILOG)
+    foreach(_i ${INCDIRS})
         set(INCDIR_ARG ${INCDIR_ARG} -y ${_i})
     endforeach()
 
-    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
-    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG)
-    foreach(_d ${COMP_DEFS_SV} ${COMP_DEFS_V})
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG)
+    foreach(_d ${COMP_DEFS})
         set(COMPDEF_ARG ${COMPDEF_ARG} -D${_d})
     endforeach()
 
