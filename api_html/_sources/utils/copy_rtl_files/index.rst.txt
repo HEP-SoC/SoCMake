@@ -7,4 +7,5 @@ cmake.utils/copy_rtl_files
    :maxdepth: 2
 
    copy_rtl_files
+   vhier
 

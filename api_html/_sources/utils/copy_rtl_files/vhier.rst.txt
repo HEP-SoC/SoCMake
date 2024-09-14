@@ -1,0 +1,12 @@
+
+################################
+cmake.utils/copy_rtl_files/vhier
+################################
+
+.. module:: cmake.utils/copy_rtl_files/vhier
+
+
+.. function:: vhier(IP_LIB **kwargs)
+
+   
+
