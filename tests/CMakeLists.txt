@@ -1,8 +1,9 @@
 add_custom_target(check
-    COMMAND ctest $(JOBS)
+    COMMAND ctest $(JOBS) --output-on-failure
     )
 
 add_subdirectory(iverilog)
+add_subdirectory(vhier)
 add_subdirectory(peakrdl)
 
 include("getcmaketest.cmake")

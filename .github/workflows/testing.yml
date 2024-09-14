@@ -21,7 +21,16 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get install cmake sudo iverilog make g++
+          sudo apt-get install cmake sudo iverilog make g++ perl cpanminus
+
+          # Install Verilog::Perl from GitHub
+          git clone https://github.com/Veripool/Verilog-Perl.git
+          cd Verilog-Perl
+          perl Makefile.PL
+          make
+          sudo make install
+          cd ..
+
           pip install peakrdl
 
       - name: run tests

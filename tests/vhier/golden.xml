@@ -1,0 +1,12 @@
+<vhier>
+ <modules>
+  <module name="mod1" />
+  <module name="submod1" />
+  <module name="top" />
+ </modules>
+ <module_files>
+   <file>rtl/top.sv</file>
+    <file>ips/mod1/rtl/mod1.sv</file>
+     <file>ips/mod1/ips/submod1/rtl/submod1.sv</file>
+ </module_files>
+</vhier>
