@@ -13,10 +13,32 @@ cmake.hwip
    This function is a wrapper around the cmake built-in
    `add_library() <https://cmake.org/cmake/help/latest/command/add_library.html>`_ function.
    It generates the library name using the vendor, library, name, and version (VLNV) information passed
-   in arguments (see get_ipname()). It creates two alias libraries to the default <vendor>__<library>__<name>__<version>:
+   in arguments (see create_ip_vlnv()). It creates two alias libraries to the default <vendor>__<library>__<name>__<version>:
    
    * <vendor>::<library>::<name>::<version> ('__' replaced by '::')
    * <vendor>::<library>::<name> (short name without the version)
+   
+   This function can be used in FULL and SHORT form:
+   Full form:
+   ```
+   add_ip(ip
+       VENDOR vendor
+       LIBRARY lib
+       VERSION 1.2.3
+       )
+   ```
+   In full form it is possible to ommit VENDOR, LIBRARY and VERSION, although it is not recommended.
+   
+   Ommiting them all would have following signature:
+   ```
+   add_ip(ip2)
+   ```
+   
+   Short form:
+   ```
+   add_ip(vendor2::lib2::ip2::1.2.2)
+   ```
+   In short form only the full VLNV format is accepted
    
    :param IP_NAME: The name of the IP.
    :type IP_NAME: string
@@ -32,9 +54,34 @@ cmake.hwip
    
 
 
-.. function:: get_ipname(OUTVAR IP_NAME **kwargs)
+.. function:: create_ip_vlnv(OUTVAR IP_NAME **kwargs)
 
    This function creates an IP name provided vendor, library, name, and version (VLNV) information.
+   
+   This functions appends the vendor, library, name, and version (VLNV) information separated by '__'
+   to create a unique string representing an IP name. This string is used as the library name when
+   when calling the cmake built-in
+   `add_library() <https://cmake.org/cmake/help/latest/command/add_library.html>`_ function (see add_ip()).
+   
+   :param OUTVAR: The generate IP name.
+   :type OUTVAR: string
+   :param IP_NAME: The name of the IP.
+   :type IP_NAME: string
+   
+   **Keyword Arguments**
+   
+   :keyword VENDOR: Name of the IP vendor.
+   :type VENDOR: string
+   :keyword LIBRARY: Name of the IP library.
+   :type LIBRARY: string
+   :keyword VERSION: Version of the IP following a three-part version number (Major.Minor.Patch, e.g., 1.0.13).
+   :type VERSION: string
+   
+
+
+.. function:: parse_ip_vlnv(IP_VLNV VENDOR LIBRARY IP_NAME VERSION **kwargs)
+
+   This function parses IP name from the VLNV format e.g. (vendor::lib::ip::0.0.1)
    
    This functions appends the vendor, library, name, and version (VLNV) information separated by '__'
    to create a unique string representing an IP name. This string is used as the library name when

@@ -40,11 +40,32 @@
 <p>This function is a wrapper around the cmake built-in
 <a class="reference external" href="https://cmake.org/cmake/help/latest/command/add_library.html">add_library()</a> function.
 It generates the library name using the vendor, library, name, and version (VLNV) information passed
-in arguments (see get_ipname()). It creates two alias libraries to the default &lt;vendor&gt;__&lt;library&gt;__&lt;name&gt;__&lt;version&gt;:</p>
+in arguments (see create_ip_vlnv()). It creates two alias libraries to the default &lt;vendor&gt;__&lt;library&gt;__&lt;name&gt;__&lt;version&gt;:</p>
 <ul class="simple">
 <li><p>&lt;vendor&gt;::&lt;library&gt;::&lt;name&gt;::&lt;version&gt; (‘__’ replaced by ‘::’)</p></li>
 <li><p>&lt;vendor&gt;::&lt;library&gt;::&lt;name&gt; (short name without the version)</p></li>
 </ul>
+<p>This function can be used in FULL and SHORT form:
+Full form:
+<a href="#id1"><span class="problematic" id="id2">``</span></a>`
+add_ip(ip</p>
+<blockquote>
+<div><p>VENDOR vendor
+LIBRARY lib
+VERSION 1.2.3
+)</p>
+</div></blockquote>
+<p><a href="#id3"><span class="problematic" id="id4">``</span></a>`
+In full form it is possible to ommit VENDOR, LIBRARY and VERSION, although it is not recommended.</p>
+<p>Ommiting them all would have following signature:
+<code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">add_ip(ip2)</span>
+<span class="pre">`</span></code></p>
+<p>Short form:
+<code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">add_ip(vendor2::lib2::ip2::1.2.2)</span>
+<span class="pre">`</span></code>
+In short form only the full VLNV format is accepted</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>IP_NAME</strong> (<em>string</em>) – The name of the IP.</p>
@@ -63,9 +84,37 @@ in arguments (see get_ipname()). It creates two alias libraries to the default &
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="cmake.hwip.get_ipname">
-<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">get_ipname</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">OUTVAR</span> <span class="pre">IP_NAME</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.get_ipname" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cmake.hwip.create_ip_vlnv">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">create_ip_vlnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">OUTVAR</span> <span class="pre">IP_NAME</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.create_ip_vlnv" title="Link to this definition">¶</a></dt>
 <dd><p>This function creates an IP name provided vendor, library, name, and version (VLNV) information.</p>
+<p>This functions appends the vendor, library, name, and version (VLNV) information separated by ‘__’
+to create a unique string representing an IP name. This string is used as the library name when
+when calling the cmake built-in
+<a class="reference external" href="https://cmake.org/cmake/help/latest/command/add_library.html">add_library()</a> function (see add_ip()).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>OUTVAR</strong> (<em>string</em>) – The generate IP name.</p></li>
+<li><p><strong>IP_NAME</strong> (<em>string</em>) – The name of the IP.</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Keyword Arguments</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>VENDOR</strong> (<em>string</em>) – Name of the IP vendor.</p></li>
+<li><p><strong>LIBRARY</strong> (<em>string</em>) – Name of the IP library.</p></li>
+<li><p><strong>VERSION</strong> (<em>string</em>) – Version of the IP following a three-part version number (Major.Minor.Patch, e.g., 1.0.13).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cmake.hwip.parse_ip_vlnv">
+<span class="sig-prename descclassname"><span class="pre">cmake.hwip.</span></span><span class="sig-name descname"><span class="pre">parse_ip_vlnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IP_VLNV</span> <span class="pre">VENDOR</span> <span class="pre">LIBRARY</span> <span class="pre">IP_NAME</span> <span class="pre">VERSION</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.hwip.parse_ip_vlnv" title="Link to this definition">¶</a></dt>
+<dd><p>This function parses IP name from the VLNV format e.g. (vendor::lib::ip::0.0.1)</p>
 <p>This functions appends the vendor, library, name, and version (VLNV) information separated by ‘__’
 to create a unique string representing an IP name. This string is used as the library name when
 when calling the cmake built-in
@@ -283,7 +332,8 @@ ip_compile_definitions(foo VERILOG -D FOO) # -D becomes “”, then ignored.</p
 <li class="toctree-l1"><a class="reference internal" href="verible/index.html">cmake.verible</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">cmake.hwip</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.add_ip"><code class="docutils literal notranslate"><span class="pre">add_ip()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.get_ipname"><code class="docutils literal notranslate"><span class="pre">get_ipname()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.create_ip_vlnv"><code class="docutils literal notranslate"><span class="pre">create_ip_vlnv()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.parse_ip_vlnv"><code class="docutils literal notranslate"><span class="pre">parse_ip_vlnv()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.ip_assume_last"><code class="docutils literal notranslate"><span class="pre">ip_assume_last()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.ip_sources"><code class="docutils literal notranslate"><span class="pre">ip_sources()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#cmake.hwip.get_ip_sources"><code class="docutils literal notranslate"><span class="pre">get_ip_sources()</span></code></a></li>
