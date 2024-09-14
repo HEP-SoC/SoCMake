@@ -19,7 +19,7 @@ set(DOC_OUTPUT_DIR "${PROJECT_BINARY_DIR}/api_source")
 set(HTML_SPHINX_OUTPUT_DIR "${PROJECT_BINARY_DIR}/api_html")
 # Cminx is used to convert SoCMake function comments into rST format later transformed to a
 # static html documentation using sphinx
-set(VENV_CMD ${Python3_VIRTUAL_ENV}/bin/cminx -o ${DOC_OUTPUT_DIR} -r ${DOC_INPUT_DIR})
+set(VENV_CMD $ENV{VIRTUAL_ENV}/bin/cminx -o ${DOC_OUTPUT_DIR} -r ${DOC_INPUT_DIR})
 # This command trigger the rST to html conversion and copy into the docusaurus static folder for
 # integration with the latter
 set(DOC_API_MAKE_CMD make -C ${PROJECT_BINARY_DIR}/api_source/ html)
