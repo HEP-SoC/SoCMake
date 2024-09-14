@@ -30,8 +30,6 @@ jobs:
           make
           sudo make install
           cd ..
-          which vhier
-          vhier
 
           pip install peakrdl
 
