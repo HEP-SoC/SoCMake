@@ -22,6 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get install cmake sudo iverilog make g++
+          pip install peakrdl
 
       - name: run tests
         run: |
