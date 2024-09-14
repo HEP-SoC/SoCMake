@@ -1,5 +1,16 @@
+cmake_minimum_required(VERSION 3.25)
+project(SoCMake_testing)
+
+include(CTest)
+
 add_custom_target(check
     COMMAND ctest $(JOBS) --output-on-failure
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../
+    )
+
+add_custom_target(check_cdash
+    COMMAND ctest -D Nightly $(JOBS) --output-on-failure
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../
     )
 
 add_subdirectory(iverilog)
