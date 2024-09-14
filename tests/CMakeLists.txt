@@ -1,6 +1,5 @@
-
 add_custom_target(check
-    COMMAND ctest
+    COMMAND ctest $(JOBS)
     )
 
 add_subdirectory(iverilog)
