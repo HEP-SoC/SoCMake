@@ -21,7 +21,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          apt install cmake
+          sudo apt-get install cmake
 
       - name: run tests
         run: |
