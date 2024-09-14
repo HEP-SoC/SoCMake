@@ -23,6 +23,8 @@ jobs:
         run: |
           sudo apt-get install cmake sudo iverilog make g++ perl cpanminus
           echo yes | sudo cpan -i Verilog::Perl
+          which vhier
+          vhier
 
           pip install peakrdl
 
