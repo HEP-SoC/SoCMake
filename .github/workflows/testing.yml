@@ -38,4 +38,4 @@ jobs:
           mkdir build
           cd build
           cmake -DSOCMAKE_BUILD_TESTING=TRUE ../
-          make check_dash
+          make check_cdash
