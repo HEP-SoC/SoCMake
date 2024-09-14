@@ -1,7 +1,9 @@
 name: docs_pages_workflow
 
 # execute this workflow automatically when a we push to master
-on: [push]
+on:
+  push:
+    branches: [ develop ]
 
 jobs:
 
