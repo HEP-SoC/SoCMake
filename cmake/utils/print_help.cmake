@@ -1,7 +1,6 @@
 include_guard(GLOBAL)
 
 include(${CMAKE_CURRENT_LIST_DIR}/get_all_targets.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/colours.cmake)
 
 
 function(__find_longest_target_name TYPE OUTVAR)
@@ -62,6 +61,7 @@ function(help_targets)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
+    include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/colours.cmake)
 
     unset(OUT_STRING)
     string(APPEND OUT_STRING "${Yellow}Available Targets:${ColourReset}\n")
@@ -130,6 +130,7 @@ function(help_ips)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
+    include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/colours.cmake)
 
     unset(OUT_STRING)
     string(APPEND OUT_STRING "${Yellow}Available IPs:${ColourReset}\n")
@@ -196,6 +197,9 @@ function(help)
     cmake_parse_arguments(ARG "PRINT_ON_CONF" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+    if(ARG_PRINT_ON_CONF)
+        set(ARG_PRINT_ON_CONF PRINT_ON_CONF)
     endif()
 
     help_ips(${ARG_PRINT_ON_CONF})
