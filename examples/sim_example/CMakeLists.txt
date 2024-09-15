@@ -3,18 +3,20 @@ project(example NONE)
 
 include("deps/deps.cmake")
 
-add_ip(tb           # Name of the IP block
-    VENDOR cern     # Vendor name (can be ommited, but not recommended)
-    LIBRARY ip      # Library name (can be ommited, but not recommended)
-    VERSION 0.0.1   # Version Number (can be ommited, but not recommended)
+add_ip(cern::ip::tb::0.0.1
+    DESCRIPTION "Simple verilog testbench"
     )
 
-ip_sources(tb VERILOG           # Add source files to the VERILOG file set
+ip_sources(${IP} VERILOG           # Add source files to the VERILOG file set
     ${PROJECT_SOURCE_DIR}/tb.v
     )
 
-iverilog(tb) # Create iverilog target
-
-verilate(tb  # Create verilate target
-    MAIN     # Let Verilator create a main.cpp testbench
+iverilog(${IP}
+    OUTDIR ${PROJECT_BINARY_DIR}/random # Create iverilog target
+    EXECUTABLE ${PROJECT_BINARY_DIR}/tb
     )
+
+verilate(${IP}  # Create verilate target
+    MAIN)        # Let Verilator create a main.cpp testbench
+    
+help()
