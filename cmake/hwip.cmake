@@ -21,9 +21,10 @@ include("${CMAKE_CURRENT_LIST_DIR}/utils/safe_get_target_property.cmake")
 #     VENDOR vendor
 #     LIBRARY lib
 #     VERSION 1.2.3
+#     DESCRIPTION "This is a sample IP"
 #     )
 # ```
-# In full form it is possible to ommit VENDOR, LIBRARY and VERSION, although it is not recommended.
+# In full form it is possible to ommit VENDOR, LIBRARY and VERSION, DESCRIPTION, although it is not recommended.
 #
 # Ommiting them all would have following signature:
 # ```
@@ -47,6 +48,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/utils/safe_get_target_property.cmake")
 # :type LIBRARY: string
 # :keyword VERSION: Version of the IP following a three-part version number (Major.Minor.Patch, e.g., 1.0.13).
 # :type VERSION: string
+# :keyword DESCRIPTION: Short description to be associated with the IP library, will appear in `help_ips()` message
+# :type DESCRIPTION: string
 #]]
 function(add_ip IP_NAME)
     cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
@@ -92,6 +95,10 @@ function(add_ip IP_NAME)
                 add_library(${ALIAS_NAME_SHORT} ALIAS ${IP_LIB})
             endif()
         endif()
+    endif()
+
+    if(ARG_DESCRIPTION)
+        set_property(TARGET ${IP_LIB} PROPERTY DESCRIPTION ${ARG_DESCRIPTION})
     endif()
 
     # Unset the parent variables that might have been set by previous add_ip() call
