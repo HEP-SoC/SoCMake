@@ -13,7 +13,7 @@ ip_sources(${IP} VERILOG           # Add source files to the VERILOG file set
 
 iverilog(${IP})
 
-verilate(${IP}  # Create verilate target
+verilator(${IP}  # Create verilate target
     MAIN)        # Let Verilator create a main.cpp testbench
     
 help()
