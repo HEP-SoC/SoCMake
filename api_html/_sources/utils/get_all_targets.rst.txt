@@ -1,0 +1,20 @@
+
+###########################
+cmake.utils/get_all_targets
+###########################
+
+.. module:: cmake.utils/get_all_targets
+
+
+.. function:: get_all_targets(OUTVAR)
+
+   
+
+
+.. function:: __get_all_targets_recursive(targets dir)
+
+
+   .. note:: This is a macro, and so does not introduce a new scope.
+
+   
+

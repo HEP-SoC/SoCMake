@@ -39,6 +39,7 @@
  | <a href="#D"><strong>D</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#O"><strong>O</strong></a>
@@ -56,11 +57,17 @@
 </li>
       <li><a href="utils/socmake_graph.html#cmake.utils-socmake_graph.__append_rm_list_unique">__append_rm_list_unique() (in module cmake.utils/socmake_graph)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="peakrdl/peakrdl_halcpp.html#cmake.peakrdl-peakrdl_halcpp.__ext_header_provided">__ext_header_provided() (in module cmake.peakrdl/peakrdl_halcpp)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils/print_help.html#cmake.utils-print_help.__find_longest_target_name">__find_longest_target_name() (in module cmake.utils/print_help)</a>
+</li>
       <li><a href="utils/socmake_graph.html#cmake.utils-socmake_graph.__flatten_graph_recursive">__flatten_graph_recursive() (in module cmake.utils/socmake_graph)</a>
+</li>
+      <li><a href="utils/get_all_targets.html#cmake.utils-get_all_targets.__get_all_targets_recursive">__get_all_targets_recursive() (in module cmake.utils/get_all_targets)</a>
+</li>
+      <li><a href="utils/print_help.html#cmake.utils-print_help.__get_target_help">__get_target_help() (in module cmake.utils/print_help)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -212,8 +219,6 @@
         <li><a href="synth/yosys/FindYosys.html#module-cmake.synth-yosys-FindYosys">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     cmake.synth/yosys/yosys
 
@@ -221,6 +226,8 @@
         <li><a href="synth/yosys/yosys.html#module-cmake.synth-yosys-yosys">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     cmake.synth/yosys/yosys_build
 
@@ -278,6 +285,13 @@
 </li>
       </ul></li>
       <li>
+    cmake.utils/get_all_targets
+
+      <ul>
+        <li><a href="utils/get_all_targets.html#module-cmake.utils-get_all_targets">module</a>
+</li>
+      </ul></li>
+      <li>
     cmake.utils/graphviz
 
       <ul>
@@ -296,6 +310,13 @@
 
       <ul>
         <li><a href="utils/multi_option.html#module-cmake.utils-multi_option">module</a>
+</li>
+      </ul></li>
+      <li>
+    cmake.utils/print_help
+
+      <ul>
+        <li><a href="utils/print_help.html#module-cmake.utils-print_help">module</a>
 </li>
       </ul></li>
       <li>
@@ -362,12 +383,14 @@
 </li>
       <li><a href="firmware/linker_script/gen_lds.html#cmake.firmware-linker_script-gen_lds.gen_lds">gen_lds() (in module cmake.firmware/linker_script/gen_lds)</a>
 </li>
-      <li><a href="utils/safe_get_target_property.html#cmake.utils-safe_get_target_property.get_interface_sources">get_interface_sources() (in module cmake.utils/safe_get_target_property)</a>
+      <li><a href="utils/get_all_targets.html#cmake.utils-get_all_targets.get_all_targets">get_all_targets() (in module cmake.utils/get_all_targets)</a>
 </li>
-      <li><a href="hwip.html#cmake.hwip.get_ip_compile_definitions">get_ip_compile_definitions() (in module cmake.hwip)</a>
+      <li><a href="utils/safe_get_target_property.html#cmake.utils-safe_get_target_property.get_interface_sources">get_interface_sources() (in module cmake.utils/safe_get_target_property)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="hwip.html#cmake.hwip.get_ip_compile_definitions">get_ip_compile_definitions() (in module cmake.hwip)</a>
+</li>
       <li><a href="hwip.html#cmake.hwip.get_ip_include_directories">get_ip_include_directories() (in module cmake.hwip)</a>
 </li>
       <li><a href="hwip.html#cmake.hwip.get_ip_property">get_ip_property() (in module cmake.hwip)</a>
@@ -375,6 +398,20 @@
       <li><a href="hwip.html#cmake.hwip.get_ip_sources">get_ip_sources() (in module cmake.hwip)</a>
 </li>
       <li><a href="synth/sv2v.html#cmake.synth-sv2v.get_sv2v_sources">get_sv2v_sources() (in module cmake.synth/sv2v)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils/print_help.html#cmake.utils-print_help.help">help() (in module cmake.utils/print_help)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils/print_help.html#cmake.utils-print_help.help_ips">help_ips() (in module cmake.utils/print_help)</a>
+</li>
+      <li><a href="utils/print_help.html#cmake.utils-print_help.help_targets">help_targets() (in module cmake.utils/print_help)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -458,11 +495,15 @@
 </li>
         <li><a href="utils/find_python.html#module-cmake.utils-find_python">cmake.utils/find_python</a>
 </li>
+        <li><a href="utils/get_all_targets.html#module-cmake.utils-get_all_targets">cmake.utils/get_all_targets</a>
+</li>
         <li><a href="utils/graphviz.html#module-cmake.utils-graphviz">cmake.utils/graphviz</a>
 </li>
         <li><a href="utils/graphviz/CMakeGraphVizOptions.html#module-cmake.utils-graphviz-CMakeGraphVizOptions">cmake.utils/graphviz/CMakeGraphVizOptions</a>
 </li>
         <li><a href="utils/multi_option.html#module-cmake.utils-multi_option">cmake.utils/multi_option</a>
+</li>
+        <li><a href="utils/print_help.html#module-cmake.utils-print_help">cmake.utils/print_help</a>
 </li>
         <li><a href="utils/print_list.html#module-cmake.utils-print_list">cmake.utils/print_list</a>
 </li>
