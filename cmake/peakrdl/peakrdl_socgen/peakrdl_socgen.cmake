@@ -183,5 +183,3 @@ function(peakrdl_socgen IP_LIB)
     add_dependencies(${IP_LIB} ${IP_LIB}_socgen)
 
 endfunction()
-
-include("${CMAKE_CURRENT_LIST_DIR}/common/socgen_props.cmake")
