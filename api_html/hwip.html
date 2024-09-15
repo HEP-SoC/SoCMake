@@ -53,10 +53,11 @@ add_ip(ip</p>
 <div><p>VENDOR vendor
 LIBRARY lib
 VERSION 1.2.3
+DESCRIPTION “This is a sample IP”
 )</p>
 </div></blockquote>
 <p><a href="#id3"><span class="problematic" id="id4">``</span></a>`
-In full form it is possible to ommit VENDOR, LIBRARY and VERSION, although it is not recommended.</p>
+In full form it is possible to ommit VENDOR, LIBRARY and VERSION, DESCRIPTION, although it is not recommended.</p>
 <p>Ommiting them all would have following signature:
 <code class="docutils literal notranslate"><span class="pre">`</span>
 <span class="pre">add_ip(ip2)</span>
@@ -78,6 +79,7 @@ In short form only the full VLNV format is accepted</p>
 <li><p><strong>VENDOR</strong> (<em>string</em>) – Name of the IP vendor.</p></li>
 <li><p><strong>LIBRARY</strong> (<em>string</em>) – Name of the IP library.</p></li>
 <li><p><strong>VERSION</strong> (<em>string</em>) – Version of the IP following a three-part version number (Major.Minor.Patch, e.g., 1.0.13).</p></li>
+<li><p><strong>DESCRIPTION</strong> (<em>string</em>) – Short description to be associated with the IP library, will appear in <cite>help_ips()</cite> message</p></li>
 </ul>
 </dd>
 </dl>
