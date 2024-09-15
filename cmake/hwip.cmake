@@ -189,7 +189,6 @@ endfunction()
 # :type VERSION: string
 #]]
 function(parse_ip_vlnv IP_VLNV VENDOR LIBRARY IP_NAME VERSION)
-    message("IP_VLNV: ${IP_VLNV}")
     cmake_parse_arguments(ARG "" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -394,6 +393,7 @@ function(check_languages LANGUAGE)
             VERILOG VERILOG_SIM VERILOG_FPGA
             VHDL VHDL_SIM VHDL_FPGA
             SYSTEMRDL SYSTEMRDL_SOCGEN
+            VERILATOR_CFG
             ${SOCMAKE_ADDITIONAL_LANGUAGES})
 
     if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
