@@ -69,7 +69,6 @@ function(iverilog IP_LIB)
             -o ${ARG_EXECUTABLE}
             ${SOURCES}
         COMMAND touch ${STAMP_FILE}
-        BYPRODUCTS ${OUTDIR}
         DEPENDS ${SOURCES}
         COMMENT ${DESCRIPTION}
     )
