@@ -6,6 +6,5 @@ cmake.firmware/linker_script
 .. toctree:: 
    :maxdepth: 2
 
-   src/index.rst
    gen_lds
 

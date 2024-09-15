@@ -1,7 +1,0 @@
-
-################################################
-cmake.peakrdl/peakrdl_socgen/common/socgen_props
-################################################
-
-.. module:: cmake.peakrdl/peakrdl_socgen/common/socgen_props
-
