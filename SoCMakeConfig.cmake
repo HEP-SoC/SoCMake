@@ -2,17 +2,25 @@ cmake_minimum_required(VERSION 3.25)
 
 set(SoCMake_FOUND TRUE)
 
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/hwip.cmake")
+# ====================================
+# ======== Core functions ============
+# ====================================
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/socmake_graph.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/hwip.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/subdirectory_search.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/add_subdirs.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/get_all_targets.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/print_help.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/graphviz.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/multi_option.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/find_python.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/print_list.cmake")
+
+# ====================================
+# ======== Additional utilities ======
+# ====================================
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/copy_rtl_files/copy_rtl_files.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/copy_rtl_files/vhier.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/print_list.cmake")
 
 # ====================================
 # ======== Simulation ================
@@ -20,7 +28,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/print_list.cmake")
 
 # ----- Verilator ------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/verilator/verilate.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/verilator/verilate_xml.cmake")
 
 # ----- iverilog ------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/iverilog/iverilog.cmake")
@@ -80,7 +87,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/synth/yosys/yosys_build.cmake")
 # ====================================
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/tmrg/tmrg/tmrg.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/tmrg/tmrv/tmrv.cmake")
 
 # ====================================
 # ======== FIRMWARE ==================
@@ -89,7 +95,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/tmrg/tmrv/tmrv.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/fw_utils.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/add_tests.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/linker_script/gen_lds.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/linker_script/src/lds_props.cmake")
 
 set(IBEX_TOOLCHAIN "${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/toolchains/riscv_toolchain.cmake"  CACHE INTERNAL "IBEX_TOOLCHAIN")
 
