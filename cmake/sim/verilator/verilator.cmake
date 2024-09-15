@@ -1,4 +1,4 @@
-function(verilate IP_LIB)
+function(verilator IP_LIB)
     set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN")
     set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY;EXECUTABLE_NAME")
     set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL")
@@ -21,7 +21,7 @@ function(verilate IP_LIB)
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_DIRECTORY)
-        set(DIRECTORY "${BINARY_DIR}/${IP_LIB}_verilate")
+        set(DIRECTORY "${BINARY_DIR}/${IP_LIB}_verilator")
     else()
         set(DIRECTORY ${ARG_DIRECTORY})
     endif()
@@ -58,8 +58,10 @@ function(verilate IP_LIB)
         set(PREFIX V${ARG_TOP_MODULE})
     endif()
 
+    ## TODO deprecate
     get_ip_property(VERILATOR_ARGS ${IP_LIB} VERILATOR_ARGS)
     list(APPEND ARG_VERILATOR_ARGS ${VERILATOR_ARGS})
+    ##
 
     get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG)
     foreach(def ${COMP_DEFS})
@@ -76,7 +78,7 @@ function(verilate IP_LIB)
     if(ARG_MAIN)
         list(APPEND ARG_VERILATOR_ARGS --main)
         if(NOT ARG_EXECUTABLE_NAME)
-            set(ARG_EXECUTABLE_NAME ${IP_LIB}_verilator_tb)
+            set(ARG_EXECUTABLE_NAME ${IP_LIB}_verilator_exec)
         endif()
         set(EXECUTABLE_PATH ${BINARY_DIR}/${ARG_EXECUTABLE_NAME})
         unset(ARG_MAIN)
@@ -111,7 +113,6 @@ function(verilate IP_LIB)
     endforeach()
     string(REPLACE ";" "|" ARGUMENTS_LIST "${ARGUMENTS_LIST}")
 
-
     if(ARG_SYSTEMC)
         if(NOT SYSTEMC_HOME)
             find_package(SystemCLanguage REQUIRED
@@ -124,6 +125,17 @@ function(verilate IP_LIB)
     if(CMAKE_CXX_STANDARD)
         set(ARG_CMAKE_CXX_STANDARD "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}")
     endif()
+
+    ##################################
+    ## Prepare help message ##########
+    ##################################
+    if(EXECUTABLE_PATH)
+        set(OUTPUT_TYPE "EXECUTABLE")
+    else()
+        set(OUTPUT_TYPE "STATIC_LIBRARY")
+    endif()
+    set(DESCRIPTION "Compiling ${IP_LIB} with verilator as ${OUTPUT_TYPE}")
+    ###
 
     set(VERILATE_TARGET ${IP_LIB}_verilate)
     include(ExternalProject)
@@ -152,6 +164,7 @@ function(verilate IP_LIB)
         INSTALL_COMMAND ""
         DEPENDS ${IP_LIB}
         EXCLUDE_FROM_ALL 1
+        COMMENT ${DESCRIPTION}
         )
 
     set_property(
@@ -160,6 +173,7 @@ function(verilate IP_LIB)
             ${DIRECTORY}
             ${EXECUTABLE_PATH}
     )
+    set_property(TARGET ${VERILATE_TARGET} PROPERTY DESCRIPTION ${DESCRIPTION})
 
     set(VLT_STATIC_LIB "${DIRECTORY}/lib${ARG_TOP_MODULE}.a")
     set(INC_DIR ${DIRECTORY})
@@ -181,4 +195,16 @@ function(verilate IP_LIB)
 
     string(REPLACE "__" "::" ALIAS_NAME "${VERILATED_LIB}")
     add_library(${ALIAS_NAME} ALIAS ${VERILATED_LIB})
+
+    if(EXECUTABLE_PATH)
+        set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB}")
+        # Add a custom target to run the generated executable
+        add_custom_target(
+            run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+            COMMAND ${EXECUTABLE_PATH}
+            DEPENDS ${EXECUTABLE_PATH} ${STAMP_FILE} ${VERILATE_TARGET}
+            COMMENT ${DESCRIPTION}
+        )
+        set_property(TARGET run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+    endif()
 endfunction()

@@ -32,6 +32,8 @@ function(vhier IP_LIB)
         $<$<BOOL:${ARG_FOREST}>:--forest>
     )
 
+    set(DESCRIPTION "Extract verilog hierarchy of ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
+
     set(OUT_FILE ${CMAKE_BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.$<IF:$<BOOL:${ARG_XML}>,xml,txt>)
     set(STAMP_FILE "${CMAKE_BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
@@ -39,12 +41,14 @@ function(vhier IP_LIB)
         COMMAND touch ${STAMP_FILE}
         COMMAND ${__CMD} | tee ${OUT_FILE}
         DEPENDS ${RTL_SOURCES} ${IP_LIB}
-        COMMENT "Printing verilog hierarchy of ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}"
+        COMMENT ${DESCRIPTION}
     )
 
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${IP_LIB} ${STAMP_FILE} ${OUT_FILE}
     )
+
+    set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
 endfunction()
 

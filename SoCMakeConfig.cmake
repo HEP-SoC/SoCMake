@@ -27,7 +27,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/copy_rtl_files/vhier.cmake")
 # ====================================
 
 # ----- Verilator ------
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/verilator/verilate.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/verilator/verilator.cmake")
 
 # ----- iverilog ------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/iverilog/iverilog.cmake")

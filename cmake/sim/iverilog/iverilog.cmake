@@ -32,21 +32,8 @@ function(iverilog IP_LIB)
     # Get the binary directory of the IP library
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
-    # Set the output directory for iverilog results
-    if(NOT ARG_OUTDIR)
-        set(OUTDIR ${BINARY_DIR})
-    else()
-        set(OUTDIR ${ARG_OUTDIR})
-    endif()
-
-    if(ARG_TOP_MODULE)
-        set(TOP_MODULE "-s${ARG_TOP_MODULE}")
-    endif()
-
     # Get the IP RTL sources
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
-    # Where is defined V_SOURCES (if it's defined)?
-    list(PREPEND SOURCES ${V_SOURCES})
     # Get IP include directories
     get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG)
     # Prepare include directories arguments for iverilog
@@ -61,41 +48,48 @@ function(iverilog IP_LIB)
         list(APPEND CMP_DEFS_ARG -D${def})
     endforeach()
 
+    # Generator expression for OUTDIR = defined(ARG_OUTDIR) ? ARG_OUTDIR : BINARY_DIR
+    set(OUTDIR $<IF:$<BOOL:${ARG_OUTDIR}>,${ARG_OUTDIR},${BINARY_DIR}>)
     # Set the output executable name
-    if(NOT ARG_EXECUTABLE)
-        set(ARG_EXECUTABLE "${OUTDIR}/${IP_LIB}_iv")
-    endif()
+    set(ARG_EXECUTABLE $<IF:$<BOOL:${ARG_EXECUTABLE}>,${ARG_EXECUTABLE},${OUTDIR}/${IP_LIB}_iverilog>)
 
     # Set the stamp file path (is the stamp file really needed?)
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(DESCRIPTION "Compile ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
 
     # Add a custom command to run iverilog
     add_custom_command(
         OUTPUT ${ARG_EXECUTABLE} ${STAMP_FILE}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
         COMMAND iverilog
-        ${TOP_MODULE}
-        ${ARG_INCDIRS}
-        ${CMP_DEFS_ARG}
-        ${ARG_CLI_FLAGS}
-        -o ${ARG_EXECUTABLE}
-        ${SOURCES}
+            $<$<BOOL:${ARG_TOP_MODULE}>:-s${ARG_TOP_MODULE}>
+            ${ARG_INCDIRS}
+            ${CMP_DEFS_ARG}
+            ${ARG_CLI_FLAGS}
+            -o ${ARG_EXECUTABLE}
+            ${SOURCES}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES}
-        COMMENT "Running iverilog on ${IP_LIB}"
+        COMMENT ${DESCRIPTION}
     )
 
     # Add a custom target that depends on the executable and stamp file
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${IP_LIB}
+        COMMENT ${DESCRIPTION}
     )
+    set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
 
+    set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB}")
     # Add a custom target to run the generated executable
     add_custom_target(
-        run_${IP_LIB}_iv
-        COMMAND exec ${ARG_EXECUTABLE}
+        run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        COMMAND ${ARG_EXECUTABLE}
         DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${SOURCES} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        COMMENT ${DESCRIPTION}
     )
+    set_property(TARGET run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
 
 endfunction()
 
