@@ -168,7 +168,6 @@ function(tmrg IP_LIB)
     add_custom_command(
         OUTPUT ${TRMG_GEN} ${STAMP_FILE}
         COMMAND ${TMRG_COMMAND}
-        ${SED_COMMAND}
         COMMAND /bin/sh -c date > ${STAMP_FILE}
         DEPENDS ${IP_TMRG_SRC} ${SCR_DEPS_STRIPPED}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
