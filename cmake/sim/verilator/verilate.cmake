@@ -75,6 +75,7 @@ function(verilate IP_LIB)
     if(ARG_SED_WOR)
         include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/sed_wor/sed_wor.cmake)
         sed_wor(${IP_LIB} ${BINARY_DIR} "${SOURCES}")
+        set(SOURCES ${SED_WOR_SOURCES})
         # unset, so argument is not further passed to verilator bin
         unset(ARG_SED_WOR)
     endif() 
@@ -169,7 +170,7 @@ function(verilate IP_LIB)
         INSTALL_COMMAND ""
         DEPENDS ${IP_LIB}
         EXCLUDE_FROM_ALL 1
-        )
+    )
 
     set_property(
         TARGET ${VERILATE_TARGET}
@@ -182,8 +183,8 @@ function(verilate IP_LIB)
     set(INC_DIR ${DIRECTORY})
 
     # TODO: Remove this if Verilator ever supports "wor"
-    if(TARGET ${IP_LIB}__sed_wor)
-        add_dependencies(${VERILATE_TARGET} ${IP_LIB}__sed_wor)
+    if(TARGET ${IP_LIB}_sed_wor)
+        add_dependencies(${VERILATE_TARGET} ${IP_LIB}_sed_wor)
     endif()
 
     set(VERILATED_LIB ${IP_LIB}__vlt)

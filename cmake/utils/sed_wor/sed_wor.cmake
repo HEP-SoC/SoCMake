@@ -23,9 +23,6 @@ function(sed_wor IP_LIB BINARY_DIR SOURCES)
         endif()
     endforeach()
 
-    # Update sources to use modified sources
-    set(SOURCES ${MODIFIED_SOURCES})
-
     # Create stamp file for sed command
     set(STAMP_FILE "${BINARY_DIR}/sed_wor/${IP_LIB}_sed_wor.stamp")
 
@@ -44,5 +41,5 @@ function(sed_wor IP_LIB BINARY_DIR SOURCES)
     add_dependencies(${IP_LIB} ${IP_LIB}_sed_wor)
 
     # Return modified sources
-    set(SOURCES ${MODIFIED_SOURCES} PARENT_SCOPE)
+    set(SED_WOR_SOURCES ${MODIFIED_SOURCES} PARENT_SCOPE)
 endfunction()
