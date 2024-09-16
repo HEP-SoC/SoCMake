@@ -38,7 +38,7 @@ function(sed_wor IP_LIB BINARY_DIR SOURCES)
         DEPENDS ${STAMP_FILE}
     )
 
-    add_dependencies(${IP_LIB} ${IP_LIB}_sed_wor)
+    add_dependencies(${IP_LIB}_sed_wor ${IP_LIB})
 
     # Return modified sources
     set(SED_WOR_SOURCES ${MODIFIED_SOURCES} PARENT_SCOPE)
