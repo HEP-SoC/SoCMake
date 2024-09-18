@@ -5,8 +5,9 @@ import os
 
 def make_parser():
     parser = argparse.ArgumentParser(description="Filter RTL files based on module hierarchy.")
-    parser.add_argument("--top-module", dest="top_module", action="store", default=None, help="Specify top module name")
-    parser.add_argument("--skiplist", dest="skiplist", action="store", default=None, help="Optional list of modules to skip")
+    parser.add_argument("--top-module", dest="top_module", action="store", help="Specify top module name")
+    parser.add_argument("--skiplist", dest="skiplist", action="store", help="Optional list of modules to skip")
+    parser.add_argument("--synthesis", dest="synthesis", action="store_true", help="Define SYNTHESIS")
     parser.add_argument("--deps_dir", dest="deps_dir", action="store", default="", help="Base directory of the dependencies")
     parser.add_argument("--include", dest="inc_dirs", action='append', type=str, help="Directories where to look for include files")
     parser.add_argument('--outdir', dest='outdir', action='store', default='.', help='Output directory where files will be copied')
@@ -33,11 +34,13 @@ def main():
     # Set common vhier arguments
     top_module = ('--top-module', args.top_module) if args.top_module is not None else ()
     skiplist = ('--skiplist', args.skiplist) if args.skiplist is not None else ()
+    synthesis = ('--synthesis',) if args.synthesis is not None else ()
     vhier_base_args = [
         vhier,
         '--no-missing',
         *top_module,
         *skiplist,
+        *synthesis,
         *[f'+incdir+{i}' for i in args.inc_dirs],
         *args.sources,
     ]

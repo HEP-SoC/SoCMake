@@ -1,5 +1,5 @@
 function(copy_rtl_files IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE;SKIPLIST_FILE" "" ${ARGN})
+    cmake_parse_arguments(ARG "SYNTHESIS" "OUTDIR;TOP_MODULE;SKIPLIST_FILE" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -23,6 +23,10 @@ function(copy_rtl_files IP_LIB)
         set(SKIPLIST_ARG --skiplist ${ARG_SKIPLIST_FILE})
     endif()
 
+    if(ARG_SYNTHESIS)
+        set(SYNTHESIS_ARG --synthesis)
+    endif()
+
     # Get the list of RTL sources
     get_ip_rtl_sources(RTL_SOURCES ${IP_LIB})
     get_ip_include_directories(RTL_INCDIRS ${IP_LIB} SYSTEMVERILOG)
@@ -31,7 +35,7 @@ function(copy_rtl_files IP_LIB)
     endforeach()
 
     set(__CMD ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/copy_rtl_files.py
-        ${TOP_MODULE_ARG} ${SKIPLIST_ARG}
+        ${TOP_MODULE_ARG} ${SKIPLIST_ARG} ${SYNTHESIS_ARG}
         --deps_dir ${FETCHCONTENT_BASE_DIR}
         ${INCDIR_ARG}
         --outdir ${OUTDIR}
