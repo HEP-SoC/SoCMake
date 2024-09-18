@@ -54,16 +54,18 @@ def main():
     # Copy files to output directory
     copied_src = []
     for i in output_src:
-        dest_dir = os.path.join(args.outdir, i.replace(args.deps_dir, '').split('/')[1].rsplit('-', 1)[0])
+        if args.deps_dir in i:
+            dest_dir = os.path.join(args.outdir, i.replace(args.deps_dir, '').split('/')[1].rsplit('-', 1)[0])
+        else:
+            dest_dir = args.outdir
         os.makedirs(dest_dir, exist_ok=True)
         copied_src.append(shutil.copy2(i, dest_dir))
 
     # Write copied files list to outdir
     with open(os.path.join(args.outdir, 'rtl_sources.f'), 'w') as outfile:
         for file_path in copied_src:
-            # Keep only the relative path to not be used dependent
-            rel_file_path = os.path.relpath(file_path, args.outdir)
-            outfile.write(f'{rel_file_path}\n')
+            # Keep only the relative path not to be user dependent
+            outfile.write(f'{os.path.relpath(file_path, args.outdir)}\n')
 
     # Get the includes list from vhier
     try:
