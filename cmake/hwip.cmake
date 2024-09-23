@@ -562,3 +562,20 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
     list(REMOVE_DUPLICATES COMPDEFS)
     set(${OUTVAR} ${COMPDEFS} PARENT_SCOPE)
 endfunction()
+
+#[[[
+# Get the IP link graph in a flat list
+#
+# :param OUTVAR: Variable containing the link list.
+# :type OUTVAR: string
+#
+#]]
+function(get_ip_links OUTVAR IP_LIB)
+    cmake_parse_arguments(ARG "" "" "" ${ARGN})
+    ip_assume_last(_reallib ${IP_LIB})
+    flatten_graph(${IP_LIB})
+
+    get_property(__flat_graph TARGET ${IP_LIB} PROPERTY FLAT_GRAPH)
+
+    set(${OUTVAR} ${__flat_graph} PARENT_SCOPE)
+endfunction()
