@@ -261,3 +261,13 @@ cmake.hwip
    
    
 
+
+.. function:: get_ip_links(OUTVAR IP_LIB **kwargs)
+
+   Get the IP link graph in a flat list
+   
+   :param OUTVAR: Variable containing the link list.
+   :type OUTVAR: string
+   
+   
+
