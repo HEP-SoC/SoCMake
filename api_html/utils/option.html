@@ -60,7 +60,19 @@ To override the variable use <cite>cmake -D&lt;VARIABLE&gt;=&lt;VALUE&gt;</cite>
 <dl class="py function">
 <dt class="sig sig-object py" id="cmake.utils-option.option_string">
 <span class="sig-prename descclassname"><span class="pre">cmake.utils/option.</span></span><span class="sig-name descname"><span class="pre">option_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">VARIABLE</span> <span class="pre">DESCRIPTION</span> <span class="pre">DEFAULT</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.utils-option.option_string" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Create a CMake integer option that can be modified through CLI.
+Option defined this way will be visible in <cite>cmake-gui</cite> interface as well as SoCMake <cite>help_options()</cite> help menu.
+To override the variable use <cite>cmake -D&lt;VARIABLE&gt;=&lt;VALUE&gt;</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>VARIABLE</strong> (<em>string</em>) – name of the variable.</p></li>
+<li><p><strong>DESCRIPTION</strong> (<em>string</em>) – short description string for the variable</p></li>
+<li><p><strong>DEFAULT</strong> (<em>string</em>) – default value of the variable</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="cmake.utils-option.option_integer">
