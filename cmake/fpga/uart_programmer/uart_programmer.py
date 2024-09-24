@@ -20,10 +20,10 @@ def program(
     text_bytes = b''
     for line in text_lines:
         line = line.strip()
-        
+
         if line.startswith('@') or line == '':
             continue
-        
+
         words = line.split()
         for word in words:
             byte_data = bytes.fromhex(word)
@@ -34,10 +34,10 @@ def program(
     data_bytes = b''
     for line in data_lines:
         line = line.strip()
-        
+
         if line.startswith('@') or line == '':
             continue
-        
+
         words = line.split()
         for word in words:
             byte_data = bytes.fromhex(word)
@@ -48,7 +48,7 @@ def program(
     num_text_bytes = len(text_bytes).to_bytes(4, byteorder='little')
     num_data_bytes = (len(data_bytes)).to_bytes(4, byteorder='little')
 
-    
+
     print("-----------------------------------------------------")
     print(f"----- Programming {dev} at baudrate {baudrate} ---")
 
@@ -65,31 +65,31 @@ def program(
 def getport(dev):
     ports = serial.tools.list_ports.comports()
     port_names = [port.device for port in ports]
-    
+
     default_port = port_names[0]
     if dev in port_names:
         default_port = dev
     elif "/dev/ttyUSB0" in port_names:
         default_port = "/dev/ttyUSB0"
-        
+
     print(f"Available ports:")
     for index,port in enumerate(port_names):
         print(f"{index+1}: {port}", end="")
         if port == default_port:
             print(" (default)", end="")
-            
+
         print()
-        
+
     input_port = input(f"Enter port number (default {default_port}): ")
     try:
         port = port_names[int(input_port)-1]
     except:
         port = default_port
-        
+
     print(f"Selected port: {port}")
     return port
-        
-    
+
+
 
 def main():
     parser = argparse.ArgumentParser(

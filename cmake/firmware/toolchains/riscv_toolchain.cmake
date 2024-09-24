@@ -31,6 +31,7 @@ find_program(RISCV_STRIP        ${TOOLCHAIN_PREFIX}-strip   HINTS ${RISCV_GNU_PA
 
 set(CMAKE_C_COMPILER ${RISCV_C_COMPILER})
 set(CMAKE_CXX_COMPILER ${RISCV_CXX_COMPILER})
+set(CMAKE_ASM_COMPILER ${RISCV_C_COMPILER})
 set(CMAKE_ASM ${RISCV_ASM})
 set(CMAKE_AR ${RISCV_AR})
 set(CMAKE_LINKER ${RISCV_LINKER})
@@ -87,6 +88,7 @@ string(APPEND CMAKE_C_FLAGS " -Os")
 
 # Pass common flags for c++ compilation flow
 set(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
+set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
 
 #######################
 # Options for Linking #
