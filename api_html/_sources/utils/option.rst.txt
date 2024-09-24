@@ -72,3 +72,23 @@ cmake.utils/option
    :type DEFAULT: boolean 
    
 
+
+.. data:: ${VARIABLE}
+
+
+   .. note:: 
+
+      
+      This variable is a user-editable option,
+      meaning it appears within the cache and can be
+      edited on the command line by the :code:`-D` flag.
+      
+
+   
+
+   :Help text: ${DESCRIPTION}
+
+   :Default value: ${DEFAULT}
+
+   :type: bool
+
