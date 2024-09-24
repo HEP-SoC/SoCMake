@@ -95,5 +95,5 @@ endfunction()
 function(option_boolean VARIABLE DESCRIPTION DEFAULT)
     __define_socmake_option(${VARIABLE} "Boolean" ${DESCRIPTION} ${DEFAULT} POSSIBLE_VALUES "ON;OFF")
 
-    set(${VARIABLE} ${DEFAULT} CACHE STRING "${DESCRIPTION}")
+    option(${VARIABLE} ${DESCRIPTION} ${DEFAULT})
 endfunction()
