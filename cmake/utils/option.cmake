@@ -41,6 +41,18 @@ function(option_enum VARIABLE DESCRIPTION ENUM_VALUES DEFAULT)
     endif()
 endfunction()
 
+#[[[
+# Create a CMake integer option that can be modified through CLI.
+# Option defined this way will be visible in `cmake-gui` interface as well as SoCMake `help_options()` help menu.
+# To override the variable use `cmake -D<VARIABLE>=<VALUE>`
+#
+# :param VARIABLE: name of the variable.
+# :type VARIABLE: string
+# :param DESCRIPTION: short description string for the variable
+# :type DESCRIPTION: string
+# :param DEFAULT: default value of the variable
+# :type DEFAULT: string 
+#]]
 function(option_string VARIABLE DESCRIPTION DEFAULT)
     __define_socmake_option(${VARIABLE} "String" ${DESCRIPTION} ${DEFAULT})
 
