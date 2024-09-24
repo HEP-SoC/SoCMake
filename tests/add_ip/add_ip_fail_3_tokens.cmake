@@ -48,4 +48,3 @@ ct_add_test(NAME ${TEST_NAME} EXPECTFAIL)
 function(${${TEST_NAME}})
     add_ip(vendor::::)
 endfunction()
-
