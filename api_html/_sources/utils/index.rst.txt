@@ -14,7 +14,7 @@ cmake.utils
    find_python
    get_all_targets
    graphviz
-   multi_option
+   option
    print_help
    print_list
    safe_get_target_property

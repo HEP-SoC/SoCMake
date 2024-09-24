@@ -11,6 +11,11 @@ cmake.utils/print_help
    
 
 
+.. function:: __find_longest_string(OUTVAR)
+
+   
+
+
 .. function:: __get_target_help(OUTVAR TARGET DESCRIPTION COL_WIDTH)
 
    
@@ -22,6 +27,16 @@ cmake.utils/print_help
 
 
 .. function:: help_ips(**kwargs)
+
+   
+
+
+.. function:: __get_help_option_string(OUTSTR VALUE MAX_STR_LEN **kwargs)
+
+   
+
+
+.. function:: help_options(**kwargs)
 
    
 
