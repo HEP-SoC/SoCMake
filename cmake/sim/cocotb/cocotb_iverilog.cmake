@@ -135,7 +135,7 @@ function(cocotb_iverilog IP_LIB)
     endif()
 
     # Set the stamp file path (is the stamp file really needed?)
-    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(STAMP_FILE "${OUTDIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
 
     # Add a custom command to run iverilog
     add_custom_command(
@@ -203,6 +203,7 @@ function(cocotb_iverilog IP_LIB)
         TESTCASE=${TESTCASE}
         TOPLEVEL=${TOP_MODULE}
         TOPLEVEL_LANG=${TOPLEVEL_LANG}
+        COCOTB_RESULTS_FILE=${OUTDIR}/results.xml
     )
     set(COCOTB_IVERILOG_CMD
         # iverilog run-time engine must be in your path
@@ -223,6 +224,7 @@ function(cocotb_iverilog IP_LIB)
         ${COCOTB_IVERILOG_CMD}
         DEPENDS ${CUSTOM_TARGET_NAME}
         COMMENT "Running cocotb simulation on ${IP_LIB}"
+        WORKING_DIRECTORY ${OUTDIR}
         )
 
     # Set the command as a property to be easily found by add_test()
