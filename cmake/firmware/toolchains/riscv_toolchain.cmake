@@ -86,7 +86,7 @@ string(APPEND CMAKE_C_FLAGS " -mabi=ilp32")
 # Optimize for size by default
 string(APPEND CMAKE_C_FLAGS " -Os")
 
-# Pass common flags for c++ compilation flow
+# Pass common flags for c++ anD assembly compilation flow
 set(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
 set(CMAKE_ASM_FLAGS ${CMAKE_C_FLAGS})
 
