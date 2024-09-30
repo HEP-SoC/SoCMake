@@ -65,16 +65,13 @@ function(vivado IP_LIB)
             --outdir ${OUTDIR}
             --verilog-defs ${ARG_VERILOG_DEFINES} ${CMP_DEFS_ARG}
 
-        COMMAND touch ${STAMP_FILE}
+        COMMAND /bin/sh -c date > ${STAMP_FILE}
         DEPENDS ${SOURCES} ${XDC_FILES} ${IP_LIB}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
-        )
+    )
 
     add_custom_target(
         ${IP_LIB}_vivado
         DEPENDS ${BITSTREAM} ${STAMP_FILE}
-        )
+    )
 endfunction()
-
-
-
