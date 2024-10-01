@@ -157,9 +157,9 @@ function(cocotb_iverilog IP_LIB)
 
     # Use TESTCASE for target name if it exists to have a unique name
     if(TESTCASE)
-    set(CUSTOM_TARGET_NAME ${TESTCASE})
+        set(CUSTOM_TARGET_NAME ${TESTCASE})
     else()
-    set(CUSTOM_TARGET_NAME ${COCOTB_TEST})
+        set(CUSTOM_TARGET_NAME ${COCOTB_TEST})
     endif()
     # Add a custom target that depends on the executable and stamp file
     add_custom_target(
