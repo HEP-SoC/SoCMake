@@ -2,7 +2,8 @@ function(add_cocotb_iverilog_tests IP_LIB DIRECTORY)
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/subdirectory_search.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/colours.cmake")
 
-    SUBDIRLIST(TEST_SUBDIRS ${DIRECTORY})
+    set(EXCLUDE_PATTERNS "_")
+    SUBDIRLIST_EXCLUDE(TEST_SUBDIRS ${DIRECTORY} "${EXCLUDE_PATTERNS}")
 
     # Assume the IP library is the latest one provided if full name is not given
     ip_assume_last(IP_LIB ${IP_LIB})
