@@ -6,16 +6,6 @@ cmake.synth/sv2v
 .. module:: cmake.synth/sv2v
 
 
-.. function:: set_sv2v_sources(IP_LIB **kwargs)
-
-   
-
-
-.. function:: get_sv2v_sources(OUT_VAR IP_LIB **kwargs)
-
-   
-
-
 .. function:: sv2v(IP_LIB **kwargs)
 
    
