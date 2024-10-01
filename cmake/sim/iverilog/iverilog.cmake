@@ -51,7 +51,7 @@ function(iverilog IP_LIB)
     # Generator expression for OUTDIR = defined(ARG_OUTDIR) ? ARG_OUTDIR : BINARY_DIR
     set(OUTDIR $<IF:$<BOOL:${ARG_OUTDIR}>,${ARG_OUTDIR},${BINARY_DIR}>)
     # Set the output executable name
-    set(ARG_EXECUTABLE $<IF:$<BOOL:${ARG_EXECUTABLE}>,${ARG_EXECUTABLE},${OUTDIR}/${IP_LIB}_iverilog>)
+    set(ARG_EXECUTABLE $<IF:$<BOOL:${ARG_EXECUTABLE}>,${ARG_EXECUTABLE},${OUTDIR}/${IP_LIB}_iverilog_tb>)
 
     # Set the stamp file path (is the stamp file really needed?)
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
@@ -77,7 +77,6 @@ function(iverilog IP_LIB)
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${IP_LIB}
-        COMMENT ${DESCRIPTION}
     )
     set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
 
