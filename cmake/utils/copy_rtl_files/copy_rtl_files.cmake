@@ -6,7 +6,7 @@ function(copy_rtl_files IP_LIB)
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
 
-    ip_assume_last(IP_LIB ${IP_LIB})
+    alias_dereference(IP_LIB ${IP_LIB})
 
     if(NOT ARG_OUTDIR)
         set(OUTDIR ${CMAKE_BINARY_DIR}/ip_sources)

@@ -22,7 +22,7 @@ function(gen_lds IP_LIB)
     set(LDS_GEN_TOOL "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/gen_linker_script.py")
 
     # Set the IP library to the last specified
-    ip_assume_last(IP_LIB ${IP_LIB})
+    alias_dereference(IP_LIB ${IP_LIB})
     # Get the binary directory of the IP library
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 

@@ -8,7 +8,7 @@ function(vhdl_linter IP_LIB)
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
 
-    ip_assume_last(IP_LIB ${IP_LIB})
+    alias_dereference(IP_LIB ${IP_LIB})
 
     get_ip_sources(VHDL_SOURCES ${IP_LIB} VHDL)
     list(PREPEND SOURCES ${VHDL_SOURCES})

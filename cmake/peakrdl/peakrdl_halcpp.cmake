@@ -47,7 +47,7 @@ function(peakrdl_halcpp IP_LIB)
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/find_python.cmake")
 
-    ip_assume_last(IP_LIB ${IP_LIB})
+    alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)
