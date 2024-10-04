@@ -76,5 +76,3 @@ function(${${TEST_NAME}})
     list(SUBLIST V_SOURCES 6 2 CURRENT_V_FILES)
     ct_assert_equal(CURRENT_V_FILES "ip1_f1.v;ip1_f2.v")
 endfunction()
-
-
