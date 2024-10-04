@@ -115,7 +115,7 @@ function(tmrg IP_LIB)
         get_filename_component(V_SOURCE_EXT ${vfile} EXT)
         list(APPEND TRMG_GEN "${OUTDIR}/${V_SOURCE_WO_EXT}TMR${V_SOURCE_EXT}")
     endforeach()
-    set_source_files_properties(${TRMG_GEN} PROPERTIES GENERATED TRUE)
+    # set_source_files_properties(${TRMG_GEN} PROPERTIES GENERATED TRUE)
 
     set(TMRG_COMMAND
         ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${IP_TMRG_SRC}
@@ -211,7 +211,7 @@ function(tmrg IP_LIB)
 
     # Get the existing linked libraries
     safe_get_target_property(LINKED_IP ${IP_LIB} INTERFACE_LINK_LIBRARIES "")
-    # Trigger the dependencies tmrg targets f they exist
+    # Trigger the dependencies tmrg targets if they exist
     foreach(linked_lib ${LINKED_IP})
         alias_dereference(linked_lib ${linked_lib})
         # Check if a tmrg target exists

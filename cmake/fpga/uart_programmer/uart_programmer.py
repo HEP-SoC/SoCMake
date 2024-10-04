@@ -53,14 +53,73 @@ def program(
     print(f"----- Programming {dev} at baudrate {baudrate} ---")
 
     ser.write(num_text_bytes)
-    ser.write(text_bytes)
+    # ser.write(text_bytes)
+    import time
+    sync_f = False
+    text_tx_error = 0
+    for idx, byte in enumerate(text_bytes):
+        wbyte = byte.to_bytes(1, 'big')
+        ser.write(wbyte)
+        if not sync_f:
+            # Wait for the first similar byte
+            while not sync_f:
+                rbyte = ser.read(1)
+                if rbyte == wbyte:
+                    sync_f = True
+        else:
+            rbyte = ser.read(1)
+            if rbyte != wbyte:
+                text_tx_error += 1
+                print(f"ERROR: sent and received bytes mismatch!")
+                print(f"ERROR: write/read bytes: {wbyte.hex()} / {rbyte.hex()}")
+            else:
+                print(f"INFO: TEXT TX {idx}/{len(text_bytes)} correct ({int(idx/len(text_bytes)*100)}%)")
+        # time.sleep(2)
 
     ser.write(num_data_bytes)
-    ser.write(data_bytes)
+    # ser.write(data_bytes)
 
-    print(f"------------ Finished programming ------------------")
-    print(f"----- Bytes written: Text {len(text_bytes)}, Data: {len(data_bytes)} --------")
-    print("-----------------------------------------------------")
+    sync_f = False
+    data_tx_error = 0
+    for idx, byte in enumerate(data_bytes):
+        wbyte = byte.to_bytes(1, 'big')
+        ser.write(wbyte)
+        if not sync_f:
+            # Wait for the first similar byte
+            while not sync_f:
+                rbyte = ser.read(1)
+                if rbyte == wbyte:
+                    sync_f = True
+        else:
+            rbyte = ser.read(1)
+            if rbyte != wbyte:
+                data_tx_error += 1
+                print(f"ERROR: sent and received bytes mismatch!")
+                print(f"ERROR: write/read bytes: {wbyte.hex()} / {rbyte.hex()}")
+            else:
+                print(f"INFO: DATA TX {idx}/{len(data_bytes)} correct ({int(idx/len(data_bytes)*100)}%)")
+        # time.sleep(2)
+
+    # Find the maximum width based on the length of text_bytes and data_bytes
+    text_width = len(str(len(text_bytes)))
+    data_width = len(str(len(data_bytes)))
+
+    # Calculate the width of the longest line including text labels and values
+    # The part before the values: "--------- Bytes written    : Text "
+    prefix_length = len("--------- Bytes written    : Text ")
+    # Calculate the full width of the lines
+    line_width = prefix_length + max(text_width, data_width) + len(", Data: ") + max(text_width, data_width)
+
+    # Print the header with the calculated line width
+    print(f"{'-' * line_width} Finished programming {'-' * line_width}")
+
+    # Print the aligned output
+    print(f"--------- Bytes written    : Text {len(text_bytes):<{text_width}}, Data: {len(data_bytes):<{data_width}}")
+    print(f"--------- Bytes read errors: Text {text_tx_error:<{text_width}}, Data: {data_tx_error:<{data_width}}")
+
+    # Print the final footer line with the same calculated width
+    print(f"{'-' * (line_width + len(' Finished programming '))}")
+
 
 def getport(dev):
     ports = serial.tools.list_ports.comports()
