@@ -6,7 +6,7 @@ function(tmake_manifest IP_LIB)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    ip_assume_last(IP_LIB ${IP_LIB})
+    alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)

@@ -227,16 +227,6 @@ function(parse_ip_vlnv IP_VLNV VENDOR LIBRARY IP_NAME VERSION)
     set(VERSION ${VERSION} PARENT_SCOPE)
 endfunction()
 
-# IS THIS REALLY NECESSARY?
-# If only IP name is given without full VLNV, assume rest from the project variables
-function(ip_assume_last VLNV IP_NAME) # TODO check SOURCE DIR if its the same as current
-    if(NOT TARGET ${IP_NAME})
-        create_ip_vlnv(IP_LIB ${IP_NAME} VENDOR "${IP_VENDOR}" LIBRARY "${IP_LIBRARY}" VERSION "${IP_VERSION}")
-    endif()
-    alias_dereference(IP_LIB ${IP_LIB})
-    set(${VLNV} ${IP_LIB} PARENT_SCOPE)
-endfunction()
-
 #[[[
 # This function adds source file(s) to an IP target.
 #
@@ -260,8 +250,8 @@ function(ip_sources IP_LIB LANGUAGE)
     cmake_parse_arguments(ARG "PREPEND;REPLACE" "" "" ${ARGN})
 
     check_languages(${LANGUAGE})
-    # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(_reallib ${IP_LIB})
+    # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
+    alias_dereference(_reallib ${IP_LIB})
 
     if(NOT ARG_REPLACE)
         # Get the existing source files if any
@@ -299,8 +289,8 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
         set(_no_deps "NO_DEPS")
     endif()
 
-    # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(IP_LIB ${IP_LIB})
+    # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
+    alias_dereference(IP_LIB ${IP_LIB})
 
     # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
     list(REMOVE_ITEM ARGN NO_DEPS)
@@ -332,8 +322,8 @@ endfunction()
 function(ip_include_directories IP_LIB LANGUAGE)
     # Check that the file language is supported by SoCMake
     check_languages(${LANGUAGE})
-    # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(_reallib ${IP_LIB})
+    # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
+    alias_dereference(_reallib ${IP_LIB})
     # Append the new include directories to the exsiting ones
     set_property(TARGET ${_reallib} APPEND PROPERTY ${LANGUAGE}_INCLUDE_DIRECTORIES ${ARGN})
 endfunction()
@@ -355,8 +345,8 @@ function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
     if(ARG_NO_DEPS)
         set(_no_deps "NO_DEPS")
     endif()
-    # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(_reallib ${IP_LIB})
+    # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
+    alias_dereference(_reallib ${IP_LIB})
 
     # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
     list(REMOVE_ITEM ARGN NO_DEPS)
@@ -426,8 +416,8 @@ endfunction()
 function(ip_link IP_LIB)
     cmake_parse_arguments(ARG "NODEPEND" "" "" ${ARGN})
 
-    # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(_reallib ${IP_LIB})
+    # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
+    alias_dereference(_reallib ${IP_LIB})
 
     # Remove the optional NODEPEND argument to keep only a list of dependecies
     if(ARG_NODEPEND)
@@ -515,8 +505,8 @@ endfunction()
 #]]
 function(ip_compile_definitions IP_LIB LANGUAGE)
     check_languages(${LANGUAGE})
-    # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(_reallib ${IP_LIB})
+    # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
+    alias_dereference(_reallib ${IP_LIB})
 
     # Strip -D
     set(__comp_defs ${ARGN})
@@ -546,8 +536,8 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
     if(ARG_NO_DEPS)
         set(_no_deps "NO_DEPS")
     endif()
-    # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(_reallib ${IP_LIB})
+    # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
+    alias_dereference(_reallib ${IP_LIB})
 
     # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
     list(REMOVE_ITEM ARGN NO_DEPS)
@@ -572,7 +562,7 @@ endfunction()
 #]]
 function(get_ip_links OUTVAR IP_LIB)
     cmake_parse_arguments(ARG "" "" "" ${ARGN})
-    ip_assume_last(_reallib ${IP_LIB})
+    alias_dereference(_reallib ${IP_LIB})
     flatten_graph(${IP_LIB})
 
     get_property(__flat_graph TARGET ${IP_LIB} PROPERTY FLAT_GRAPH)

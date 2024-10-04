@@ -4,7 +4,7 @@ function(set_tmrg_sources IP_LIB)
     cmake_parse_arguments(ARG "" "" "" ${ARGN})
 
     # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(_reallib ${IP_LIB})
+    alias_dereference(_reallib ${IP_LIB})
 
     # Get any prior TMRG sources (only of the IP, not the deps)
     get_tmrg_sources(_tmrg_src ${_reallib} NO_DEPS)
@@ -22,7 +22,7 @@ function(get_tmrg_sources OUT_VAR IP_LIB)
     endif()
 
     # If only IP name is given without full VLNV, assume rest from the project variables
-    ip_assume_last(_reallib ${IP_LIB})
+    alias_dereference(_reallib ${IP_LIB})
 
     get_ip_property(_tmrg_src ${_reallib} TMRG_SOURCES ${_no_deps})
 
@@ -37,7 +37,7 @@ function(tmrg IP_LIB)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    ip_assume_last(IP_LIB ${IP_LIB})
+    alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)
