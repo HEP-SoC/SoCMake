@@ -107,11 +107,6 @@ cmake.hwip
    
 
 
-.. function:: ip_assume_last(VLNV IP_NAME)
-
-   
-
-
 .. function:: ip_sources(IP_LIB LANGUAGE **kwargs)
 
    This function adds source file(s) to an IP target.
