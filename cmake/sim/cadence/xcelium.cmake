@@ -43,7 +43,7 @@ function(xcelium IP_LIB)
 
     get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
     foreach(def ${COMP_DEFS})
-        list(APPEND CMP_DEFS_ARG -D${def})
+        list(APPEND CMP_DEFS_ARG -define ${def})
     endforeach()
 
     add_custom_target( run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
