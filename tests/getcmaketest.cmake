@@ -23,6 +23,7 @@ macro(get_cmake_test)
         FetchContent_Declare(
              cmake_test
              GIT_REPOSITORY https://github.com/CMakePP/CMakeTest
+             GIT_TAG b07712effc7877c97712a5342a34f49b4e8ee3fb
        )
        FetchContent_MakeAvailable(cmake_test)
 
