@@ -31,7 +31,7 @@ jobs:
           sudo make install
           cd ..
 
-          pip install peakrdl
+          pip install peakrdl rich
 
       - name: run tests
         run: |
