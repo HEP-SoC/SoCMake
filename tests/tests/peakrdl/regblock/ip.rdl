@@ -1,0 +1,18 @@
+addrmap ip {
+    reg {
+        regwidth = 32;
+        field {
+            hw = rw; sw = rw;
+            fieldwidth = 32;
+        } f1;
+    } r1;
+
+    reg {
+        regwidth = 32;
+        field {
+            hw = r; sw = rw;
+            fieldwidth = 32;
+        } f1;
+    } r2;
+
+};
