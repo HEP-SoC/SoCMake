@@ -64,16 +64,6 @@ function(peakrdl_regblock IP_LIB)
         set(REGBLOCK_NAME ${ARG_RENAME})
     endif()
 
-    # The default interface used is apb3, set another on if the argument exists
-    if(NOT ARG_INTF)
-        set(ARG_INTF apb3-flat)
-    endif()
-
-    # The default reset is active-high and synchronous
-    if(ARG_RESET)
-        set(RESET_ARG --default-reset ${ARG_RESET})
-    endif()
-
     # Get the SystemRDL sources to generate the register block
     # This function gets the IP sources and the deps
     get_ip_sources(RDL_SOURCES ${IP_LIB} SYSTEMRDL)
@@ -98,8 +88,8 @@ function(peakrdl_regblock IP_LIB)
     find_python3()
     set(__CMD ${Python3_EXECUTABLE} -m peakrdl regblock
             --rename ${REGBLOCK_NAME}
-            --cpuif ${ARG_INTF}
-            ${RESET_ARG}
+            --cpuif "$<IF:$<BOOL:${ARG_INTF}>,${ARG_INTF},apb3-flat>"
+            "$<$<BOOL:${ARG_RESET}>:--default-reset\;${ARG_RESET}>"
             ${INCDIRS_ARG}
             ${COMPDEFS_ARG}
             -o ${OUTDIR}
@@ -123,6 +113,7 @@ function(peakrdl_regblock IP_LIB)
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_SOURCES}
         COMMENT ${DESCRIPTION}
+        COMMAND_EXPAND_LISTS
     )
     # This target triggers the systemverilog register block generation using peakRDL regblock tool (_CMD)
     add_custom_target(
