@@ -13,7 +13,7 @@
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="cmake.peakrdl/peakrdl_regblock_wrap" href="peakrdl_regblock_wrap.html" />
+    <link rel="next" title="cmake.synth" href="../synth/index.html" />
     <link rel="prev" title="cmake.peakrdl/peakrdl_print" href="peakrdl_print.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -40,21 +40,18 @@
 <dd><p>Create a target for invoking PeakRDL-regblock on IP_LIB.</p>
 <p>PeakRDL-regblock is transforming SystemRDL input files to SystemVerilog register block files.
 Regblock documentation can be found on this <a class="reference external" href="https://peakrdl-regblock.readthedocs.io/en/latest/">link</a>.</p>
-<p>Function expects that <strong>${IP_LIB}</strong> <em>INTERFACE_LIBRARY</em> has <strong>SYSTEMRDL_SOURCES</strong> property set with
-a list of SystemRDL files to be used as inputs. To set the SYSTEMRDL_SOURCES property use the ip_sources()
-function from SoCMake (internally using <a class="reference external" href="https://cmake.org/cmake/help/latest/command/set_property.html">set_property()</a> CMake function):</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">ip_sources</span><span class="p">(</span><span class="s">IP_LIB</span><span class="w"> </span><span class="s">LANGUAGE</span><span class="w"> </span><span class="s">[SYSTEMRDL|SYSTEMVERILOG|...]</span><span class="w"> </span><span class="o">${</span><span class="nv">PROJECT_SOURCE_DIR</span><span class="o">}</span><span class="s">/file.rdl</span><span class="p">)</span>
+<p>Function expects that <strong>${IP_LIB}</strong> has <strong>SYSTEMRDL_SOURCES</strong> property set with
+a list of SystemRDL files to be used as inputs. To set the SYSTEMRDL_SOURCES property use the ip_sources()</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">ip_sources</span><span class="p">(</span><span class="s">ip</span><span class="w"> </span><span class="s">SYSTEMRDL</span><span class="w"> </span><span class="o">${</span><span class="nv">PROJECT_SOURCE_DIR</span><span class="o">}</span><span class="s">/file.rdl</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This function will append 2 generated files from PeakRDL-regblock to the <strong>SOURCES</strong> property of the
+<p>This function will append 2 generated files from PeakRDL-regblock to the <strong>SYSTEMVERILOG_SOURCES</strong> property of the
 <strong>${IP_LIB}</strong>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>IP_LIB</strong> – RTL interface library, it needs to have SYSTEMRDL_SOURCES property set with a list of</p>
+<dd class="field-odd"><p><strong>IP_LIB</strong> (<em>IP library</em>) – IP for which to create regblock target.</p>
 </dd>
 </dl>
-<p>SystemRDL files.
-:type IP_LIB: INTERFACE_LIBRARY</p>
 <p><strong>Keyword Arguments</strong></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -62,13 +59,18 @@ function from SoCMake (internally using <a class="reference external" href="http
 </dd>
 </dl>
 <p>If ommited ${BINARY_DIR}/regblock will be used.
-:type OUTDIR: string path
+:type OUTDIR: string
 :keyword RENAME: Rename the generated module and file name to a custom string, otherwise the
 name will be ${IP_LIB}.sv.
 :type RENAME: string
 :keyword INTF: Interface to use for the regblock. Possible values are:
 [apb3 (default), apb3-flat, apb4, apb4-flat, axi4-lite, axi4-lite-flat, avalon-mm, avalon-mm-flat, passthrough]
-:type INTF: string</p>
+:type INTF: string
+:keyword RESET: reset type for generated regblock. Possible values are:
+[rst (default), rst,rst_n,arst,arst_n]
+:type RESET: string
+:keyword ARGS: any additional arguments to pass to regblock cli executable
+:type ARGS: list</p>
 </dd></dl>
 
 </section>
@@ -100,7 +102,6 @@ name will be ${IP_LIB}.sv.
 <li class="toctree-l2"><a class="reference internal" href="peakrdl_ipblocksvg.html">cmake.peakrdl/peakrdl_ipblocksvg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="peakrdl_print.html">cmake.peakrdl/peakrdl_print</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">cmake.peakrdl/peakrdl_regblock</a></li>
-<li class="toctree-l2"><a class="reference internal" href="peakrdl_regblock_wrap.html">cmake.peakrdl/peakrdl_regblock_wrap</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../synth/index.html">cmake.synth</a></li>
@@ -116,7 +117,7 @@ name will be ${IP_LIB}.sv.
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">cmake.peakrdl</a><ul>
       <li>Previous: <a href="peakrdl_print.html" title="previous chapter">cmake.peakrdl/peakrdl_print</a></li>
-      <li>Next: <a href="peakrdl_regblock_wrap.html" title="next chapter">cmake.peakrdl/peakrdl_regblock_wrap</a></li>
+      <li>Next: <a href="../synth/index.html" title="next chapter">cmake.synth</a></li>
   </ul></li>
   </ul></li>
 </ul>

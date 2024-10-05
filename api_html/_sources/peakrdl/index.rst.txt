@@ -13,5 +13,4 @@ cmake.peakrdl
    peakrdl_ipblocksvg
    peakrdl_print
    peakrdl_regblock
-   peakrdl_regblock_wrap
 
