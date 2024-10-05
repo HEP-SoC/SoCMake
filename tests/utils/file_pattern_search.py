@@ -72,6 +72,7 @@ def main():
 
     # Generate and print the report
     report, return_status = generate_report(results)
+    console.print(Text("CTEST_FULL_OUTPUT"))
     console.print(Panel(report, title="Pattern Search Results", expand=False))
 
     # Print the final separator after the report

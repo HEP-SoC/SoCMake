@@ -9,7 +9,7 @@ add_custom_target(check
     )
 
 add_custom_target(check_cdash
-    COMMAND ctest -D Nightly $(JOBS) --output-on-failure
+    COMMAND ctest -D Nightly $(JOBS) --verbose --output-on-failure
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../
     )
 
