@@ -4,34 +4,36 @@
 # PeakRDL-regblock is transforming SystemRDL input files to SystemVerilog register block files.
 # Regblock documentation can be found on this `link <https://peakrdl-regblock.readthedocs.io/en/latest/>`_.
 #
-# Function expects that **${IP_LIB}** *INTERFACE_LIBRARY* has **SYSTEMRDL_SOURCES** property set with
+# Function expects that **${IP_LIB}** has **SYSTEMRDL_SOURCES** property set with
 # a list of SystemRDL files to be used as inputs. To set the SYSTEMRDL_SOURCES property use the ip_sources()
-# function from SoCMake (internally using `set_property()
-# <https://cmake.org/cmake/help/latest/command/set_property.html>`_ CMake function):
 #
 # .. code-block:: cmake
 #
-#    ip_sources(IP_LIB LANGUAGE [SYSTEMRDL|SYSTEMVERILOG|...] ${PROJECT_SOURCE_DIR}/file.rdl)
+#    ip_sources(ip SYSTEMRDL ${PROJECT_SOURCE_DIR}/file.rdl)
 #
 #
-# This function will append 2 generated files from PeakRDL-regblock to the **SOURCES** property of the
+# This function will append 2 generated files from PeakRDL-regblock to the **SYSTEMVERILOG_SOURCES** property of the
 # **${IP_LIB}**.
 #
-# :param IP_LIB: RTL interface library, it needs to have SYSTEMRDL_SOURCES property set with a list of
-# SystemRDL files.
-# :type IP_LIB: INTERFACE_LIBRARY
+# :param IP_LIB: IP for which to create regblock target.
+# :type IP_LIB: IP library
 #
 # **Keyword Arguments**
 #
 # :keyword OUTDIR: output directory in which the files will be generated.
 # If ommited ${BINARY_DIR}/regblock will be used.
-# :type OUTDIR: string path
+# :type OUTDIR: string
 # :keyword RENAME: Rename the generated module and file name to a custom string, otherwise the
 # name will be ${IP_LIB}.sv.
 # :type RENAME: string
 # :keyword INTF: Interface to use for the regblock. Possible values are:
 # [apb3 (default), apb3-flat, apb4, apb4-flat, axi4-lite, axi4-lite-flat, avalon-mm, avalon-mm-flat, passthrough]
 # :type INTF: string
+# :keyword RESET: reset type for generated regblock. Possible values are:
+# [rst (default), rst,rst_n,arst,arst_n]
+# :type RESET: string
+# :keyword ARGS: any additional arguments to pass to regblock cli executable
+# :type ARGS: list
 #]]
 function(peakrdl_regblock IP_LIB)
     # Parse keyword arguments
@@ -128,8 +130,6 @@ function(peakrdl_regblock IP_LIB)
         DEPENDS ${SV_GEN} ${STAMP_FILE}
     )
     set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
-
     add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
-    set_property(TARGET ${IP_LIB} APPEND PROPERTY DEPENDS ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
 
 endfunction()
