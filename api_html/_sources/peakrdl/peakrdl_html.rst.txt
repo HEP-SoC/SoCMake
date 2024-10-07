@@ -1,0 +1,38 @@
+
+############
+peakrdl_html
+############
+
+.. module:: peakrdl_html
+
+
+.. function:: peakrdl_html(IP_LIB **kwargs)
+
+   Create a target for invoking PeakRDL-html on IP_LIB.
+   
+   `PeakRDL-html <https://github.com/SystemRDL/PeakRDL-html>` generates HTML documentation out of the SystemRDL inputs.
+   
+   An example of generated documentation can be found `here <https://systemrdl.github.io/PeakRDL-html/?p=>`_
+   
+   Function expects that **${IP_LIB}** has **SYSTEMRDL_SOURCES** property set with
+   a list of SystemRDL files to be used as inputs. To set the SYSTEMRDL_SOURCES property use the ip_sources()
+   
+   .. code-block:: cmake
+   
+      ip_sources(ip SYSTEMRDL ${PROJECT_SOURCE_DIR}/file.rdl)
+   
+   
+   :param IP_LIB: IP for which to create html target.
+   :type IP_LIB: IP library
+   
+   **Keyword Arguments**
+   
+   :keyword OUTDIR: output directory in which the files will be generated.
+   If ommited ${BINARY_DIR}/html will be used.
+   :type OUTDIR: string
+   :keyword SERVER_TARGET: option argument if passed it will also launch the local server on `https://0.0.0.0:8000 <https://0.0.0.0:8000>`_
+   :type SERVER_TARGET: option
+   :keyword ARGS: any additional arguments to pass to peakrdl cli
+   :type ARGS: list
+   
+
