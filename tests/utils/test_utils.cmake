@@ -20,4 +20,5 @@ function(add_test_makefile_rule_match_patterns TARGET)
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 
+    SET(CTEST_NAME ${TARGET}_makefile_validate PARENT_SCOPE)
 endfunction()

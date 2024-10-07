@@ -32,7 +32,7 @@
 # :keyword RESET: reset type for generated regblock. Possible values are:
 # [rst (default), rst,rst_n,arst,arst_n]
 # :type RESET: string
-# :keyword ARGS: any additional arguments to pass to regblock cli executable
+# :keyword ARGS: any additional arguments to pass to peakrdl cli
 # :type ARGS: list
 #]]
 function(peakrdl_regblock IP_LIB)
