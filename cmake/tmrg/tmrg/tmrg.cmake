@@ -115,7 +115,6 @@ function(tmrg IP_LIB)
         get_filename_component(V_SOURCE_EXT ${vfile} EXT)
         list(APPEND TRMG_GEN "${OUTDIR}/${V_SOURCE_WO_EXT}TMR${V_SOURCE_EXT}")
     endforeach()
-    # set_source_files_properties(${TRMG_GEN} PROPERTIES GENERATED TRUE)
 
     set(TMRG_COMMAND
         ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${IP_TMRG_SRC}
