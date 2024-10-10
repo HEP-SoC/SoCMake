@@ -35,6 +35,9 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/iverilog/iverilog.cmake")
 # ----- xcelium ------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cadence/xcelium.cmake")
 
+# ----- modelsim ------
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/modelsim/modelsim.cmake")
+
 # ----- vcs ------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/synopsys/vcs.cmake")
 
