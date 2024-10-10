@@ -148,8 +148,15 @@ function(modelsim IP_LIB)
         list(APPEND MODELSIM_COMP_TARGETS ${IP_LIB}_modelsim_compile_lib)
     endif()
 
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} VHDL SYSTEMVERILOG VERILOG)
+
+    foreach(def ${COMP_DEFS})
+        list(APPEND CMP_DEFS_ARG +${def})
+    endforeach()
+
     set(__VSIM_CMD vsim
         ${LIB_ARGS}
+        ${CMP_DEFS_ARG}
         -c ${LIBRARY}.${ARG_TOP_MODULE}
         -do "run -all\; quit"
 
