@@ -180,6 +180,7 @@ function(verilator IP_LIB)
 
     set(VERILATED_LIB ${IP_LIB}__vlt)
     add_library(${VERILATED_LIB} STATIC IMPORTED)
+    set_target_properties(${VERILATED_LIB} PROPERTIES IMPORTED_GLOBAL TRUE)
     add_dependencies(${VERILATED_LIB} ${VERILATE_TARGET})
     set_target_properties(${VERILATED_LIB} PROPERTIES IMPORTED_LOCATION ${VLT_STATIC_LIB})
 
