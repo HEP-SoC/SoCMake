@@ -71,14 +71,16 @@ function(verilate IP_LIB)
     endforeach()
 
     get_ip_rtl_sources(SOURCES ${IP_LIB})
-    
+    get_ip_tb_only_rtl_sources(TB_SOURCES ${IP_LIB})
+    list(APPEND SOURCES ${TB_SOURCES})
+
     if(ARG_SED_WOR)
         include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/sed_wor/sed_wor.cmake)
         sed_wor(${IP_LIB} ${BINARY_DIR} "${SOURCES}")
         set(SOURCES ${SED_WOR_SOURCES})
         # unset, so argument is not further passed to verilator bin
         unset(ARG_SED_WOR)
-    endif() 
+    endif()
 
     get_ip_sim_only_sources(SIM_SOURCES ${IP_LIB})
     list(PREPEND SOURCES ${SIM_SOURCES})

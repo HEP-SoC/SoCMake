@@ -225,7 +225,7 @@ function(cocotb_iverilog IP_LIB)
         DEPENDS ${CUSTOM_TARGET_NAME}
         COMMENT "Running cocotb simulation on ${IP_LIB}"
         WORKING_DIRECTORY ${OUTDIR}
-        )
+    )
 
     # Set the command as a property to be easily found by add_test()
     string(TOUPPER ${CUSTOM_TARGET_NAME} COCOTB_TEST_PROP)

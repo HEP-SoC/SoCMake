@@ -17,7 +17,8 @@ function(vcs_vlogan IP_LIB)
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     get_ip_rtl_sources(SOURCES ${IP_LIB})
-    list(PREPEND SOURCES ${V_SOURCES})
+    get_ip_tb_only_rtl_sources(TB_SOURCES ${IP_LIB})
+    list(APPEND SOURCES ${TB_SOURCES})
 
     get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
     get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
@@ -27,7 +28,7 @@ function(vcs_vlogan IP_LIB)
         list(APPEND ARG_INCDIRS -incdir ${dir})
     endforeach()
 
-    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG) 
+    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
     get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG) # TODO add VHDL?
     set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
     foreach(def ${COMP_DEFS})
@@ -55,7 +56,7 @@ function(vcs_vlogan IP_LIB)
     add_custom_command(
         OUTPUT ${STAMP_FILE}
         WORKING_DIRECTORY ${OUTDIR}
-        COMMAND ${VLOGAN_EXECUTABLE} 
+        COMMAND ${VLOGAN_EXECUTABLE}
             -full64 -nc -sverilog
             -sc_model ${ARG_TOP_MODULE}
             ${SOURCES}
@@ -74,7 +75,7 @@ function(vcs_vlogan IP_LIB)
     set(__VCS_LIB ${IP_LIB}__vcs)
     add_library(${__VCS_LIB} OBJECT IMPORTED)
     add_dependencies(${__VCS_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
-    target_include_directories(${__VCS_LIB} INTERFACE 
+    target_include_directories(${__VCS_LIB} INTERFACE
         ${OUTDIR}/csrc/sysc/include)
     #target_link_libraries(${__VCS_LIB} INTERFACE -lpthread)
 
@@ -175,16 +176,16 @@ endfunction()
 #        add_custom_command(
 #            OUTPUT ${STAMP_FILE}
 #            WORKING_DIRECTORY ${OUTDIR}
-#            COMMAND ${_SYSCAN_EXECUTABLE} 
+#            COMMAND ${_SYSCAN_EXECUTABLE}
 #                -full64 -sysc=scv20
 #                ${_VCS_CFLAGS}
 #                ${SOURCES}
-#    
+#
 #            COMMAND touch ${STAMP_FILE}
 #            DEPENDS ${SOURCES} ${ARG_DEPENDS}
 #            COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${EXEC}"
 #            )
-#    
+#
 #        add_custom_target(
 #            ${EXEC}_syscan
 #            DEPENDS ${STAMP_FILE}
@@ -201,7 +202,7 @@ endfunction()
 #    add_custom_command(
 #        OUTPUT ${STAMP_FILE} ${PROJECT_BINARY_DIR}/${EXEC}
 #        WORKING_DIRECTORY ${OUTDIR}
-#        COMMAND ${_VCS_EXECUTABLE} 
+#        COMMAND ${_VCS_EXECUTABLE}
 #            -full64 -nc -sysc=scv20
 #            sc_main
 #            -timescale=1ns/1ps
