@@ -72,7 +72,7 @@ function(add_tests EXECUTABLE DIRECTORY)
     ProcessorCount(NPROC)
     add_custom_target(check
         COMMAND ${CMAKE_CTEST_COMMAND} -j${NPROC}
-        DEPENDS ${test_list}
+        DEPENDS ${test_list} ${ARG_DEPS}
     )
     # Add dependency if the EXECUTABLE is a target created by add_executable
     if(TARGET ${EXECUTABLE})
