@@ -45,21 +45,26 @@ function(add_tests EXECUTABLE DIRECTORY)
             get_target_property(HEX_DATA_FILE ${fw_prj} HEX_DATA_${ARG_WIDTH}bit_FILE)
             add_test(
                 NAME ${fw_prj}
-                COMMAND ./${EXECUTABLE}
+                COMMAND ${EXECUTABLE}
                     ${PREFIX}firmware=${HEX_FILE}
                     ${PREFIX}firmware_text=${HEX_TEXT_FILE}
                     ${PREFIX}firmware_data=${HEX_DATA_FILE}
                     ${ARG_ARGS}
+                WORKING_DIRECTORY ${test}_test
             )
 
             add_custom_target(run_${fw_prj}
-                COMMAND ./${EXECUTABLE}
+                COMMAND ${EXECUTABLE}
                     ${PREFIX}firmware=${HEX_FILE}
                     ${PREFIX}firmware_text=${HEX_TEXT_FILE}
                     ${PREFIX}firmware_data=${HEX_DATA_FILE}
                     ${ARG_ARGS}
-                DEPENDS ${EXECUTABLE} ${fw_prj} ${ARG_DEPS}
+                DEPENDS ${fw_prj} ${ARG_DEPS}
             )
+            # Add dependency if the EXECUTABLE is a target created by add_executable
+            if(TARGET ${EXECUTABLE})
+                add_dependencies(run_${fw_prj} ${EXECUTABLE})
+            endif()
         endforeach()
     endforeach()
 
@@ -67,8 +72,12 @@ function(add_tests EXECUTABLE DIRECTORY)
     ProcessorCount(NPROC)
     add_custom_target(check
         COMMAND ${CMAKE_CTEST_COMMAND} -j${NPROC}
-        DEPENDS ${test_list} ${EXECUTABLE}
+        DEPENDS ${test_list}
     )
+    # Add dependency if the EXECUTABLE is a target created by add_executable
+    if(TARGET ${EXECUTABLE})
+        add_dependencies(check ${EXECUTABLE})
+    endif()
 
     format_string_spacing(formatted_test_msg "${_test_msg}" "  ;  ")
 
