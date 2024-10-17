@@ -45,8 +45,8 @@ function(iverilog IP_LIB)
 
     # Get the IP RTL sources
     get_ip_rtl_sources(SOURCES ${IP_LIB})
-    # Where is defined V_SOURCES (if it's defined)?
-    list(PREPEND SOURCES ${V_SOURCES})
+    get_ip_tb_only_rtl_sources(TB_SOURCES ${IP_LIB})
+    list(APPEND SOURCES ${TB_SOURCES})
     # Get IP include directories
     get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
     get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)

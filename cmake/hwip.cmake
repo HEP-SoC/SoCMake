@@ -228,6 +228,31 @@ function(get_ip_rtl_sources OUT_VAR IP_LIB)
 endfunction()
 
 #[[[
+# This function retrieves testbench/env-only RTL source files of a target library.
+#
+# :param OUT_VAR: The variable containing the retrieved source file.
+# :type OUT_VAR: string
+# :param IP_LIB: The target IP library.
+# :type IP_LIB: string
+#
+#]]
+function(get_ip_tb_only_rtl_sources OUT_VAR IP_LIB)
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    set(_no_deps)
+    if(ARG_NO_DEPS)
+        set(_no_deps "NO_DEPS")
+    endif()
+
+    get_ip_sources(V_SRC ${IP_LIB} VERILOG_TB ${_no_deps})
+    get_ip_sources(VH_SRC ${IP_LIB} VHDL_TB ${_no_deps})
+    list(PREPEND VH_SRC ${V_SRC})
+    get_ip_sources(SRC ${IP_LIB} SYSTEMVERILOG_TB ${_no_deps})
+    list(PREPEND SRC ${VH_SRC})
+    list(REMOVE_DUPLICATES SRC)
+    set(${OUT_VAR} ${SRC} PARENT_SCOPE)
+endfunction()
+
+#[[[
 # This function retrieves simulation-only RTL source files of a target library.
 #
 # :param OUT_VAR: The variable containing the retrieved source file.
