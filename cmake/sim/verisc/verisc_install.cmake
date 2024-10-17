@@ -51,7 +51,17 @@ macro(verisc_build)
     find_package(veriSC ${VERSION} EXACT CONFIG
         PATHS ${ARG_VERISC_HOME} $ENV{VERISC_HOME} ${VERISC_HOME} ${INSTALL_DIR}
         NO_DEFAULT_PATH
-        )
+    )
+
+    if(NOT veriSC_FOUND)
+        message("VERISC package not found looking at:")
+        message("  ARG_VERISC_HOME: ${ARG_VERISC_HOME}")
+        message("  VERISC_HOME: $ENV{VERISC_HOME}")
+        message("  VERISC_HOME: ${VERISC_HOME}")
+        message("  INSTALL_DIR: ${INSTALL_DIR}")
+    elseif(NOT veriSC_VERSION VERSION_EQUAL ${VERSION})
+        message("veriSC_VERSION ${veriSC_VERSION} not matching requested version ${VERSION}")
+    endif()
 
     set(VERISC_HOME "${veriSC_DIR}/../../../")
 
