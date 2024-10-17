@@ -11,6 +11,7 @@ def make_parser():
     parser.add_argument("--deps_dir", dest="deps_dir", action="store", default="", help="Base directory of the dependencies")
     parser.add_argument("--include", dest="inc_dirs", action='append', type=str, help="Directories where to look for include files")
     parser.add_argument('--outdir', dest='outdir', action='store', default='.', help='Output directory where files will be copied')
+    parser.add_argument("--list_files", dest="list_files", action="store_true", help="List source files destination paths without copying them.")
     parser.add_argument('sources', metavar='FILE', nargs='+', type=str, help='List of RTL file paths')
     return parser
 
@@ -62,7 +63,14 @@ def main():
         else:
             dest_dir = args.outdir
         os.makedirs(dest_dir, exist_ok=True)
-        copied_src.append(shutil.copy2(i, dest_dir))
+        # Get file basename
+        file_basename = os.path.basename(i)
+        if not args.list_files:
+            shutil.copy2(i, dest_dir)
+        copied_src.append(f"{dest_dir}/{file_basename}")
+
+    if args.list_files:
+        print(*copied_src)
 
     # Write copied files list to outdir
     with open(os.path.join(args.outdir, 'rtl_sources.f'), 'w') as outfile:
@@ -79,11 +87,19 @@ def main():
 
     output_inc = sorted(set([f.decode() for f in includes_output.stdout.split()]))
 
-    # Copy the include files in a include folder
-    dest_dir = os.path.join(args.outdir, 'include')
-    os.makedirs(dest_dir, exist_ok=True)
-    for i in output_inc:
-        shutil.copy2(i, dest_dir)
+    # if args.list_files:
+    #     # Only list the file on stdout
+    #     incdir_set = set()
+    #     for i in output_inc:
+    #         incdir_set.add(os.path.dirname(i))
+    #     print(*incdir_set)
+    # else:
+    if not args.list_files:
+        # Copy the include files in a include folder
+        dest_dir = os.path.join(args.outdir, 'include')
+        os.makedirs(dest_dir, exist_ok=True)
+        for i in output_inc:
+            shutil.copy2(i, dest_dir)
 
 if __name__ == "__main__":
     main()

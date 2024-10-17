@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2023 CERN
+#
+# Please retain this header in all redistributions and modifications of the code.
+
+include_guard(GLOBAL)
+cmake_minimum_required(VERSION @CMAKE_VERSION@)
+project(@CONF_PROJECT_NAME@ LANGUAGES @CONF_PROJECT_LANGUAGES@)
+
+add_ip(${PROJECT_NAME}
+    VENDOR @CONF_PROJECT_VENDOR@
+    LIBRARY @CONF_PROJECT_LIBRARY@
+    VERSION @CONF_PROJECT_VERSION@
+)
+
+ip_include_directories(${IP} SYSTEMVERILOG
+    ${PROJECT_SOURCE_DIR}/include
+)
+
+ip_source(${IP} SYSTEMVERILOG @CONF_COPIED_RTL_SOURCES@)
