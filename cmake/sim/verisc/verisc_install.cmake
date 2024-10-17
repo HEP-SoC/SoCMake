@@ -63,12 +63,6 @@ macro(verisc_build)
         message("veriSC_VERSION ${veriSC_VERSION} not matching requested version ${VERSION}")
     endif()
 
-    if(EXISTS ${VERISC_HOME}/veriSCConfig.cmake)
-        message("veriSCConfig.cmake found")
-    else()
-        message("veriSCConfig.cmake NOT found")
-    endif()
-
     set(VERISC_HOME "${veriSC_DIR}/../../../")
 
     if((NOT veriSC_FOUND) OR (NOT veriSC_VERSION VERSION_EQUAL ${VERSION}) OR FORCE_UPDATE)
