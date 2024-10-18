@@ -58,14 +58,14 @@ function(copy_rtl_files IP_LIB)
         ALL DEPENDS ${IP_LIB} ${STAMP_FILE}
     )
 
-    # Set the configuration variable for the template
-    get_target_property(CONF_PROJECT_NAME ${IP_LIB} IP_NAME)
-    set(CONF_PROJECT_NAME ${CONF_PROJECT_NAME}_COPIED)
-    get_target_property(CONF_PROJECT_VENDOR ${IP_LIB} VENDOR)
-    get_target_property(CONF_PROJECT_LIBRARY ${IP_LIB} LIBRARY)
-    get_target_property(CONF_PROJECT_VERSION ${IP_LIB} VERSION)
-    set(CONF_PROJECT_LANGUAGES NONE)
-    # Generate the CMakeLists.txt file inside OUTDIR to enable simple re-integration with cmake
-    configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CMakeLists.txt.in ${OUTDIR}/CMakeLists.txt @ONLY)
+    # # Set the configuration variable for the template
+    # get_target_property(CONF_PROJECT_NAME ${IP_LIB} IP_NAME)
+    # set(CONF_PROJECT_NAME ${CONF_PROJECT_NAME}_COPIED)
+    # get_target_property(CONF_PROJECT_VENDOR ${IP_LIB} VENDOR)
+    # get_target_property(CONF_PROJECT_LIBRARY ${IP_LIB} LIBRARY)
+    # get_target_property(CONF_PROJECT_VERSION ${IP_LIB} VERSION)
+    # set(CONF_PROJECT_LANGUAGES NONE)
+    # # Generate the CMakeLists.txt file inside OUTDIR to enable simple re-integration with cmake
+    # configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CMakeLists.txt.in ${OUTDIR}/CMakeLists.txt @ONLY)
 
 endfunction()
