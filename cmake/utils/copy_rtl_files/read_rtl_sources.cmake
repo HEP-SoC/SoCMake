@@ -3,20 +3,20 @@
 #
 # By default, this function returns 3 lists, one per RTL source file type (i.e., Verilog, SystemVerilog, and VHDL):
 # READ_RTL_SOURCES_V, READ_RTL_SOURCES_SV, READ_RTL_SOURCES_VHDL. IF the CONCAT keyword is passed, only
-# READ_RTL_SOURCES_ALL is returned. 
+# READ_RTL_SOURCES_ALL is returned.
 #
-# :param RTL_SOURCES_PATH: Path to the file to read.
-# :type RTL_SOURCES_PATH: string
+# :param RTL_SOURCES_FILE: Path to the file to read.
+# :type RTL_SOURCES_FILE: string
 #
 # **Keyword Arguments**
 #
 # :keyword CONCAT: Concatenate the different RTL source files (i.e., Verilog, SystemVerilog, and VHDL) and return a single list.
 # :type VENDOR: string
 #]]
-function(read_rtl_sources RTL_SOURCES_PATH)
+function(read_rtl_sources RTL_SOURCES_FILE)
     # Check the file exists
-    if(NOT EXISTS ${RTL_SOURCES_PATH})
-        message(FATAL_ERROR "${RTL_SOURCES_PATH} file does not exists.")
+    if(NOT EXISTS ${RTL_SOURCES_FILE})
+        message(FATAL_ERROR "${RTL_SOURCES_FILE} file does not exists.")
     endif()
 
     cmake_parse_arguments(ARG "CONCAT" "" "" ${ARGN})
