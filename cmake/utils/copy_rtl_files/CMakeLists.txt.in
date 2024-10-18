@@ -17,4 +17,4 @@ ip_include_directories(${IP} SYSTEMVERILOG
     ${PROJECT_SOURCE_DIR}/include
 )
 
-ip_source(${IP} SYSTEMVERILOG @CONF_COPIED_RTL_SOURCES@)
+# ip_source(${IP} SYSTEMVERILOG @CONF_COPIED_RTL_SOURCES@)

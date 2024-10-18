@@ -42,31 +42,12 @@ function(copy_rtl_files IP_LIB)
         ${RTL_SOURCES}
     )
 
-    set(__CMD_LF ${__CMD} --list_files)
-
-    # Call the script with --list-files option to get the list of files
-    execute_process(
-        OUTPUT_VARIABLE COPIED_RTL_SOURCES
-        ERROR_VARIABLE ERROR_MSG
-        COMMAND ${__CMD_LF}
-    )
-
-    if(COPIED_RTL_SOURCES)
-        string(REPLACE " " ";" COPIED_RTL_SOURCES "${COPIED_RTL_SOURCES}")
-        string(REPLACE "\n" "" COPIED_RTL_SOURCES "${COPIED_RTL_SOURCES}")
-        message("COPY LIST FILES: ${COPIED_RTL_SOURCES}")
-    else()
-        string(REPLACE ";" " " __CMD_STR "${__CMD_LF}")
-        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${IP_LIB},
-                output of --list-files option: ${COPIED_RTL_SOURCES} error output: ${ERROR_MSG} \n
-                Command Called: \n ${__CMD_STR}")
-    endif()
-
     # Call the Python script with the output directory and the RTL files
     set(STAMP_FILE "${CMAKE_BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${STAMP_FILE}
         COMMAND ${__CMD}
+        COMMAND /bin/sh -c date > ${STAMP_FILE}
         COMMENT "Copying RTL files to ${OUTDIR}"
         VERBATIM
     )
@@ -84,7 +65,6 @@ function(copy_rtl_files IP_LIB)
     get_target_property(CONF_PROJECT_LIBRARY ${IP_LIB} LIBRARY)
     get_target_property(CONF_PROJECT_VERSION ${IP_LIB} VERSION)
     set(CONF_PROJECT_LANGUAGES NONE)
-    set(CONF_COPIED_RTL_SOURCES ${COPIED_RTL_SOURCES})
     # Generate the CMakeLists.txt file inside OUTDIR to enable simple re-integration with cmake
     configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CMakeLists.txt.in ${OUTDIR}/CMakeLists.txt @ONLY)
 
