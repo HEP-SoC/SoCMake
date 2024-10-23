@@ -11,7 +11,7 @@
 # **Keyword Arguments**
 #
 # :keyword CONCAT: Concatenate the different RTL source files (i.e., Verilog, SystemVerilog, and VHDL) and return a single list.
-# :type VENDOR: string
+# :type CONCAT: string
 #]]
 function(read_rtl_sources RTL_SOURCES_FILE)
     # Check the file exists
