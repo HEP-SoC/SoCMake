@@ -55,6 +55,22 @@ def main():
 
     output_src.extend(sorted(set([f.decode() for f in cells_output.stdout.split()])))
 
+    # Check if the output directory exists
+    if os.path.isdir(args.outdir):
+        # Clean everything inside if it exists
+        for filename in os.listdir(args.outdir):
+            file_path = os.path.join(args.outdir, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print('Failed to delete %s. Reason: %s' % (file_path, e))
+    else:
+        # Create the directory
+        os.makedirs(args.outdir, exist_ok=False)
+
     # Copy files to output directory
     copied_src = []
     for i in output_src:
