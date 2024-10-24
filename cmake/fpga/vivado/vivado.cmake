@@ -29,10 +29,6 @@ function(vivado IP_LIB)
         set(TOP ${ARG_TOP})
     endif()
 
-    foreach(vdef ${ARG_VERILOG_DEFINES})
-        string(REPLACE "=" ";" vdef_l ${vdef})
-    endforeach()
-
     # get_ip_sources(XDC_FILES ${IP_LIB} XDC)
     get_target_property(XDC_FILES ${IP_LIB} XDC)
     get_target_property(FPGA_PART ${IP_LIB} FPGA_PART)
@@ -44,10 +40,7 @@ function(vivado IP_LIB)
 
     get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
     get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG) # TODO Add VHDL??
-    set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
-    foreach(def ${COMP_DEFS})
-        list(APPEND CMP_DEFS_ARG -D${def})
-    endforeach()
+    set(CMP_DEFS_ARG ${COMP_DEFS_SV} ${COMP_DEFS_V} ${ARG_VERILOG_DEFINES})
 
     set(BITSTREAM ${OUTDIR}/${IP_LIB}.bit)
     set_source_files_properties(${BITSTREAM} PROPERTIES GENERATED TRUE)
@@ -63,7 +56,7 @@ function(vivado IP_LIB)
             --name ${IP_LIB}
             --top  ${TOP}
             --outdir ${OUTDIR}
-            --verilog-defs ${ARG_VERILOG_DEFINES} ${CMP_DEFS_ARG}
+            --verilog-defs ${CMP_DEFS_ARG}
 
         COMMAND /bin/sh -c date > ${STAMP_FILE}
         DEPENDS ${SOURCES} ${XDC_FILES} ${IP_LIB}
