@@ -42,21 +42,24 @@ function(copy_rtl_files IP_LIB)
         ${RTL_SOURCES}
     )
 
-    # Call the Python script with the output directory and the RTL files
-    set(STAMP_FILE "${CMAKE_BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
-    add_custom_command(
-        OUTPUT ${STAMP_FILE}
-        COMMAND ${__CMD}
-        COMMAND /bin/sh -c date > ${STAMP_FILE}
-        COMMENT "Copying RTL files to ${OUTDIR}"
-        VERBATIM
-    )
+    # # Call the Python script with the output directory and the RTL files
+    # set(STAMP_FILE "${CMAKE_BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    # add_custom_command(
+    #     OUTPUT ${STAMP_FILE}
+    #     COMMAND ${__CMD}
+    #     COMMAND /bin/sh -c date > ${STAMP_FILE}
+    #     COMMENT "Copying RTL files to ${OUTDIR}"
+    #     VERBATIM
+    # )
 
     # Create a target to run the custom command
     add_custom_target(
         ${IP_LIB}_copy_rtl
-        ALL # This forces the target to be run every time as outputs are not known in advance 
+        ALL # This forces the target to be run every time as outputs are not known in advance
+        COMMAND ${__CMD}
+        COMMENT "Copying RTL files to ${OUTDIR}"
         DEPENDS ${IP_LIB} ${STAMP_FILE}
+        VERBATIM
     )
 
 endfunction()
