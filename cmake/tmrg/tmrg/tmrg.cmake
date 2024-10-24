@@ -211,14 +211,14 @@ function(tmrg IP_LIB)
     # Get the existing linked libraries
     safe_get_target_property(LINKED_IP ${IP_LIB} INTERFACE_LINK_LIBRARIES "")
     # Trigger the dependencies tmrg targets if they exist
-    message("TMRG: checking linked libraries for IP ${IP_LIB}")
+    message(DEBUG "TMRG: checking linked libraries for IP ${IP_LIB}")
     foreach(linked_lib ${LINKED_IP})
         alias_dereference(linked_lib ${linked_lib})
         # Check if a tmrg target exists
-        message("    Found linked library ${linked_lib}")
+        message(DEBUG "    Found linked library ${linked_lib}")
         if(TARGET ${linked_lib}_${CMAKE_CURRENT_FUNCTION})
             add_dependencies(${IP_LIB}_${CMAKE_CURRENT_FUNCTION} ${linked_lib}_${CMAKE_CURRENT_FUNCTION})
-            message("    └─> Found tmrg target ${linked_lib}_${CMAKE_CURRENT_FUNCTION}")
+            message(DEBUG "    └─> Found tmrg target ${linked_lib}_${CMAKE_CURRENT_FUNCTION}")
         endif()
     endforeach()
 
