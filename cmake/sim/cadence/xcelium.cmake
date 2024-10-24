@@ -88,6 +88,7 @@ function(xcelium_elab IP_LIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/uniquify_files_by_basename.cmake")
 
     ip_assume_last(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
@@ -96,6 +97,9 @@ function(xcelium_elab IP_LIB)
     get_ip_rtl_sources(SOURCES_LIST ${IP_LIB})
     get_ip_tb_only_rtl_sources(TB_SOURCES_LIST ${IP_LIB})
     list(APPEND SOURCES_LIST ${TB_SOURCES_LIST})
+
+    message("xcelium_elab: SOURCES_LIST ${SOURCES_LIST}")
+    uniquify_files_by_basename(SOURCES_LIST_UNIQUIFY "${SOURCES_LIST}")
 
     get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
     get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
@@ -144,7 +148,7 @@ function(xcelium_elab IP_LIB)
         # Miscellaneous arguments
         ${ARG_ARGS}
         # Source files and include directories
-        ${SOURCES_LIST}
+        ${SOURCES_LIST_UNIQUIFY}
         ${INCDIR_LIST}
         BYPRODUCTS xcelium.d xrun.history xrun.key xrun.log
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
