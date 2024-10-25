@@ -104,7 +104,8 @@ function(xcelium_elab IP_LIB)
     get_ip_tb_only_rtl_sources(TB_SOURCES_LIST ${IP_LIB})
     list(APPEND SOURCES_LIST ${TB_SOURCES_LIST})
 
-    message("xcelium_elab: SOURCES_LIST ${SOURCES_LIST}")
+    # uniquify the list of files to avoid redefinition
+    # This function also check files with same basename have the same content
     uniquify_files_by_basename(SOURCES_LIST_UNIQUIFY "${SOURCES_LIST}")
 
     get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)

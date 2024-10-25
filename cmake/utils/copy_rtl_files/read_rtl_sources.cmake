@@ -60,11 +60,6 @@ function(read_rtl_sources RTL_SOURCES_FILE)
         endif()
     endforeach()
 
-    # Output the lists (for debugging)
-    message(STATUS "Verilog Files: ${VERILOG_FILES}")
-    message(STATUS "SystemVerilog Files: ${SYSTEMVERILOG_FILES}")
-    message(STATUS "VHDL Files: ${VHDL_FILES}")
-
     if(ARG_CONCAT)
         list(APPEND VHDL_FILES ${VERILOG_FILES})
         list(APPEND VHDL_FILES ${SYSTEMVERILOG_FILES})

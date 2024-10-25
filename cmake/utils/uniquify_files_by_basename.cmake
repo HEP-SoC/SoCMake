@@ -16,19 +16,19 @@ function(uniquify_files_by_basename OUTPUT_LIST INPUT_LIST)
     # set(_seen_basenames "")
     set(_unique_files "")
 
-    message("UNIQUIFY: INPUT_LIST ${INPUT_LIST}")
+    message(DEBUG "UNIQUIFY: INPUT_LIST ${INPUT_LIST}")
 
     foreach(file ${INPUT_LIST})
         # Get the basename of the file (name + extension)
         get_filename_component(basename ${file} NAME)
 
-        message("UNIQUIFY: checking file ${file}")
+        message(DEBUG "UNIQUIFY: checking file ${file}")
 
         if(NOT _seen_basenames_${basename})
             # If the basename is not yet seen, mark it and store the full path
             set(_seen_basenames_${basename} ${file})
             list(APPEND _unique_files ${file})
-            message("    └─> First occurence stored in _unique_files")
+            message(DEBUG "    └─> First occurence stored in _unique_files")
         else()
             # If the basename has been seen, compare file contents
             file(READ ${file} CURRENT_CONTENT)
