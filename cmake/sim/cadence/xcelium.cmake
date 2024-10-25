@@ -71,15 +71,21 @@ endfunction()
 #[[[
 # Create a target for invoking Xcelium compilation and elaboration on IP_LIB.
 #
-# It will create a target **<IP_LIB>_xcelium_elab** that will compile, elaborate the design
+# It will create a target **<IP_LIB>_xcelium_elab** that will compile and elaborate the design
 #
 # :param IP_LIB: RTL interface library, it needs to have SOURCES property set with a list of System Verilog files.
 # :type IP_LIB: INTERFACE_LIBRARY
 #
 # **Keyword Arguments**
 #
-# :keyword GUI: launch SimVision gui together with the simulation
-# :type GUI: boolean
+# :keyword ACCESS: Access rights (i.e., visibility) used to compile and elaborate the design. For debugging pass 'rwc'
+# :type ACCESS: string
+# :keyword SETENV: List of env variables passed to xrun
+# :type SETENV: string
+# :keyword DEFINES: List of defines passed to xrun
+# :type DEFINES: string
+# :keyword ARGS: Additional arguments passed to xrun
+# :type ARGS: string
 #]]
 function(xcelium_elab IP_LIB)
     cmake_parse_arguments(ARG "" "ACCESS" "SETENV;DEFINES;ARGS" ${ARGN})
@@ -135,7 +141,7 @@ function(xcelium_elab IP_LIB)
     endif()
 
     add_custom_target(${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-        COMMAND xrun
+        COMMAND xrun -elaborate
         # xrun compiler options
         ${SETENV_LIST}
         ${DEFINES_LIST}
