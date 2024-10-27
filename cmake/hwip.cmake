@@ -68,14 +68,6 @@ function(add_ip IP_NAME)
         set(ARG_LIBRARY ${LIBRARY})
         set(ARG_VERSION ${VERSION})
     endif()
-    # Issue a warning if one of the VLNV information is not passed (this triggers an error later anyway)
-    if((NOT ARG_VERSION OR NOT ARG_VENDOR OR NOT ARG_LIBRARY) AND NOT SOCMAKE_NOWARN_VLNV)
-        message(WARNING "Consider using full VLNV format\n\
-                        IP block: ${IP_NAME}\n\
-                        VENDOR: ${ARG_VENDOR}\n\
-                        LIBRARY: ${ARG_LIBRARY}\n\
-                        VERSION: ${ARG_VERSION}")
-    endif()
     # Create the IP unique name using VLNV information
     create_ip_vlnv(IP_LIB ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "${ARG_VERSION}")
  
