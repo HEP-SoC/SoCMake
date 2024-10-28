@@ -208,8 +208,10 @@ function(tmrg IP_LIB)
     # Add dependency to the IP
     add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
 
-    # Get the existing linked libraries
-    safe_get_target_property(LINKED_IP ${IP_LIB} INTERFACE_LINK_LIBRARIES "")
+    # Get recursively linked libraries to link to any <>_tmrg target
+    # If no recusrive search is done, the dependency is broken as soon as one level
+    # does not have any tmrg target
+    recursive_get_target_property(LINKED_IP ${IP_LIB} INTERFACE_LINK_LIBRARIES "")
     # Trigger the dependencies tmrg targets if they exist
     message(DEBUG "TMRG: checking linked libraries for IP ${IP_LIB}")
     foreach(linked_lib ${LINKED_IP})
