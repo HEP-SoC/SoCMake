@@ -159,9 +159,8 @@ function(help_ips)
     string(APPEND OUT_STRING "${line}\n")
 
     foreach(target ${ALL_TARGETS})
-        get_target_property(TYPE ${target} TYPE)
-
-        if(TYPE STREQUAL INTERFACE_LIBRARY)
+        get_target_property(ip_name ${target} IP_NAME)
+        if(ip_name) # IP_NAME property is always set for SoCMakes IP library, to differentiate from INTERFACE_LIBRARIES
             get_target_property(DESCRIPTION ${target} DESCRIPTION)
             __get_target_help(HELP_ROW ${target} ${DESCRIPTION} ${MAX_LEN})
             string(REPLACE "__" "::" HELP_ROW ${HELP_ROW})
