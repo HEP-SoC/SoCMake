@@ -58,7 +58,7 @@ function(sv2v IP_LIB)
             ip_sources(${ip} SYSTEMVERILOG REPLACE  "")
         endforeach()
 
-        ip_sources(${IP_LIB} VERILOG REPLACE ${V_GEN})
+        ip_sources(${IP_LIB} VERILOG ${V_GEN})
         add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
     endif()
 
