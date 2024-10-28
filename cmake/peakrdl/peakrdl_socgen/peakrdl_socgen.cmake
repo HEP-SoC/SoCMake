@@ -113,6 +113,12 @@ function(peakrdl_socgen IP_LIB)
     get_ip_sources(RDL_SOCGEN_GLUE ${IP_LIB} SYSTEMRDL_SOCGEN)
     get_ip_sources(SYSTEMRDL_SOURCES ${IP_LIB} SYSTEMRDL)
 
+    # Get SystemRDL include directories 
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
+    if(INC_DIRS)
+        set(INCDIR_ARG -I ${INC_DIRS})
+    endif()
+
     if(NOT SYSTEMRDL_SOURCES)
         message(FATAL_ERROR "Library ${IP_LIB} does not have SYSTEMRDL_SOURCES property set,
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
@@ -122,6 +128,7 @@ function(peakrdl_socgen IP_LIB)
     set(__CMD
         ${Python3_EXECUTABLE} -m peakrdl socgen
             --intfs ${RDL_SOCGEN_GLUE}
+            ${INCDIR_ARG}
             -o ${OUTDIR}
             ${SYSTEMRDL_SOURCES}
             ${ARG_USE_INCLUDE}

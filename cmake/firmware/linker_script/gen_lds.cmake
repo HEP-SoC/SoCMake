@@ -56,6 +56,12 @@ function(gen_lds IP_LIB)
     # Get the system RDL files for the IP library
     get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
 
+    # Get SystemRDL include directories 
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
+    if(INC_DIRS)
+        set(INCDIR_ARG -I ${INC_DIRS})
+    endif()
+
     # Check if system RDL files exist
     if(NOT RDL_FILES)
         message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
@@ -76,6 +82,7 @@ function(gen_lds IP_LIB)
         OUTPUT ${LDS_FILE} ${STAMP_FILE}
         COMMAND ${Python3_EXECUTABLE} ${LDS_GEN_TOOL}
             --rdlfiles ${RDL_FILES}
+            ${INCDIR_ARG}
             --outfile ${LDS_FILE}
             ${ARG_NODEBUG}
             ${OVERWRITTEN_PARAMETERS}

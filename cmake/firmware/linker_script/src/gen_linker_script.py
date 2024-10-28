@@ -174,6 +174,13 @@ def main():
     parser.add_argument('--outfile', required=True, help='Output lds file')
     parser.add_argument('--debug', default=False, action="store_true", help='Include debug section in the lds or discard it')
     parser.add_argument('-p', '--param', nargs='+', help="Parameter to overwrite on top RDL module in the format 'PARAM=VALUE'")
+    parser.add_argument(
+        "-I",
+        dest="incdirs",
+        metavar="INCDIR",
+        action="append",
+        help='Search directory for files included with `include "filename"',
+    )
 
     args = parser.parse_args()
 
@@ -187,7 +194,7 @@ def main():
 
     try:
         for input_file in args.rdlfiles:
-            rdlc.compile_file(input_file)
+            rdlc.compile_file(input_file, incl_search_paths=args.incdirs,)
         root = rdlc.elaborate(parameters=overwritten_params_dict)
     except RDLCompileError:
         sys.exit(1)
