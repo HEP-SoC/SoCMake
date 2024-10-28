@@ -28,6 +28,15 @@ property datatype {
     component = signal;
 };
 
+// For IPs that have a regblock_wrap target, bind this property
+// to signals that are only used within the wrapper and are not
+// ports of the core logic.
+property wrap_only {
+    type = boolean;
+    default=true;
+    component = signal;
+};
+
 property master {
     type = boolean;
     component = addrmap;
