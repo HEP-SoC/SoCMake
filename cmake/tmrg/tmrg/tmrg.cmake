@@ -85,20 +85,20 @@ function(tmrg IP_LIB)
     # error by tmrg because tmrg tracks the non-triplicated module names.
     set(LIB_STRIP_DIR ${OUTDIR}/lib_strip)
     set(LIB_STRIP_CMD
-            ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lib_module_strip.py --files ${SRC_DEPS} --outdir ${LIB_STRIP_DIR}
+        ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lib_module_strip.py --files ${SRC_DEPS} --outdir ${LIB_STRIP_DIR}
     )
 
-    set(SCR_DEPS_STRIPPED)
+    set(SRC_DEPS_STRIPPED)
     foreach(file ${SRC_DEPS})
         get_filename_component(BASE_NAME ${file} NAME)
         set(NEW_FILE_PATH "${LIB_STRIP_DIR}/${BASE_NAME}")
-        list(APPEND SCR_DEPS_STRIPPED ${NEW_FILE_PATH})
+        list(APPEND SRC_DEPS_STRIPPED ${NEW_FILE_PATH})
     endforeach()
 
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_lib_strip.stamp")
     add_custom_command(
-        OUTPUT ${STAMP_FILE} ${SCR_DEPS_STRIPPED}
+        OUTPUT ${STAMP_FILE} ${SRC_DEPS_STRIPPED}
         COMMAND ${LIB_STRIP_CMD}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SRC_DEPS}
@@ -107,7 +107,7 @@ function(tmrg IP_LIB)
 
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_lib_strip
-        DEPENDS ${STAMP_FILE} ${SCR_DEPS_STRIPPED}
+        DEPENDS ${STAMP_FILE} ${SRC_DEPS_STRIPPED}
     )
 
     foreach(vfile ${IP_TMRG_SRC})
@@ -128,10 +128,10 @@ function(tmrg IP_LIB)
     # SRC_DEPS contains non-triplicated and triplicated sources as
     # long as the deps use tmrg with the REPLACE argument.
     # Each dep source is passed as libraries
-    if(SCR_DEPS_STRIPPED)
+    if(SRC_DEPS_STRIPPED)
         set(SRC_LIBS)
         # Each file needs to be passed with the '-l' option
-        foreach(file ${SCR_DEPS_STRIPPED})
+        foreach(file ${SRC_DEPS_STRIPPED})
             list(APPEND SRC_LIBS -l ${file})
         endforeach()
         set(TMRG_COMMAND ${TMRG_COMMAND} ${SRC_LIBS})
@@ -168,7 +168,7 @@ function(tmrg IP_LIB)
         OUTPUT ${TRMG_GEN} ${STAMP_FILE}
         COMMAND ${TMRG_COMMAND}
         COMMAND /bin/sh -c date > ${STAMP_FILE}
-        DEPENDS ${IP_TMRG_SRC} ${SCR_DEPS_STRIPPED}
+        DEPENDS ${IP_TMRG_SRC} ${SRC_DEPS_STRIPPED}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
     )
 
@@ -211,11 +211,14 @@ function(tmrg IP_LIB)
     # Get the existing linked libraries
     safe_get_target_property(LINKED_IP ${IP_LIB} INTERFACE_LINK_LIBRARIES "")
     # Trigger the dependencies tmrg targets if they exist
+    message(DEBUG "TMRG: checking linked libraries for IP ${IP_LIB}")
     foreach(linked_lib ${LINKED_IP})
         alias_dereference(linked_lib ${linked_lib})
         # Check if a tmrg target exists
+        message(DEBUG "    Found linked library ${linked_lib}")
         if(TARGET ${linked_lib}_${CMAKE_CURRENT_FUNCTION})
             add_dependencies(${IP_LIB}_${CMAKE_CURRENT_FUNCTION} ${linked_lib}_${CMAKE_CURRENT_FUNCTION})
+            message(DEBUG "    └─> Found tmrg target ${linked_lib}_${CMAKE_CURRENT_FUNCTION}")
         endif()
     endforeach()
 
