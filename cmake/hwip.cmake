@@ -514,3 +514,41 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
     get_ip_property(__comp_defs ${IP_LIB} ${LANGUAGE}_COMPILE_DEFINITIONS)
     set(${OUTVAR} ${__comp_defs} PARENT_SCOPE)
 endfunction()
+
+#[[[
+# This function recursively get the property PROPERTY from the target IP_LIB and
+# returns a list stored in OUTVAR.
+#
+# :param OUT_VAR: Variable containing the requested property.
+# :type OUT_VAR: string
+# :param IP_LIB: The target IP library name.
+# :type IP_LIB: string
+# :param PROPERTY: Property to search recursively.
+# :type PROPERTY: string
+#
+#]]
+function(recursive_get_target_property OUTVAR IP_LIB PROPERTY)
+    set(_seen_values)
+
+    ip_assume_last(IP_LIB ${IP_LIB})
+
+    # Get the value of the specified property for the current target
+    get_target_property(_current_value ${IP_LIB} ${PROPERTY})
+
+    if(_current_value AND NOT _current_value STREQUAL "<${PROPERTY}>-NOTFOUND")
+        list(APPEND _seen_values ${_current_value})
+
+        # Check if the property value is a list of targets or a single target
+        foreach(_subtarget ${_current_value})
+            # Recursively process sub-targets if they exist
+            if(TARGET ${_subtarget})
+                recursive_get_target_property(_recursive_values ${_subtarget} ${PROPERTY})
+                list(APPEND _seen_values ${_recursive_values})
+                list(REMOVE_DUPLICATES _seen_values)
+            endif()
+        endforeach()
+    endif()
+
+    # Return the collected values
+    set(${OUTVAR} ${_seen_values} PARENT_SCOPE)
+endfunction()

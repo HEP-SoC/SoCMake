@@ -12,6 +12,8 @@
 # :type ELABORATE: string
 # :keyword UNIQUIFY: Uniquifies the list of ip sources based on the basename of the files.
 # :type UNIQUIFY: string
+# :keyword SYNTHESIS: Prevents behavioural/generic RTL files to be fetched.
+# :type SYNTHESIS: string
 # :keyword ACCESS: Access rights (i.e., visibility) used to compile and elaborate the design. For debugging pass 'rwc'.
 # :type ACCESS: string
 # :keyword SETENV: List of env variables passed to xrun.
@@ -22,7 +24,7 @@
 # :type ARGS: string
 #]]
 function(xcelium IP_LIB)
-    cmake_parse_arguments(ARG "ELABORATE;UNIQUIFY" "ACCESS" "SETENV;DEFINES;ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "ELABORATE;UNIQUIFY;SYNTHESIS" "ACCESS" "SETENV;DEFINES;ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -35,6 +37,10 @@ function(xcelium IP_LIB)
 
     # Get RTL and TB sources
     get_ip_rtl_sources(SOURCES_LIST ${IP_LIB})
+    if(NOT ${ARG_SYNTHESIS})
+        get_ip_sim_only_sources(SIM_SOURCES_LIST ${IP_LIB})
+        list(PREPEND SOURCES_LIST ${SIM_SOURCES_LIST})
+    endif()
     get_ip_tb_only_rtl_sources(TB_SOURCES_LIST ${IP_LIB})
     list(APPEND SOURCES_LIST ${TB_SOURCES_LIST})
 
