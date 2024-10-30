@@ -66,6 +66,12 @@ function(peakrdl_halcpp IP_LIB)
 
     get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
 
+    # Get SystemRDL include directories 
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
+    if(INC_DIRS)
+        set(INCDIR_ARG -I ${INC_DIRS})
+    endif()
+
     __ext_header_provided(${IP_LIB} libs)
     list(LENGTH libs libs_len)
     if(libs_len GREATER 0)
@@ -83,7 +89,7 @@ function(peakrdl_halcpp IP_LIB)
 
     find_python3()
     set(__CMD ${Python3_EXECUTABLE} -m peakrdl halcpp
-        ${RDL_FILES} ${EXT_ARG} ${SKIB_BUSES_ARG} -o ${OUTDIR} ${OVERWRITTEN_PARAMETERS}
+        ${RDL_FILES} ${EXT_ARG} ${SKIB_BUSES_ARG} ${INCDIR_ARG} -o ${OUTDIR} ${OVERWRITTEN_PARAMETERS}
     )
 
     target_include_directories(${IP_LIB} INTERFACE ${OUTDIR} ${OUTDIR}/include)

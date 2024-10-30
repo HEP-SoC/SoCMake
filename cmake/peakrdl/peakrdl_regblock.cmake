@@ -81,6 +81,12 @@ function(peakrdl_regblock IP_LIB)
     # This function gets the IP sources and the deps
     get_ip_sources(RDL_SOURCES ${IP_LIB} SYSTEMRDL)
 
+    # Get SystemRDL include directories 
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
+    if(INC_DIRS)
+        set(INCDIR_ARG -I ${INC_DIRS})
+    endif()
+
     if(NOT RDL_SOURCES)
         message(FATAL_ERROR "Library ${IP_LIB} does not have SYSTEMRDL_SOURCES property set,
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
@@ -91,6 +97,7 @@ function(peakrdl_regblock IP_LIB)
             --rename ${REGBLOCK_NAME}
             ${INTF_ARG}
             ${RESET_ARG}
+            ${INCDIR_ARG}
             -o ${OUTDIR}
             ${RDL_SOURCES}
         )
