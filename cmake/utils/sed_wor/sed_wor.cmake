@@ -1,5 +1,5 @@
 # sed_wor.cmake
-# String replace "wor" with "wire" in TMR files. 
+# String replace "wor" with "wire" in all Verilog files files. 
 # This is a workaround for a Verilator not supporting "wor" and similar keywords...
 function(sed_wor IP_LIB BINARY_DIR SOURCES)
     file(MAKE_DIRECTORY ${BINARY_DIR}/sed_wor)
@@ -7,7 +7,7 @@ function(sed_wor IP_LIB BINARY_DIR SOURCES)
 
     foreach(source ${SOURCES})
         get_filename_component(source_name ${source} NAME)
-        if(source_name MATCHES "TMR")
+        if(source_name MATCHES "\\.(v|sv)$")
             set(output_file "${BINARY_DIR}/sed_wor/${source_name}")
             list(APPEND MODIFIED_SOURCES ${output_file}) 
 
