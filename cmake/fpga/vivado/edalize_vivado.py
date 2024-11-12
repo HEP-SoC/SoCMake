@@ -2,7 +2,7 @@ from re import split
 from edalize import get_edatool
 import argparse
 from typing import List
-import os
+import sys
 
 def main(
         rtl_files: List[str],
@@ -31,8 +31,20 @@ def main(
         param = define.split('=')
         p_name = param[0]
         type = 'str'
-        print(f"EDALIZE_VIVADO: define parameter found: {p_name}={param[1]}")
-        params[p_name] = {'datatype' : type, 'default' : f'{param[1]}', 'paramtype' : 'vlogdefine'}
+        # Check param list length:
+        # len=1: parameter of type MY_DEFINE
+        # len=2: parameter of type MY_DEFINE=MYVALUE
+        # len>2: error
+        param_len = len(param)
+        # by default params are set to one if no value is given
+        param_value = '1'
+        if (param_len == 1):
+            print(f"edalize_vivado.py - Warning: define {p_name} is assigned the default value of 1")
+        elif (param_len == 2):
+            param_value = param[1]
+        else:
+            print(f"edalize_vivado - Fatal error: define {p_name} syntax is wrong: {define}", file=sys.stderr)
+        params[p_name] = {'datatype' : type, 'default' : param_value, 'paramtype' : 'vlogdefine'}
 
     tool = 'vivado'
 
