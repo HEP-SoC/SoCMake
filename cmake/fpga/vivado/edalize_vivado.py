@@ -31,7 +31,8 @@ def main(
         param = define.split('=')
         p_name = param[0]
         type = 'str'
-        params[p_name] = {'datatype' : type, 'default' : param[1], 'paramtype' : 'vlogdefine'}
+        print(f"EDALIZE_VIVADO: define parameter found: {p_name}={param[1]}")
+        params[p_name] = {'datatype' : type, 'default' : f'{param[1]}', 'paramtype' : 'vlogdefine'}
 
     tool = 'vivado'
 
@@ -74,6 +75,6 @@ if __name__ == '__main__':
         name=args.name,
         top=args.top,
         outdir=args.outdir,
-        )
+    )
 
 
