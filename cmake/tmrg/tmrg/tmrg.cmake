@@ -63,8 +63,6 @@ function(tmrg IP_LIB)
 
     # Get all the IP sources (ip+dependencies)
     get_ip_rtl_sources(IP_SRC_ALL ${IP_LIB})
-    # Get only the IP sources (not the dependencies)
-    get_ip_rtl_sources(IP_SRC ${IP_LIB} NO_DEPS)
 
     # Only the IP sources (not the dependencies) are triplicated
     # The dependency sources are passed as libraries and it's up
@@ -73,8 +71,9 @@ function(tmrg IP_LIB)
     set(SRC_DEPS)
     # Find the deps sources only
     foreach(file ${IP_SRC_ALL})
-        list(FIND IP_SRC ${file} index)
+        list(FIND IP_TMRG_SRC ${file} index)
         if(index EQUAL -1)
+            # If the file is not in IP_TMRG_SRC, had it to SRC_DEPS
             list(APPEND SRC_DEPS ${file})
         endif()
     endforeach()
