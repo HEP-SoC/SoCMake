@@ -11,7 +11,7 @@
 # :type OUTPUT_LIST: string
 #
 #]]
-function(uniquify_files_by_basename OUTPUT_LIST INPUT_LIST)
+function(uniquify_files_by_basename OUTPUT_LIST INPUT_LIST MESSAGE_MODE)
     # Define a dictionary to keep track of seen basenames
     # set(_seen_basenames "")
     set(_unique_files "")
@@ -34,7 +34,7 @@ function(uniquify_files_by_basename OUTPUT_LIST INPUT_LIST)
             file(READ ${file} CURRENT_CONTENT)
             file(READ ${_seen_basenames_${basename}} ORIGINAL_CONTENT)
             if(NOT "${CURRENT_CONTENT}" STREQUAL "${ORIGINAL_CONTENT}")
-                message(FATAL_ERROR "Files ${file} and ${_seen_basenames_${basename}} have the same basename (${basename}) but different content.")
+                message(${MESSAGE_MODE} "Files ${file} and ${_seen_basenames_${basename}} have the same basename (${basename}) but different content.")
             endif()
         endif()
     endforeach()

@@ -10,7 +10,7 @@
 #
 # :keyword ELABORATE: sets xrun to compile and elaborate only the design (no simulation).
 # :type ELABORATE: string
-# :keyword UNIQUIFY: Uniquifies the list of ip sources based on the basename of the files.
+# :keyword UNIQUIFY: Uniquifies the list of ip sources based on the basename of the files: WARNING, FATAL_ERROR.
 # :type UNIQUIFY: string
 # :keyword SYNTHESIS: Prevents behavioural/generic RTL files to be fetched.
 # :type SYNTHESIS: string
@@ -24,7 +24,7 @@
 # :type ARGS: string
 #]]
 function(xcelium IP_LIB)
-    cmake_parse_arguments(ARG "ELABORATE;UNIQUIFY;SYNTHESIS" "ACCESS" "SETENV;DEFINES;ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "ELABORATE;SYNTHESIS" "UNIQUIFY;ACCESS" "SETENV;DEFINES;ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -44,10 +44,10 @@ function(xcelium IP_LIB)
     get_ip_tb_only_rtl_sources(TB_SOURCES_LIST ${IP_LIB})
     list(APPEND SOURCES_LIST ${TB_SOURCES_LIST})
 
-    if(${ARG_UNIQUIFY})
+    if(${ARG_UNIQUIFY} STREQUAL "WARNING" OR ${ARG_UNIQUIFY} STREQUAL "FATAL_ERROR")
         # uniquify the list of files to avoid redefinition (comparing file basenames)
         # This function also check files with same basename have the same content
-        uniquify_files_by_basename(SOURCES_LIST_UNIQUIFY "${SOURCES_LIST}")
+        uniquify_files_by_basename(SOURCES_LIST_UNIQUIFY "${SOURCES_LIST}" ${ARG_UNIQUIFY})
     else()
         set(SOURCES_LIST_UNIQUIFY ${SOURCES_LIST})
     endif()
