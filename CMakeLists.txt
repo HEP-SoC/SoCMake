@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.25)
 # Version is set first to reuse it across the SoCMake project
 # For example, docs/CMakeLists.txt includes this file to retrieve the version
 # and build the documentation
-set(SOCMAKE_VERSION 0.2.16)
+set(SOCMAKE_VERSION 0.2.18)
 
 project(SoCMake
         VERSION ${SOCMAKE_VERSION}
@@ -22,6 +22,7 @@ if("${SOCMAKE_BUILD_TESTING}")
     add_subdirectory(tests)
 endif()
 
+# hierarchy = env.testharness.testharness.triglav_i.triglav_soc_i.ibex_wrapTMR_i.u_top.register_file_i
 # This is to prevent a warning
 if(NOT PROJECT_IS_TOP_LEVEL)
     set(SOCMAKE_VERSION ${SOCMAKE_VERSION} PARENT_SCOPE)
