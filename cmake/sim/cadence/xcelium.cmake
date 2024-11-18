@@ -24,7 +24,7 @@
 # :type ARGS: string
 #]]
 function(xcelium IP_LIB)
-    cmake_parse_arguments(ARG "ELABORATE;SYNTHESIS" "UNIQUIFY;ACCESS" "SETENV;DEFINES;ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "ELABORATE;SYNTHESIS" "UNIQUIFY;ACCESS;TIMESCALE" "SETENV;DEFINES;ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -44,10 +44,14 @@ function(xcelium IP_LIB)
     get_ip_tb_only_rtl_sources(TB_SOURCES_LIST ${IP_LIB})
     list(APPEND SOURCES_LIST ${TB_SOURCES_LIST})
 
-    if(${ARG_UNIQUIFY} STREQUAL "WARNING" OR ${ARG_UNIQUIFY} STREQUAL "FATAL_ERROR")
-        # uniquify the list of files to avoid redefinition (comparing file basenames)
-        # This function also check files with same basename have the same content
-        uniquify_files_by_basename(SOURCES_LIST_UNIQUIFY "${SOURCES_LIST}" ${ARG_UNIQUIFY})
+    if(${ARG_UNIQUIFY})
+        if (${ARG_UNIQUIFY} STREQUAL "WARNING" OR ${ARG_UNIQUIFY} STREQUAL "FATAL_ERROR")
+            # uniquify the list of files to avoid redefinition (comparing file basenames)
+            # This function also check files with same basename have the same content
+            uniquify_files_by_basename(SOURCES_LIST_UNIQUIFY "${SOURCES_LIST}" ${ARG_UNIQUIFY})
+        else()
+            message(WARNING "xcelium: unrecognized UNIQUIFY argument ${ARG_UNIQUIFY}. It should be equal to WARNING or FATAL_ERROR for unquifiy to be applied.")
+        endif()
     else()
         set(SOURCES_LIST_UNIQUIFY ${SOURCES_LIST})
     endif()
@@ -73,8 +77,8 @@ function(xcelium IP_LIB)
     endforeach()
 
     # Change the default timescale 1ps/1ps if TIMESCALE argument is passed
-    if(${TIMESCALE_ARG})
-        set(TIMESCALE_ARG -timescale ${TIMESCALE_ARG})
+    if(${ARG_TIMESCALE})
+        set(TIMESCALE_ARG -timescale ${ARG_TIMESCALE})
     else()
         set(TIMESCALE_ARG -timescale 1ps/1ps)
     endif()
