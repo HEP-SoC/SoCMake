@@ -44,7 +44,8 @@ function(xcelium IP_LIB)
     get_ip_tb_only_rtl_sources(TB_SOURCES_LIST ${IP_LIB})
     list(APPEND SOURCES_LIST ${TB_SOURCES_LIST})
 
-    if(${ARG_UNIQUIFY})
+    # Why do I need to this #@!$ NOT?!?!?!
+    if(NOT ${ARG_UNIQUIFY})
         if (${ARG_UNIQUIFY} STREQUAL "WARNING" OR ${ARG_UNIQUIFY} STREQUAL "FATAL_ERROR")
             message(DEBUG "xcelium: UNIQUIFY argument is ${ARG_UNIQUIFY}")
             # uniquify the list of files to avoid redefinition (comparing file basenames)
@@ -54,7 +55,7 @@ function(xcelium IP_LIB)
             message(WARNING "xcelium: unrecognized UNIQUIFY argument ${ARG_UNIQUIFY}. It should be equal to WARNING or FATAL_ERROR for unquifiy to be applied.")
         endif()
     else()
-        message(DEBUG "xcelium: UNIQUIFY argument is not set")
+        message(DEBUG "xcelium: UNIQUIFY argument is not set (value=${ARG_UNIQUIFY})")
         set(SOURCES_LIST_UNIQUIFY ${SOURCES_LIST})
     endif()
 

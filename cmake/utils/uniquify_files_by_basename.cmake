@@ -39,6 +39,8 @@ function(uniquify_files_by_basename OUTPUT_LIST INPUT_LIST MESSAGE_MODE)
         endif()
     endforeach()
 
+    message(DEBUG "UNIQUIFY: OUTPUT_LIST ${_unique_files}")
+
     # Return the list of unique files
     set(${OUTPUT_LIST} ${_unique_files} PARENT_SCOPE)
 endfunction()
