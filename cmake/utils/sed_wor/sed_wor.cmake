@@ -33,12 +33,15 @@ function(sed_wor IP_LIB BINARY_DIR SOURCES)
         COMMENT "Generating stamp file after sed commands."
     )
 
-    add_custom_target(
-        ${IP_LIB}_sed_wor  
-        DEPENDS ${STAMP_FILE}
-    )
+    if(NOT TARGET ${IP_LIB}_sed_wor)
+        add_custom_target(
+            ${IP_LIB}_sed_wor  
+            DEPENDS ${STAMP_FILE}
+        )
 
-    add_dependencies(${IP_LIB}_sed_wor ${IP_LIB})
+        add_dependencies(${IP_LIB}_sed_wor ${IP_LIB})
+
+    endif()
 
     # Return modified sources
     set(SED_WOR_SOURCES ${MODIFIED_SOURCES} PARENT_SCOPE)
