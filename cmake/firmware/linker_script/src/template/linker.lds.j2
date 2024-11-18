@@ -27,8 +27,8 @@ SECTIONS
 
   {% if boot_mem is not none %}
   .bootloader : {
-      *bootloader.S.o*(*);
-      *bootloader.cpp.o*(*);
+      *bootloader.S.o*(.text .text.*);
+      *bootloader.cpp.o*(.text .text.*);
       . = ALIGN(4);
   } > {{ boot_mem.parent.inst_name }}
   {% endif %}
