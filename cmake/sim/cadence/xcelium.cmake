@@ -10,7 +10,7 @@
 #
 # :keyword ELABORATE: sets xrun to compile and elaborate only the design (no simulation).
 # :type ELABORATE: string
-# :keyword UNIQUIFY: Uniquifies the list of ip sources based on the basename of the files: WARNING, FATAL_ERROR.
+# :keyword UNIQUIFY: Uniquifies the list of ip sources based on the basename of the files: WARNING or FATAL_ERROR.
 # :type UNIQUIFY: string
 # :keyword SYNTHESIS: Prevents behavioural/generic RTL files to be fetched.
 # :type SYNTHESIS: string
@@ -46,6 +46,7 @@ function(xcelium IP_LIB)
 
     if(${ARG_UNIQUIFY})
         if (${ARG_UNIQUIFY} STREQUAL "WARNING" OR ${ARG_UNIQUIFY} STREQUAL "FATAL_ERROR")
+            message(DEBUG "xcelium: UNIQUIFY argument is ${ARG_UNIQUIFY}")
             # uniquify the list of files to avoid redefinition (comparing file basenames)
             # This function also check files with same basename have the same content
             uniquify_files_by_basename(SOURCES_LIST_UNIQUIFY "${SOURCES_LIST}" ${ARG_UNIQUIFY})
@@ -53,6 +54,7 @@ function(xcelium IP_LIB)
             message(WARNING "xcelium: unrecognized UNIQUIFY argument ${ARG_UNIQUIFY}. It should be equal to WARNING or FATAL_ERROR for unquifiy to be applied.")
         endif()
     else()
+        message(DEBUG "xcelium: UNIQUIFY argument is not set")
         set(SOURCES_LIST_UNIQUIFY ${SOURCES_LIST})
     endif()
 
