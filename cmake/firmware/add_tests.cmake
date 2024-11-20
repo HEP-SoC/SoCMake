@@ -1,7 +1,7 @@
 # Iterates through the DIRECTORY sub-directories and create targets
 # to start simulating each test.
 function(add_tests EXECUTABLE DIRECTORY)
-    cmake_parse_arguments(ARG "USE_PLUSARGS" "WIDTH" "ARGS;DEPS" ${ARGN})
+    cmake_parse_arguments(ARG "USE_PLUSARGS" "WIDTH;TESTCASE" "ARGS;DEPS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -38,32 +38,44 @@ function(add_tests EXECUTABLE DIRECTORY)
             continue()
         endif()
         foreach(fw_prj ${FW_PROJECT_NAME})
-        list(APPEND _test_msg " ${fw_prj}: ${${fw_prj}_DESCRIPTION}")
-            list(APPEND test_list ${fw_prj})
+        # TESTCASE argument can be used to generate multiple tests with different names
+        if(TESTCASE_ARG)
+            set(fw_prj_name ${fw_prj}_${TESTCASE})
+        else()
+            set(fw_prj_name ${fw_prj})
+        endif()
+        list(APPEND _test_msg " ${fw_prj_name}: ${${fw_prj}_DESCRIPTION}")
+            list(APPEND test_list ${fw_prj_name})
             get_target_property(HEX_FILE ${fw_prj} HEX_${ARG_WIDTH}bit_FILE)
             get_target_property(HEX_TEXT_FILE ${fw_prj} HEX_TEXT_${ARG_WIDTH}bit_FILE)
             get_target_property(HEX_DATA_FILE ${fw_prj} HEX_DATA_${ARG_WIDTH}bit_FILE)
+            get_target_property(SREC_TEXT_FILE ${fw_prj} SREC_TEXT_${ARG_WIDTH}bit_FILE)
+            get_target_property(SREC_DATA_FILE ${fw_prj} SREC_DATA_${ARG_WIDTH}bit_FILE)
             add_test(
-                NAME ${fw_prj}
+                NAME ${fw_prj_name}
                 COMMAND ${EXECUTABLE}
                     ${PREFIX}firmware=${HEX_FILE}
                     ${PREFIX}firmware_text=${HEX_TEXT_FILE}
                     ${PREFIX}firmware_data=${HEX_DATA_FILE}
+                    ${PREFIX}firmware_text_srec=${SREC_TEXT_FILE}
+                    ${PREFIX}firmware_data_srec=${SREC_DATA_FILE}
                     ${ARG_ARGS}
                 WORKING_DIRECTORY ${test}_test
             )
 
-            add_custom_target(run_${fw_prj}
+            add_custom_target(run_${fw_prj_name}
                 COMMAND ${EXECUTABLE}
                     ${PREFIX}firmware=${HEX_FILE}
                     ${PREFIX}firmware_text=${HEX_TEXT_FILE}
                     ${PREFIX}firmware_data=${HEX_DATA_FILE}
+                    ${PREFIX}firmware_text_srec=${SREC_TEXT_FILE}
+                    ${PREFIX}firmware_data_srec=${SREC_DATA_FILE}
                     ${ARG_ARGS}
-                DEPENDS ${fw_prj} ${ARG_DEPS}
+                DEPENDS ${fw_prj_name} ${ARG_DEPS}
             )
             # Add dependency if the EXECUTABLE is a target created by add_executable
             if(TARGET ${EXECUTABLE})
-                add_dependencies(run_${fw_prj} ${EXECUTABLE})
+                add_dependencies(run_${fw_prj_name} ${EXECUTABLE})
             endif()
         endforeach()
     endforeach()

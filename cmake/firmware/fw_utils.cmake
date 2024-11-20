@@ -105,7 +105,7 @@ function(gen_hex_files EXE)
                 COMMAND ${CMAKE_OBJCOPY} -O verilog --gap-fill 0x0000 ${TEXT_SECTION} ${EXECUTABLE} ${HEX_TEXT_FILE}
                 # TODO: find an automatic way to 'correct' the VMA for loading during simulation
                 COMMAND ${CMAKE_OBJCOPY} -O verilog --gap-fill 0x0000 --adjust-vma=-0x10000000 ${DATA_SECTION} ${EXECUTABLE} ${HEX_DATA_FILE}
-                COMMENT "Generating ${width} bit hex file for ${EXE}"
+                COMMENT "Generating ${width} bit hex files for ${EXE}"
             )
 
             # Set properties on the target to store the paths of the generated hex files
@@ -114,6 +114,89 @@ function(gen_hex_files EXE)
             set_property(TARGET ${EXE} PROPERTY HEX_DATA_${width}bit_FILE ${HEX_DATA_FILE})
         else()
             message(FATAL_ERROR "\nWidth ${width} not allowed in gen_hex_files(), allowed values ${ALLOWED_WIDTHS}\n")
+        endif()
+    endforeach()
+endfunction()
+
+#[[[
+# This function generates srec files for the given executable target.
+#
+# :param EXE: The executable target.
+# :type EXE: string
+#]]
+function(gen_srec_files EXE)
+    # Retrieve the binary directory of the target
+    get_target_property(BINARY_DIR ${EXE} BINARY_DIR)
+
+    # Parse the width arguments
+    cmake_parse_arguments(ARG "" "" "WIDTHS" ${ARGN})
+
+    # Include the utility script to find Python
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/find_python.cmake")
+    find_python3()
+
+    # Set the path for the executable
+    set(EXECUTABLE ${BINARY_DIR}/${EXE})
+
+    # Retrieve binary file properties from the target
+    get_property(BIN_FILE TARGET ${EXE} PROPERTY BIN_FILE)
+    get_property(BIN_TEXT_FILE TARGET ${EXE} PROPERTY BIN_TEXT_FILE)
+    get_property(BIN_DATA_FILE TARGET ${EXE} PROPERTY BIN_DATA_FILE)
+
+    # Set default width to 32 if not specified
+    if(NOT ARG_WIDTHS)
+        set(ARG_WIDTHS 32)
+    endif()
+
+    # Determine the sections based on whether the target is a bootloader
+    get_target_property(BOOTLOADER ${EXE} BOOTLOADER)
+    if(BOOTLOADER)
+        set(TEXT_SECTION --only-section=.bootloader)
+    else()
+        set(TEXT_SECTION
+            --only-section=.vectors
+            --only-section=.init
+            --only-section=.fini
+            --only-section=.text
+        )
+    endif()
+
+    # Set the sections to be excluded for the data section
+    set(DATA_SECTION
+        --remove-section=.bootloader
+        --remove-section=.vectors
+        --remove-section=.init
+        --remove-section=.fini
+        --remove-section=.text
+    )
+
+    # Define allowed widths and iterate over specified widths to generate hex files
+    set(ALLOWED_WIDTHS 8 16 32 64)
+    foreach(width ${ARG_WIDTHS})
+        list(FIND ALLOWED_WIDTHS ${width} WIDTH_FIND)
+        if(WIDTH_FIND GREATER -1)
+            set(WIDTH_ARG --width ${width})
+            # set(SREC_FILE "${BINARY_DIR}/${EXE}_${width}bit.hex")
+            set(SREC_TEXT_FILE "${BINARY_DIR}/${EXE}_text_${width}bit.srec")
+            set(SREC_DATA_FILE "${BINARY_DIR}/${EXE}_data_${width}bit.srec")
+
+            # Add custom commands to generate hex files for the specified width
+            add_custom_command(TARGET ${EXE}
+                POST_BUILD
+                BYPRODUCTS ${SREC_TEXT_FILE} ${SREC_DATA_FILE} # ${SREC_FILE}
+                # COMMAND ${CMAKE_OBJCOPY} --srec-forceS3 --srec-len 1 -O srec ${EXECUTABLE} ${SREC_FILE}
+                COMMAND ${CMAKE_OBJCOPY} --srec-forceS3 --srec-len 1 -O srec ${TEXT_SECTION} ${EXECUTABLE} ${SREC_TEXT_FILE}
+                # TODO: find an automatic way to 'correct' the VMA for loading during simulation
+                COMMAND ${CMAKE_OBJCOPY} --srec-forceS3 --srec-len 1 -O srec ${DATA_SECTION} ${EXECUTABLE} ${SREC_DATA_FILE}
+                COMMENT "Generating ${width} bit srec files for ${EXE}"
+            )
+
+            # Set properties on the target to store the paths of the generated hex files
+            # set_property(TARGET ${EXE} PROPERTY SREC_${width}bit_FILE ${SREC_FILE})
+            set_property(TARGET ${EXE} PROPERTY SREC_TEXT_${width}bit_FILE ${SREC_TEXT_FILE})
+            set_property(TARGET ${EXE} PROPERTY SREC_DATA_${width}bit_FILE ${SREC_DATA_FILE})
+        else()
+            message(FATAL_ERROR "\nWidth ${width} not allowed in gen_srec_files(), allowed values ${ALLOWED_WIDTHS}\n")
         endif()
     endforeach()
 endfunction()
