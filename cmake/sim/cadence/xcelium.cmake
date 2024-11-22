@@ -24,7 +24,7 @@
 # :type ARGS: string
 #]]
 function(xcelium IP_LIB)
-    cmake_parse_arguments(ARG "ELABORATE;SYNTHESIS" "UNIQUIFY;ACCESS;TIMESCALE" "SETENV;DEFINES;ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "ELABORATE;SYNTHESIS" "UNIQUIFY;ACCESS;TIMESCALE;SDF_CMD_FILE" "SETENV;DEFINES;ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -86,6 +86,11 @@ function(xcelium IP_LIB)
         set(TIMESCALE_ARG -timescale 1ps/1ps)
     endif()
 
+    # Check if an SDF command file is passed
+    if(ARG_SDF_CMD_FILE)
+        set(SDF_CMD_FILE -sdf_cmd_file ${ARG_SDF_CMD_FILE})
+    endif()
+
     get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
     get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG) # TODO Add VHDL??
     set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
@@ -103,8 +108,11 @@ function(xcelium IP_LIB)
         ${SETENV_LIST}
         ${DEFINES_LIST}
         ${CMP_DEFS_LIST}
+        ${SDF_CMD_FILE}
         # SystemVerilog language constructs enabled by default
         -sv
+        # Set the log file name
+        -l xrun_elab.log
         # xrun elaboration options
         ${ACCESS_ARG}
         ${TIMESCALE_ARG}
@@ -113,7 +121,7 @@ function(xcelium IP_LIB)
         # Source files and include directories
         ${SOURCES_LIST_UNIQUIFY}
         ${INCDIR_LIST}
-        BYPRODUCTS xcelium.d xrun.history xrun.key xrun.log
+        BYPRODUCTS xcelium.d xrun_elab.history xrun_elab.key xrun_elab.log
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
         DEPENDS ${SOURCES_LIST} ${IP_LIB}
     )
