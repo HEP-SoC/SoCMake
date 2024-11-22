@@ -1,7 +1,7 @@
 # Iterates through the DIRECTORY sub-directories and create targets
 # to start simulating each test.
 function(add_tests EXECUTABLE DIRECTORY)
-    cmake_parse_arguments(ARG "USE_PLUSARGS" "WIDTH;TEST_PREFIX" "TESTCASE;ARGS;DEPS" ${ARGN})
+    cmake_parse_arguments(ARG "USE_PLUSARGS" "WIDTH;TEST_PREFIX;TESTCASE_PARAM" "TESTCASE;ARGS;DEPS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -17,9 +17,9 @@ function(add_tests EXECUTABLE DIRECTORY)
     endif()
 
     if(ARG_USE_PLUSARGS)
-        set(PREFIX +)
+        set(PREFIX_ARG +)
     else()
-        set(PREFIX --)
+        set(PREFIX_ARG --)
     endif()
 
     if(NOT ARG_TESTCASE)
@@ -60,6 +60,10 @@ function(add_tests EXECUTABLE DIRECTORY)
                 else()
                     set(fw_prj_name ${TEST_PREFIX}${fw_prj})
                 endif()
+                # Pass the testcase value as a parameter if TEST_CASE_PARAM is given
+                if(ARG_TESTCASE_PARAM)
+                    set(TESTCASE_PARAM ${PREFIX_ARG}${ARG_TESTCASE_PARAM}=${testcase})
+                endif()
                 list(APPEND _test_msg " ${fw_prj_name}: ${${fw_prj}_DESCRIPTION}")
                 list(APPEND test_list ${fw_prj})
                 get_target_property(HEX_FILE ${fw_prj} HEX_${ARG_WIDTH}bit_FILE)
@@ -68,27 +72,29 @@ function(add_tests EXECUTABLE DIRECTORY)
                 get_target_property(SREC_TEXT_FILE ${fw_prj} SREC_TEXT_${ARG_WIDTH}bit_FILE)
                 get_target_property(SREC_DATA_FILE ${fw_prj} SREC_DATA_${ARG_WIDTH}bit_FILE)
                 # Create teh test working directory if it does not exists
-                set(test_working_dir ${test}_test/${fw_prj_name})
+                set(test_working_dir ${test}_test/${fw_prj_name}_test)
                 execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${test_working_dir})
                 add_test(
                     NAME ${fw_prj_name}
                     COMMAND ${EXECUTABLE}
-                        ${PREFIX}firmware=${HEX_FILE}
-                        ${PREFIX}firmware_text=${HEX_TEXT_FILE}
-                        ${PREFIX}firmware_data=${HEX_DATA_FILE}
-                        ${PREFIX}firmware_text_srec=${SREC_TEXT_FILE}
-                        ${PREFIX}firmware_data_srec=${SREC_DATA_FILE}
+                        ${PREFIX_ARG}firmware=${HEX_FILE}
+                        ${PREFIX_ARG}firmware_text=${HEX_TEXT_FILE}
+                        ${PREFIX_ARG}firmware_data=${HEX_DATA_FILE}
+                        ${PREFIX_ARG}firmware_text_srec=${SREC_TEXT_FILE}
+                        ${PREFIX_ARG}firmware_data_srec=${SREC_DATA_FILE}
+                        ${TESTCASE_PARAM}
                         ${ARG_ARGS}
                     WORKING_DIRECTORY ${test_working_dir}
                 )
 
                 add_custom_target(run_${fw_prj_name}
                     COMMAND ${EXECUTABLE}
-                        ${PREFIX}firmware=${HEX_FILE}
-                        ${PREFIX}firmware_text=${HEX_TEXT_FILE}
-                        ${PREFIX}firmware_data=${HEX_DATA_FILE}
-                        ${PREFIX}firmware_text_srec=${SREC_TEXT_FILE}
-                        ${PREFIX}firmware_data_srec=${SREC_DATA_FILE}
+                        ${PREFIX_ARG}firmware=${HEX_FILE}
+                        ${PREFIX_ARG}firmware_text=${HEX_TEXT_FILE}
+                        ${PREFIX_ARG}firmware_data=${HEX_DATA_FILE}
+                        ${PREFIX_ARG}firmware_text_srec=${SREC_TEXT_FILE}
+                        ${PREFIX_ARG}firmware_data_srec=${SREC_DATA_FILE}
+                        ${TESTCASE_PARAM}
                         ${ARG_ARGS}
                     DEPENDS ${fw_prj} ${ARG_DEPS}
                 )
