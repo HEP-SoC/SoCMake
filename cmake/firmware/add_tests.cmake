@@ -1,7 +1,7 @@
 # Iterates through the DIRECTORY sub-directories and create targets
 # to start simulating each test.
 function(add_tests EXECUTABLE DIRECTORY)
-    cmake_parse_arguments(ARG "USE_PLUSARGS" "WIDTH;TEST_PREFIX;TESTCASE_PARAM" "TESTCASE;ARGS;DEPS" ${ARGN})
+    cmake_parse_arguments(ARG "USE_PLUSARGS" "NPROC;WIDTH;TEST_PREFIX;TESTCASE_PARAM" "TESTCASE;ARGS;DEPS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -107,7 +107,11 @@ function(add_tests EXECUTABLE DIRECTORY)
     endforeach() # TEST_SUBDIRS
 
     include(ProcessorCount)
-    ProcessorCount(NPROC)
+    if(NOT ARG_NPROC)
+        ProcessorCount(NPROC)
+    else()
+        set(NPROC ${ARG_NPROC})
+    endif()
     add_custom_target(check
         COMMAND ${CMAKE_CTEST_COMMAND} -j${NPROC}
         DEPENDS ${test_list} ${ARG_DEPS}
