@@ -66,6 +66,7 @@ function(xcelium IP_LIB)
     # Sets the flag to compile and elaborate only
     if(${ARG_ELABORATE})
         set(ELABORATE_ARG -elaborate)
+        set(LOG_SUFFIX _elab)
     endif()
 
     # Add the xrun parameter for the passed include directories, env variables and verilog defines
@@ -112,7 +113,7 @@ function(xcelium IP_LIB)
         # SystemVerilog language constructs enabled by default
         -sv
         # Set the log file name
-        -l xrun_elab.log
+        -l xrun${LOG_SUFFIX}.log
         # xrun elaboration options
         ${ACCESS_ARG}
         ${TIMESCALE_ARG}
@@ -121,7 +122,7 @@ function(xcelium IP_LIB)
         # Source files and include directories
         ${SOURCES_LIST_UNIQUIFY}
         ${INCDIR_LIST}
-        BYPRODUCTS xcelium.d xrun_elab.history xrun_elab.key xrun_elab.log
+        BYPRODUCTS xcelium.d xrun${LOG_SUFFIX}.history xrun${LOG_SUFFIX}.key xrun${LOG_SUFFIX}.log
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
         DEPENDS ${SOURCES_LIST} ${IP_LIB}
     )
