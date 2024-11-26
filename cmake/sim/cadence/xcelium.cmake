@@ -18,7 +18,7 @@
 include_guard(GLOBAL)
 
 function(xcelium IP_LIB)
-    cmake_parse_arguments(ARG "GUI" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "GUI" "" "ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -27,12 +27,6 @@ function(xcelium IP_LIB)
 
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
-
-    if(ARG_GUI)
-        set(ARG_GUI -gui)
-    else()
-        unset(ARG_GUI)
-    endif()
 
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
     get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
@@ -46,6 +40,16 @@ function(xcelium IP_LIB)
         list(APPEND CMP_DEFS_ARG -define ${def})
     endforeach()
 
+    get_ip_links(IPS_LIST ${IP_LIB})
+
+    unset(__lib_args)
+    foreach(ip ${IPS_LIST})
+        get_target_property(ip_type ${ip} TYPE)
+        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
+            list(APPEND __lib_args -sv_lib $<TARGET_FILE_DIR:${ip}>/lib$<TARGET_FILE_BASE_NAME:${ip}>)
+        endif()
+    endforeach()
+
     add_custom_target( run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         COMMAND xrun
         # Enable parameters without default value
@@ -54,12 +58,12 @@ function(xcelium IP_LIB)
         ${SOURCES}
         ${ARG_INCDIRS}
         ${CMP_DEFS_ARG}
-        ${ARG_GUI}
+        ${__lib_args}
+        $<$<BOOL:${ARG_GUI}>:-gui>
+        ${ARG_ARGS}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
         DEPENDS ${SOURCES} ${IP_LIB}
         )
-
-    # add_dependencies(${IP_LIB}_${CMAKE_CURRENT_FUNCTION} ${IP_LIB})
 
 endfunction()
 
