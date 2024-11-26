@@ -96,7 +96,7 @@ function(add_tests EXECUTABLE DIRECTORY)
                         ${PREFIX_ARG}firmware_data_srec=${SREC_DATA_FILE}
                         ${TESTCASE_PARAM}
                         ${ARG_ARGS}
-                    DEPENDS ${fw_prj} ${ARG_DEPS} ${test_working_dir}
+                    DEPENDS ${fw_prj} ${ARG_DEPS}
                 )
                 # Add additional clean files to project
                 set_property(
