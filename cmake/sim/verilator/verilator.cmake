@@ -194,6 +194,15 @@ function(verilator IP_LIB)
 
     target_link_libraries(${VERILATED_LIB} INTERFACE -pthread)
 
+    # Search for linked libraries that are Shared or Static libraries and link them to the verilated library
+    get_ip_links(IPS_LIST ${IP_LIB})
+    foreach(ip ${IPS_LIST})
+        get_target_property(ip_type ${ip} TYPE)
+        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
+            target_link_libraries(${VERILATED_LIB} INTERFACE ${ip})
+        endif()
+    endforeach()
+
     string(REPLACE "__" "::" ALIAS_NAME "${VERILATED_LIB}")
     add_library(${ALIAS_NAME} ALIAS ${VERILATED_LIB})
 
