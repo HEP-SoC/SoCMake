@@ -1,7 +1,7 @@
 function(verilator IP_LIB)
-    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN")
-    set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY;EXECUTABLE_NAME")
-    set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL")
+    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN;NO_RUN_TARGET")
+    set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY;EXECUTABLE_NAME;RUN_TARGET_NAME")
+    set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL;RUN_ARGS")
 
     cmake_parse_arguments(ARG
         "${OPTIONS}"
@@ -84,6 +84,16 @@ function(verilator IP_LIB)
         unset(ARG_MAIN)
     endif()
 
+    if(ARG_RUN_ARGS)
+        set(__ARG_RUN_ARGS ${ARG_RUN_ARGS})
+        unset(ARG_RUN_ARGS)
+    endif() 
+
+    if(ARG_NO_RUN_TARGET)
+        set(__ARG_NO_RUN_TARGET ${ARG_NO_RUN_TARGET})
+        unset(ARG_NO_RUN_TARGET)
+    endif() 
+
     set(PASS_ADDITIONAL_MULTIPARAM SOURCES INCLUDE_DIRS) # Additional parameters to pass
     set(PASS_ADDITIONAL_ONEPARAM DIRECTORY PREFIX)
     set(PASS_ADDITIONAL_OPTIONS)
@@ -138,83 +148,90 @@ function(verilator IP_LIB)
     ###
 
     set(VERILATE_TARGET ${IP_LIB}_verilate)
-    include(ExternalProject)
-    ExternalProject_Add(${VERILATE_TARGET}
-        DOWNLOAD_COMMAND ""
-        SOURCE_DIR "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/verilator"
-        PREFIX ${DIRECTORY}
-        BINARY_DIR ${DIRECTORY}
-        LIST_SEPARATOR |
-        BUILD_ALWAYS 1
+    if(NOT TARGET ${IP_LIB}_verilate)
+        include(ExternalProject)
+        ExternalProject_Add(${VERILATE_TARGET}
+            DOWNLOAD_COMMAND ""
+            SOURCE_DIR "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/verilator"
+            PREFIX ${DIRECTORY}
+            BINARY_DIR ${DIRECTORY}
+            LIST_SEPARATOR |
+            BUILD_ALWAYS 1
 
-        CMAKE_ARGS
-            ${ARG_CMAKE_CXX_STANDARD}
-            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-            -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}
-            -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${BINARY_DIR}
+            CMAKE_ARGS
+                ${ARG_CMAKE_CXX_STANDARD}
+                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}
+                -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${BINARY_DIR}
 
-            -DTARGET=${ARG_TOP_MODULE}
-            -DARGUMENTS_LIST=${ARGUMENTS_LIST}
-            -DEXECUTABLE_NAME=${ARG_EXECUTABLE_NAME}
-            ${EXT_PRJ_ARGS}
-            -DVERILATOR_ROOT=${VERILATOR_ROOT}
-            -DSYSTEMC_ROOT=${SYSTEMC_HOME}
+                -DTARGET=${ARG_TOP_MODULE}
+                -DARGUMENTS_LIST=${ARGUMENTS_LIST}
+                -DEXECUTABLE_NAME=${ARG_EXECUTABLE_NAME}
+                ${EXT_PRJ_ARGS}
+                -DVERILATOR_ROOT=${VERILATOR_ROOT}
+                -DSYSTEMC_ROOT=${SYSTEMC_HOME}
 
-        INSTALL_COMMAND ""
-        DEPENDS ${IP_LIB}
-        EXCLUDE_FROM_ALL 1
-        COMMENT ${DESCRIPTION}
+            INSTALL_COMMAND ""
+            DEPENDS ${IP_LIB}
+            EXCLUDE_FROM_ALL 1
+            COMMENT ${DESCRIPTION}
+            )
+
+        set_property(
+            TARGET ${VERILATE_TARGET}
+            APPEND PROPERTY ADDITIONAL_CLEAN_FILES
+                ${DIRECTORY}
+                ${EXECUTABLE_PATH}
         )
+        set_property(TARGET ${VERILATE_TARGET} PROPERTY DESCRIPTION ${DESCRIPTION})
 
-    set_property(
-        TARGET ${VERILATE_TARGET}
-        APPEND PROPERTY ADDITIONAL_CLEAN_FILES
-            ${DIRECTORY}
-            ${EXECUTABLE_PATH}
-    )
-    set_property(TARGET ${VERILATE_TARGET} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set(VLT_STATIC_LIB "${DIRECTORY}/lib${ARG_TOP_MODULE}.a")
+        set(INC_DIR ${DIRECTORY})
 
-    set(VLT_STATIC_LIB "${DIRECTORY}/lib${ARG_TOP_MODULE}.a")
-    set(INC_DIR ${DIRECTORY})
+        set(VERILATED_LIB ${IP_LIB}__vlt)
+        add_library(${VERILATED_LIB} STATIC IMPORTED)
+        set_target_properties(${VERILATED_LIB} PROPERTIES IMPORTED_GLOBAL TRUE)
+        add_dependencies(${VERILATED_LIB} ${VERILATE_TARGET})
+        set_target_properties(${VERILATED_LIB} PROPERTIES IMPORTED_LOCATION ${VLT_STATIC_LIB})
 
-    set(VERILATED_LIB ${IP_LIB}__vlt)
-    add_library(${VERILATED_LIB} STATIC IMPORTED)
-    set_target_properties(${VERILATED_LIB} PROPERTIES IMPORTED_GLOBAL TRUE)
-    add_dependencies(${VERILATED_LIB} ${VERILATE_TARGET})
-    set_target_properties(${VERILATED_LIB} PROPERTIES IMPORTED_LOCATION ${VLT_STATIC_LIB})
+        target_include_directories(${VERILATED_LIB} INTERFACE ${INC_DIR})
+        target_include_directories(${VERILATED_LIB} INTERFACE
+            "${VERILATOR_INCLUDE_DIR}"
+            "${VERILATOR_INCLUDE_DIR}/vltstd")
 
-    target_include_directories(${VERILATED_LIB} INTERFACE ${INC_DIR})
-    target_include_directories(${VERILATED_LIB} INTERFACE
-        "${VERILATOR_INCLUDE_DIR}"
-        "${VERILATOR_INCLUDE_DIR}/vltstd")
+        set(THREADS_PREFER_PTHREAD_FLAG ON)
+        find_package(Threads REQUIRED)
 
-    set(THREADS_PREFER_PTHREAD_FLAG ON)
-    find_package(Threads REQUIRED)
+        target_link_libraries(${VERILATED_LIB} INTERFACE -pthread)
 
-    target_link_libraries(${VERILATED_LIB} INTERFACE -pthread)
+        # Search for linked libraries that are Shared or Static libraries and link them to the verilated library
+        get_ip_links(IPS_LIST ${IP_LIB})
+        foreach(ip ${IPS_LIST})
+            get_target_property(ip_type ${ip} TYPE)
+            if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
+                target_link_libraries(${VERILATED_LIB} INTERFACE ${ip})
+            endif()
+        endforeach()
 
-    # Search for linked libraries that are Shared or Static libraries and link them to the verilated library
-    get_ip_links(IPS_LIST ${IP_LIB})
-    foreach(ip ${IPS_LIST})
-        get_target_property(ip_type ${ip} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
-            target_link_libraries(${VERILATED_LIB} INTERFACE ${ip})
+        string(REPLACE "__" "::" ALIAS_NAME "${VERILATED_LIB}")
+        add_library(${ALIAS_NAME} ALIAS ${VERILATED_LIB})
+    endif()
+
+    set(__sim_run_cmd ${EXECUTABLE_PATH} ${__ARG_RUN_ARGS})
+    if(EXECUTABLE_PATH AND NOT __ARG_NO_RUN_TARGET)
+        if(NOT ARG_RUN_TARGET_NAME)
+            set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
         endif()
-    endforeach()
-
-    string(REPLACE "__" "::" ALIAS_NAME "${VERILATED_LIB}")
-    add_library(${ALIAS_NAME} ALIAS ${VERILATED_LIB})
-
-    if(EXECUTABLE_PATH)
         set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB}")
         # Add a custom target to run the generated executable
         add_custom_target(
-            run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-            COMMAND ${EXECUTABLE_PATH}
+            ${ARG_RUN_TARGET_NAME}
+            COMMAND ${__sim_run_cmd}
             DEPENDS ${EXECUTABLE_PATH} ${STAMP_FILE} ${VERILATE_TARGET}
             COMMENT ${DESCRIPTION}
         )
-        set_property(TARGET run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
+    set(SIM_RUN_CMD ${__sim_run_cmd} PARENT_SCOPE)
 endfunction()
