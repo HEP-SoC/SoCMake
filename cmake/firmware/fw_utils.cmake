@@ -185,9 +185,9 @@ function(gen_srec_files EXE)
                 POST_BUILD
                 BYPRODUCTS ${SREC_TEXT_FILE} ${SREC_DATA_FILE} # ${SREC_FILE}
                 # COMMAND ${CMAKE_OBJCOPY} --srec-forceS3 --srec-len 1 -O srec ${EXECUTABLE} ${SREC_FILE}
-                COMMAND ${CMAKE_OBJCOPY} --srec-forceS3 --srec-len 1 -O srec ${TEXT_SECTION} ${EXECUTABLE} ${SREC_TEXT_FILE}
+                COMMAND ${CMAKE_OBJCOPY} --srec-forceS3 --srec-len 1 -O srec --gap-fill 0x0000 ${TEXT_SECTION} ${EXECUTABLE} ${SREC_TEXT_FILE}
                 # TODO: find an automatic way to 'correct' the VMA for loading during simulation
-                COMMAND ${CMAKE_OBJCOPY} --srec-forceS3 --srec-len 1 -O srec ${DATA_SECTION} ${EXECUTABLE} ${SREC_DATA_FILE}
+                COMMAND ${CMAKE_OBJCOPY} --srec-forceS3 --srec-len 1 -O srec --gap-fill 0x0000 ${DATA_SECTION} ${EXECUTABLE} ${SREC_DATA_FILE}
                 COMMENT "Generating ${width} bit srec files for ${EXE}"
             )
 
