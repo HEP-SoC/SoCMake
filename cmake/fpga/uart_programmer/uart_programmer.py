@@ -79,9 +79,12 @@ def program(
             if not sync_f:
                 # Wait for the first similar byte
                 while not sync_f:
+                    print(f"INFO: Waiting for synchronization... ", end="")
                     rbyte = ser.read(1)
+                    print(f"Received byte: {rbyte} ?= {wbyte}")
                     if rbyte == wbyte:
                         sync_f = True
+                        print(f"INFO: Synchronization success!", end="")
             else:
                 rbyte = ser.read(1)
                 if rbyte != wbyte:

@@ -102,7 +102,6 @@ function(peakrdl_socgen IP_LIB)
     endif()
 
     # Used to overwrite the top level parameters
-    set(OVERWRITTEN_PARAMETERS_TARGET "")
     set(OVERWRITTEN_PARAMETERS "")
     if(ARG_PARAMETERS)
         foreach(PARAM ${ARG_PARAMETERS})
@@ -113,7 +112,7 @@ function(peakrdl_socgen IP_LIB)
     get_ip_sources(RDL_SOCGEN_GLUE ${IP_LIB} SYSTEMRDL_SOCGEN)
     get_ip_sources(SYSTEMRDL_SOURCES ${IP_LIB} SYSTEMRDL)
 
-    # Get SystemRDL include directories 
+    # Get SystemRDL include directories
     get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
     if(INC_DIRS)
         set(INCDIR_ARG -I ${INC_DIRS})

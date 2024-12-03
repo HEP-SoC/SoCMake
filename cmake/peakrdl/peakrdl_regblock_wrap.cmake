@@ -1,6 +1,6 @@
 function(peakrdl_regblock_wrap IP_LIB)
     # Parse keyword arguments
-    cmake_parse_arguments(ARG "TMR" "OUTDIR;RENAME;INTF;RESET;OUT_LIST" "" ${ARGN})
+    cmake_parse_arguments(ARG "TMR" "OUTDIR;RENAME;INTF;RESET;OUT_LIST" "PARAMETERS" ${ARGN})
     # Check for any unknown argument
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
@@ -58,11 +58,19 @@ function(peakrdl_regblock_wrap IP_LIB)
         set(REGBLOCK_NAME ${ARG_RENAME})
     endif()
 
+    # Used to overwrite the top level parameters
+    set(OVERWRITTEN_PARAMETERS "")
+    if(ARG_PARAMETERS)
+        foreach(PARAM ${ARG_PARAMETERS})
+            set(OVERWRITTEN_PARAMETERS "${OVERWRITTEN_PARAMETERS}" "-P${PARAM}")
+        endforeach()
+    endif()
+
     # Get the SystemRDL sources to generate the register block
     # This function gets the IP sources and the deps
     get_ip_sources(RDL_SOURCES ${IP_LIB} SYSTEMRDL)
 
-    # Get SystemRDL include directories 
+    # Get SystemRDL include directories
     get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
     if(INC_DIRS)
         set(INCDIR_ARG -I ${INC_DIRS})
@@ -83,6 +91,7 @@ function(peakrdl_regblock_wrap IP_LIB)
         ${RESET_ARG}
         ${TMR_OPT}
         ${INCDIR_ARG}
+        ${OVERWRITTEN_PARAMETERS}
         -o ${OUTDIR}
         ${RDL_SOURCES}
     )
