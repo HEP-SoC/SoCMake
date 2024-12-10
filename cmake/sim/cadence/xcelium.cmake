@@ -38,6 +38,16 @@ function(xcelium IP_LIB)
         set(ARG_TOP_MODULE ${IP_NAME})
     endif()
 
+    if(ARG_XMVLOG_ARGS)
+        set(ARG_XMVLOG_ARGS XMVLOG_ARGS ${ARG_XMVLOG_ARGS})
+    endif()
+    if(ARG_XMVHDL_ARGS)
+        set(ARG_XMVHDL_ARGS XMVHDL_ARGS ${ARG_XMVHDL_ARGS})
+    endif()
+    if(ARG_XMELAB_ARGS)
+        set(ARG_XMELAB_ARGS XMELAB_ARGS ${ARG_XMELAB_ARGS})
+    endif()
+
     get_ip_links(IPS_LIST ${IP_LIB})
 
     unset(__lib_args)
@@ -97,7 +107,7 @@ function(xcelium IP_LIB)
 endfunction()
 
 function(__xcelium_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "OUTDIR;TOP_MODULE;XMVLOG_ARGS;XMVHDL_ARGS;XMELAB_ARGS" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS" "OUTDIR;TOP_MODULE" "XMVLOG_ARGS;XMVHDL_ARGS;XMELAB_ARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
