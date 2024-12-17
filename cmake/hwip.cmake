@@ -2,6 +2,7 @@
 include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_graph.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils/alias_dereference.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils/safe_get_target_property.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}//utils/file_paths.cmake")
 
 #[[[
 # This function creates an INTERFACE library for a given IP.
@@ -227,6 +228,8 @@ endfunction()
 # existing list. Ne source files can also be prepended with the optional keyword PREPEND. The source
 # files are later used to create the list of files to be compiled (e.g., by a simulator) by a tool to
 # execute its tasks. The source files are passed as a list after the parameters and keywords.
+# 
+# Relative file paths are accepted and will be converted to absolute, relative to ${CMAKE_CURRENT_SOURCE_DIR}
 #
 # :param IP_LIB: The target IP library.
 # :type IP_LIB: string
@@ -240,24 +243,27 @@ endfunction()
 #]]
 function(ip_sources IP_LIB LANGUAGE)
     cmake_parse_arguments(ARG "PREPEND;REPLACE" "" "" ${ARGN})
+    # Delete PREPEND and REPLACE from argument list, so only sources are left
+    list(REMOVE_ITEM ARGN "PREPEND")
+    list(REMOVE_ITEM ARGN "REPLACE")
 
     check_languages(${LANGUAGE})
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
 
+    # Convert all listed files to absolute paths relative to ${CMAKE_CURRENT_SOURCE_DIR}
+    convert_paths_to_absolute(file_list ${ARGN})
+
     if(NOT ARG_REPLACE)
         # Get the existing source files if any
         get_ip_sources(_sources ${_reallib} ${LANGUAGE} NO_DEPS)
-    else()
-        list(REMOVE_ITEM ARGN "REPLACE")
     endif()
 
-    # If the PREPEND option is passed first remove it from the list of file and prepend the new sources
+    # If the PREPEND option is passed prepend the new sources to the old ones
     if(ARG_PREPEND)
-        list(REMOVE_ITEM ARGN "PREPEND")
-        set(_sources ${ARGN} ${_sources})
+        set(_sources ${file_list} ${_sources})
     else()
-        set(_sources ${_sources} ${ARGN})
+        set(_sources ${_sources} ${file_list})
     endif()
     # Set the target property with the new list of source files
     set_property(TARGET ${_reallib} PROPERTY ${LANGUAGE}_SOURCES ${_sources})
@@ -316,8 +322,10 @@ function(ip_include_directories IP_LIB LANGUAGE)
     check_languages(${LANGUAGE})
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
+    # Convert all listed files to absolute paths relative to ${CMAKE_CURRENT_SOURCE_DIR}
+    convert_paths_to_absolute(dir_list ${ARGN})
     # Append the new include directories to the exsiting ones
-    set_property(TARGET ${_reallib} APPEND PROPERTY ${LANGUAGE}_INCLUDE_DIRECTORIES ${ARGN})
+    set_property(TARGET ${_reallib} APPEND PROPERTY ${LANGUAGE}_INCLUDE_DIRECTORIES ${dir_list})
 endfunction()
 
 #[[[

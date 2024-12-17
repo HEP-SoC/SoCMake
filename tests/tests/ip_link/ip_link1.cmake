@@ -1,4 +1,5 @@
 include("${CMAKE_CURRENT_LIST_DIR}/../../../CMakeLists.txt")
+set(CDIR ${CMAKE_CURRENT_LIST_DIR})
 
 set(TEST_NAME ip_link1)
 
@@ -28,7 +29,7 @@ function(${${TEST_NAME}})
         LIBRARY lib
         VERSION 1.2.3
         )
-    ip_sources(${IP} VERILOG ip1_f1.v ip1_f2.v)
+    ip_sources(${IP} VERILOG ${CDIR}/ip1_f1.v ${CDIR}/ip1_f2.v)
     set(IP1 ${IP})
 
     add_ip(ip2
@@ -36,7 +37,7 @@ function(${${TEST_NAME}})
         LIBRARY lib
         VERSION 1.2.3
         )
-    ip_sources(${IP} VERILOG ip2_f1.v ip2_f2.v)
+    ip_sources(${IP} VERILOG ${CDIR}/ip2_f1.v ${CDIR}/ip2_f2.v)
     set(IP2 ${IP})
 
     add_ip(ip3
@@ -44,7 +45,7 @@ function(${${TEST_NAME}})
         LIBRARY lib
         VERSION 1.2.3
         )
-    ip_sources(${IP} VERILOG ip3_f1.v ip3_f2.v)
+    ip_sources(${IP} VERILOG ${CDIR}/ip3_f1.v ${CDIR}/ip3_f2.v)
     set(IP3 ${IP})
 
     add_ip(ip4
@@ -52,7 +53,7 @@ function(${${TEST_NAME}})
         LIBRARY lib
         VERSION 1.2.3
         )
-    ip_sources(${IP} VERILOG ip4_f1.v ip4_f2.v)
+    ip_sources(${IP} VERILOG ${CDIR}/ip4_f1.v ${CDIR}/ip4_f2.v)
     set(IP4 ${IP})
 
     ip_link(${IP1} ${IP2} ${IP3})
@@ -62,17 +63,17 @@ function(${${TEST_NAME}})
     get_ip_sources(V_SOURCES ${IP1} VERILOG)
 
     list(SUBLIST V_SOURCES 0 2 CURRENT_V_FILES)
-    ct_assert_equal(CURRENT_V_FILES "ip4_f1.v;ip4_f2.v")
+    ct_assert_equal(CURRENT_V_FILES "${CDIR}/ip4_f1.v;${CDIR}/ip4_f2.v")
 
     list(SUBLIST V_SOURCES 2 4 CURRENT_V_FILES)
-    if("${CURRENT_V_FILES}" STREQUAL "ip2_f1.v;ip2_f2.v;ip3_f1.v;ip3_f2.v")
+    if("${CURRENT_V_FILES}" STREQUAL "${CDIR}/ip2_f1.v;${CDIR}/ip2_f2.v;${CDIR}/ip3_f1.v;${CDIR}/ip3_f2.v")
         ct_assert_true(TRUE)
-    elseif("${CURRENT_V_FILES}" STREQUAL "ip3_f1.v;ip3_f2.v;ip3_f1.v;ip3_f2.v")
+    elseif("${CURRENT_V_FILES}" STREQUAL "${CDIR}/ip3_f1.v;${CDIR}/ip3_f2.v;${CDIR}/ip3_f1.v;${CDIR}/ip3_f2.v")
         ct_assert_true(TRUE)
     else()
         ct_assert_true(FALSE)
     endif()
 
     list(SUBLIST V_SOURCES 6 2 CURRENT_V_FILES)
-    ct_assert_equal(CURRENT_V_FILES "ip1_f1.v;ip1_f2.v")
+    ct_assert_equal(CURRENT_V_FILES "${CDIR}/ip1_f1.v;${CDIR}/ip1_f2.v")
 endfunction()

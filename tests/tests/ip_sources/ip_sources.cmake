@@ -1,6 +1,7 @@
 include("${CMAKE_CURRENT_LIST_DIR}/../../../CMakeLists.txt")
 
 set(TEST_NAME ip_sources)
+set(CDIR ${CMAKE_CURRENT_LIST_DIR})
 
 ct_add_test(NAME ${TEST_NAME})
 function(${${TEST_NAME}})
@@ -11,48 +12,48 @@ function(${${TEST_NAME}})
         )
 
     ip_sources(${IP} SYSTEMVERILOG
-        svfile1.sv
-        svfile2.sv
+        ${CDIR}/svfile1.sv
+        ${CDIR}/svfile2.sv
         )
 
     ip_sources(${IP} VERILOG
-        vfile1.v
-        vfile2.v
+        ${CDIR}/vfile1.v
+        ${CDIR}/vfile2.v
         )
 
 # TEST SYSTEMVERILOG include directories
 
     get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG)
     ct_assert_list(SV_SOURCES)
-    ct_assert_equal(SV_SOURCES "svfile1.sv;svfile2.sv")
+    ct_assert_equal(SV_SOURCES "${CDIR}/svfile1.sv;${CDIR}/svfile2.sv")
 
     ip_sources(${IP} SYSTEMVERILOG
-        svfile3.sv
-        svfile4.sv
+        ${CDIR}/svfile3.sv
+        ${CDIR}/svfile4.sv
         )
 
     get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG)
     ct_assert_list(SV_SOURCES)
-    ct_assert_equal(SV_SOURCES "svfile1.sv;svfile2.sv;svfile3.sv;svfile4.sv")
+    ct_assert_equal(SV_SOURCES "${CDIR}/svfile1.sv;${CDIR}/svfile2.sv;${CDIR}/svfile3.sv;${CDIR}/svfile4.sv")
 
 
 # TEST VERILOG include directories
     get_ip_sources(V_SOURCES ${IP} VERILOG)
     ct_assert_list(V_SOURCES)
-    ct_assert_equal(V_SOURCES "vfile1.v;vfile2.v")
+    ct_assert_equal(V_SOURCES "${CDIR}/vfile1.v;${CDIR}/vfile2.v")
 
     ip_sources(${IP} VERILOG
-        vfile3.v
-        vfile4.v
+        ${CDIR}/vfile3.v
+        ${CDIR}/vfile4.v
         )
 
     get_ip_sources(V_SOURCES ${IP} VERILOG)
     ct_assert_list(V_SOURCES)
-    ct_assert_equal(V_SOURCES "vfile1.v;vfile2.v;vfile3.v;vfile4.v")
+    ct_assert_equal(V_SOURCES "${CDIR}/vfile1.v;${CDIR}/vfile2.v;${CDIR}/vfile3.v;${CDIR}/vfile4.v")
 
 # TEST Warning asserted on unknown language
     ip_sources(${IP} FAKELANG
-        fakelang.fake
+        ${CDIR}/fakelang.fake
         )
     ct_assert_prints("Language not supported: FAKELANG")
 
