@@ -11,6 +11,7 @@ cmake.utils
    add_subdirs
    alias_dereference
    colours
+   file_paths
    find_python
    get_all_targets
    graphviz

@@ -1,0 +1,20 @@
+
+######################
+cmake.utils/file_paths
+######################
+
+.. module:: cmake.utils/file_paths
+
+
+.. function:: convert_paths_to_absolute(OUTPUT_LIST)
+
+   This function converts relative paths to absolute paths relative to ${CMAKE_CURRENT_SOURCE_DIR}
+   It replicates the behaviour of target_sources() CMake Function
+   
+   :param OUTPUT_LIST: The variable to store the output file list
+   :type OUTPUT_LIST: string
+   :param ARGN: list of files to convert
+   :type ARGN: path
+   
+   
+

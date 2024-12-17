@@ -150,6 +150,7 @@ and the suffix ‘__SOURCES’. If source files of the same type already exist t
 existing list. Ne source files can also be prepended with the optional keyword PREPEND. The source
 files are later used to create the list of files to be compiled (e.g., by a simulator) by a tool to
 execute its tasks. The source files are passed as a list after the parameters and keywords.</p>
+<p>Relative file paths are accepted and will be converted to absolute, relative to ${CMAKE_CURRENT_SOURCE_DIR}</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

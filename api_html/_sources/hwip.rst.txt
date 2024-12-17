@@ -117,6 +117,8 @@ cmake.hwip
    files are later used to create the list of files to be compiled (e.g., by a simulator) by a tool to
    execute its tasks. The source files are passed as a list after the parameters and keywords.
    
+   Relative file paths are accepted and will be converted to absolute, relative to ${CMAKE_CURRENT_SOURCE_DIR}
+   
    :param IP_LIB: The target IP library.
    :type IP_LIB: string
    :param TYPE: The type of source file(s).
