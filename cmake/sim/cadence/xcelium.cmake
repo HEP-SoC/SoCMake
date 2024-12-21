@@ -83,6 +83,7 @@ function(xcelium IP_LIB)
 
     ## XMSIM command for running simulation
     set(__xmsim_cmd xmsim
+        -64bit
         ${__lib_args}
         ${ARG_RUN_ARGS}
         ${LIBRARY}.${ARG_TOP_MODULE}
@@ -156,6 +157,7 @@ function(__xcelium_compile_lib IP_LIB)
 
         set(DESCRIPTION "Compile Verilog and SV files of ${IP_LIB} with xcelium xmvlog in library ${LIBRARY}")
         set(__xmvlog_cmd COMMAND xmvlog
+                -64bit
                 -sv
                 ${ARG_XMVLOG_ARGS}
                 ${SV_ARG_INCDIRS}
@@ -180,6 +182,7 @@ function(__xcelium_compile_lib IP_LIB)
         endforeach()
 
         set(__xmvhdl_cmd COMMAND xmvhdl
+                -64bit
                 ${ARG_XMVHDL_ARGS}
                 ${VHDL_ARG_INCDIRS}
                 ${VHDL_CMP_DEFS_ARG}
@@ -189,6 +192,7 @@ function(__xcelium_compile_lib IP_LIB)
     endif()
 
     set(__xmelab_cmd COMMAND xmelab
+            -64bit
             ${ARG_XMELAB_ARGS}
             worklib.${IP_NAME}
             # -work ${OUTDIR}/${LIBRARY}
