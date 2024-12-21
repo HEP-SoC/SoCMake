@@ -14,8 +14,8 @@ For this step make sure you have Iverilog and/or Verilator installed on your sys
 Lets create a simple verilog testbench file:
 
 import CodeBlock from '@theme/CodeBlock';
-export const tb_v = require('!!raw-loader!../../../examples/sim_example/tb.v')?.default;
-export const cmakelists = require('!!raw-loader!../../../examples/sim_example/CMakeLists.txt')?.default;
+export const tb_v = require('!!raw-loader!../../../examples/simple_verilog/tb.v')?.default;
+export const cmakelists = require('!!raw-loader!../../../examples/simple_verilog/CMakeLists.txt')?.default;
 
 ## tb.v 
 
