@@ -3,7 +3,10 @@ project(dpi_example NONE)
 
 include("../../SoCMakeConfig.cmake")
 
-option_enum(SIMULATOR "Which simulator to use" "questa;modelsim;xcelium;verilator" "modelsim")
+option_enum(SIMULATOR "Which simulator to use" "questa;modelsim;xcelium;vcs;verilator;all" "modelsim")
+if(SIMULATOR STREQUAL "all")
+    set(ALL_SIMS TRUE)
+endif()
 
 add_ip(tb
     DESCRIPTION "Simple verilog testbench"
@@ -17,17 +20,23 @@ add_subdirectory(hello)
 
 ip_link(${IP} hello_dpi)
 
-if(SIMULATOR STREQUAL "questa" OR SIMULATOR STREQUAL "modelsim")
+if(SIMULATOR STREQUAL "questa" OR SIMULATOR STREQUAL "modelsim" OR ALL_SIMS)
     modelsim(${IP})
+endif()
 
-elseif(SIMULATOR STREQUAL "xcelium")
+if(SIMULATOR STREQUAL "xcelium" OR ALL_SIMS)
     xcelium(${IP})
+endif()
 
-elseif(SIMULATOR STREQUAL "verilator")
+if(SIMULATOR STREQUAL "vcs" OR ALL_SIMS)
+    vcs(${IP})
+endif()
+
+if(SIMULATOR STREQUAL "verilator" OR ALL_SIMS)
     enable_language(CXX)
     verilator(${IP})
-    add_executable(main Vtb__main.cpp)
-    target_link_libraries(main tb__vlt)
+    add_executable(verilator_tb EXCLUDE_FROM_ALL Vtb__main.cpp )
+    target_link_libraries(verilator_tb tb__vlt)
 endif()
 
 help()

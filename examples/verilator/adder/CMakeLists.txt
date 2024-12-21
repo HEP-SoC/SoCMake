@@ -5,6 +5,6 @@ add_ip(cern::ip::adder::0.0.1
     DESCRIPTION "Just a simple adder"
     )
 
-ip_sources(adder VERILOG
-    ${PROJECT_SOURCE_DIR}/adder.v
+ip_sources(${IP} VERILOG
+    adder.v
     )
