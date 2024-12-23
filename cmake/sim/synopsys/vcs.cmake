@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
 function(vcs IP_LIB)
-    cmake_parse_arguments(ARG "TARGET_PER_IP;NO_RUN_TARGET;GUI" "EXECUTABLE_NAME;RUN_TARGET_NAME" "VLOGAN_ARGS;VHDLAN_ARGS;VCS_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "TARGET_PER_IP;NO_RUN_TARGET;GUI" "OUTDIR;EXECUTABLE_NAME;RUN_TARGET_NAME" "VLOGAN_ARGS;VHDLAN_ARGS;VCS_ARGS;RUN_ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -24,8 +24,7 @@ function(vcs IP_LIB)
     # endif()
 
     if(NOT ARG_TOP_MODULE)
-        get_target_property(IP_NAME ${IP_LIB} IP_NAME)
-        set(ARG_TOP_MODULE ${IP_NAME})
+        get_target_property(ARG_TOP_MODULE ${IP_LIB} IP_NAME)
     endif()
 
     if(ARG_VLOGAN_ARGS)
@@ -145,8 +144,7 @@ function(__vcs_compile_lib IP_LIB)
     file(MAKE_DIRECTORY ${OUTDIR})
 
     if(NOT ARG_TOP_MODULE)
-        get_target_property(IP_NAME ${IP_LIB} IP_NAME)
-        set(ARG_TOP_MODULE ${IP_NAME})
+        get_target_property(ARG_TOP_MODULE ${IP_LIB} IP_NAME)
     endif()
 
     if(ARG_NO_DEPS)

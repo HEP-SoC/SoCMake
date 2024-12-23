@@ -34,8 +34,7 @@ function(xcelium IP_LIB)
     # endif()
 
     if(NOT ARG_TOP_MODULE)
-        get_target_property(IP_NAME ${IP_LIB} IP_NAME)
-        set(ARG_TOP_MODULE ${IP_NAME})
+        get_target_property(ARG_TOP_MODULE ${IP_LIB} IP_NAME)
     endif()
 
     if(ARG_XMVLOG_ARGS)
@@ -125,8 +124,7 @@ function(__xcelium_compile_lib IP_LIB)
     # endif()
 
     if(NOT ARG_TOP_MODULE)
-        get_target_property(IP_NAME ${IP_LIB} IP_NAME)
-        set(ARG_TOP_MODULE ${IP_NAME})
+        get_target_property(ARG_TOP_MODULE ${IP_LIB} IP_NAME)
     endif()
 
     # if(NOT ARG_OUTDIR)
@@ -216,8 +214,7 @@ function(__xcelium_compile_lib IP_LIB)
             ${IP_LIB}_xcelium_complib
             DEPENDS ${STAMP_FILE} ${STAMP_FILE_VHDL} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_xcelium_complib PROPERTY 
-            DESCRIPTION "Compile VHDL, SV, and Verilog files for ${IP_LIB} with xcelium in library ${LIBRARY}")
+        set_property(TARGET ${IP_LIB}_xcelium_complib PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
 
     # set(__XCELIUM_IP_LIB_DIR  ${OUTDIR}   PARENT_SCOPE)
