@@ -141,6 +141,7 @@ struct base_intf{
     Modport modport;
     string prefix;
     boolean cap;
+    string regex;
 };
 
 struct data_intf : base_intf {
