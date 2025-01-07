@@ -3,7 +3,7 @@ project(dpi_example NONE)
 
 include("../../SoCMakeConfig.cmake")
 
-option_enum(SIMULATOR "Which simulator to use" "questa;modelsim;xcelium;vcs;verilator;all" "modelsim")
+option_enum(SIMULATOR "Which simulator to use" "questa;vivado_sim;modelsim;xcelium;vcs;verilator;all" "modelsim")
 if(SIMULATOR STREQUAL "all")
     set(ALL_SIMS TRUE)
 endif()
@@ -26,6 +26,10 @@ endif()
 
 if(SIMULATOR STREQUAL "xcelium" OR ALL_SIMS)
     xcelium(${IP})
+endif()
+
+if(SIMULATOR STREQUAL "vivado_sim" OR ALL_SIMS)
+    vivado_sim(${IP})
 endif()
 
 if(SIMULATOR STREQUAL "vcs" OR ALL_SIMS)

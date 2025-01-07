@@ -3,7 +3,7 @@ project(simple_verilog_example NONE)
 
 include("../../SoCMakeConfig.cmake")
 
-option_enum(SIMULATOR "Which simulator to use" "iverilog;questa;modelsim;xcelium;vcs;verilator;all" "iverilog")
+option_enum(SIMULATOR "Which simulator to use" "iverilog;vivado_sim;questa;modelsim;xcelium;vcs;verilator;all" "iverilog")
 if(SIMULATOR STREQUAL "all")
     set(ALL_SIMS TRUE)
 endif()
@@ -24,6 +24,10 @@ endif()
 
 if(SIMULATOR STREQUAL "questa" OR SIMULATOR STREQUAL "modelsim" OR ALL_SIMS)
     modelsim(${IP})
+endif()
+
+if(SIMULATOR STREQUAL "vivado_sim" OR ALL_SIMS)
+    vivado_sim(${IP})
 endif()
 
 if(SIMULATOR STREQUAL "xcelium" OR ALL_SIMS)
