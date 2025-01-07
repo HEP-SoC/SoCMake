@@ -37,14 +37,13 @@ function(vivado_sim IP_LIB)
     get_ip_links(IPS_LIST ${IP_LIB})
 
     unset(__lib_args)
+    unset(__ld_library_paths)
     foreach(ip ${IPS_LIST})
         get_target_property(ip_type ${ip} TYPE)
         if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
-            message(FATAL_ERROR "DPI libraries currently not supported for ${CMAKE_CURRENT_FUNCTION}")
-
             get_target_property(DPI_LIB_BINDIR ${ip} BINARY_DIR)
-            # list(APPEND __lib_args --sv_lib $<TARGET_FILE_BASE_NAME:${ip}>)
             list(APPEND __lib_args  --sv_root ${DPI_LIB_BINDIR} --sv_lib lib$<TARGET_FILE_BASE_NAME:${ip}>)
+            set(__ld_library_paths "${__ld_library_paths}${DPI_LIB_BINDIR}:")
         endif()
     endforeach()
 
@@ -72,7 +71,6 @@ function(vivado_sim IP_LIB)
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
     ## Xelab command for elaborating simulation
     set(__xelab_cmd COMMAND xelab
-            # --dpi_absolute
             ${ARG_XELAB_ARGS}
             ${__lib_args}
             work.${IP_NAME}
@@ -127,7 +125,7 @@ function(vivado_sim IP_LIB)
         endif()
         set(DESCRIPTION "Run simulation on ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
         add_custom_target(${ARG_RUN_TARGET_NAME}
-            COMMAND ${__xsim_cmd}
+            COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${__ld_library_paths}" ${__xsim_cmd}
             WORKING_DIRECTORY ${OUTDIR}
             BYPRODUCTS ${__clean_files}
             COMMENT ${DESCRIPTION}
