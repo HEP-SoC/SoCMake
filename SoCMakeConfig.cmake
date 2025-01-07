@@ -44,6 +44,9 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/synopsys/vcs.cmake")
 # ----- ghdl ------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/ghdl/ghdl.cmake")
 
+# ----- vivado_sim ------
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/xilinx/vivado_sim.cmake")
+
 # ----- FC4SC -------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/fc4sc/fc4sc_merge_coverage.cmake")
 
