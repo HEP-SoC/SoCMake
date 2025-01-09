@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
 function(vcs IP_LIB)
-    cmake_parse_arguments(ARG "TARGET_PER_IP;NO_RUN_TARGET;GUI" "OUTDIR;EXECUTABLE_NAME;RUN_TARGET_NAME" "VLOGAN_ARGS;VHDLAN_ARGS;VCS_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "TARGET_PER_IP;NO_RUN_TARGET;GUI" "OUTDIR;EXECUTABLE_NAME;RUN_TARGET_NAME;TOP_MODULE" "VLOGAN_ARGS;VHDLAN_ARGS;VCS_ARGS;RUN_ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -75,31 +75,33 @@ function(vcs IP_LIB)
     set(SIM_EXEC_PATH ${OUTDIR}/${ARG_EXECUTABLE_NAME})
 
     ## VCS command for compiling executable
-    set(__vcs_cmd vcs
-            -full64
-            -q
-            ${__lib_args}
-            -o ${SIM_EXEC_PATH}
-            ${ARG_VCS_ARGS}
-            ${LIBRARY}.${ARG_TOP_MODULE}
-            # $<$<BOOL:${ARG_GUI}>:-gui>
+    if(NOT TARGET ${IP_LIB}_vcs)
+        set(__vcs_cmd vcs
+                -full64
+                -q
+                ${__lib_args}
+                -o ${SIM_EXEC_PATH}
+                ${ARG_VCS_ARGS}
+                ${LIBRARY}.${ARG_TOP_MODULE}
+                # $<$<BOOL:${ARG_GUI}>:-gui>
+                )
+        set(DESCRIPTION "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
+        set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_vcs.stamp")
+        add_custom_command(
+            OUTPUT ${SIM_EXEC_PATH} ${STAMP_FILE}
+            COMMAND ${__vcs_cmd}
+            COMMAND touch ${STAMP_FILE}
+            COMMENT ${DESCRIPTION}
+            BYPRODUCTS  ${OUTDIR}/csrc ${OUTDIR}/${ARG_EXECUTABLE_NAME}.daidir
+            WORKING_DIRECTORY ${OUTDIR}
+            DEPENDS ${__comp_tgts} ${VCS_COMPLIB_STAMP_FILE}
             )
-    set(DESCRIPTION "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
-    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_vcs.stamp")
-    add_custom_command(
-        OUTPUT ${SIM_EXEC_PATH} ${STAMP_FILE}
-        COMMAND ${__vcs_cmd}
-        COMMAND touch ${STAMP_FILE}
-        COMMENT ${DESCRIPTION}
-        BYPRODUCTS  ${OUTDIR}/csrc ${OUTDIR}/${ARG_EXECUTABLE_NAME}.daidir
-        WORKING_DIRECTORY ${OUTDIR}
-        DEPENDS ${__comp_tgts} ${VCS_COMPLIB_STAMP_FILE}
-        )
 
-    add_custom_target(${IP_LIB}_vcs
-        DEPENDS ${STAMP_FILE} ${IP_LIB}
-    )
-    set_property(TARGET ${IP_LIB}_vcs PROPERTY DESCRIPTION ${DESCRIPTION})
+        add_custom_target(${IP_LIB}_vcs
+            DEPENDS ${STAMP_FILE} ${IP_LIB}
+        )
+        set_property(TARGET ${IP_LIB}_vcs PROPERTY DESCRIPTION ${DESCRIPTION})
+    endif()
 
     set(__vcsrun_cmd ${SIM_EXEC_PATH} ${ARG_RUN_ARGS})
     if(NOT ARG_NO_RUN_TARGET)

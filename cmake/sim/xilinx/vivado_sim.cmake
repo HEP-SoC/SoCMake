@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
 function(vivado_sim IP_LIB)
-    cmake_parse_arguments(ARG "TARGET_PER_IP;NO_RUN_TARGET;GUI" "RUN_TARGET_NAME" "XVLOG_ARGS;XVHDL_ARGS;XELAB_ARGS;XSIM_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "TARGET_PER_IP;NO_RUN_TARGET;GUI" "RUN_TARGET_NAME;TOP_MODULE" "XVLOG_ARGS;XVHDL_ARGS;XELAB_ARGS;XSIM_ARGS;RUN_ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -68,41 +68,43 @@ function(vivado_sim IP_LIB)
         endif()
     endforeach()
 
-    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
-    ## Xelab command for elaborating simulation
-    set(__xelab_cmd COMMAND xelab
-            ${ARG_XELAB_ARGS}
-            ${__lib_args}
-            work.${IP_NAME}
-            # -work ${OUTDIR}/${LIBRARY}
+    if(NOT TARGET ${IP_LIB}_vivado_sim)
+        get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
+        ## Xelab command for elaborating simulation
+        set(__xelab_cmd COMMAND xelab
+                ${ARG_XELAB_ARGS}
+                ${__lib_args}
+                ${LIBRARY}.${ARG_TOP_MODULE}
+                # -work ${OUTDIR}/${LIBRARY}
+            )
+
+        ### Clean files:
+        #       * xelab.log, xelab.pb
+        set(__clean_files 
+            ${OUTDIR}/xelab.log
+            ${OUTDIR}/xelab.pb
+            ${OUTDIR}/xsim.dir/${LIBRARY}.${IP_NAME}
         )
 
-    ### Clean files:
-    #       * xelab.log, xelab.pb
-    set(__clean_files 
-        ${OUTDIR}/xelab.log
-        ${OUTDIR}/xelab.pb
-        ${OUTDIR}/xsim.dir/${LIBRARY}.${IP_NAME}
-    )
+        set(DESCRIPTION "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION} xelab")
+        set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+        add_custom_command(
+            # OUTPUT ${SIM_EXEC_PATH} ${STAMP_FILE}
+            OUTPUT ${STAMP_FILE}
+            COMMAND ${__xelab_cmd}
+            COMMAND touch ${STAMP_FILE}
+            COMMENT ${DESCRIPTION}
+            BYPRODUCTS  ${__clean_files}
+            WORKING_DIRECTORY ${OUTDIR}
+            DEPENDS ${__comp_tgts} ${SOURCES}
+            COMMAND_EXPAND_LISTS
+            )
 
-    set(DESCRIPTION "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION} xelab")
-    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
-    add_custom_command(
-        # OUTPUT ${SIM_EXEC_PATH} ${STAMP_FILE}
-        OUTPUT ${STAMP_FILE}
-        COMMAND ${__xelab_cmd}
-        COMMAND touch ${STAMP_FILE}
-        COMMENT ${DESCRIPTION}
-        BYPRODUCTS  ${__clean_files}
-        WORKING_DIRECTORY ${OUTDIR}
-        DEPENDS ${__comp_tgts} ${SOURCES}
-        COMMAND_EXPAND_LISTS
+        add_custom_target(${IP_LIB}_vivado_sim
+            DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
-
-    add_custom_target(${IP_LIB}_vivado_sim
-        DEPENDS ${STAMP_FILE} ${IP_LIB}
-    )
-    set_property(TARGET ${IP_LIB}_vivado_sim PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${IP_LIB}_vivado_sim PROPERTY DESCRIPTION ${DESCRIPTION})
+    endif()
 
 
     ### Clean files:
