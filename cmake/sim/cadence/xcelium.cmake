@@ -84,26 +84,26 @@ function(xcelium IP_LIB)
         ${OUTDIR}/xcelium.d
     )
 
-    set(DESCRIPTION "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION} xmelab")
-    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
-    add_custom_command(
-        # OUTPUT ${SIM_EXEC_PATH} ${STAMP_FILE}
-        OUTPUT ${STAMP_FILE}
-        COMMAND ${__xmelab_cmd}
-        COMMAND touch ${STAMP_FILE}
-        COMMENT ${DESCRIPTION}
-        BYPRODUCTS  ${__clean_files}
-        WORKING_DIRECTORY ${OUTDIR}
-        DEPENDS ${__comp_tgts} ${SOURCES}
-        COMMAND_EXPAND_LISTS
+    if(NOT TARGET ${IP_LIB}_xcelium)
+        set(DESCRIPTION "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION} xmelab")
+        set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+        add_custom_command(
+            # OUTPUT ${SIM_EXEC_PATH} ${STAMP_FILE}
+            OUTPUT ${STAMP_FILE}
+            COMMAND ${__xmelab_cmd}
+            COMMAND touch ${STAMP_FILE}
+            COMMENT ${DESCRIPTION}
+            BYPRODUCTS  ${__clean_files}
+            WORKING_DIRECTORY ${OUTDIR}
+            DEPENDS ${__comp_tgts} ${SOURCES}
+            COMMAND_EXPAND_LISTS
+            )
+
+        add_custom_target(${IP_LIB}_xcelium
+            DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
-
-    add_custom_target(${IP_LIB}_xcelium
-        DEPENDS ${STAMP_FILE} ${IP_LIB}
-    )
-    set_property(TARGET ${IP_LIB}_xcelium PROPERTY DESCRIPTION ${DESCRIPTION})
-
-
+        set_property(TARGET ${IP_LIB}_xcelium PROPERTY DESCRIPTION ${DESCRIPTION})
+    endif()
 
     ## XMSIM command for running simulation
 
