@@ -1,7 +1,7 @@
 `ifndef COMMON_RDL
 `define COMMON_RDL
 
-// input or output property is needed to be detected by socgen
+// input, output, and inout property is needed to be detected by socgen
 property output {
     type = boolean;
     component = signal;
@@ -12,13 +12,23 @@ property input {
     component = signal;
 };
 
+property inout {
+    type = boolean;
+    component = signal;
+};
+
 property clock {
     type = boolean;
     component = signal;
 };
 
 // reset property is a a built-in SystemRDL property but not for signals
-property reset_signal {
+property async_reset {
+    type = boolean;
+    component = signal;
+};
+
+property sync_reset {
     type = boolean;
     component = signal;
 };
@@ -106,9 +116,25 @@ signal clk {
     desc = "Input clock";
 };
 
+signal arstn {
+    input;
+    async_reset;
+    signalwidth=1;
+    desc = "Input reset, active low";
+    activelow = true;
+};
+
+signal arst {
+    input;
+    async_reset;
+    signalwidth=1;
+    desc = "Input reset, active high";
+    activehigh = true;
+};
+
 signal rstn {
     input;
-    reset_signal;
+    sync_reset;
     signalwidth=1;
     desc = "Input reset, active low";
     activelow = true;
@@ -116,11 +142,12 @@ signal rstn {
 
 signal rst {
     input;
-    reset_signal;
+    sync_reset;
     signalwidth=1;
     desc = "Input reset, active high";
     activehigh = true;
 };
+
 
 property intf {
     type = boolean;
