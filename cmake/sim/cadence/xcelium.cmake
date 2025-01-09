@@ -18,7 +18,7 @@
 include_guard(GLOBAL)
 
 function(xcelium IP_LIB)
-    cmake_parse_arguments(ARG "TARGET_PER_IP;NO_RUN_TARGET;GUI" "RUN_TARGET_NAME" "XMVLOG_ARGS;XMVHDL_ARGS;XMELAB_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI" "RUN_TARGET_NAME;TOP_MODULE" "XMVLOG_ARGS;XMVHDL_ARGS;XMELAB_ARGS;RUN_ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -37,14 +37,18 @@ function(xcelium IP_LIB)
         get_target_property(ARG_TOP_MODULE ${IP_LIB} IP_NAME)
     endif()
 
+    if(NOT ARG_OUTDIR)
+        set(OUTDIR ${BINARY_DIR}/${IP_LIB}_xcelium)
+    else()
+        set(OUTDIR ${ARG_OUTDIR})
+    endif()
+    file(MAKE_DIRECTORY ${OUTDIR})
+
     if(ARG_XMVLOG_ARGS)
         set(ARG_XMVLOG_ARGS XMVLOG_ARGS ${ARG_XMVLOG_ARGS})
     endif()
     if(ARG_XMVHDL_ARGS)
         set(ARG_XMVHDL_ARGS XMVHDL_ARGS ${ARG_XMVHDL_ARGS})
-    endif()
-    if(ARG_XMELAB_ARGS)
-        set(ARG_XMELAB_ARGS XMELAB_ARGS ${ARG_XMELAB_ARGS})
     endif()
 
     get_ip_links(IPS_LIST ${IP_LIB})
@@ -57,30 +61,59 @@ function(xcelium IP_LIB)
         endif()
     endforeach()
 
-    if(ARG_TARGET_PER_IP)   # In case TARGET_PER_IP is passed, a compile target is created per IP block
-        set(list_comp_libs ${IPS_LIST})
-        set(__no_deps_arg NO_DEPS)
-    else()
-        set(list_comp_libs ${IP_LIB})
-        unset(__no_deps_arg)
-    endif()
+    __xcelium_compile_lib(${IP_LIB}
+        OUTDIR ${OUTDIR}
+        ${ARG_XMVLOG_ARGS}
+        ${ARG_XMVHDL_ARGS}
+        )
+    set(__comp_tgts ${IP_LIB}_xcelium_complib)
 
-    unset(__comp_tgts)
-    foreach(ip ${list_comp_libs})
-        get_target_property(ip_name ${ip} IP_NAME)
-        if(ip_name) # If IP_NAME IS set, its SoCMake's IP_LIBRARY
-            __xcelium_compile_lib(${ip} ${__no_deps_arg}
-                # OUTDIR ${OUTDIR}
-                ${ARG_XMVLOG_ARGS}
-                ${ARG_XMVHDL_ARGS}
-                ${ARG_XMELAB_ARGS}
-                )
-            list(APPEND __comp_tgts ${ip}_xcelium_complib)
-        endif()
-    endforeach()
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
+    ### Elaborate with xmelab
+    set(__xmelab_cmd COMMAND xmelab
+            -64bit
+            ${ARG_XMELAB_ARGS}
+            worklib.${ARG_TOP_MODULE}
+            # -work ${OUTDIR}/${LIBRARY}
+        )
+
+    ### Clean files:
+    #       * 
+    set(__clean_files 
+        ${OUTDIR}/xmelab.log
+        ${OUTDIR}/xcelium.d
+    )
+
+    set(DESCRIPTION "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION} xmelab")
+    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    add_custom_command(
+        # OUTPUT ${SIM_EXEC_PATH} ${STAMP_FILE}
+        OUTPUT ${STAMP_FILE}
+        COMMAND ${__xmelab_cmd}
+        COMMAND touch ${STAMP_FILE}
+        COMMENT ${DESCRIPTION}
+        BYPRODUCTS  ${__clean_files}
+        WORKING_DIRECTORY ${OUTDIR}
+        DEPENDS ${__comp_tgts} ${SOURCES}
+        COMMAND_EXPAND_LISTS
+        )
+
+    add_custom_target(${IP_LIB}_xcelium
+        DEPENDS ${STAMP_FILE} ${IP_LIB}
+    )
+    set_property(TARGET ${IP_LIB}_xcelium PROPERTY DESCRIPTION ${DESCRIPTION})
+
 
 
     ## XMSIM command for running simulation
+
+    ### Clean files:
+    #       * 
+    set(__clean_files 
+        ${OUTDIR}/xmsim.log
+        ${OUTDIR}/xcelium.d
+    )
+
     set(__xmsim_cmd xmsim
         -64bit
         ${__lib_args}
@@ -97,8 +130,10 @@ function(xcelium IP_LIB)
         set(DESCRIPTION "Run simulation on ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
         add_custom_target(${ARG_RUN_TARGET_NAME}
             COMMAND ${__xmsim_cmd}
+            WORKING_DIRECTORY ${OUTDIR}
+            BYPRODUCTS ${__clean_files}
             COMMENT ${DESCRIPTION}
-            DEPENDS ${__comp_tgts}
+            DEPENDS ${IP_LIB}_xcelium
             )
         set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
@@ -107,7 +142,7 @@ function(xcelium IP_LIB)
 endfunction()
 
 function(__xcelium_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "OUTDIR;TOP_MODULE" "XMVLOG_ARGS;XMVHDL_ARGS;XMELAB_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS" "OUTDIR;TOP_MODULE" "XMVLOG_ARGS;XMVHDL_ARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -127,11 +162,12 @@ function(__xcelium_compile_lib IP_LIB)
         get_target_property(ARG_TOP_MODULE ${IP_LIB} IP_NAME)
     endif()
 
-    # if(NOT ARG_OUTDIR)
-    #     set(OUTDIR ${BINARY_DIR}/${IP_LIB}_xcelium)
-    # else()
-    #     set(OUTDIR ${ARG_OUTDIR})
-    # endif()
+    if(NOT ARG_OUTDIR)
+        set(OUTDIR ${BINARY_DIR}/${IP_LIB}_xcelium)
+    else()
+        set(OUTDIR ${ARG_OUTDIR})
+    endif()
+    file(MAKE_DIRECTORY ${OUTDIR})
 
     if(ARG_NO_DEPS)
         set(ARG_NO_DEPS NO_DEPS)
@@ -171,30 +207,21 @@ function(__xcelium_compile_lib IP_LIB)
         get_ip_include_directories(VHDL_INC_DIRS  ${IP_LIB} VHDL)
         get_ip_compile_definitions(VHDL_COMP_DEFS ${IP_LIB} VHDL)
 
-        foreach(dir ${VHDL_INC_DIRS})
-            list(APPEND VHDL_ARG_INCDIRS -INCDIR ${dir})
-        endforeach()
-
-        foreach(def ${VHDL_COMP_DEFS})
-            list(APPEND VHDL_CMP_DEFS_ARG -DEFINE ${def})
-        endforeach()
-
         set(__xmvhdl_cmd COMMAND xmvhdl
                 -64bit
                 ${ARG_XMVHDL_ARGS}
-                ${VHDL_ARG_INCDIRS}
-                ${VHDL_CMP_DEFS_ARG}
                 ${VHDL_SOURCES}
                 # -work ${OUTDIR}/${LIBRARY}
             )
     endif()
 
-    set(__xmelab_cmd COMMAND xmelab
-            -64bit
-            ${ARG_XMELAB_ARGS}
-            worklib.${IP_NAME}
-            # -work ${OUTDIR}/${LIBRARY}
-        )
+    ### Clean files:
+    #       * xmvlog.log, xmvhdl.log
+    set(__clean_files 
+        ${OUTDIR}/xmvlog.log
+        ${OUTDIR}/xmvhdl.log
+        ${OUTDIR}/xcelium.d
+    )
 
     if(NOT TARGET ${IP_LIB}_xcelium_complib)
         set(DESCRIPTION "Compile VHDL, SV, and Verilog files for ${IP_LIB} with xcelium in library ${LIBRARY}")
@@ -204,15 +231,16 @@ function(__xcelium_compile_lib IP_LIB)
             # COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
             ${__xmvlog_cmd}
             ${__xmvhdl_cmd}
-            ${__xmelab_cmd}
             COMMAND touch ${STAMP_FILE}
+            WORKING_DIRECTORY ${OUTDIR}
+            BYPRODUCTS ${__clean_files}
             DEPENDS ${SV_SOURCES} ${VHDL_SOURCES}
             COMMENT ${DESCRIPTION}
         )
 
         add_custom_target(
             ${IP_LIB}_xcelium_complib
-            DEPENDS ${STAMP_FILE} ${STAMP_FILE_VHDL} ${IP_LIB}
+            DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
         set_property(TARGET ${IP_LIB}_xcelium_complib PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
