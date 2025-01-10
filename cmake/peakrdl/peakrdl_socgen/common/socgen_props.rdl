@@ -23,12 +23,7 @@ property clock {
 };
 
 // reset property is a a built-in SystemRDL property but not for signals
-property async_reset {
-    type = boolean;
-    component = signal;
-};
-
-property sync_reset {
+property reset_signal {
     type = boolean;
     component = signal;
 };
@@ -77,6 +72,16 @@ property path {
     component = signal;
 };
 
+property from {
+    type = string;
+    component = signal;
+};
+
+property to {
+    type = string;
+    component = signal;
+};
+
 struct intc {
     string name;
     string slv_ports[];
@@ -118,7 +123,8 @@ signal clk {
 
 signal arstn {
     input;
-    async_reset;
+    reset_signal;
+    async;
     signalwidth=1;
     desc = "Input reset, active low";
     activelow = true;
@@ -126,7 +132,8 @@ signal arstn {
 
 signal arst {
     input;
-    async_reset;
+    reset_signal;
+    async;
     signalwidth=1;
     desc = "Input reset, active high";
     activehigh = true;
@@ -134,7 +141,8 @@ signal arst {
 
 signal rstn {
     input;
-    sync_reset;
+    reset_signal;
+    sync;
     signalwidth=1;
     desc = "Input reset, active low";
     activelow = true;
@@ -142,7 +150,8 @@ signal rstn {
 
 signal rst {
     input;
-    sync_reset;
+    reset_signal;
+    sync;
     signalwidth=1;
     desc = "Input reset, active high";
     activehigh = true;
