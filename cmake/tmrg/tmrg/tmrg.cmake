@@ -37,6 +37,9 @@ function(tmrg IP_LIB)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
+    find_python3()
+    find_program(TMRG_EXECUTABLE tmrg REQUIRED)
+
     ip_assume_last(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
@@ -116,7 +119,7 @@ function(tmrg IP_LIB)
     endforeach()
 
     set(TMRG_COMMAND
-        ${Python3_VIRTUAL_ENV}/bin/tmrg --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${IP_TMRG_SRC}
+        ${TMRG_EXECUTABLE} --stats --tmr-dir=${OUTDIR} ${ARG_CONFIG_FILE} ${IP_TMRG_SRC}
     )
 
     # Add the dependencies as libraries if they exist
