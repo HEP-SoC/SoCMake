@@ -1,5 +1,5 @@
 from re import split
-from edalize import get_edatool
+from edalize.edatool import get_edatool
 import argparse
 from typing import List
 import sys
