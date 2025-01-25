@@ -28,6 +28,7 @@ function(modelsim IP_LIB)
     else()
         set(OUTDIR ${ARG_OUTDIR})
     endif()
+    file(MAKE_DIRECTORY ${OUTDIR})
 
     if(ARG_QUIET)
         set(ARG_QUIET QUIET)
@@ -140,7 +141,7 @@ function(find_modelsim)
 endfunction()
 
 function(__modelsim_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "QUIET;NO_DEPS" "OUTDIR;VLOG_ARGS;VCOM_ARGS" "" ${ARGN})
+    cmake_parse_arguments(ARG "QUIET;NO_DEPS" "OUTDIR;LIBRARY" "VLOG_ARGS;VCOM_ARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -151,10 +152,6 @@ function(__modelsim_compile_lib IP_LIB)
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
-    get_target_property(LIBRARY ${IP_LIB} LIBRARY)
-    if(NOT LIBRARY)
-        set(LIBRARY work)
-    endif()
 
     if(NOT ARG_OUTDIR)
         set(OUTDIR ${BINARY_DIR}/${IP_LIB}_modelsim)
@@ -162,83 +159,86 @@ function(__modelsim_compile_lib IP_LIB)
         set(OUTDIR ${ARG_OUTDIR})
     endif()
 
-    if(ARG_NO_DEPS)
-        set(ARG_NO_DEPS NO_DEPS)
-    else()
-        unset(ARG_NO_DEPS)
-    endif()
+    # if(ARG_NO_DEPS)
+    #     set(ARG_NO_DEPS NO_DEPS)
+    # else()
+    #     unset(ARG_NO_DEPS)
+    # endif()
 
-    # SystemVerilog and Verilog files and arguments
-    unset(__vlog_cmd)
-    get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG ${ARG_NO_DEPS} )
-    if(SV_SOURCES)
-        get_ip_include_directories(SV_INC_DIRS ${IP_LIB}  SYSTEMVERILOG VERILOG)
-        get_ip_compile_definitions(SV_COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG)
+    get_ip_links(__ips ${IP_LIB})
+    unset(all_stamp_files)
+    foreach(lib ${__ips})
+        get_target_property(__comp_lib_name ${lib} LIBRARY)
+        if(NOT __comp_lib_name)
+            set(__comp_lib_name work)
+        endif()
+        if(ARG_LIBRARY)
+            set(__comp_lib_name ${ARG_LIBRARY})
+        endif()
 
-        foreach(dir ${SV_INC_DIRS})
-            list(APPEND SV_ARG_INCDIRS +incdir+${dir})
-        endforeach()
+        # SystemVerilog and Verilog files and arguments
+        unset(__vlog_cmd)
+        get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS)
+        if(SV_SOURCES)
+            get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG NO_DEPS)
+            get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG NO_DEPS)
 
-        foreach(def ${SV_COMP_DEFS})
-            list(APPEND SV_CMP_DEFS_ARG +define+${def})
-        endforeach()
+            foreach(dir ${SV_INC_DIRS})
+                list(APPEND SV_ARG_INCDIRS +incdir+${dir})
+            endforeach()
 
-        set(DESCRIPTION "Compile Verilog and SV files of ${IP_LIB} with modelsim vlog in library ${LIBRARY}")
-        set(__vlog_cmd COMMAND ${MODELSIM_HOME}/bin/vlog
-                -nologo
-                -sv
-                -sv17compat
-                $<$<BOOL:${ARG_QUIET}>:-quiet>
-                ${ARG_VLOG_ARGS}
-                ${SV_ARG_INCDIRS}
-                ${SV_CMP_DEFS_ARG}
-                ${SV_SOURCES}
-                -work ${OUTDIR}/${LIBRARY}
-            )
-    endif()
+            foreach(def ${SV_COMP_DEFS})
+                list(APPEND SV_CMP_DEFS_ARG +define+${def})
+            endforeach()
 
-    # VHDL files and arguments
-    unset(__vcom_cmd)
-    get_ip_sources(VHDL_SOURCES ${IP_LIB} VHDL ${ARG_NO_DEPS})
-    if(VHDL_SOURCES)
-        get_ip_include_directories(VHDL_INC_DIRS  ${IP_LIB} VHDL)
-        get_ip_compile_definitions(VHDL_COMP_DEFS ${IP_LIB} VHDL)
+            set(DESCRIPTION "Compile Verilog and SV files of ${lib} with modelsim vlog")
+            set(__vlog_cmd COMMAND ${MODELSIM_HOME}/bin/vlog
+                    -nologo
+                    -work ${OUTDIR}/${__comp_lib_name}
+                    $<$<BOOL:${ARG_QUIET}>:-quiet>
+                    -sv
+                    -sv17compat
+                    ${ARG_VLOG_ARGS}
+                    ${SV_ARG_INCDIRS}
+                    ${SV_CMP_DEFS_ARG}
+                    ${SV_SOURCES}
+                )
+        endif()
 
-        foreach(dir ${VHDL_INC_DIRS})
-            list(APPEND VHDL_ARG_INCDIRS +incdir+${dir})
-        endforeach()
+        # VHDL files and arguments
+        unset(__vcom_cmd)
+        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS)
+        if(VHDL_SOURCES)
+            set(__vcom_cmd COMMAND ${MODELSIM_HOME}/bin/vcom
+                    -nologo
+                    $<$<BOOL:${ARG_QUIET}>:-quiet>
+                    -work ${OUTDIR}/${__comp_lib_name}
+                    ${ARG_VCOM_ARGS}
+                    ${VHDL_SOURCES}
+                )
+        endif()
 
-        foreach(def ${VHDL_COMP_DEFS})
-            list(APPEND VHDL_CMP_DEFS_ARG +define+${def})
-        endforeach()
-
-        set(__vcom_cmd COMMAND ${MODELSIM_HOME}/bin/vcom
-                -nologo
-                $<$<BOOL:${ARG_QUIET}>:-quiet>
-                ${ARG_VCOM_ARGS}
-                ${VHDL_ARG_INCDIRS}
-                ${VHDL_CMP_DEFS_ARG}
-                ${VHDL_SOURCES}
-                -work ${OUTDIR}/${LIBRARY}
-            )
-    endif()
-
-    if(NOT TARGET ${IP_LIB}_modelsim_complib)
-        set(DESCRIPTION "Compile VHDL, SV, and Verilog files for ${IP_LIB} with modelsim in library ${LIBRARY}")
-        set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+        set(DESCRIPTION "Compile VHDL, SV, and Verilog files for ${lib} with modelsim vcom")
+        set(STAMP_FILE "${OUTDIR}/${lib}_${CMAKE_CURRENT_FUNCTION}.stamp")
         add_custom_command(
-            OUTPUT ${STAMP_FILE} ${OUTDIR}/${LIBRARY}
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
-                ${__vlog_cmd}
-                ${__vcom_cmd}
+            OUTPUT ${STAMP_FILE}
+            COMMAND ${__vlog_cmd}
+                    ${__vcom_cmd}
             COMMAND touch ${STAMP_FILE}
+            BYPRODUCTS ${OUTDIR}/${__comp_lib_name}
+            WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${SV_SOURCES} ${VHDL_SOURCES}
             COMMENT ${DESCRIPTION}
         )
 
+        list(APPEND all_stamp_files ${STAMP_FILE})
+
+    endforeach()
+
+    if(NOT TARGET ${IP_LIB}_modelsim_complib)
         add_custom_target(
             ${IP_LIB}_modelsim_complib
-            DEPENDS ${STAMP_FILE} ${STAMP_FILE_VHDL} ${IP_LIB}
+            DEPENDS ${all_stamp_files} ${IP_LIB}
         )
         set_property(TARGET ${IP_LIB}_modelsim_complib PROPERTY 
             DESCRIPTION "Compile VHDL, SV, and Verilog files for ${IP_LIB} with modelsim in library ${LIBRARY}")

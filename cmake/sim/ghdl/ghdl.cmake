@@ -13,7 +13,7 @@ function(__ghdl_get_standard_arg OUTVAR)
 endfunction()
 
 function(ghdl IP_LIB)
-    cmake_parse_arguments(ARG "TARGET_PER_IP;NO_RUN_TARGET;" "OUTDIR;TOP_MODULE;EXECUTABLE_NAME;STANDARD" "ANALYZE_ARGS;ELABORATE_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;" "OUTDIR;TOP_MODULE;EXECUTABLE_NAME;STANDARD" "ANALYZE_ARGS;ELABORATE_ARGS;RUN_ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -30,10 +30,10 @@ function(ghdl IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
-    # get_target_property(LIBRARY ${IP_LIB} LIBRARY)
-    # if(NOT LIBRARY)
+    get_target_property(LIBRARY ${IP_LIB} LIBRARY)
+    if(NOT LIBRARY)
         set(LIBRARY work)
-    # endif()
+    endif()
 
     if(NOT ARG_TOP_MODULE)
         get_target_property(ARG_TOP_MODULE ${IP_LIB} IP_NAME)
@@ -50,30 +50,13 @@ function(ghdl IP_LIB)
     endif()
     set(SIM_EXEC_PATH "${OUTDIR}/${ARG_EXECUTABLE_NAME}")
 
-    get_ip_links(IPS_LIST ${IP_LIB})
-
-    if(ARG_TARGET_PER_IP)   # In case TARGET_PER_IP is passed, a compile target is created per IP block
-        set(list_comp_libs ${IPS_LIST})
-        set(__no_deps_arg NO_DEPS)
-    else()
-        set(list_comp_libs ${IP_LIB})
-        unset(__no_deps_arg)
-    endif()
-
     ##### GHDL Analyze
-
-    unset(__comp_tgts)
-    foreach(ip ${list_comp_libs})
-        get_target_property(ip_name ${ip} IP_NAME)
-        if(ip_name) # If IP_NAME IS set, its SoCMake's IP_LIBRARY
-            __ghdl_compile_lib(${ip} ${__no_deps_arg}
-                OUTDIR ${OUTDIR}
-                STANDARD ${STANDARD}
-                ${ARG_ANALYZE_ARGS}
-                )
-            list(APPEND __comp_tgts ${ip}_ghdl_complib)
-        endif()
-    endforeach()
+    __ghdl_compile_lib(${IP_LIB}
+        OUTDIR ${OUTDIR}
+        STANDARD ${STANDARD}
+        ${ARG_ANALYZE_ARGS}
+        )
+    set(__comp_tgt ${IP_LIB}_ghdl_complib)
 
     ##### GHDL Elaborate
     if(NOT TARGET ${IP_LIB}_ghdl)
@@ -82,8 +65,9 @@ function(ghdl IP_LIB)
                 --std=${STANDARD}
                 -fsynopsys
                 -o ${SIM_EXEC_PATH}
+                --workdir=${OUTDIR}/${LIBRARY}
                 ${ARG_ELABORATE_ARGS}
-                # -P${OUTDIR}
+                ${LIB_SEARCH_DIRS}
                 ${__lib_args}
                 ${LIBRARY}.${ARG_TOP_MODULE}
                 )
@@ -100,7 +84,7 @@ function(ghdl IP_LIB)
             COMMAND touch ${STAMP_FILE}
             BYPRODUCTS  ${__clean_files}
             WORKING_DIRECTORY ${OUTDIR}
-            DEPENDS ${__comp_tgts} ${VHDL_SOURCES}
+            DEPENDS ${__comp_tgt} ${VHDL_SOURCES}
             COMMENT ${DESCRIPTION}
             )
 
@@ -129,7 +113,7 @@ function(ghdl IP_LIB)
 endfunction()
 
 function(__ghdl_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "OUTDIR;STANDARD" "ANALYZE_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "" "LIBRARY;OUTDIR;STANDARD" "ANALYZE_ARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -140,11 +124,6 @@ function(__ghdl_compile_lib IP_LIB)
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
-    # get_target_property(LIBRARY ${IP_LIB} LIBRARY)
-    # if(NOT LIBRARY)
-        set(LIBRARY work)
-    # endif()
-
     if(NOT ARG_OUTDIR)
         set(OUTDIR ${BINARY_DIR}/${IP_LIB}_ghdl)
     else()
@@ -152,52 +131,99 @@ function(__ghdl_compile_lib IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
-    if(ARG_NO_DEPS)
-        set(ARG_NO_DEPS NO_DEPS)
-    else()
-        unset(ARG_NO_DEPS)
-    endif()
-
     __ghdl_get_standard_arg(STANDARD ${ARG_STANDARD})
 
-    # VHDL files and arguments
-    get_ip_sources(VHDL_SOURCES ${IP_LIB} VHDL ${ARG_NO_DEPS})
-    set(__ghdl_analyze_cmd COMMAND ghdl analyze
-            --std=${STANDARD}
-            -fsynopsys
-            ${ARG_ANALYZE_ARGS}
-            --work=${LIBRARY}
-            --workdir=${OUTDIR}
-            ${VHDL_SOURCES}
-            )
+    get_ip_links(__ips ${IP_LIB})
+    unset(lib_search_dirs)
+    unset(all_obj_files)
+    foreach(lib ${__ips})
 
-    ### Clean files:
-    #       * All .o files from vhdl sources
-    unset(__clean_files)
-    foreach(source ${VHDL_SOURCES})
-        get_filename_component(source_basename ${source} NAME_WLE)
-        list(APPEND __clean_files "${OUTDIR}/${source_basename}.o")
-    endforeach()
-    list(APPEND __clean_files "${OUTDIR}/${LIBRARY}-obj${STANDARD}.cf")
+        get_target_property(__comp_lib_name ${lib} LIBRARY)
+        if(NOT __comp_lib_name)
+            set(__comp_lib_name work)
+        endif()
+        if(ARG_LIBRARY)
+            set(__comp_lib_name ${ARG_LIBRARY})
+        endif()
 
-    if(NOT TARGET ${IP_LIB}_ghdl_complib)
-        set(DESCRIPTION "Compile VHDL for ${IP_LIB} with ghdl in library ${LIBRARY}")
-        set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+        # VHDL files and arguments
+        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS)
+        set(__ghdl_analyze_cmd ghdl analyze
+                --std=${STANDARD}
+                -fsynopsys
+                --work=${__comp_lib_name}
+                --workdir=${OUTDIR}/${__comp_lib_name}
+                ${ARG_ANALYZE_ARGS}
+                ${lib_search_dirs}
+                ${VHDL_SOURCES}
+                )
+
+        set(lib_outdir ${OUTDIR}/${__comp_lib_name})
+        file(MAKE_DIRECTORY ${lib_outdir})
+        list(APPEND lib_search_dirs -P${lib_outdir})
+
+        unset(obj_files)
+        unset(cf_files)
+        foreach(source ${VHDL_SOURCES})
+            get_filename_component(source_basename ${source} NAME_WLE)
+            list(APPEND obj_files "${lib_outdir}/${source_basename}.o")
+        endforeach()
+        list(APPEND cf_files "${lib_outdir}/${__comp_lib_name}-obj${STANDARD}.cf")
+
+        set(DESCRIPTION "Compile VHDL for ${lib} with ghdl in library ${__comp_lib_name}")
+        set(STAMP_FILE "${BINARY_DIR}/${lib}_${CMAKE_CURRENT_FUNCTION}.stamp")
         add_custom_command(
-            OUTPUT ${STAMP_FILE}
-            ${__ghdl_analyze_cmd}
-            COMMAND touch ${STAMP_FILE}
+            OUTPUT ${obj_files}
+            COMMAND ${__ghdl_analyze_cmd}
+            BYPRODUCTS ${cf_files}
             WORKING_DIRECTORY ${OUTDIR}
-            BYPRODUCTS ${__clean_files}
-            DEPENDS ${VHDL_SOURCES}
+            DEPENDS ${VHDL_SOURCES} ${all_obj_files}
             COMMENT ${DESCRIPTION}
         )
 
+        list(APPEND all_obj_files ${obj_files})
+    endforeach()
+
+    if(NOT TARGET ${IP_LIB}_ghdl_complib)
         add_custom_target(
             ${IP_LIB}_ghdl_complib
-            DEPENDS ${STAMP_FILE} ${IP_LIB}
+            DEPENDS ${all_obj_files} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_ghdl_complib PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${IP_LIB}_ghdl_complib PROPERTY DESCRIPTION 
+            "Compile VHDL files for ${IP_LIB} with ghdl")
     endif()
+    set(LIB_SEARCH_DIRS ${lib_search_dirs} PARENT_SCOPE)
 
 endfunction()
+
+## Parallel analysis
+        # unset(obj_files)
+        # set(cf_file "${lib_outdir}/${__comp_lib_name}-obj${STANDARD}.cf")
+        # foreach(source ${VHDL_SOURCES})
+        #     get_filename_component(source_basename ${source} NAME_WLE)
+        #     set(obj_file "${lib_outdir}/${source_basename}.o")
+        #     message("source: ${obj_file}")
+        #
+        #     set(__ghdl_analyze_cmd ghdl analyze
+        #             --std=${STANDARD}
+        #             -fsynopsys
+        #             --work=${__comp_lib_name}
+        #             --workdir=${OUTDIR}/${__comp_lib_name}
+        #             ${ARG_ANALYZE_ARGS}
+        #             ${lib_search_dirs}
+        #             ${source}
+        #             )
+        #
+        #     set(DESCRIPTION "Compile ${source} with ghdl in library ${__comp_lib_name}")
+        #     # set(STAMP_FILE "${BINARY_DIR}/${lib}_${CMAKE_CURRENT_FUNCTION}.stamp")
+        #     add_custom_command(
+        #         OUTPUT ${obj_file}
+        #         COMMAND ${__ghdl_analyze_cmd}
+        #         BYPRODUCTS ${cf_file}
+        #         WORKING_DIRECTORY ${OUTDIR}
+        #         DEPENDS ${all_obj_files}
+        #         COMMENT ${DESCRIPTION}
+        #     )
+        #
+        #     list(APPEND all_obj_files ${obj_file})
+        # endforeach()
