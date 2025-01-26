@@ -1,4 +1,4 @@
-function(__define_socmake_option NAME TYPE DESCRIPTION DEFAULT)
+function(__define_socmake_option NAME TYPE DESCRIPTION DEFAULT ADVANCED)
     cmake_parse_arguments(ARG "" "" "POSSIBLE_VALUES" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -7,8 +7,12 @@ function(__define_socmake_option NAME TYPE DESCRIPTION DEFAULT)
     set_property(GLOBAL PROPERTY SOCMAKE_${NAME}_DESCRIPTION "${DESCRIPTION}")
     set_property(GLOBAL PROPERTY SOCMAKE_${NAME}_TYPE ${TYPE})
     set_property(GLOBAL PROPERTY SOCMAKE_${NAME}_DEFAULT ${DEFAULT})
+    set_property(GLOBAL PROPERTY SOCMAKE_${NAME}_ADVANCED ${ADVANCED})
     if(ARG_POSSIBLE_VALUES)
         set_property(GLOBAL PROPERTY SOCMAKE_${NAME}_VALUES ${ARG_POSSIBLE_VALUES})
+    endif()
+    if(ADVANCED)
+        mark_as_advanced(${NAME})
     endif()
     set_property(GLOBAL APPEND PROPERTY SOCMAKE_OPTIONS ${NAME})
 endfunction()
@@ -26,9 +30,16 @@ endfunction()
 # :type ENUM_VALUES: list[string]
 # :param DEFAULT: default value of the variable
 # :type DEFAULT: integer 
+# :param ADVANCED: optional, mark options as advanced, it will not show in help menu
+# :type DEFAULT: boolean
 #]]
 function(option_enum VARIABLE DESCRIPTION ENUM_VALUES DEFAULT)
-    __define_socmake_option(${VARIABLE} "Enum" ${DESCRIPTION} ${DEFAULT} POSSIBLE_VALUES "${ENUM_VALUES}")
+    cmake_parse_arguments(ARG "ADVANCED" "" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    __define_socmake_option(${VARIABLE} "Enum" ${DESCRIPTION} ${DEFAULT} ${ARG_ADVANCED} POSSIBLE_VALUES "${ENUM_VALUES}")
 
     set(${VARIABLE} ${DEFAULT} CACHE STRING "${DESCRIPTION}")
     set_property(CACHE ${VARIABLE} PROPERTY STRINGS "${ENUM_VALUES}")
@@ -52,9 +63,15 @@ endfunction()
 # :type DESCRIPTION: string
 # :param DEFAULT: default value of the variable
 # :type DEFAULT: string 
+# :param ADVANCED: optional, mark options as advanced, it will not show in help menu
+# :type DEFAULT: boolean
 #]]
 function(option_string VARIABLE DESCRIPTION DEFAULT)
-    __define_socmake_option(${VARIABLE} "String" ${DESCRIPTION} ${DEFAULT})
+    cmake_parse_arguments(ARG "ADVANCED" "" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+    __define_socmake_option(${VARIABLE} "String" ${DESCRIPTION} ${DEFAULT} ${ARG_ADVANCED})
 
     set(${VARIABLE} ${DEFAULT} CACHE STRING "${DESCRIPTION}")
 endfunction()
@@ -70,9 +87,15 @@ endfunction()
 # :type DESCRIPTION: string
 # :param DEFAULT: default value of the variable
 # :type DEFAULT: integer 
+# :param ADVANCED: optional, mark options as advanced, it will not show in help menu
+# :type DEFAULT: boolean
 #]]
 function(option_integer VARIABLE DESCRIPTION DEFAULT)
-    __define_socmake_option(${VARIABLE} "Integer" ${DESCRIPTION} ${DEFAULT})
+    cmake_parse_arguments(ARG "ADVANCED" "" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+    __define_socmake_option(${VARIABLE} "Integer" ${DESCRIPTION} ${DEFAULT} ${ARG_ADVANCED})
 
     set(${VARIABLE} ${DEFAULT} CACHE STRING "${DESCRIPTION}")
     if(NOT ${${VARIABLE}} MATCHES "^[0-9]+$")
@@ -91,9 +114,15 @@ endfunction()
 # :type DESCRIPTION: string
 # :param DEFAULT: default value of the variable
 # :type DEFAULT: boolean 
+# :param ADVANCED: optional, mark options as advanced, it will not show in help menu
+# :type DEFAULT: boolean
 #]]
 function(option_boolean VARIABLE DESCRIPTION DEFAULT)
-    __define_socmake_option(${VARIABLE} "Boolean" ${DESCRIPTION} ${DEFAULT} POSSIBLE_VALUES "ON;OFF")
+    cmake_parse_arguments(ARG "ADVANCED" "" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+    __define_socmake_option(${VARIABLE} "Boolean" ${DESCRIPTION} ${DEFAULT} ${ARG_ADVANCED} POSSIBLE_VALUES "ON;OFF")
 
     option(${VARIABLE} ${DESCRIPTION} ${DEFAULT})
 endfunction()
