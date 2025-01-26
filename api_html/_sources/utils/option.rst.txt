@@ -6,12 +6,12 @@ cmake.utils/option
 .. module:: cmake.utils/option
 
 
-.. function:: __define_socmake_option(NAME TYPE DESCRIPTION DEFAULT **kwargs)
+.. function:: __define_socmake_option(NAME TYPE DESCRIPTION DEFAULT ADVANCED **kwargs)
 
    
 
 
-.. function:: option_enum(VARIABLE DESCRIPTION ENUM_VALUES DEFAULT)
+.. function:: option_enum(VARIABLE DESCRIPTION ENUM_VALUES DEFAULT **kwargs)
 
    Create a CMake integer option that can be modified through CLI.
    Option defined this way will be visible in `cmake-gui` interface as well as SoCMake `help_options()` help menu.
@@ -25,10 +25,12 @@ cmake.utils/option
    :type ENUM_VALUES: list[string]
    :param DEFAULT: default value of the variable
    :type DEFAULT: integer 
+   :param ADVANCED: optional, mark options as advanced, it will not show in help menu
+   :type DEFAULT: boolean
    
 
 
-.. function:: option_string(VARIABLE DESCRIPTION DEFAULT)
+.. function:: option_string(VARIABLE DESCRIPTION DEFAULT **kwargs)
 
    Create a CMake integer option that can be modified through CLI.
    Option defined this way will be visible in `cmake-gui` interface as well as SoCMake `help_options()` help menu.
@@ -40,10 +42,12 @@ cmake.utils/option
    :type DESCRIPTION: string
    :param DEFAULT: default value of the variable
    :type DEFAULT: string 
+   :param ADVANCED: optional, mark options as advanced, it will not show in help menu
+   :type DEFAULT: boolean
    
 
 
-.. function:: option_integer(VARIABLE DESCRIPTION DEFAULT)
+.. function:: option_integer(VARIABLE DESCRIPTION DEFAULT **kwargs)
 
    Create a CMake integer option that can be modified through CLI.
    Option defined this way will be visible in `cmake-gui` interface as well as SoCMake `help_options()` help menu.
@@ -55,10 +59,12 @@ cmake.utils/option
    :type DESCRIPTION: string
    :param DEFAULT: default value of the variable
    :type DEFAULT: integer 
+   :param ADVANCED: optional, mark options as advanced, it will not show in help menu
+   :type DEFAULT: boolean
    
 
 
-.. function:: option_boolean(VARIABLE DESCRIPTION DEFAULT)
+.. function:: option_boolean(VARIABLE DESCRIPTION DEFAULT **kwargs)
 
    Create a CMake boolean option that can be modified through CLI.
    Option defined this way will be visible in `cmake-gui` interface as well as SoCMake `help_options()` help menu.
@@ -70,6 +76,8 @@ cmake.utils/option
    :type DESCRIPTION: string
    :param DEFAULT: default value of the variable
    :type DEFAULT: boolean 
+   :param ADVANCED: optional, mark options as advanced, it will not show in help menu
+   :type DEFAULT: boolean
    
 
 
