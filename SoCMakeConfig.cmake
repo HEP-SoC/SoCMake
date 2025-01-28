@@ -49,6 +49,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/add_cocotb_iverilog_tests.cm
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_regblock.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_regblock_wrap.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_topgen.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_halcpp.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_ipblocksvg.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_html/peakrdl_html.cmake")
