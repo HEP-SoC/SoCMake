@@ -278,6 +278,8 @@ endfunction()
 # :type IP_LIB: string
 # :param LANGUAGE: The type of source file(s).
 # :type LANGUAGE: string
+# :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
+# :type [NO_DEPS]: bool
 #
 #]]
 function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
@@ -337,6 +339,8 @@ endfunction()
 # :type IP_LIB: string
 # :param LANGUAGE: Language of the included files.
 # :type LANGUAGE: string
+# :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
+# :type [NO_DEPS]: bool
 #
 #]]
 function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
@@ -460,6 +464,8 @@ endfunction()
 # :type TARGET: string
 # :param PROPERTY: Property to retrieve from IP_LIB.
 # :type PROPERTY: string
+# :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
+# :type [NO_DEPS]: bool
 #
 #]]
 function(get_ip_property OUTVAR TARGET PROPERTY)
@@ -528,6 +534,8 @@ endfunction()
 # :type IP_LIB: string
 # :param LANGUAGE: Language to which the definition apply.
 # :type LANGUAGE: string
+# :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
+# :type [NO_DEPS]: bool
 #
 #]]
 function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
@@ -558,14 +566,24 @@ endfunction()
 #
 # :param OUTVAR: Variable containing the link list.
 # :type OUTVAR: string
-#
+# :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
+# :type [NO_DEPS]: bool
 #]]
 function(get_ip_links OUTVAR IP_LIB)
-    cmake_parse_arguments(ARG "" "" "" ${ARGN})
-    alias_dereference(_reallib ${IP_LIB})
-    flatten_graph(${IP_LIB})
+    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
 
-    get_property(__flat_graph TARGET ${IP_LIB} PROPERTY FLAT_GRAPH)
+    alias_dereference(_reallib ${IP_LIB})
+
+    if(ARG_NO_DEPS)
+        get_property(__flat_graph TARGET ${IP_LIB} PROPERTY INTERFACE_LINK_LIBRARIES)
+    else()
+        flatten_graph(${IP_LIB})
+
+        get_property(__flat_graph TARGET ${IP_LIB} PROPERTY FLAT_GRAPH)
+    endif()
 
     set(${OUTVAR} ${__flat_graph} PARENT_SCOPE)
 endfunction()
