@@ -68,7 +68,6 @@ function(ghdl IP_LIB)
                 --workdir=${OUTDIR}/${LIBRARY}
                 ${ARG_ELABORATE_ARGS}
                 ${LIB_SEARCH_DIRS}
-                ${__lib_args}
                 ${LIBRARY}.${ARG_TOP_MODULE}
                 )
 
@@ -138,6 +137,8 @@ function(__ghdl_compile_lib IP_LIB)
     unset(all_obj_files)
     foreach(lib ${__ips})
 
+        # VHDL library of the current IP block, get it from SoCMake library if present
+        # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
         get_target_property(__comp_lib_name ${lib} LIBRARY)
         if(NOT __comp_lib_name)
             set(__comp_lib_name work)
@@ -154,14 +155,20 @@ function(__ghdl_compile_lib IP_LIB)
                 --work=${__comp_lib_name}
                 --workdir=${OUTDIR}/${__comp_lib_name}
                 ${ARG_ANALYZE_ARGS}
-                ${lib_search_dirs}
+                ${lib_search_dirs} # This is not correct, as it should include only SUBIPs search directories TODO
                 ${VHDL_SOURCES}
                 )
 
+
+        # Create output directoy for the VHDL library
         set(lib_outdir ${OUTDIR}/${__comp_lib_name})
         file(MAKE_DIRECTORY ${lib_outdir})
+
+        # Append current library outdir to list of search directories
         list(APPEND lib_search_dirs -P${lib_outdir})
 
+        # GHDL creates an object (.o) file for each VHDL source file
+        # GHDL creates a .cf file for each VHDL library
         unset(obj_files)
         unset(cf_files)
         foreach(source ${VHDL_SOURCES})
@@ -170,6 +177,18 @@ function(__ghdl_compile_lib IP_LIB)
         endforeach()
         list(APPEND cf_files "${lib_outdir}/${__comp_lib_name}-obj${STANDARD}.cf")
 
+        # Create a list that stores current IP block obj files
+        # This list persists when compiling higher level IP blocks, to be used as DEPENDS files
+        set(__ghdl_${lib}_obj_files ${obj_files})
+
+        # GHDL Custom command of current IP block should depend on object files of immediate linked IPs
+        # Extract the list from __ghdl_<LIB>_obj_files
+        get_ip_links(ip_subdeps ${lib} NO_DEPS)
+        unset(__ghdl_subdep_obj_files)
+        foreach(ip_dep ${ip_subdeps})
+            list(APPEND __ghdl_subdep_obj_files ${__ghdl_${ip_dep}_obj_files})
+        endforeach()
+
         set(DESCRIPTION "Compile VHDL for ${lib} with ghdl in library ${__comp_lib_name}")
         set(STAMP_FILE "${BINARY_DIR}/${lib}_${CMAKE_CURRENT_FUNCTION}.stamp")
         add_custom_command(
@@ -177,7 +196,7 @@ function(__ghdl_compile_lib IP_LIB)
             COMMAND ${__ghdl_analyze_cmd}
             BYPRODUCTS ${cf_files}
             WORKING_DIRECTORY ${OUTDIR}
-            DEPENDS ${VHDL_SOURCES} ${all_obj_files}
+            DEPENDS ${VHDL_SOURCES} ${__ghdl_subdep_obj_files}
             COMMENT ${DESCRIPTION}
         )
 
