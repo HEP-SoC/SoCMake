@@ -141,6 +141,8 @@ cmake.hwip
    :type IP_LIB: string
    :param LANGUAGE: The type of source file(s).
    :type LANGUAGE: string
+   :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
+   :type [NO_DEPS]: bool
    
    
 
@@ -171,6 +173,8 @@ cmake.hwip
    :type IP_LIB: string
    :param LANGUAGE: Language of the included files.
    :type LANGUAGE: string
+   :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
+   :type [NO_DEPS]: bool
    
    
 
@@ -221,6 +225,8 @@ cmake.hwip
    :type TARGET: string
    :param PROPERTY: Property to retrieve from IP_LIB.
    :type PROPERTY: string
+   :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
+   :type [NO_DEPS]: bool
    
    
 
@@ -255,6 +261,8 @@ cmake.hwip
    :type IP_LIB: string
    :param LANGUAGE: Language to which the definition apply.
    :type LANGUAGE: string
+   :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
+   :type [NO_DEPS]: bool
    
    
 
@@ -265,6 +273,7 @@ cmake.hwip
    
    :param OUTVAR: Variable containing the link list.
    :type OUTVAR: string
-   
+   :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
+   :type [NO_DEPS]: bool
    
 

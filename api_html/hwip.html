@@ -177,6 +177,7 @@ execute its tasks. The source files are passed as a list after the parameters an
 <li><p><strong>OUTVAR</strong> (<em>string</em>) – The variable containing the retrieved source file.</p></li>
 <li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library.</p></li>
 <li><p><strong>LANGUAGE</strong> (<em>string</em>) – The type of source file(s).</p></li>
+<li><p><strong>[</strong><strong>NO_DEPS</strong><strong>]</strong> (<em>bool</em>) – Only return the list off IPs that are immedieate childrean from the current IP</p></li>
 </ul>
 </dd>
 </dl>
@@ -209,6 +210,7 @@ directories are passed as a list after the parameter.</p>
 <li><p><strong>OUTVAR</strong> (<em>string</em>) – The variable containing the retrieved included directory(ies).</p></li>
 <li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library.</p></li>
 <li><p><strong>LANGUAGE</strong> (<em>string</em>) – Language of the included files.</p></li>
+<li><p><strong>[</strong><strong>NO_DEPS</strong><strong>]</strong> (<em>bool</em>) – Only return the list off IPs that are immedieate childrean from the current IP</p></li>
 </ul>
 </dd>
 </dl>
@@ -262,6 +264,7 @@ as a list after the parameters and the keyword.</p>
 <li><p><strong>OUTVAR</strong> (<em>string</em>) – Variable containing the requested property.</p></li>
 <li><p><strong>TARGET</strong> (<em>string</em>) – The target IP library name.</p></li>
 <li><p><strong>PROPERTY</strong> (<em>string</em>) – Property to retrieve from IP_LIB.</p></li>
+<li><p><strong>[</strong><strong>NO_DEPS</strong><strong>]</strong> (<em>bool</em>) – Only return the list off IPs that are immedieate childrean from the current IP</p></li>
 </ul>
 </dd>
 </dl>
@@ -297,6 +300,7 @@ ip_compile_definitions(foo VERILOG -D FOO) # -D becomes “”, then ignored.</p
 <li><p><strong>OUTVAR</strong> (<em>string</em>) – Variable containing the requested property.</p></li>
 <li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library name.</p></li>
 <li><p><strong>LANGUAGE</strong> (<em>string</em>) – Language to which the definition apply.</p></li>
+<li><p><strong>[</strong><strong>NO_DEPS</strong><strong>]</strong> (<em>bool</em>) – Only return the list off IPs that are immedieate childrean from the current IP</p></li>
 </ul>
 </dd>
 </dl>
@@ -308,7 +312,10 @@ ip_compile_definitions(foo VERILOG -D FOO) # -D becomes “”, then ignored.</p
 <dd><p>Get the IP link graph in a flat list</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>OUTVAR</strong> (<em>string</em>) – Variable containing the link list.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>OUTVAR</strong> (<em>string</em>) – Variable containing the link list.</p></li>
+<li><p><strong>[</strong><strong>NO_DEPS</strong><strong>]</strong> (<em>bool</em>) – Only return the list off IPs that are immedieate childrean from the current IP</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
