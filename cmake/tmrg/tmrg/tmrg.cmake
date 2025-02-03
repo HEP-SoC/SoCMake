@@ -37,6 +37,8 @@ function(tmrg IP_LIB)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/find_python.cmake")
+
     find_python3()
     find_program(TMRG_EXECUTABLE tmrg REQUIRED)
 
