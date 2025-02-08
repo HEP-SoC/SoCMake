@@ -26,7 +26,7 @@ if(SIMULATOR STREQUAL "vivado_sim" OR ALL_SIMS)
 endif()
 
 if(SIMULATOR STREQUAL "xcelium" OR ALL_SIMS)
-    xcelium(${IP} XMVHDL_ARGS -V200x)
+    xcelium(${IP} VHDL_COMPILE_ARGS -V200x)
 endif()
 
 if(SIMULATOR STREQUAL "vcs" OR ALL_SIMS)
