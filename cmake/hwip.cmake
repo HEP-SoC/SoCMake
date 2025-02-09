@@ -235,6 +235,8 @@ endfunction()
 # :type IP_LIB: string
 # :param TYPE: The type of source file(s).
 # :type TYPE: string
+# :param HEADERS: List of header files. Header files are stored in separate property ${LANGUAGE}_HEADERS
+# :type HEADERS: list
 #
 # **Keyword Arguments**
 #
@@ -242,10 +244,16 @@ endfunction()
 # :type PREPEND: string
 #]]
 function(ip_sources IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "PREPEND;REPLACE" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "PREPEND;REPLACE" "" "HEADERS" ${ARGN})
     # Delete PREPEND and REPLACE from argument list, so only sources are left
     list(REMOVE_ITEM ARGN "PREPEND")
     list(REMOVE_ITEM ARGN "REPLACE")
+
+    # If headers are passed, use files until HEADERS as sources, while the rest are HEADERS
+    if(ARG_HEADERS)
+        list(FIND ARGN "HEADERS" headers_idx)
+        list(SUBLIST ARGN 0 ${headers_idx} ARGN)
+    endif()
 
     check_languages(${LANGUAGE})
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
@@ -253,20 +261,27 @@ function(ip_sources IP_LIB LANGUAGE)
 
     # Convert all listed files to absolute paths relative to ${CMAKE_CURRENT_SOURCE_DIR}
     convert_paths_to_absolute(file_list ${ARGN})
+    convert_paths_to_absolute(header_list ${ARG_HEADERS})
 
     if(NOT ARG_REPLACE)
-        # Get the existing source files if any
+        # Get the existing source and header files if any
         get_ip_sources(_sources ${_reallib} ${LANGUAGE} NO_DEPS)
+        get_ip_sources(_headers ${_reallib} ${LANGUAGE} HEADERS NO_DEPS)
     endif()
 
     # If the PREPEND option is passed prepend the new sources to the old ones
     if(ARG_PREPEND)
         set(_sources ${file_list} ${_sources})
+        set(_headers ${header_list} ${_headers})
     else()
         set(_sources ${_sources} ${file_list})
+        set(_headers ${_headers} ${header_list})
     endif()
-    # Set the target property with the new list of source files
+    # Set the target property with the new list of source and header files
     set_property(TARGET ${_reallib} PROPERTY ${LANGUAGE}_SOURCES ${_sources})
+    if(ARG_HEADERS)
+        set_property(TARGET ${_reallib} PROPERTY ${LANGUAGE}_HEADERS ${_headers})
+    endif()
 endfunction()
 
 #[[[
@@ -280,25 +295,34 @@ endfunction()
 # :type LANGUAGE: string
 # :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
 # :type [NO_DEPS]: bool
+# :keyword [HEADERS]: Return the list of HEADER files only.
+# :type [HEADERS]: bool
 #
 #]]
 function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS;HEADERS" "" "" ${ARGN})
     unset(_no_deps)
     if(ARG_NO_DEPS)
         set(_no_deps "NO_DEPS")
+        # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
+        list(REMOVE_ITEM ARGN NO_DEPS)
+    endif()
+    if(ARG_HEADERS)
+        set(property_type HEADERS)
+        # ARGN contains extra languages passed, it might also include HEADERS so remove it from the list
+        list(REMOVE_ITEM ARGN HEADERS)
+    else()
+        set(property_type SOURCES)
     endif()
 
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(IP_LIB ${IP_LIB})
 
-    # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
-    list(REMOVE_ITEM ARGN NO_DEPS)
     unset(SOURCES)
-    # Get all the <LANGUAGE>_SOURCES lists in order
+    # Get all the <LANGUAGE>_SOURCES or <LANGUAGE>_HEADERS lists in order
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
-        get_ip_property(_lang_sources ${IP_LIB} ${_lang}_SOURCES ${_no_deps})
+        get_ip_property(_lang_sources ${IP_LIB} ${_lang}_${property_type} ${_no_deps})
         list(APPEND SOURCES ${_lang_sources})
     endforeach()
 
