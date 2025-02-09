@@ -156,6 +156,7 @@ execute its tasks. The source files are passed as a list after the parameters an
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library.</p></li>
 <li><p><strong>TYPE</strong> (<em>string</em>) – The type of source file(s).</p></li>
+<li><p><strong>HEADERS</strong> (<em>list</em>) – List of header files. Header files are stored in separate property ${LANGUAGE}_HEADERS</p></li>
 </ul>
 </dd>
 </dl>
@@ -178,6 +179,7 @@ execute its tasks. The source files are passed as a list after the parameters an
 <li><p><strong>IP_LIB</strong> (<em>string</em>) – The target IP library.</p></li>
 <li><p><strong>LANGUAGE</strong> (<em>string</em>) – The type of source file(s).</p></li>
 <li><p><strong>[</strong><strong>NO_DEPS</strong><strong>]</strong> (<em>bool</em>) – Only return the list off IPs that are immedieate childrean from the current IP</p></li>
+<li><p><strong>[</strong><strong>HEADERS</strong><strong>]</strong> (<em>bool</em>) – Return the list of HEADER files only.</p></li>
 </ul>
 </dd>
 </dl>

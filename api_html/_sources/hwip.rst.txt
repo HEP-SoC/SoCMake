@@ -123,6 +123,8 @@ cmake.hwip
    :type IP_LIB: string
    :param TYPE: The type of source file(s).
    :type TYPE: string
+   :param HEADERS: List of header files. Header files are stored in separate property ${LANGUAGE}_HEADERS
+   :type HEADERS: list
    
    **Keyword Arguments**
    
@@ -143,6 +145,8 @@ cmake.hwip
    :type LANGUAGE: string
    :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
    :type [NO_DEPS]: bool
+   :keyword [HEADERS]: Return the list of HEADER files only.
+   :type [HEADERS]: bool
    
    
 
