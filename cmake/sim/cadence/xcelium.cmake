@@ -78,6 +78,7 @@ function(xcelium IP_LIB)
     set(dpi_libs_args ${DPI_LIBS_ARGS})
 
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
+    get_ip_sources(HEADERS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL HEADERS)
     if(NOT TARGET ${IP_LIB}_xcelium)
         set(elaborate_cmd COMMAND xrun -elaborate
                 -64bit
@@ -104,7 +105,7 @@ function(xcelium IP_LIB)
             COMMENT ${DESCRIPTION}
             BYPRODUCTS  ${__clean_files}
             WORKING_DIRECTORY ${OUTDIR}
-            DEPENDS ${comp_tgt} ${SOURCES}
+            DEPENDS ${comp_tgt} ${SOURCES} ${HEADERS}
             COMMAND_EXPAND_LISTS
             )
 
@@ -198,6 +199,7 @@ function(__xcelium_compile_lib IP_LIB)
 
         # SystemVerilog and Verilog files and arguments
         get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS)
+        get_ip_sources(SV_HEADERS ${lib} SYSTEMVERILOG VERILOG HEADERS)
         unset(sv_compile_cmd)
         if(SV_SOURCES)
             get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG)
@@ -269,7 +271,7 @@ function(__xcelium_compile_lib IP_LIB)
                 COMMAND touch ${STAMP_FILE}
                 BYPRODUCTS ${lib_outdir} ${__clean_files}
                 WORKING_DIRECTORY ${OUTDIR}
-                DEPENDS ${SV_SOURCES} ${__xcelium_subdep_stamp_files}
+                DEPENDS ${SV_SOURCES} ${SV_HEADERS} ${__xcelium_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})

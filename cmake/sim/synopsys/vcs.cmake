@@ -43,9 +43,6 @@ function(vcs IP_LIB)
     if(ARG_VHDL_COMPILE_ARGS)
         set(ARG_VHDL_COMPILE_ARGS VHDL_COMPILE_ARGS ${ARG_VHDL_COMPILE_ARGS})
     endif()
-    if(ARG_ELABORATE_ARGS)
-        set(ARG_ELABORATE_ARGS ELABORATE_ARGS ${ARG_ELABORATE_ARGS})
-    endif()
 
     get_ip_links(IPS_LIST ${IP_LIB})
 
@@ -66,6 +63,7 @@ function(vcs IP_LIB)
 
 
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
+    get_ip_sources(HEADERS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL HEADERS)
     ## VCS command for compiling executable
     if(NOT TARGET ${IP_LIB}_vcs)
         set(elaborate_cmd vcs
@@ -84,6 +82,10 @@ function(vcs IP_LIB)
         set(__clean_files 
             ${OUTDIR}/csrc
             ${OUTDIR}/${ARG_EXECUTABLE_NAME}.daidir
+            # ${OUTDIR}/synopsys_sim.setup # Don't delete for now, as its generated at configure time and is necessary to run vcs, in case make clean comes, it will not reconfigure
+            ${OUTDIR}/tr_db.log
+            ${OUTDIR}/ucli.key
+            ${OUTDIR}/vc_hdrs.h
         )
 
         set(DESCRIPTION "Elaborate ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
@@ -95,7 +97,7 @@ function(vcs IP_LIB)
             COMMENT ${DESCRIPTION}
             BYPRODUCTS ${__clean_files}
             WORKING_DIRECTORY ${OUTDIR}
-            DEPENDS ${comp_tgt} ${IP_LIB}
+            DEPENDS ${comp_tgt} ${SOURCES} ${HEADERS} ${IP_LIB}
             )
 
         add_custom_target(${IP_LIB}_vcs
@@ -172,6 +174,7 @@ function(__vcs_compile_lib IP_LIB)
 
         # SystemVerilog and Verilog files and arguments
         get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS)
+        get_ip_sources(SV_HEADERS ${lib} SYSTEMVERILOG VERILOG HEADERS)
         unset(sv_compile_cmd)
         if(SV_SOURCES)
             get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG)
@@ -222,8 +225,6 @@ function(__vcs_compile_lib IP_LIB)
 
         ### Clean files:
         set(__clean_files  # TODO What goes here???
-            ${OUTDIR}/xrun.log
-            ${OUTDIR}/xrun.history
             ${OUTDIR}/vcs.d
         )
 
@@ -237,7 +238,7 @@ function(__vcs_compile_lib IP_LIB)
                 COMMAND touch ${STAMP_FILE}
                 BYPRODUCTS ${lib_outdir} ${__clean_files}
                 WORKING_DIRECTORY ${OUTDIR}
-                DEPENDS ${SV_SOURCES} ${__vcs_subdep_stamp_files}
+                DEPENDS ${SV_SOURCES} ${SV_HEADERS} ${__vcs_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})

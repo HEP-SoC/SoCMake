@@ -132,6 +132,7 @@ function(__modelsim_compile_lib IP_LIB)
 
         # SystemVerilog and Verilog files and arguments
         get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS)
+        get_ip_sources(SV_HEADERS ${lib} SYSTEMVERILOG VERILOG VHDL HEADERS)
         unset(sv_compile_cmd)
         if(SV_SOURCES)
             get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG)
@@ -193,7 +194,7 @@ function(__modelsim_compile_lib IP_LIB)
                 COMMAND touch ${STAMP_FILE}
                 BYPRODUCTS ${lib_outdir}
                 WORKING_DIRECTORY ${OUTDIR}
-                DEPENDS ${SV_SOURCES} ${__modelsim_subdep_stamp_files}
+                DEPENDS ${SV_SOURCES} ${SV_HEADERS} ${__modelsim_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
