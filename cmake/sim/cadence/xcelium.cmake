@@ -58,8 +58,6 @@ function(xcelium IP_LIB)
         set(ARG_VHDL_COMPILE_ARGS VHDL_COMPILE_ARGS ${ARG_VHDL_COMPILE_ARGS})
     endif()
 
-    get_ip_links(IPS_LIST ${IP_LIB})
-
     if(NOT TARGET ${IP_LIB}_xcelium_complib)
         __xcelium_compile_lib(${IP_LIB}
             OUTDIR ${OUTDIR}
