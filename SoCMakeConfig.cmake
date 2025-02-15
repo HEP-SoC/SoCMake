@@ -69,6 +69,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_socgen/peakrdl_socgen.c
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_docusaurus.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_print.cmake")
 
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/systemrdl/desyrdl.cmake")
+
 # ====================================
 # ======== FPGA ======================
 # ====================================
