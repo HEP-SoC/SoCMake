@@ -1,0 +1,12 @@
+
+#######################
+cmake.systemrdl/desyrdl
+#######################
+
+.. module:: cmake.systemrdl/desyrdl
+
+
+.. function:: desyrdl(IP_LIB **kwargs)
+
+   
+
