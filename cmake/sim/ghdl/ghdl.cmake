@@ -37,7 +37,7 @@ function(ghdl IP_LIB)
     endif()
 
     if(NOT ARG_OUTDIR)
-        set(OUTDIR ${BINARY_DIR}/${IP_LIB}_ghdl)
+        set(OUTDIR ${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
     else()
         set(OUTDIR ${ARG_OUTDIR})
     endif()
@@ -48,11 +48,6 @@ function(ghdl IP_LIB)
     if(ARG_VHDL_COMPILE_ARGS)
         set(ARG_VHDL_COMPILE_ARGS VHDL_COMPILE_ARGS ${ARG_VHDL_COMPILE_ARGS})
     endif()
-
-    if(NOT ARG_EXECUTABLE_NAME)
-        set(ARG_EXECUTABLE_NAME "${IP_LIB}_ghdl_exec")
-    endif()
-    set(SIM_EXEC_PATH "${OUTDIR}/${ARG_EXECUTABLE_NAME}")
 
     ##### GHDL Analyze
     if(NOT TARGET ${IP_LIB}_ghdl_complib)
@@ -77,7 +72,6 @@ function(ghdl IP_LIB)
         set(__ghdl_elab_cmd ghdl elaborate
                 --std=${STANDARD}
                 -fsynopsys
-                -o ${SIM_EXEC_PATH}
                 --workdir=${OUTDIR}/${LIBRARY}
                 ${ARG_ELABORATE_ARGS}
                 ${hdl_libs_args} ${dpi_libs_args}
@@ -86,15 +80,16 @@ function(ghdl IP_LIB)
 
         ### Clean files
         #       * For elaborate "e~${ARG_EXECUTABLE_NAME}.o" and executable gets created
-        set(__clean_files "${OUTDIR}/e~${ARG_EXECUTABLE_NAME}.o")
+        # set(__clean_files "${OUTDIR}/e~${ARG_EXECUTABLE_NAME}.o")
+        # set(__clean_files "${OUTDIR}/${LIBRARY}-obj${STANDARD}.cf")
 
         set(DESCRIPTION "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
         set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_ghdl.stamp")
         add_custom_command(
-            OUTPUT ${SIM_EXEC_PATH} ${STAMP_FILE}
+            OUTPUT ${STAMP_FILE}
             COMMAND ${__ghdl_elab_cmd}
             COMMAND touch ${STAMP_FILE}
-            BYPRODUCTS  ${__clean_files}
+            # BYPRODUCTS  ${__clean_files}
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${__comp_tgt} ${VHDL_SOURCES}
             COMMENT ${DESCRIPTION}
@@ -106,14 +101,15 @@ function(ghdl IP_LIB)
         set_property(TARGET ${IP_LIB}_ghdl PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
 
-    # set(__ghdl_run_cmd ghdl run
-    #                 --std=${STANDARD}
-    #                 --workdir=${OUTDIR}/${LIBRARY}
-    #                 ${ARG_RUN_ARGS}
-    #                 ${LIB_SEARCH_DIRS}
-    #                 ${LIBRARY}.${ARG_TOP_MODULE})
 
-    set(__ghdl_run_cmd ${SIM_EXEC_PATH} ${ARG_RUN_ARGS})
+    set(__ghdl_run_cmd ghdl run
+            --std=${STANDARD}
+            -fsynopsys
+            --workdir=${OUTDIR}/${LIBRARY}
+            ${hdl_libs_args} ${dpi_libs_args}
+            ${LIBRARY}.${ARG_TOP_MODULE}
+            ${ARG_RUN_ARGS}
+            )
     if(NOT ARG_NO_RUN_TARGET)
         if(NOT ARG_RUN_TARGET_NAME)
             set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
@@ -156,7 +152,7 @@ function(__ghdl_compile_lib IP_LIB)
     __add_ghdl_cxx_properties_to_libs(${IP_LIB})
 
     get_ip_links(__ips ${IP_LIB})
-    unset(all_obj_files)
+    unset(all_stamp_files)
     foreach(lib ${__ips})
 
         # VHDL library of the current IP block, get it from SoCMake library if present
@@ -179,7 +175,7 @@ function(__ghdl_compile_lib IP_LIB)
 
         # VHDL files and arguments
         get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS)
-        set(__ghdl_analyze_cmd ghdl analyze
+        set(ghdl_analyze_cmd ghdl analyze
                 --std=${STANDARD}
                 -fsynopsys
                 --work=${__comp_lib_name}
@@ -200,38 +196,36 @@ function(__ghdl_compile_lib IP_LIB)
         endforeach()
         list(APPEND cf_files "${lib_outdir}/${__comp_lib_name}-obj${STANDARD}.cf")
 
-        # Create a list that stores current IP block obj files
-        # This list persists when compiling higher level IP blocks, to be used as DEPENDS files
-        set(__ghdl_${lib}_obj_files ${obj_files})
-
-        # GHDL Custom command of current IP block should depend on object files of immediate linked IPs
-        # Extract the list from __ghdl_<LIB>_obj_files
+        # Modelsim custom command of current IP block should depend on stamp files of immediate linked IPs
+        # Extract the list from __ghdl_<LIB>_stamp_files
         get_ip_links(ip_subdeps ${lib} NO_DEPS)
-        unset(__ghdl_subdep_obj_files)
+        unset(__ghdl_subdep_stamp_files)
         foreach(ip_dep ${ip_subdeps})
-            list(APPEND __ghdl_subdep_obj_files ${__ghdl_${ip_dep}_obj_files})
+            list(APPEND __ghdl_subdep_stamp_files ${__ghdl_${ip_dep}_stamp_files})
         endforeach()
 
         if(VHDL_SOURCES)
             set(DESCRIPTION "Compile VHDL for ${lib} with ghdl in library ${__comp_lib_name}")
-            set(STAMP_FILE "${BINARY_DIR}/${lib}_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(STAMP_FILE "${lib_outdir}/${lib}_ghdl_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
-                OUTPUT ${obj_files}
-                COMMAND ${__ghdl_analyze_cmd}
-                BYPRODUCTS ${cf_files}
+                OUTPUT ${STAMP_FILE}
+                COMMAND ${ghdl_analyze_cmd}
+                COMMAND touch ${STAMP_FILE}
+                BYPRODUCTS ${cf_files} ${obj_files}
                 WORKING_DIRECTORY ${OUTDIR}
-                DEPENDS ${VHDL_SOURCES} ${__ghdl_subdep_obj_files}
+                DEPENDS ${VHDL_SOURCES} ${__ghdl_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
+            list(APPEND all_stamp_files ${STAMP_FILE})
+            list(APPEND __ghdl_${lib}_stamp_files ${STAMP_FILE})
         endif()
 
-        list(APPEND all_obj_files ${obj_files})
     endforeach()
 
     if(NOT TARGET ${IP_LIB}_ghdl_complib)
         add_custom_target(
             ${IP_LIB}_ghdl_complib
-            DEPENDS ${all_obj_files} ${IP_LIB}
+            DEPENDS ${all_stamp_files} ${IP_LIB}
         )
         set_property(TARGET ${IP_LIB}_ghdl_complib PROPERTY DESCRIPTION 
             "Compile VHDL files for ${IP_LIB} with ghdl")
