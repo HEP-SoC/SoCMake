@@ -60,8 +60,38 @@ function(modelsim IP_LIB)
     set(hdl_libs_args ${HDL_LIBS_ARGS})
     set(dpi_libs_args ${DPI_LIBS_ARGS})
 
+    ##### SCCOM link
+    if(NOT TARGET ${IP_LIB}_sccom_link)
+        get_ip_sources(SC_SOURCES ${IP_LIB} SYSTEMC)
+        set(__sccom_link_cmd sccom -link
+                # -64
+                -nologo)
+
+        ### Clean files
+        #       * For elaborate "e~${ARG_EXECUTABLE_NAME}.o" and executable gets created
+        # set(__clean_files "${OUTDIR}/e~${ARG_EXECUTABLE_NAME}.o")
+        # set(__clean_files "${OUTDIR}/${LIBRARY}-obj${STANDARD}.cf")
+
+        set(DESCRIPTION "Link SystemC objects into systemc.so for ${IP_LIB} with sccom")
+        set(STAMP_FILE "${OUTDIR}/${IP_LIB}_sccom_link.stamp")
+        add_custom_command(
+            OUTPUT ${STAMP_FILE}
+            COMMAND ${__sccom_link_cmd}
+            COMMAND touch ${STAMP_FILE}
+            # BYPRODUCTS  ${__clean_files}
+            WORKING_DIRECTORY ${OUTDIR}
+            DEPENDS ${comp_tgt} ${SC_SOURCES}
+            COMMENT ${DESCRIPTION}
+            )
+
+        add_custom_target(${IP_LIB}_sccom_link
+            DEPENDS ${STAMP_FILE} ${IP_LIB}
+        )
+        set_property(TARGET ${IP_LIB}_sccom_link PROPERTY DESCRIPTION ${DESCRIPTION})
+    endif()
+
     set(run_sim_cmd vsim
-        -64
+        # -64
         $<$<BOOL:${ARG_QUIET}>:-quiet>
         ${ARG_RUN_ARGS}
         -Ldir ${OUTDIR} ${hdl_libs_args} ${dpi_libs_args}
@@ -76,7 +106,7 @@ function(modelsim IP_LIB)
         add_custom_target(
             ${ARG_RUN_TARGET_NAME}
             COMMAND  ${run_sim_cmd} -noautoldlibpath
-            DEPENDS ${comp_tgt}
+            DEPENDS ${comp_tgt} ${IP_LIB}_sccom_link
             WORKING_DIRECTORY ${OUTDIR}
             COMMENT ${DESCRIPTION}
             VERBATIM
@@ -148,7 +178,7 @@ function(__modelsim_compile_lib IP_LIB)
 
             set(DESCRIPTION "Compile Verilog and SV files of ${lib} with modelsim vlog")
             set(sv_compile_cmd vlog
-                    -64
+                    # -64
                     -nologo
                     $<$<BOOL:${ARG_QUIET}>:-quiet>
                     -sv
@@ -168,7 +198,7 @@ function(__modelsim_compile_lib IP_LIB)
         if(VHDL_SOURCES)
             set(vhdl_compile_cmd vcom
                     -nologo
-                    -64
+                    # -64
                     $<$<BOOL:${ARG_QUIET}>:-quiet>
                     -work ${lib_outdir}
                     ${ARG_VHDL_COMPILE_ARGS}
@@ -217,6 +247,51 @@ function(__modelsim_compile_lib IP_LIB)
             list(APPEND __modelsim_${lib}_stamp_files ${STAMP_FILE})
         endif()
 
+        # SystemVerilog and Verilog files and arguments
+        get_ip_sources(SC_SOURCES ${lib} SYSTEMC NO_DEPS)
+        get_ip_sources(SC_HEADERS ${lib} SYSTEMC HEADERS)
+        message("SC_HEADERS for ${lib}: ${SC_HEADERS}")
+        unset(sc_compile_cmd)
+        if(SC_SOURCES)
+            get_ip_include_directories(SC_INC_DIRS  ${lib} SYSTEMC)
+            get_ip_compile_definitions(SC_COMP_DEFS ${lib} SYSTEMC)
+
+            foreach(dir ${SC_INC_DIRS})
+                list(APPEND SC_ARG_INCDIRS -I${dir})
+            endforeach()
+
+            foreach(def ${SC_COMP_DEFS})
+                list(APPEND SC_CMP_DEFS_ARG -D${def})
+            endforeach()
+
+            set(DESCRIPTION "Compile SystemC files of ${lib} with modelsim sccom")
+            set(sc_compile_cmd sccom
+                    # -64
+                    -nologo
+                    # $<$<BOOL:${ARG_QUIET}>:-quiet>
+                    -work ${lib_outdir}
+                    # -Ldir ${OUTDIR} ${hdl_libs_args}
+                    ${ARG_SC_COMPILE_ARGS}
+                    ${SC_ARG_INCDIRS}
+                    ${SC_CMP_DEFS_ARG}
+                    ${SC_SOURCES}
+                )
+
+            set(DESCRIPTION "Compile SystemC sources of ${lib} with modelsim sccom in library ${__comp_lib_name}")
+            set(STAMP_FILE "${lib_outdir}/${lib}_sc_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
+            add_custom_command(
+                OUTPUT ${STAMP_FILE}
+                COMMAND ${sc_compile_cmd}
+                COMMAND touch ${STAMP_FILE}
+                BYPRODUCTS ${lib_outdir}
+                WORKING_DIRECTORY ${OUTDIR}
+                DEPENDS ${SC_SOURCES} ${SC_HEADERS} ${__modelsim_subdep_stamp_files}
+                COMMENT ${DESCRIPTION}
+            )
+            list(APPEND all_stamp_files ${STAMP_FILE})
+            list(APPEND __modelsim_${lib}_stamp_files ${STAMP_FILE})
+        endif()
+
     endforeach()
 
     if(NOT TARGET ${IP_LIB}_modelsim_complib)
@@ -228,8 +303,6 @@ function(__modelsim_compile_lib IP_LIB)
             DESCRIPTION "Compile VHDL, SV, and Verilog files for ${IP_LIB} with modelsim in library ${LIBRARY}")
     endif()
 
-
-    set(LIB_SEARCH_DIRS ${hdl_libs_args} ${dpi_libs_args} PARENT_SCOPE)
 endfunction()
 
 
@@ -245,7 +318,8 @@ function(__get_modelsim_search_lib_args IP_LIB)
         # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
         get_target_property(ip_type ${lib} TYPE)
         if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
-            list(APPEND dpi_libs_args -sv_lib $<TARGET_FILE_DIR:${lib}>/lib$<TARGET_FILE_BASE_NAME:${lib}>)
+            # list(APPEND dpi_libs_args -sv_lib $<TARGET_FILE_DIR:${lib}>/lib$<TARGET_FILE_BASE_NAME:${lib}>)
+            list(APPEND dpi_libs_args -vhpi $<TARGET_FILE_DIR:${lib}>/lib$<TARGET_FILE_BASE_NAME:${lib}>)
         else()
             # Library of the current IP block, get it from SoCMake library if present
             # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
@@ -291,4 +365,103 @@ function(__add_modelsim_cxx_properties_to_libs IP_LIB)
             target_compile_definitions(${lib} PUBLIC QUESTA)
         endif()
     endforeach()
+endfunction()
+
+function(modelsim_scgenmod IP_LIB)
+    cmake_parse_arguments(ARG "" "LIBRARY;TOP_MODULE;OUTDIR" "SCGENMOD_ARGS" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+
+    alias_dereference(IP_LIB ${IP_LIB})
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
+
+    get_target_property(LIBRARY ${IP_LIB} LIBRARY)
+    if(NOT LIBRARY)
+        set(LIBRARY work)
+    endif()
+    if(ARG_LIBRARY)
+        set(LIBRARY ${ARG_LIBRARY})
+        set(ARG_LIBRARY LIBRARY ${LIBRARY})
+    endif()
+
+    if(NOT ARG_TOP_MODULE)
+        get_target_property(ARG_TOP_MODULE ${IP_LIB} IP_NAME)
+    endif()
+
+    if(NOT ARG_OUTDIR)
+        set(OUTDIR ${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
+    else()
+        set(OUTDIR ${ARG_OUTDIR})
+    endif()
+    file(MAKE_DIRECTORY ${OUTDIR})
+
+    set(OUTFILE ${OUTDIR}/${ARG_TOP_MODULE}.h)
+
+    ip_include_directories(${IP_LIB} SYSTEMC
+        ${OUTDIR}
+        )
+
+    ip_sources(${IP_LIB} SYSTEMC
+        HEADERS
+            ${OUTFILE}
+        )
+
+    if(ARG_QUIET)
+        set(ARG_QUIET QUIET)
+    endif()
+
+    if(ARG_SV_COMPILE_ARGS)
+        set(ARG_SV_COMPILE_ARGS SV_COMPILE_ARGS ${ARG_SV_COMPILE_ARGS})
+    endif()
+    if(ARG_VHDL_COMPILE_ARGS)
+        set(ARG_VHDL_COMPILE_ARGS VHDL_COMPILE_ARGS ${ARG_VHDL_COMPILE_ARGS})
+    endif()
+
+    ### Compile with vcom and vlog
+    if(NOT TARGET ${IP_LIB}_modelsim_complib)
+        __modelsim_compile_lib(${IP_LIB}
+            OUTDIR ${OUTDIR}
+            ${ARG_QUIET}
+            ${ARG_LIBRARY}
+            ${ARG_SV_COMPILE_ARGS}
+            ${ARG_VHDL_COMPILE_ARGS}
+            )
+    endif()
+    set(comp_tgt ${IP_LIB}_modelsim_complib)
+
+    ##### SCCOM link
+    if(NOT TARGET ${IP_LIB}_scgenmod)
+        get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS)
+        set(__scgenmod_cmd scgenmod
+                -bool
+                ${ARG_SCGENMOD_ARGS}
+                ${ARG_TOP_MODULE} > ${OUTFILE}
+                )
+
+        ### Clean files
+        #       * For elaborate "e~${ARG_EXECUTABLE_NAME}.o" and executable gets created
+        set(__clean_files "${OUTFILE}")
+        # set(__clean_files "${OUTDIR}/${LIBRARY}-obj${STANDARD}.cf")
+
+        set(DESCRIPTION "Generate SystemC wrapper for ${ARG_TOP_MODULE} of ${IP_LIB} with scgenmod")
+        set(STAMP_FILE "${OUTDIR}/${IP_LIB}_scgenmod.stamp")
+        add_custom_command(
+            OUTPUT ${STAMP_FILE} ${OUTFILE}
+            COMMAND ${__scgenmod_cmd}
+            COMMAND touch ${STAMP_FILE}
+            BYPRODUCTS  ${__clean_files}
+            WORKING_DIRECTORY ${OUTDIR}
+            DEPENDS ${comp_tgt} ${SV_SOURCES}
+            COMMENT ${DESCRIPTION}
+            )
+
+        add_custom_target(${IP_LIB}_scgenmod
+            DEPENDS ${STAMP_FILE} ${IP_LIB}
+        )
+        set_property(TARGET ${IP_LIB}_scgenmod PROPERTY DESCRIPTION ${DESCRIPTION})
+    endif()
+
 endfunction()
