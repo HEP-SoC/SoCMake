@@ -61,7 +61,9 @@ function(modelsim IP_LIB)
     set(dpi_libs_args ${DPI_LIBS_ARGS})
 
     ##### SCCOM link
-    if(NOT TARGET ${IP_LIB}_sccom_link)
+    unset(sccom_link_tgt)
+    get_ip_sources(SC_SOURCES ${IP_LIB} SYSTEMC)
+    if(NOT TARGET ${IP_LIB}_sccom_link AND SC_SOURCES)
         get_ip_sources(SC_SOURCES ${IP_LIB} SYSTEMC)
         set(__sccom_link_cmd sccom -link
                 # -64
@@ -88,6 +90,7 @@ function(modelsim IP_LIB)
             DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
         set_property(TARGET ${IP_LIB}_sccom_link PROPERTY DESCRIPTION ${DESCRIPTION})
+        set(sccom_link_tgt ${IP_LIB}_sccom_link)
     endif()
 
     set(run_sim_cmd vsim
@@ -106,7 +109,7 @@ function(modelsim IP_LIB)
         add_custom_target(
             ${ARG_RUN_TARGET_NAME}
             COMMAND  ${run_sim_cmd} -noautoldlibpath
-            DEPENDS ${comp_tgt} ${IP_LIB}_sccom_link
+            DEPENDS ${comp_tgt} ${sccom_link_tgt}
             WORKING_DIRECTORY ${OUTDIR}
             COMMENT ${DESCRIPTION}
             VERBATIM
@@ -250,7 +253,6 @@ function(__modelsim_compile_lib IP_LIB)
         # SystemVerilog and Verilog files and arguments
         get_ip_sources(SC_SOURCES ${lib} SYSTEMC NO_DEPS)
         get_ip_sources(SC_HEADERS ${lib} SYSTEMC HEADERS)
-        message("SC_HEADERS for ${lib}: ${SC_HEADERS}")
         unset(sc_compile_cmd)
         if(SC_SOURCES)
             get_ip_include_directories(SC_INC_DIRS  ${lib} SYSTEMC)
