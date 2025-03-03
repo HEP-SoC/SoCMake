@@ -25,7 +25,7 @@ function(systemc_build)
     endif()
 
     find_package(SystemCLanguage ${ARG_VERSION} CONFIG
-        HINTS ${ARG_INSTALL_DIR}
+        HINTS ${SYSTEMC_HOME} $ENV{SYSTEMC_HOME} ${ARG_INSTALL_DIR} 
         )
 
     if(ARG_EXACT_VERSION)
