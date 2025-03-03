@@ -7,6 +7,7 @@ set(SOCMAKE_ADDITIONAL_LANGUAGES SYSTEMC)
 option_enum(SIMULATOR "Which Simulator to use" "mgc;osci" "mgc")
 option_enum(TEST_LANG "Language for test module" "verilog;systemc" "verilog")
 option_enum(DUT_LANG "Language for DUT modules" "verilog;systemc" "verilog")
+option_boolean(MGC_GUI "Use GUI for modelsim" OFF)
 
 cmake_minimum_required(VERSION 3.25)
 project(simple_mixed_language_sc_vlog NONE)
@@ -19,7 +20,12 @@ add_subdirectory(tests)
 # ################################################
 
 if(SIMULATOR STREQUAL "mgc")
-    modelsim(test_counters QUIET)
+    if(MGC_GUI)
+        set(modelsim_gui_args GUI RUN_ARGS -vopt -voptargs=+acc=pn)
+    endif()
+    modelsim(test_counters QUIET LIBRARY random_lib
+        ${modelsim_gui_args}
+        )
 endif()
 
 # ################################################

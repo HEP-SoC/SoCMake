@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
 function(modelsim IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -93,14 +93,24 @@ function(modelsim IP_LIB)
         set(sccom_link_tgt ${IP_LIB}_sccom_link)
     endif()
 
+
     set(run_sim_cmd vsim
         # -64
         $<$<BOOL:${ARG_QUIET}>:-quiet>
+        $<$<BOOL:${ARG_GUI}>:-gui>
         ${ARG_RUN_ARGS}
         -Ldir ${OUTDIR} ${hdl_libs_args} ${dpi_libs_args}
-        -c ${LIBRARY}.${ARG_TOP_MODULE}
-        -do "run -all\; quit"
+        ${LIBRARY}.${ARG_TOP_MODULE}
         )
+
+    if(NOT ARG_GUI)
+        list(APPEND run_sim_cmd
+            -c 
+            -do "run -all\; quit"
+        )
+
+    endif()
+
     if(NOT ARG_NO_RUN_TARGET)
         if(NOT ARG_RUN_TARGET_NAME)
             set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
