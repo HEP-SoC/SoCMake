@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
 function(modelsim IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER;32BIT" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -38,6 +38,14 @@ function(modelsim IP_LIB)
     if(ARG_GUI_VISUALIZER)
         set(ARG_GUI FALSE)
     endif()
+    
+    if(ARG_32BIT)
+        set(bitness 32)
+        set(ARG_BITNESS 32BIT)
+    else()
+        set(bitness 64)
+        unset(ARG_BITNESS)
+    endif()
 
     if(ARG_SV_COMPILE_ARGS)
         set(ARG_SV_COMPILE_ARGS SV_COMPILE_ARGS ${ARG_SV_COMPILE_ARGS})
@@ -50,6 +58,7 @@ function(modelsim IP_LIB)
     if(NOT TARGET ${IP_LIB}_modelsim_complib)
         __modelsim_compile_lib(${IP_LIB}
             OUTDIR ${OUTDIR}
+            ${ARG_BITNESS}
             ${ARG_QUIET}
             ${ARG_LIBRARY}
             ${ARG_SV_COMPILE_ARGS}
@@ -69,9 +78,19 @@ function(modelsim IP_LIB)
     get_ip_sources(SC_SOURCES ${IP_LIB} SYSTEMC)
     if(NOT TARGET ${IP_LIB}_sccom_link AND SC_SOURCES)
         get_ip_sources(SC_SOURCES ${IP_LIB} SYSTEMC)
+        __find_modelsim_home(modelsim_home)
+
+        if(bitness STREQUAL "64")
+            set(libpath "gcc64/lib64")
+        else()
+            set(libpath "gcc32/lib")
+        endif()
+
         set(__sccom_link_cmd sccom -link
-                # -64
-                -nologo)
+                -${bitness}
+                -nologo
+                -Wl,-rpath,${modelsim_home}/${libpath}
+            )
 
         ### Clean files
         #       * For elaborate "e~${ARG_EXECUTABLE_NAME}.o" and executable gets created
@@ -99,7 +118,7 @@ function(modelsim IP_LIB)
 
 
     set(run_sim_cmd vsim
-        # -64
+        -${bitness}
         $<$<BOOL:${ARG_QUIET}>:-quiet>
         $<$<BOOL:${ARG_GUI}>:-gui>
         $<$<BOOL:${ARG_GUI_VISUALIZER}>:-visualizer>
@@ -137,7 +156,7 @@ endfunction()
 
 
 function(__modelsim_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "QUIET" "OUTDIR;LIBRARY" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "QUIET;32BIT" "OUTDIR;LIBRARY" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -153,6 +172,12 @@ function(__modelsim_compile_lib IP_LIB)
         set(OUTDIR ${BINARY_DIR}/${IP_LIB}_modelsim)
     else()
         set(OUTDIR ${ARG_OUTDIR})
+    endif()
+
+    if(ARG_32BIT)
+        set(bitness 32)
+    else()
+        set(bitness 64)
     endif()
 
     # Find the modelsim tools/include directory, needed for VPI/DPI libraries
@@ -196,7 +221,7 @@ function(__modelsim_compile_lib IP_LIB)
 
             set(DESCRIPTION "Compile Verilog and SV files of ${lib} with modelsim vlog")
             set(sv_compile_cmd vlog
-                    # -64
+                    -${bitness}
                     -nologo
                     $<$<BOOL:${ARG_QUIET}>:-quiet>
                     -sv
@@ -216,7 +241,7 @@ function(__modelsim_compile_lib IP_LIB)
         if(VHDL_SOURCES)
             set(vhdl_compile_cmd vcom
                     -nologo
-                    # -64
+                    -${bitness}
                     $<$<BOOL:${ARG_QUIET}>:-quiet>
                     -work ${lib_outdir}
                     ${ARG_VHDL_COMPILE_ARGS}
@@ -283,7 +308,7 @@ function(__modelsim_compile_lib IP_LIB)
 
             set(DESCRIPTION "Compile SystemC files of ${lib} with modelsim sccom")
             set(sc_compile_cmd sccom
-                    # -64
+                    -${bitness}
                     -nologo
                     # $<$<BOOL:${ARG_QUIET}>:-quiet>
                     -work ${lib_outdir}
@@ -359,23 +384,27 @@ function(__get_modelsim_search_lib_args IP_LIB)
     set(DPI_LIBS_ARGS ${dpi_libs_args} PARENT_SCOPE)
 endfunction()
 
+function(__find_modelsim_home OUTVAR)
+    find_program(exec_path vsim REQUIRED)
+    get_filename_component(bin_path "${exec_path}" DIRECTORY)
+    cmake_path(SET modelsim_home NORMALIZE "${bin_path}/..")
+
+    set(${OUTVAR} ${modelsim_home} PARENT_SCOPE)
+endfunction()
+
 function(__add_modelsim_cxx_properties_to_libs IP_LIB)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
     # Find the modelsim tools/include directory, needed for VPI/DPI libraries
-    find_program(vsim_exec_path vsim)
-    get_filename_component(vpi_inc_path "${vsim_exec_path}" DIRECTORY)
-    cmake_path(SET vpi_inc_path NORMALIZE "${vpi_inc_path}/../include")
+    __find_modelsim_home(modelsim_home)
+    set(vpi_inc_path "${modelsim_home}/include")
 
     get_ip_links(ips ${IP_LIB})
     foreach(lib ${ips})
         # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
         get_target_property(ip_type ${lib} TYPE)
         if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
-            if(NOT vsim_exec_path)
-                message(FATAL_ERROR "Modelsim executable vsim was not found, cannot set include directory on DPI library")
-            endif()
             # Add tools/include directory to the include directories of DPI libraries
             # TODO do this only when its needed
             target_include_directories(${lib} PUBLIC ${vpi_inc_path})
