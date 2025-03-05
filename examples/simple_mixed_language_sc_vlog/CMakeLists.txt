@@ -21,9 +21,9 @@ add_subdirectory(tests)
 
 if(SIMULATOR STREQUAL "mgc")
     if(MGC_GUI)
-        set(modelsim_gui_args GUI RUN_ARGS -vopt -voptargs=+acc=pn)
+        set(modelsim_gui_args GUI_VISUALIZER RUN_ARGS -vopt -voptargs=+acc=pn)
     endif()
-    modelsim(test_counters QUIET LIBRARY random_lib
+    modelsim(test_counters QUIET
         ${modelsim_gui_args}
         )
 endif()

@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
 function(modelsim IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -33,6 +33,10 @@ function(modelsim IP_LIB)
 
     if(ARG_QUIET)
         set(ARG_QUIET QUIET)
+    endif()
+
+    if(ARG_GUI_VISUALIZER)
+        set(ARG_GUI FALSE)
     endif()
 
     if(ARG_SV_COMPILE_ARGS)
@@ -98,12 +102,13 @@ function(modelsim IP_LIB)
         # -64
         $<$<BOOL:${ARG_QUIET}>:-quiet>
         $<$<BOOL:${ARG_GUI}>:-gui>
+        $<$<BOOL:${ARG_GUI_VISUALIZER}>:-visualizer>
         ${ARG_RUN_ARGS}
         -Ldir ${OUTDIR} ${hdl_libs_args} ${dpi_libs_args}
         ${LIBRARY}.${ARG_TOP_MODULE}
         )
 
-    if(NOT ARG_GUI)
+    if(NOT ARG_GUI AND NOT ARG_GUI_VISUALIZER)
         list(APPEND run_sim_cmd
             -c 
             -do "run -all\; quit"
