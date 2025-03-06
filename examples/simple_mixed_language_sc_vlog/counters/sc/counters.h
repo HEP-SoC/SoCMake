@@ -14,7 +14,7 @@ SC_MODULE(counters) {
     counter1 *cnt1_i;
     counter2 *cnt2_i;
 
-    SC_CTOR(counters) {
+    SC_CTOR(counters) : clk("clk"), rst("rst"), cnt1_out("cnt1_out"), cnt2_out("cnt2_out") {
         cnt1_i = new counter1("cnt1_i");
         cnt2_i = new counter2("cnt2_i");
 

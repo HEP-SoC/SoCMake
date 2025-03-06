@@ -18,7 +18,7 @@
 include_guard(GLOBAL)
 
 function(xcelium IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI" "RUN_TARGET_NAME;TOP_MODULE;LIBRARY" "COMPILE_ARGS;SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI;32BIT" "RUN_TARGET_NAME;TOP_MODULE;LIBRARY" "COMPILE_ARGS;SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -48,6 +48,14 @@ function(xcelium IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
+    if(ARG_32BIT)
+        set(bitness 32)
+        set(ARG_BITNESS 32BIT)
+    else()
+        set(bitness 64)
+        unset(ARG_BITNESS)
+    endif()
+
     if(ARG_COMPILE_ARGS)
         set(ARG_COMPILE_ARGS COMPILE_ARGS ${ARG_COMPILE_ARGS})
     endif()
@@ -61,6 +69,7 @@ function(xcelium IP_LIB)
     if(NOT TARGET ${IP_LIB}_xcelium_complib)
         __xcelium_compile_lib(${IP_LIB}
             OUTDIR ${OUTDIR}
+            ${ARG_BITNESS}
             ${ARG_LIBRARY}
             ${ARG_COMPILE_ARGS}
             ${ARG_SV_COMPILE_ARGS}
@@ -68,6 +77,50 @@ function(xcelium IP_LIB)
             )
     endif()
     set(comp_tgt ${IP_LIB}_xcelium_complib)
+
+    get_ip_links(__ips ${IP_LIB})
+    unset(systemc_libs)
+    foreach(lib ${__ips})
+        get_target_property(ip_type ${lib} TYPE)
+        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY" OR ip_type STREQUAL "OBJECT_LIBRARY")
+            get_target_property(socmake_cxx_library_type ${lib} SOCMAKE_CXX_LIBRARY_TYPE)
+            if(socmake_cxx_library_type STREQUAL "SYSTEMC")
+                list(APPEND systemc_libs ${lib})
+            endif()
+        endif()
+    endforeach()
+
+    unset(systemc_lib_args)
+    if(systemc_libs)
+        set(systemc_lib_name ${IP_LIB}_xcelium_systemc)
+
+        ## Because shared library without any source files is not possible
+        file(WRITE "${OUTDIR}/__null.cpp" "")
+        add_library(${systemc_lib_name} SHARED
+            "${OUTDIR}/__null.cpp"
+            )
+        if(ARG_32BIT)
+            target_compile_options(${systemc_lib_name} PUBLIC -m32)
+            target_link_options(   ${systemc_lib_name} PUBLIC -m32)
+        endif()
+
+        if(bitness STREQUAL "64")
+            set(libpath "lib/64bit/gnu")
+        else()
+            set(libpath "lib/gnu")
+        endif()
+
+        __find_xcelium_home(xcelium_home)
+        target_link_libraries(${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_systemc PUBLIC
+            ${systemc_libs}
+            ${xcelium_home}/tools/systemc/${libpath}/libncscCoSim_sh.so
+            ${xcelium_home}/tools/systemc/${libpath}/libncscCoroutines_sh.so 
+            ${xcelium_home}/tools/systemc/${libpath}/libsystemc_sh.so
+           )
+
+        set(systemc_lib_args -loadsc $<TARGET_FILE:${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_systemc>)
+        list(APPEND comp_tgt ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_systemc)
+    endif()
 
     __get_xcelium_search_lib_args(${IP_LIB} 
         ${ARG_LIBRARY}
@@ -83,6 +136,7 @@ function(xcelium IP_LIB)
                 -q
                 -nocopyright
                 ${hdl_libs_args}
+                ${systemc_lib_args}
                 ${ARG_ELABORATE_ARGS}
                 -top ${LIBRARY}.${ARG_TOP_MODULE}
             )
@@ -340,27 +394,46 @@ function(__get_xcelium_search_lib_args IP_LIB)
     set(DPI_LIBS_ARGS ${dpi_libs_args} PARENT_SCOPE)
 endfunction()
 
+function(__find_xcelium_home OUTVAR)
+    find_program(exec_path xrun REQUIRED)
+    get_filename_component(bin_path "${exec_path}" DIRECTORY)
+    cmake_path(SET xcelium_home NORMALIZE "${bin_path}/../../")
+
+    set(${OUTVAR} ${xcelium_home} PARENT_SCOPE)
+endfunction()
+
 function(__add_xcelium_cxx_properties_to_libs IP_LIB)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
     # Find the Xcelium tools/include directory, needed for VPI/DPI libraries
-    find_program(xrun_exec_path xrun)
-    get_filename_component(vpi_inc_path "${xrun_exec_path}" DIRECTORY)
-    cmake_path(SET vpi_inc_path NORMALIZE "${vpi_inc_path}/../include")
+    __find_xcelium_home(xcelium_home)
+    set(tools_dir_path "${xcelium_home}/tools")
 
     get_ip_links(ips ${IP_LIB})
     foreach(lib ${ips})
         # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
         get_target_property(ip_type ${lib} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
-            if(NOT xrun_exec_path)
-                message(FATAL_ERROR "Xcelium executable xrun was not found, cannot set include directory on DPI library")
+        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY" OR ip_type STREQUAL "OBJECT_LIBRARY")
+            get_target_property(socmake_cxx_library_type ${lib} SOCMAKE_CXX_LIBRARY_TYPE)
+
+            if(socmake_cxx_library_type STREQUAL "SYSTEMC")
+                target_include_directories(${lib} PUBLIC 
+                    ${tools_dir_path}/systemc/include
+                    ${tools_dir_path}/tbsc/include
+                    ${tools_dir_path}/vic/include
+                )
             endif()
             # Add tools/include directory to the include directories of DPI libraries
             # TODO do this only when its needed
-            target_include_directories(${lib} PUBLIC ${vpi_inc_path})
+            target_include_directories(${lib} PUBLIC "${tools_dir_path}/include")
             target_compile_definitions(${lib} PUBLIC INCA)
         endif()
     endforeach()
 endfunction()
+
+macro(xcelium_configure_cxx)
+    __find_xcelium_home(xcelium_home)
+    set(CMAKE_CXX_COMPILER "${xcelium_home}/tools.lnx86/cdsgcc/gcc/bin/g++")
+    set(CMAKE_C_COMPILER "${xcelium_home}/tools.lnx86/cdsgcc/gcc/bin/gcc")
+endmacro()
