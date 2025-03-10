@@ -5,7 +5,7 @@ if(DUT_LANG STREQUAL "verilog")
         vlog/counter1.v
         )
 elseif(DUT_LANG STREQUAL "systemc")
-    if(SIMULATOR STREQUAL "xcelium" OR SIMULATOR STREQUAL "osci")
+    if(SIMULATOR STREQUAL "xcelium" OR SIMULATOR STREQUAL "osci" OR SIMULATOR STREQUAL "vcs")
         set(IP counter1)
         add_library(${IP} INTERFACE)
         target_include_directories(${IP} INTERFACE ./sc)

@@ -78,6 +78,7 @@ function(xcelium IP_LIB)
     endif()
     set(comp_tgt ${IP_LIB}_xcelium_complib)
 
+    ### Get list of linked libraries marked as SystemC
     get_ip_links(__ips ${IP_LIB})
     unset(systemc_libs)
     foreach(lib ${__ips})
@@ -90,6 +91,7 @@ function(xcelium IP_LIB)
         endif()
     endforeach()
 
+    ### Add SystemC library needed includes and defines
     unset(systemc_lib_args)
     if(systemc_libs)
         set(systemc_lib_name ${IP_LIB}_xcelium_systemc)

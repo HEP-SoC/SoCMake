@@ -57,8 +57,10 @@ void test_counters::monitor_cnt(){
         std::cout << "CNT1: " << cnt1_out.read() << "\n";
         std::cout << "CNT2: " << cnt2_out.read() << "\n";
 
+#ifdef MGC
         if(cnt2_out.read() == 208)
             sc_core::sc_stop();
+#endif
 
         sc_core::wait();
 

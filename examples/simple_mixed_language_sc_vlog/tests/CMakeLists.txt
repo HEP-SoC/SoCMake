@@ -7,11 +7,13 @@ if(TEST_LANG STREQUAL "verilog")
 elseif(TEST_LANG STREQUAL "systemc")
 
     # Xcelium uses CMake libraries for systemC
-    if(SIMULATOR STREQUAL "xcelium" OR SIMULATOR STREQUAL "osci")
+    if(SIMULATOR STREQUAL "xcelium" OR SIMULATOR STREQUAL "osci" OR SIMULATOR STREQUAL "vcs")
         set(IP test_counters)
-        add_library(${IP}  SHARED
-            ./sc/test_counters.cpp
+        add_library(${IP} SHARED
+            # ./sc/test_counters.cpp
+            ./sc_main.cpp
             )
+        set_property(TARGET ${IP} PROPERTY IP_NAME sc_main)
         target_include_directories(${IP} PUBLIC ./sc)
 
         set_target_properties(${IP}
@@ -32,6 +34,8 @@ elseif(TEST_LANG STREQUAL "systemc")
             HEADERS
             sc/test_counters.h
             )
+        ip_include_directories(${IP} SYSTEMC sc)
+        ip_compile_definitions(${IP} SYSTEMC MGC)
     endif()
 endif()
 

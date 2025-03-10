@@ -1,7 +1,9 @@
 include_guard(GLOBAL)
 
+socmake_add_languages(VCS_SC_PORTMAP)
+
 function(vcs IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI" "OUTDIR;EXECUTABLE_NAME;RUN_TARGET_NAME;TOP_MODULE;LIBRARY" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI;32BIT" "OUTDIR;EXECUTABLE_NAME;RUN_TARGET_NAME;TOP_MODULE;LIBRARY" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -31,6 +33,14 @@ function(vcs IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
+    if(ARG_32BIT)
+        set(bitness 32)
+        set(ARG_BITNESS 32BIT)
+    else()
+        set(bitness 64)
+        unset(ARG_BITNESS)
+    endif()
+
     if(NOT ARG_EXECUTABLE_NAME)
         set(ARG_EXECUTABLE_NAME ${IP_LIB}_vcs_exec)
     endif()
@@ -49,6 +59,7 @@ function(vcs IP_LIB)
     if(NOT TARGET ${IP_LIB}_vcs_complib)
         __vcs_compile_lib(${IP_LIB}
             OUTDIR ${OUTDIR}
+            ${ARG_BITNESS}
             ${ARG_LIBRARY}
             ${ARG_SV_COMPILE_ARGS}
             ${ARG_VHDL_COMPILE_ARGS}
@@ -56,24 +67,78 @@ function(vcs IP_LIB)
     endif()
     set(comp_tgt ${IP_LIB}_vcs_complib)
 
+    ### Get list of linked libraries marked as SystemC
+    get_ip_links(__ips ${IP_LIB})
+    unset(systemc_libs)
+    unset(ip_libs)
+    foreach(lib ${__ips})
+        get_target_property(ip_type ${lib} TYPE)
+        # TODO only SHARED_LIBRARY allowed
+        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY" OR ip_type STREQUAL "OBJECT_LIBRARY")
+            get_target_property(socmake_cxx_library_type ${lib} SOCMAKE_CXX_LIBRARY_TYPE)
+            if(socmake_cxx_library_type STREQUAL "SYSTEMC")
+                list(APPEND systemc_libs ${lib})
+            else()
+                list(APPEND ip_libs ${lib})
+            endif()
+        endif()
+    endforeach()
+
+
+    __is_socmake_systemc_lib(top_is_systemc_lib ${IP_LIB})
+    __is_socmake_ip_lib(top_is_ip_lib ${IP_LIB})
+    unset(arg_top_sim_module)
+    if(top_is_systemc_lib)
+        set(arg_top_sim_module sc_main) # If its SystemC it can be only sc_main as top
+    elseif(top_is_ip_lib)
+        set(arg_top_sim_module ${LIBRARY}.${ARG_TOP_MODULE})
+    endif()
+
+    ### Add SystemC library needed includes and defines
+    unset(systemc_lib_args)
+    foreach(lib ${systemc_libs})
+        if(ARG_32BIT)
+            target_compile_options(${lib} PUBLIC -m32)
+            target_link_options   (${lib} PUBLIC -m32)
+        endif()
+        set_property(TARGET ${lib} PROPERTY POSITION_INDEPENDENT_CODE ON)
+        # In order to be able to generate HDL wrapper with syscan from .so library
+        target_compile_options(${lib} PUBLIC -g -fno-eliminate-unused-debug-types)
+        target_link_options   (${lib} PUBLIC -g)
+        target_compile_definitions(${lib} PUBLIC VCSSYSTEMC=1 OSCI=1)
+        target_include_directories(${lib} PUBLIC
+            $ENV{VCS_HOME}/include/systemc232 # TODO select version
+            $ENV{VCS_HOME}/include/cosim/bf
+            )
+
+        get_target_property(ip_type ${lib} TYPE)
+        if(ip_type STREQUAL "SHARED_LIBRARY")
+            list(APPEND systemc_lib_args $<TARGET_FILE:${lib}>)
+        endif()
+    endforeach()
+    if(systemc_lib_args)
+        set(systemc_lib_args -sysc -ldflags -Wl,--start-group  ${systemc_lib_args}  -syslib -Wl,--end-group)
+    endif()
+
     __get_vcs_search_lib_args(${IP_LIB} 
         ${ARG_LIBRARY}
         OUTDIR ${OUTDIR})
     set(dpi_libs_args ${DPI_LIBS_ARGS})
-
 
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
     get_ip_sources(HEADERS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL HEADERS)
     ## VCS command for compiling executable
     if(NOT TARGET ${IP_LIB}_vcs)
         set(elaborate_cmd vcs
-                -full64
+                $<$<NOT:$<BOOL:${ARG_32BIT}>>:-full64>
                 -nc
                 -q
                 # $<$<BOOL:${ARG_GUI}>:-gui>
-                ${dpi_libs_args}
+                # ${dpi_libs_args}
+                -debug_access+r+w+nomemcbk -debug_region+cell
+                ${systemc_lib_args}
                 ${ARG_ELABORATE_ARGS}
-                ${LIBRARY}.${ARG_TOP_MODULE}
+                ${arg_top_sim_module} 
                 -o ${SIM_EXEC_PATH}
                 )
 
@@ -98,6 +163,8 @@ function(vcs IP_LIB)
             BYPRODUCTS ${__clean_files}
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${comp_tgt} ${SOURCES} ${HEADERS} ${IP_LIB}
+            # COMMAND_EXPAND_LISTS
+            # VERBATIM
             )
 
         add_custom_target(${IP_LIB}_vcs
@@ -128,7 +195,7 @@ function(vcs IP_LIB)
 endfunction()
 
 function(__vcs_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR;LIBRARY;TOP_MODULE" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "32BIT" "OUTDIR;LIBRARY;TOP_MODULE" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -150,10 +217,58 @@ function(__vcs_compile_lib IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
+    get_target_property(top_ip_type ${IP_LIB} TYPE)
+
     # Find the VCS include directory, needed for VPI/DPI libraries
     __add_vcs_cxx_properties_to_libs(${IP_LIB})
 
+    unset(ARG_BITNESS)
+    if(ARG_32BIT)
+        set(ARG_BITNESS 32BIT)
+    endif()
+
     get_ip_links(__ips ${IP_LIB})
+
+    foreach(parent ${__ips})
+        get_target_property(children_ips ${parent} INTERFACE_LINK_LIBRARIES)
+
+
+        __is_socmake_systemc_lib(parent_is_systemc_lib ${parent})
+        __is_socmake_ip_lib(parent_is_ip_lib ${parent})
+ 
+        if(children_ips)
+            foreach(child ${children_ips})
+                __is_socmake_systemc_lib(child_is_systemc_lib ${child})
+                __is_socmake_ip_lib(child_is_ip_lib ${child})
+
+                if(parent_is_systemc_lib AND child_is_ip_lib)
+                    vcs_gen_sc_wrapper(${child} 
+                        OUTDIR ${OUTDIR}
+                        LIBRARY ${LIBRARY}
+                        ${ARG_BITNESS}
+                    )
+                    add_dependencies(${parent} ${child}_vcs_gen_sc_wrapper)
+                    # set_property(TARGET ${child} APPEND PROPERTY SOCMAKE_SYSTEMC_PARENTS ${parent})
+                    # target_include_directories(${parent} PUBLIC ${OUTDIR}/csrc/sysc/include/)
+                endif()
+
+                if(parent_is_ip_lib AND child_is_systemc_lib)
+                    vcs_gen_hdl_wrapper(${child} 
+                        OUTDIR ${OUTDIR}
+                        LIBRARY ${LIBRARY}
+                        ${ARG_BITNESS}
+                    )
+                    add_dependencies(${parent} ${child}_vcs_gen_hdl_wrapper)
+                endif()
+
+            endforeach()
+        endif()
+        #
+        # if(ip_type)
+        #
+
+    endforeach()
+
     unset(all_stamp_files)
     foreach(lib ${__ips})
         # Library of the current IP block, get it from SoCMake library if present
@@ -189,7 +304,7 @@ function(__vcs_compile_lib IP_LIB)
             endforeach()
 
             set(sv_compile_cmd COMMAND vlogan
-                    -full64
+                    $<$<NOT:$<BOOL:${ARG_32BIT}>>:-full64>
                     -nc
                     -q
                     -sverilog
@@ -206,7 +321,7 @@ function(__vcs_compile_lib IP_LIB)
         unset(vhdl_compile_cmd)
         if(VHDL_SOURCES)
             set(vhdl_compile_cmd COMMAND vhdlan
-                    -full64
+                    $<$<NOT:$<BOOL:${ARG_32BIT}>>:-full64>
                     -nc
                     -q
                     -work ${__comp_lib_name}
@@ -234,7 +349,7 @@ function(__vcs_compile_lib IP_LIB)
             set(STAMP_FILE "${lib_outdir}/${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
-                COMMAND ${sv_compile_cmd}
+                ${sv_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
                 BYPRODUCTS ${lib_outdir} ${__clean_files}
                 WORKING_DIRECTORY ${OUTDIR}
@@ -340,4 +455,203 @@ function(__add_vcs_cxx_properties_to_libs IP_LIB)
             target_compile_definitions(${lib} PUBLIC VCS)
         endif()
     endforeach()
+endfunction()
+
+function(__is_socmake_systemc_lib RESULT IP_LIB)
+    get_target_property(ip_type ${IP_LIB} TYPE)
+    get_target_property(ip_cxx_type ${IP_LIB} SOCMAKE_CXX_LIBRARY_TYPE)
+
+    if((ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY") AND (ip_cxx_type STREQUAL "SYSTEMC"))
+        set(${RESULT} TRUE PARENT_SCOPE)
+    else()
+        set(${RESULT} FALSE PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(__is_socmake_ip_lib RESULT IP_LIB)
+    get_target_property(ip_type ${IP_LIB} TYPE)
+    get_target_property(ip_name ${IP_LIB} IP_NAME)
+
+    if(ip_type STREQUAL "INTERFACE_LIBRARY" AND ip_name)
+        set(${RESULT} TRUE PARENT_SCOPE)
+    else()
+        set(${RESULT} FALSE PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(vcs_gen_sc_wrapper IP_LIB)
+    cmake_parse_arguments(ARG "32BIT" "OUTDIR;LIBRARY;TOP_MODULE" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS" ${ARGN})
+    # Check for any unrecognized arguments
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+
+    alias_dereference(IP_LIB ${IP_LIB})
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
+
+    if(NOT ARG_TOP_MODULE)
+        get_target_property(ARG_TOP_MODULE ${IP_LIB} IP_NAME)
+    endif()
+
+    if(NOT ARG_OUTDIR)
+        set(OUTDIR ${BINARY_DIR}/${IP_LIB}_vcs)
+    else()
+        set(OUTDIR ${ARG_OUTDIR})
+    endif()
+    file(MAKE_DIRECTORY ${OUTDIR})
+
+    get_target_property(__comp_lib_name ${IP_LIB} LIBRARY)
+    if(NOT __comp_lib_name)
+        set(__comp_lib_name work)
+    endif()
+    if(ARG_LIBRARY)
+        set(__comp_lib_name ${ARG_LIBRARY})
+    endif()
+
+
+    get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS)
+    list(GET SV_SOURCES -1 last_sv_file) # TODO this is not correct, as the last Verilog file might not be top
+    unset(sv_compile_cmd)
+    if(SV_SOURCES)
+        get_ip_include_directories(SV_INC_DIRS ${IP_LIB}  SYSTEMVERILOG VERILOG)
+        get_ip_compile_definitions(SV_COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG)
+
+        foreach(dir ${SV_INC_DIRS})
+            list(APPEND SV_ARG_INCDIRS +incdir+${dir})
+        endforeach()
+
+        foreach(def ${SV_COMP_DEFS})
+            list(APPEND SV_CMP_DEFS_ARG +define+${def})
+        endforeach()
+
+        get_ip_sources(sc_portmap ${IP_LIB} VCS_SC_PORTMAP NO_DEPS)
+        unset(sc_portmap_arg)
+        if(sc_portmap)
+            set(sc_portmap_arg -sc_portmap ${sc_portmap})
+        endif()
+
+        set(sv_compile_cmd COMMAND vlogan
+                $<$<NOT:$<BOOL:${ARG_32BIT}>>:-full64>
+                -nc
+                -q
+                -sverilog
+                -work ${__comp_lib_name}
+                ${ARG_SV_COMPILE_ARGS}
+                ${SV_ARG_INCDIRS}
+                ${SV_CMP_DEFS_ARG}
+                -cpp g++
+                -sysc
+                -sc_model ${ARG_TOP_MODULE}
+                ${sc_portmap_arg}
+                ${last_sv_file}
+            )
+
+        set(DESCRIPTION "Generate a SC wrapper file for ${IP_LIB} with VCS vlogan")
+        set(STAMP_FILE "${OUTDIR}/${lib}_${CMAKE_CURRENT_FUNCTION}.stamp")
+        add_custom_command(
+            OUTPUT ${STAMP_FILE} ${OUTDIR}/csrc/sysc/include/${IP_LIB}.h
+            COMMAND touch ${STAMP_FILE}
+            ${sv_compile_cmd}
+            BYPRODUCTS ${OUTDIR}
+            WORKING_DIRECTORY ${OUTDIR}
+            DEPENDS ${last_sv_file} ${SV_HEADERS}
+            COMMENT ${DESCRIPTION}
+        )
+
+        add_custom_target(
+            ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+            DEPENDS ${STAMP_FILE} ${IP_LIB}
+        )
+        set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+
+        target_include_directories(${IP_LIB} INTERFACE ${OUTDIR}/csrc/sysc/include/)
+
+        target_sources(${IP_LIB} INTERFACE
+            ${OUTDIR}/csrc/sysc/include/${IP_LIB}.h)
+    endif()
+
+endfunction()
+
+function(vcs_gen_hdl_wrapper SC_LIB)
+    cmake_parse_arguments(ARG "32BIT" "OUTDIR;LIBRARY;TOP_MODULE" "" ${ARGN})
+    # Check for any unrecognized arguments
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+
+    get_target_property(BINARY_DIR ${SC_LIB} BINARY_DIR)
+
+    if(NOT ARG_TOP_MODULE)
+        set(ARG_TOP_MODULE ${SC_LIB})
+    endif()
+
+    if(NOT ARG_OUTDIR)
+        set(OUTDIR ${BINARY_DIR}/${SC_LIB}_vcs)
+    else()
+        set(OUTDIR ${ARG_OUTDIR})
+    endif()
+    file(MAKE_DIRECTORY ${OUTDIR})
+
+    set(__comp_lib_name work)
+    if(ARG_LIBRARY)
+        set(__comp_lib_name ${ARG_LIBRARY})
+    endif()
+
+
+    get_target_property(SC_INC_DIRS  ${SC_LIB} INCLUDE_DIRECTORIES)
+    get_target_property(SC_INC_DIRS_INTF  ${SC_LIB} INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(SC_COMP_DEFS ${SC_LIB} COMPILE_DEFINITIONS)
+    get_target_property(SC_COMP_DEFS_INTF ${SC_LIB} INTERFACE_COMPILE_DEFINITIONS)
+
+    foreach(dir ${SC_INC_DIRS} ${SC_INC_DIRS_INTF})
+        list(APPEND SC_ARG_INCDIRS -I${dir})
+    endforeach()
+
+    foreach(def ${SC_COMP_DEFS} ${SC_COMP_DEFS_INTF})
+        list(APPEND SC_CMP_DEFS_ARG -D${def})
+    endforeach()
+
+    get_ip_sources(sc_portmap ${SC_LIB} VCS_SC_PORTMAP NO_DEPS)
+    unset(sc_portmap_arg)
+    if(sc_portmap)
+        set(sc_portmap_arg -port ${sc_portmap})
+    endif()
+
+    set(gen_wrapper_cmd syscan
+            $<$<NOT:$<BOOL:${ARG_32BIT}>>:-full64>
+            -work ${__comp_lib_name}
+            ${sc_portmap_arg}
+            $<TARGET_FILE:${SC_LIB}>:${ARG_TOP_MODULE}
+            -cflags \" 
+                "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},INCLUDE_DIRECTORIES>,PREPEND,-I>" 
+                "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},COMPILE_DEFINITIONS>,PREPEND,-D>" 
+            \"
+        )
+
+    set(GEN_V_FILE ${OUTDIR}/csrc/sysc/${ARG_TOP_MODULE}/${ARG_TOP_MODULE}.v)
+    set(DESCRIPTION "Generate a Verilog wrapper file for SystemC lib ${SC_LIB} with VCS syscan")
+    set(STAMP_FILE "${OUTDIR}/${SC_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    add_custom_command(
+        OUTPUT ${STAMP_FILE} ${GEN_V_FILE}
+        COMMAND touch ${STAMP_FILE}
+        COMMAND ${gen_wrapper_cmd}
+        WORKING_DIRECTORY ${OUTDIR}
+        DEPENDS ${SC_LIB}
+        COMMENT ${DESCRIPTION}
+        COMMAND_EXPAND_LISTS
+        # VERBATIM
+    )
+
+    add_custom_target(
+        ${SC_LIB}_${CMAKE_CURRENT_FUNCTION}
+        DEPENDS ${STAMP_FILE} ${GEN_V_FILE} ${SC_LIB}
+    )
+    set_property(TARGET ${SC_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+
+    ip_sources(${SC_LIB} VERILOG ${GEN_V_FILE})
+
 endfunction()
