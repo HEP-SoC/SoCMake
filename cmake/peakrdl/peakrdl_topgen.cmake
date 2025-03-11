@@ -1,4 +1,4 @@
-function(peakrdl_regblock_wrap IP_LIB)
+function(peakrdl_topgen IP_LIB)
     # Parse keyword arguments
     cmake_parse_arguments(ARG "TMR" "OUTDIR;RENAME;INTF;RESET;OUT_LIST" "PARAMETERS" ${ARGN})
     # Check for any unknown argument
@@ -85,7 +85,7 @@ function(peakrdl_regblock_wrap IP_LIB)
     find_python3()
 
     # Create the reblog_wrap python command
-    set(__CMD ${Python3_EXECUTABLE} -m peakrdl regblock_wrap
+    set(__CMD ${Python3_EXECUTABLE} -m peakrdl topgen
         --rename ${REGBLOCK_NAME}
         ${INTF_ARG}
         ${RESET_ARG}
@@ -117,7 +117,7 @@ function(peakrdl_regblock_wrap IP_LIB)
     )
 
     # This target triggers the custom command generating the top wrapper and the register file block
-    set(TNAME ${IP_LIB}_regblock_wrap)
+    set(TNAME ${IP_LIB}_topgen)
     add_custom_target(
         ${TNAME}
         DEPENDS ${REGBLOCK_SV_GEN} ${WRAP_SV_GEN} ${STAMP_FILE}
@@ -129,6 +129,6 @@ function(peakrdl_regblock_wrap IP_LIB)
     endif()
 
     # Add dependency to the IP
-    add_dependencies(${IP_LIB} ${IP_LIB}_regblock_wrap)
+    add_dependencies(${IP_LIB} ${IP_LIB}_topgen)
 endfunction()
 

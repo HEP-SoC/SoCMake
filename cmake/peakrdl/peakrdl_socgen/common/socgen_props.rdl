@@ -1,13 +1,18 @@
 `ifndef COMMON_RDL
 `define COMMON_RDL
 
-// input or output property is needed to be detected by socgen
+// input, output, and inout property is needed to be detected by socgen
 property output {
     type = boolean;
     component = signal;
 };
 
 property input {
+    type = boolean;
+    component = signal;
+};
+
+property inout {
     type = boolean;
     component = signal;
 };
@@ -67,6 +72,16 @@ property path {
     component = signal;
 };
 
+property from {
+    type = string;
+    component = signal;
+};
+
+property to {
+    type = string;
+    component = signal;
+};
+
 struct intc {
     string name;
     string slv_ports[];
@@ -106,9 +121,28 @@ signal clk {
     desc = "Input clock";
 };
 
+signal arstn {
+    input;
+    reset_signal;
+    async;
+    signalwidth=1;
+    desc = "Input reset, active low";
+    activelow = true;
+};
+
+signal arst {
+    input;
+    reset_signal;
+    async;
+    signalwidth=1;
+    desc = "Input reset, active high";
+    activehigh = true;
+};
+
 signal rstn {
     input;
     reset_signal;
+    sync;
     signalwidth=1;
     desc = "Input reset, active low";
     activelow = true;
@@ -117,10 +151,12 @@ signal rstn {
 signal rst {
     input;
     reset_signal;
+    sync;
     signalwidth=1;
     desc = "Input reset, active high";
     activehigh = true;
 };
+
 
 property intf {
     type = boolean;
@@ -141,6 +177,7 @@ struct base_intf{
     Modport modport;
     string prefix;
     boolean cap;
+    string regex;
 };
 
 struct data_intf : base_intf {
