@@ -6,6 +6,8 @@ SNPS_REGISTER_SC_MODULE(test_counters);
 #endif
 
 #ifndef OSCI
+#ifndef VCSSYSTEMC
 SC_MODULE_EXPORT(test_counters);
+#endif
 #endif
 

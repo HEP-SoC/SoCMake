@@ -105,7 +105,7 @@ function(vcs IP_LIB)
         # In order to be able to generate HDL wrapper with syscan from .so library
         target_compile_options(${lib} PUBLIC -g -fno-eliminate-unused-debug-types)
         target_link_options   (${lib} PUBLIC -g)
-        target_compile_definitions(${lib} PUBLIC VCSSYSTEMC=1 OSCI=1)
+        target_compile_definitions(${lib} PUBLIC VCSSYSTEMC=1)
         target_include_directories(${lib} PUBLIC
             $ENV{VCS_HOME}/include/systemc232 # TODO select version
             $ENV{VCS_HOME}/include/cosim/bf
@@ -600,20 +600,6 @@ function(vcs_gen_hdl_wrapper SC_LIB)
     if(ARG_LIBRARY)
         set(__comp_lib_name ${ARG_LIBRARY})
     endif()
-
-
-    get_target_property(SC_INC_DIRS  ${SC_LIB} INCLUDE_DIRECTORIES)
-    get_target_property(SC_INC_DIRS_INTF  ${SC_LIB} INTERFACE_INCLUDE_DIRECTORIES)
-    get_target_property(SC_COMP_DEFS ${SC_LIB} COMPILE_DEFINITIONS)
-    get_target_property(SC_COMP_DEFS_INTF ${SC_LIB} INTERFACE_COMPILE_DEFINITIONS)
-
-    foreach(dir ${SC_INC_DIRS} ${SC_INC_DIRS_INTF})
-        list(APPEND SC_ARG_INCDIRS -I${dir})
-    endforeach()
-
-    foreach(def ${SC_COMP_DEFS} ${SC_COMP_DEFS_INTF})
-        list(APPEND SC_CMP_DEFS_ARG -D${def})
-    endforeach()
 
     get_ip_sources(sc_portmap ${SC_LIB} VCS_SC_PORTMAP NO_DEPS)
     unset(sc_portmap_arg)

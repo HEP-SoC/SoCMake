@@ -24,8 +24,11 @@ SC_MODULE(test_counters) {
         cnt1_out("cnt1_out"),
         cnt2_out("cnt2_out") 
     {
-        // counters_i = new counters("counters_i", "counters");
+#ifdef _SCGENMOD_counters_
+        counters_i = new counters("counters_i", "counters");
+#else
         counters_i = new counters("counters_i");
+#endif
 
         counters_i->clk(clk);
         counters_i->rst(rst);
@@ -57,9 +60,16 @@ void test_counters::monitor_cnt(){
         std::cout << "CNT1: " << cnt1_out.read() << "\n";
         std::cout << "CNT2: " << cnt2_out.read() << "\n";
 
-#ifdef MGC
-        if(cnt2_out.read() == 208)
+#if defined MTI_SYSTEMC || defined INCA || defined VCSSYSTEMC
+        if(cnt2_out.read() == 208){
+#ifdef _hdl_connect_v_h_
+            sc_stop();
+#else
             sc_core::sc_stop();
+#endif
+
+
+        }
 #endif
 
         sc_core::wait();

@@ -6,37 +6,22 @@ if(TEST_LANG STREQUAL "verilog")
         )
 elseif(TEST_LANG STREQUAL "systemc")
 
-    # Xcelium uses CMake libraries for systemC
-    if(SIMULATOR STREQUAL "xcelium" OR SIMULATOR STREQUAL "osci" OR SIMULATOR STREQUAL "vcs")
-        set(IP test_counters)
-        add_library(${IP} SHARED
-            # ./sc/test_counters.cpp
-            ./sc_main.cpp
-            )
-        set_property(TARGET ${IP} PROPERTY IP_NAME sc_main)
-        target_include_directories(${IP} PUBLIC ./sc)
+    set(IP test_counters)
+    add_library(${IP} SHARED
+        ./sc/test_counters.cpp
+        # ./sc_main.cpp
+        )
+    set_property(TARGET ${IP} PROPERTY IP_NAME test_counters)
+    target_include_directories(${IP} PUBLIC ./sc)
 
-        set_target_properties(${IP}
-            PROPERTIES 
-                SOCMAKE_CXX_LIBRARY_TYPE SYSTEMC
-                POSITION_INDEPENDENT_CODE TRUE
-            )
+    set_target_properties(${IP}
+        PROPERTIES 
+            SOCMAKE_CXX_LIBRARY_TYPE SYSTEMC
+            POSITION_INDEPENDENT_CODE TRUE
+        )
 
-        target_link_libraries(${IP} PUBLIC
-            counters
-            )
-
-    # Questa for now uses SoCMake IPs for SystemC
-    elseif(SIMULATOR STREQUAL "mgc")
-        add_ip(test_counters)
-        ip_sources(${IP} SYSTEMC
-            sc/test_counters.cpp
-            HEADERS
-            sc/test_counters.h
-            )
-        ip_include_directories(${IP} SYSTEMC sc)
-        ip_compile_definitions(${IP} SYSTEMC MGC)
-    endif()
+    target_link_libraries(${IP} PUBLIC
+        counters)
 endif()
 
 add_subdirectory(../counters/ "counters")
