@@ -82,12 +82,9 @@ function(xcelium IP_LIB)
     get_ip_links(__ips ${IP_LIB})
     unset(systemc_libs)
     foreach(lib ${__ips})
-        get_target_property(ip_type ${lib} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY" OR ip_type STREQUAL "OBJECT_LIBRARY")
-            get_target_property(socmake_cxx_library_type ${lib} SOCMAKE_CXX_LIBRARY_TYPE)
-            if(socmake_cxx_library_type STREQUAL "SYSTEMC")
-                list(APPEND systemc_libs ${lib})
-            endif()
+        __is_socmake_systemc_lib(is_systemc_lib ${lib})
+        if(is_systemc_lib)
+            list(APPEND systemc_libs ${lib})
         endif()
     endforeach()
 
@@ -134,7 +131,7 @@ function(xcelium IP_LIB)
     get_ip_sources(HEADERS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL HEADERS)
     if(NOT TARGET ${IP_LIB}_xcelium)
         set(elaborate_cmd COMMAND xrun -elaborate
-                -64bit
+                $<$<NOT:$<BOOL:${ARG_32BIT}>>:-64bit>
                 -q
                 -nocopyright
                 ${hdl_libs_args}
@@ -179,7 +176,7 @@ function(xcelium IP_LIB)
     )
 
     set(run_sim_cmd xrun -R
-        -64bit
+        $<$<NOT:$<BOOL:${ARG_32BIT}>>:-64bit>
         $<$<BOOL:${ARG_GUI}>:-gui>
         ${hdl_libs_args}
         ${dpi_libs_args}
@@ -231,6 +228,41 @@ function(__xcelium_compile_lib IP_LIB)
     __add_xcelium_cxx_properties_to_libs(${IP_LIB})
 
     get_ip_links(__ips ${IP_LIB})
+
+    foreach(parent ${__ips})
+        get_target_property(children_ips ${parent} INTERFACE_LINK_LIBRARIES)
+
+        __is_socmake_systemc_lib(parent_is_systemc_lib ${parent})
+        __is_socmake_ip_lib(parent_is_ip_lib ${parent})
+
+        if(children_ips)
+            foreach(child ${children_ips})
+                __is_socmake_systemc_lib(child_is_systemc_lib ${child})
+                __is_socmake_ip_lib(child_is_ip_lib ${child})
+
+                if(parent_is_systemc_lib AND child_is_ip_lib)
+                    set_property(TARGET ${child} PROPERTY SOCMAKE_HDL_BOUNDARY_LIB TRUE)
+                    xcelium_gen_sc_wrapper(${child} 
+                        OUTDIR ${OUTDIR}
+                        LIBRARY ${LIBRARY}
+                        ${ARG_BITNESS}
+                    )
+                    add_dependencies(${parent} ${child}_xcelium_gen_sc_wrapper)
+                endif()
+
+                if(parent_is_ip_lib AND child_is_systemc_lib)
+                    set_property(TARGET ${child} PROPERTY SOCMAKE_SC_BOUNDARY_LIB TRUE)
+                    xcelium_gen_hdl_wrapper(${child} 
+                        OUTDIR ${OUTDIR}
+                        LIBRARY ${LIBRARY}
+                        ${ARG_BITNESS}
+                    )
+                    add_dependencies(${parent} ${child}_xcelium_gen_hdl_wrapper)
+                endif()
+            endforeach()
+        endif()
+    endforeach()
+
     unset(all_stamp_files)
     foreach(lib ${__ips})
 
@@ -268,7 +300,7 @@ function(__xcelium_compile_lib IP_LIB)
             endforeach()
 
             set(sv_compile_cmd COMMAND xrun -compile
-                    -64bit
+                    $<$<NOT:$<BOOL:${ARG_32BIT}>>:-64bit>
                     -q
                     -nocopyright
                     -sv
@@ -288,7 +320,7 @@ function(__xcelium_compile_lib IP_LIB)
         unset(vhdl_compile_cmd)
         if(VHDL_SOURCES)
             set(vhdl_compile_cmd COMMAND xrun -compile
-                    -64bit
+                    $<$<NOT:$<BOOL:${ARG_32BIT}>>:-64bit>
                     -q
                     -nocopyright
                     -makelib ${lib_outdir}
@@ -321,7 +353,7 @@ function(__xcelium_compile_lib IP_LIB)
             set(STAMP_FILE "${lib_outdir}/${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
-                COMMAND ${sv_compile_cmd}
+                ${sv_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
                 BYPRODUCTS ${lib_outdir} ${__clean_files}
                 WORKING_DIRECTORY ${OUTDIR}
@@ -337,7 +369,7 @@ function(__xcelium_compile_lib IP_LIB)
             set(STAMP_FILE "${lib_outdir}/${lib}_vhdl_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
-                COMMAND ${vhdl_compile_cmd}
+                ${vhdl_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
                 BYPRODUCTS ${lib_outdir} ${__clean_files}
                 WORKING_DIRECTORY ${OUTDIR}
@@ -439,3 +471,176 @@ macro(xcelium_configure_cxx)
     set(CMAKE_CXX_COMPILER "${xcelium_home}/tools.lnx86/cdsgcc/gcc/bin/g++")
     set(CMAKE_C_COMPILER "${xcelium_home}/tools.lnx86/cdsgcc/gcc/bin/gcc")
 endmacro()
+
+function(xcelium_gen_sc_wrapper IP_LIB)
+    cmake_parse_arguments(ARG "32BIT;QUIET" "OUTDIR;LIBRARY;TOP_MODULE" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS" ${ARGN})
+    # Check for any unrecognized arguments
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+
+    alias_dereference(IP_LIB ${IP_LIB})
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
+
+    if(NOT ARG_TOP_MODULE)
+        get_target_property(ARG_TOP_MODULE ${IP_LIB} IP_NAME)
+    endif()
+
+    if(NOT ARG_OUTDIR)
+        set(OUTDIR ${BINARY_DIR}/${IP_LIB}_xcelium)
+    else()
+        set(OUTDIR ${ARG_OUTDIR})
+    endif()
+    file(MAKE_DIRECTORY ${OUTDIR})
+
+    get_target_property(__comp_lib_name ${IP_LIB} LIBRARY)
+    if(NOT __comp_lib_name)
+        set(__comp_lib_name worklib)
+    endif()
+    if(ARG_LIBRARY)
+        set(__comp_lib_name ${ARG_LIBRARY})
+    endif()
+    # Create output directoy for the VHDL library
+    set(lib_outdir ${OUTDIR}/${__comp_lib_name})
+
+    get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS)
+    list(GET SV_SOURCES -1 last_sv_file) # TODO this is not correct, as the last Verilog file might not be top
+    unset(sv_compile_cmd)
+    if(SV_SOURCES)
+        get_ip_include_directories(SV_INC_DIRS ${IP_LIB}  SYSTEMVERILOG VERILOG)
+        get_ip_compile_definitions(SV_COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG)
+
+        foreach(dir ${SV_INC_DIRS})
+            list(APPEND SV_ARG_INCDIRS +incdir+${dir})
+        endforeach()
+
+        foreach(def ${SV_COMP_DEFS})
+            list(APPEND SV_CMP_DEFS_ARG +define+${def})
+        endforeach()
+
+        get_ip_sources(sc_portmap ${IP_LIB} VCS_SC_PORTMAP NO_DEPS)
+        unset(sc_portmap_arg)
+        if(sc_portmap)
+            set(sc_portmap_arg -sc_portmap ${sc_portmap})
+        endif()
+
+        set(sv_compile_cmd COMMAND xrun -compile
+                $<$<NOT:$<BOOL:${ARG_32BIT}>>:-64bit>
+                -q
+                -nocopyright
+                -sv
+                -makelib ${__comp_lib_name}
+                ${SV_ARG_INCDIRS}
+                ${SV_CMP_DEFS_ARG}
+                ${last_sv_file}
+                -endlib
+            )
+        set(xmshell_cmd xmshell
+                $<$<NOT:$<BOOL:${ARG_32BIT}>>:-64bit>
+                -import verilog
+                -into systemc
+                -sc_uint         # TODO
+                -sctype clk:bool # TODO
+                -sctype rst:bool # TODO
+                -work ${__comp_lib_name}
+                ${__comp_lib_name}.${ARG_TOP_MODULE}
+            )
+
+        set(generated_files ${OUTDIR}/${ARG_TOP_MODULE}.h ${OUTDIR}/${ARG_TOP_MODULE}.cpp)
+        set(DESCRIPTION "Generate a SC wrapper file for ${IP_LIB} with Xcelium xmshell")
+        set(STAMP_FILE "${OUTDIR}/${lib}_${CMAKE_CURRENT_FUNCTION}.stamp")
+        add_custom_command(
+            OUTPUT ${STAMP_FILE} ${generated_files}
+            COMMAND ${sv_compile_cmd}
+            COMMAND ${xmshell_cmd}
+            COMMAND touch ${STAMP_FILE}
+            BYPRODUCTS ${OUTDIR}
+            WORKING_DIRECTORY ${OUTDIR}
+            DEPENDS ${last_sv_file} ${SV_HEADERS}
+            COMMENT ${DESCRIPTION}
+        )
+
+        add_custom_target(
+            ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+            DEPENDS ${STAMP_FILE} ${IP_LIB}
+        )
+        set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+
+        target_include_directories(${IP_LIB} INTERFACE ${OUTDIR})
+    endif()
+
+endfunction()
+
+function(xcelium_gen_hdl_wrapper SC_LIB)
+    cmake_parse_arguments(ARG "32BIT" "OUTDIR;LIBRARY;TOP_MODULE" "" ${ARGN})
+    # Check for any unrecognized arguments
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+
+    get_target_property(BINARY_DIR ${SC_LIB} BINARY_DIR)
+
+    if(NOT ARG_TOP_MODULE)
+        set(ARG_TOP_MODULE ${SC_LIB})
+    endif()
+
+    if(NOT ARG_OUTDIR)
+        set(OUTDIR ${BINARY_DIR}/${SC_LIB}_xcelium)
+    else()
+        set(OUTDIR ${ARG_OUTDIR})
+    endif()
+    file(MAKE_DIRECTORY ${OUTDIR})
+
+    set(__comp_lib_name worklib)
+    if(ARG_LIBRARY)
+        set(__comp_lib_name ${ARG_LIBRARY})
+    endif()
+
+    set(xmsc_cmd xmsc
+            $<$<NOT:$<BOOL:${ARG_32BIT}>>:-64bit>
+            -work ${__comp_lib_name}
+            "$<PATH:ABSOLUTE_PATH,NORMALIZE,$<LIST:GET,$<TARGET_PROPERTY:${SC_LIB},SOURCES>,-1>,$<TARGET_PROPERTY:${SC_LIB},SOURCE_DIR>>" # Get Absolute path to the last source file
+            -CFLAGS \" 
+                "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},INCLUDE_DIRECTORIES>,PREPEND,-I>" 
+                "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},COMPILE_DEFINITIONS>,PREPEND,-D>" 
+            \"
+            -scfrontend
+        )
+
+    set(xmshell_cmd xmshell
+            $<$<NOT:$<BOOL:${ARG_32BIT}>>:-64bit>
+            -import systemc
+            -into verilog
+            -work ${__comp_lib_name}
+            ${__comp_lib_name}.${ARG_TOP_MODULE}:sc_module
+        )
+
+    set(GEN_V_FILE ${OUTDIR}/${ARG_TOP_MODULE}.vs)
+    message("GEN_V_FILE: ${GEN_V_FILE}")
+    set(DESCRIPTION "Generate a Verilog wrapper file for SystemC lib ${SC_LIB} with Xcelium xmshell")
+    set(STAMP_FILE "${OUTDIR}/${SC_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    add_custom_command(
+        OUTPUT ${STAMP_FILE} ${GEN_V_FILE}
+        COMMAND ${xmsc_cmd}
+        COMMAND ${xmshell_cmd}
+        COMMAND touch ${STAMP_FILE}
+        WORKING_DIRECTORY ${OUTDIR}
+        DEPENDS ${SC_LIB}
+        COMMENT ${DESCRIPTION}
+        COMMAND_EXPAND_LISTS
+        # VERBATIM
+    )
+
+    add_custom_target(
+        ${SC_LIB}_${CMAKE_CURRENT_FUNCTION}
+        DEPENDS ${STAMP_FILE} ${GEN_V_FILE} ${SC_LIB}
+    )
+    set_property(TARGET ${SC_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+
+    ip_sources(${SC_LIB} VERILOG ${GEN_V_FILE})
+
+endfunction()

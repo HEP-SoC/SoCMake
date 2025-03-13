@@ -2,9 +2,7 @@ if(DUT_LANG STREQUAL "verilog")
     add_ip(counters)
     ip_sources(${IP} VERILOG
         vlog/counters.v)
-    if(SIMULATOR STREQUAL "xcelium")
-        target_include_directories(${IP} INTERFACE ./sc/xcelium_shell/)
-    elseif(SIMULATOR STREQUAL "vcs")
+    if(SIMULATOR STREQUAL "vcs")
         ip_sources(${IP} VCS_SC_PORTMAP
             ./vcs_sc_map.map)
     endif()
@@ -13,13 +11,6 @@ elseif(DUT_LANG STREQUAL "systemc")
         set(IP counters)
         add_library(${IP} SHARED
             ./sc/counters.cpp)
-
-        if(SIMULATOR STREQUAL "xcelium" OR SIMULATOR STREQUAL "osci")
-            # This is Verilog shell for SystemC module, can be generated with xmshell
-            ip_sources(${IP} VERILOG
-                ./vlog/xcelium_shell/counters.v
-                )
-        endif()
 
         set_target_properties(${IP}
             PROPERTIES 

@@ -216,13 +216,11 @@ function(__modelsim_compile_lib IP_LIB)
 
     foreach(parent ${__ips})
         get_target_property(children_ips ${parent} INTERFACE_LINK_LIBRARIES)
-        message("Parent: ${parent}: Children: ${children_ips}")
 
         __is_socmake_systemc_lib(parent_is_systemc_lib ${parent})
         __is_socmake_ip_lib(parent_is_ip_lib ${parent})
 
         if(parent_is_systemc_lib)
-            message("It is boundary before: ${parent}")
             set_property(TARGET ${parent} PROPERTY SOCMAKE_SC_BOUNDARY_LIB TRUE)
             # modelsim_compile_sc_lib(${parent} 
             #     OUTDIR ${OUTDIR}

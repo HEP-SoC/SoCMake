@@ -31,7 +31,8 @@ add_subdirectory(tests)
 # ################################################
 
 if(SIMULATOR STREQUAL "xcelium")
-    xcelium(test_counters)
+    xcelium(test_counters
+        ELABORATE_ARGS -timescale 1ps/1ps)
 endif()
 
 # ################################################
