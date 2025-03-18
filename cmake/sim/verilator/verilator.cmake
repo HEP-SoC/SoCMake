@@ -240,4 +240,9 @@ function(verilator IP_LIB)
         set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
     set(SIM_RUN_CMD ${__sim_run_cmd} PARENT_SCOPE)
+
+    # TODO: Remove this if Verilator ever supports "wor"
+    if(TARGET ${IP_LIB}_sed_wor)
+        add_dependencies(${VERILATE_TARGET} ${IP_LIB}_sed_wor)
+    endif()
 endfunction()

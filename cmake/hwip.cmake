@@ -316,13 +316,13 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     endif()
 
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
-    alias_dereference(IP_LIB ${IP_LIB})
+    alias_dereference(_reallib ${IP_LIB})
 
     unset(SOURCES)
     # Get all the <LANGUAGE>_SOURCES or <LANGUAGE>_HEADERS lists in order
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
-        get_ip_property(_lang_sources ${IP_LIB} ${_lang}_${property_type} ${_no_deps})
+        get_ip_property(_lang_sources ${_reallib} ${_lang}_${property_type} ${_no_deps})
         list(APPEND SOURCES ${_lang_sources})
     endforeach()
 
@@ -382,7 +382,7 @@ function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
     # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
-        get_ip_property(_lang_incdirs ${IP_LIB} ${_lang}_INCLUDE_DIRECTORIES ${_no_deps})
+        get_ip_property(_lang_incdirs ${_reallib} ${_lang}_INCLUDE_DIRECTORIES ${_no_deps})
         list(APPEND INCDIRS ${_lang_incdirs})
     endforeach()
 
@@ -463,11 +463,11 @@ function(ip_link IP_LIB)
         endif()
         # Issue an error if the library does not exist
         if(NOT TARGET ${lib})
-            message(FATAL_ERROR "Library ${lib} linked to ${IP_LIB} is not defined")
+            message(FATAL_ERROR "Library ${lib} linked to ${_reallib} is not defined")
         endif()
         # In case user tries to link library to itself, raise an error
-        if(${lib} STREQUAL ${IP_LIB})
-            message(FATAL_ERROR "Cannot link library ${lib} to ${IP_LIB} (itself)")
+        if(${lib} STREQUAL ${_reallib})
+            message(FATAL_ERROR "Cannot link library ${lib} to ${_reallib} (itself)")
         endif()
         # Link the library to the target
         target_link_libraries(${_reallib} INTERFACE ${lib})
@@ -484,28 +484,28 @@ endfunction()
 #
 # :param OUTVAR: Variable containing the requested property.
 # :type OUTVAR: string
-# :param TARGET: The target IP library name.
-# :type TARGET: string
+# :param IP_LIB: The target IP library name.
+# :type IP_LIB: string
 # :param PROPERTY: Property to retrieve from IP_LIB.
 # :type PROPERTY: string
 # :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
 # :type [NO_DEPS]: bool
 #
 #]]
-function(get_ip_property OUTVAR TARGET PROPERTY)
+function(get_ip_property OUTVAR IP_LIB PROPERTY)
     cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
 
     # Retrieve the real library name in case an alias is used
-    alias_dereference(TARGET ${TARGET})
+    alias_dereference(_reallib ${IP_LIB})
 
     set(OUT_LIST "")
     if(ARG_NO_DEPS)
-        safe_get_target_property(OUT_LIST ${TARGET} ${PROPERTY} "")
+        safe_get_target_property(OUT_LIST ${_reallib} ${PROPERTY} "")
     else()
         # Flatten the target graph to get all the dependencies in the correct order
-        flatten_graph(${TARGET})
+        flatten_graph(${_reallib})
         # Get all the dependencies
-        get_target_property(DEPS ${TARGET} FLAT_GRAPH)
+        get_target_property(DEPS ${_reallib} FLAT_GRAPH)
 
         # Append the property of all the deps into a single list (e.g., the source files of an IP)
         foreach(d ${DEPS})
@@ -577,7 +577,7 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
     # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
-        get_ip_property(_lang_compdefs ${IP_LIB} ${_lang}_COMPILE_DEFINITIONS ${_no_deps})
+        get_ip_property(_lang_compdefs ${_reallib} ${_lang}_COMPILE_DEFINITIONS ${_no_deps})
         list(APPEND COMPDEFS ${_lang_compdefs})
     endforeach()
 
@@ -602,11 +602,11 @@ function(get_ip_links OUTVAR IP_LIB)
     alias_dereference(_reallib ${IP_LIB})
 
     if(ARG_NO_DEPS)
-        get_property(__flat_graph TARGET ${IP_LIB} PROPERTY INTERFACE_LINK_LIBRARIES)
+        get_property(__flat_graph TARGET ${_reallib} PROPERTY INTERFACE_LINK_LIBRARIES)
     else()
-        flatten_graph(${IP_LIB})
+        flatten_graph(${_reallib})
 
-        get_property(__flat_graph TARGET ${IP_LIB} PROPERTY FLAT_GRAPH)
+        get_property(__flat_graph TARGET ${_reallib} PROPERTY FLAT_GRAPH)
     endif()
 
     set(${OUTVAR} ${__flat_graph} PARENT_SCOPE)
@@ -627,10 +627,10 @@ endfunction()
 function(recursive_get_target_property OUTVAR IP_LIB PROPERTY)
     set(_seen_values)
 
-    ip_assume_last(IP_LIB ${IP_LIB})
+    alias_dereference(_reallib ${IP_LIB})
 
     # Get the value of the specified property for the current target
-    get_target_property(_current_value ${IP_LIB} ${PROPERTY})
+    get_target_property(_current_value ${_reallib} ${PROPERTY})
 
     if(_current_value AND NOT _current_value STREQUAL "<${PROPERTY}>-NOTFOUND")
         list(APPEND _seen_values ${_current_value})
