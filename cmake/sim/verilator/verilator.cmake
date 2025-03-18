@@ -74,6 +74,7 @@ function(verilator IP_LIB)
         include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/sed_wor/sed_wor.cmake)
         sed_wor(${IP_LIB} ${BINARY_DIR} "${SOURCES}")
         set(SOURCES ${SED_WOR_SOURCES})
+        unset(ARG_SED_WOR)
     endif()
 
     if(NOT SOURCES)
