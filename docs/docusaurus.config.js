@@ -13,10 +13,10 @@ const config = {
   favicon: 'img/SoCMakeLogo3.svg',
 
   // Set the production url of your site here
-  url: 'https://socmake-docs.cern.ch',
+  url: 'https://hep-soc.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl : '/SoCMake/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -72,7 +72,7 @@ const config = {
             label: 'Documentation',
           },
           {
-            href: 'https://gitlab.cern.ch/socmake/SoCMake',
+            href: 'https://hep-soc.github.io/SoCMake/',
             label: 'GitLab',
             position: 'right',
           },

@@ -1,5 +1,3 @@
-include_guard(GLOBAL)
-
 if(NOT WIN32)
   string(ASCII 27 Esc)
   set(ColourReset "${Esc}[m")

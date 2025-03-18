@@ -48,6 +48,10 @@ function(__flatten_graph_recursive NODE RET)
     if(LINK_LIBS STREQUAL "LINK_LIBS-NOTFOUND") # Not needed
         set(LINK_LIBS "")
     endif()
+
+    # Workaround a mechanism described in (https://cmake.org/cmake/help/v3.30/prop_tgt/INTERFACE_LINK_LIBRARIES.html)
+    list(FILTER LINK_LIBS EXCLUDE REGEX "::@")
+
     # message("LINK LIBS for lib: ${NODE} are: ${LINK_LIBS}")
     foreach(lib ${LINK_LIBS})
         __flatten_graph_recursive(${lib} LIB_ADDED)
@@ -102,6 +106,8 @@ function(__all_vertices_removed NODE RET)
     if(LINK_LIBS STREQUAL "LINK_LIBS-NOTFOUND")
         set(LINK_LIBS "")
     endif()
+    # Workaround a mechanism described in (https://cmake.org/cmake/help/v3.30/prop_tgt/INTERFACE_LINK_LIBRARIES.html)
+    list(FILTER LINK_LIBS EXCLUDE REGEX "::@")
 
     compare_lists("${RM_LIST}" "${LINK_LIBS}" L_EQ)
     set(${RET} ${L_EQ} PARENT_SCOPE)

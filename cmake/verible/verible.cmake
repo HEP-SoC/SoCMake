@@ -44,7 +44,7 @@ function(verible_lint IP_LIB)
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
 
-    ip_assume_last(IP_LIB ${IP_LIB})
+    alias_dereference(IP_LIB ${IP_LIB})
 
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
     if(NOT ARG_OUTDIR)
@@ -82,7 +82,7 @@ function(verible_lint IP_LIB)
         safe_get_target_property(V_SOURCES ${IP_LIB} VERILOG_SOURCES "")
         safe_get_target_property(SV_SOURCES ${IP_LIB} SYSTEMVERILOG_SOURCES "")
     else()
-    get_ip_rtl_sources(SOURCES ${IP_LIB})
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
     endif()
     set(__sources ${SV_SOURCES} ${V_SOURCES})
 

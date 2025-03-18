@@ -8,8 +8,14 @@
 #
 #]]
 function(alias_dereference OUT LIB)
-    # First check the library exists
-    if(NOT TARGET ${LIB})
+
+    # Check if the library is STATIC linked one, the library name will be $<LINK_ONLY:${LIB}> in that case
+    if("${LIB}" MATCHES "\\$<LINK_ONLY:")
+        return()
+    endif()
+
+    # Check the library exists
+    if(NOT TARGET ${LIB} AND NOT "${LIB}" MATCHES ".*LINK_ONLY:")
         message(FATAL_ERROR "Library ${LIB} is not defined")
     endif()
     # Retrive the original library name from the library property

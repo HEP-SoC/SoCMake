@@ -47,7 +47,7 @@ function(peakrdl_halcpp IP_LIB)
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/find_python.cmake")
 
-    ip_assume_last(IP_LIB ${IP_LIB})
+    alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)
@@ -65,12 +65,8 @@ function(peakrdl_halcpp IP_LIB)
     endif()
 
     get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
-
-    # Get SystemRDL include directories 
     get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
-    if(INC_DIRS)
-        set(INCDIR_ARG -I ${INC_DIRS})
-    endif()
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMRDL)
 
     __ext_header_provided(${IP_LIB} libs)
     list(LENGTH libs libs_len)
@@ -87,9 +83,24 @@ function(peakrdl_halcpp IP_LIB)
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
+    unset(INCDIRS_ARG)
+    foreach(__incdir ${INC_DIRS})
+        list(APPEND INCDIRS_ARG -I${__incdir})
+    endforeach()
+
+    unset(COMPDEFS_ARG)
+    foreach(__compdefs ${COMP_DEFS})
+        list(APPEND COMPDEFS_ARG -D${__compdefs})
+    endforeach()
+
     find_python3()
     set(__CMD ${Python3_EXECUTABLE} -m peakrdl halcpp
-        ${RDL_FILES} ${EXT_ARG} ${SKIB_BUSES_ARG} ${INCDIR_ARG} -o ${OUTDIR} ${OVERWRITTEN_PARAMETERS}
+            ${RDL_FILES}
+            ${EXT_ARG}
+            ${INCDIRS_ARG}
+            ${COMPDEFS_ARG}
+            ${SKIB_BUSES_ARG} -o ${OUTDIR}
+            ${OVERWRITTEN_PARAMETERS}
     )
 
     target_include_directories(${IP_LIB} INTERFACE ${OUTDIR} ${OUTDIR}/include)
