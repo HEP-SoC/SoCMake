@@ -126,7 +126,8 @@ function(xcelium IP_LIB)
     ### Clean files:
     #       * 
     set(__clean_files 
-        ${OUTDIR}/xmsim.log
+        ${OUTDIR}/xrun.log
+        ${OUTDIR}/xrun.history
         ${OUTDIR}/xcelium.d
     )
 
@@ -137,6 +138,7 @@ function(xcelium IP_LIB)
         ${dpi_libs_args}
         ${ARG_RUN_ARGS}
         -top ${LIBRARY}.${ARG_TOP_MODULE}
+        -xmlibdirpath ${OUTDIR}
         )
     if(NOT ARG_NO_RUN_TARGET)
         if(NOT ARG_RUN_TARGET_NAME)
