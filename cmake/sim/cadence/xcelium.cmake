@@ -133,13 +133,13 @@ function(xcelium IP_LIB)
     set(run_sim_cmd xrun -R
         -64bit
         -l xmsim.log
+        -xmlibdirpath ${OUTDIR}
         $<$<BOOL:${ARG_GUI}>:-gui>
         ${hdl_libs_args}
         ${dpi_libs_args}
         ${ARG_RUN_ARGS}
         $<$<NOT:$<BOOL:${ARG_NO_RUN_TARGET}>>:-top ${LIBRARY}.${ARG_TOP_MODULE}>
-        -xmlibdirpath ${OUTDIR}
-        )
+    )
     if(NOT ARG_NO_RUN_TARGET)
         if(NOT ARG_RUN_TARGET_NAME)
             set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
@@ -226,6 +226,7 @@ function(__xcelium_compile_lib IP_LIB)
                     -q
                     -nocopyright
                     -sv
+                    -l xmvlog.log
                     -makelib ${lib_outdir}
                     ${ARG_COMPILE_ARGS}
                     ${ARG_SV_COMPILE_ARGS}
@@ -245,6 +246,7 @@ function(__xcelium_compile_lib IP_LIB)
                     -64bit
                     -q
                     -nocopyright
+                    -l xmvhdl.log
                     -makelib ${lib_outdir}
                     ${ARG_COMPILE_ARGS}
                     ${ARG_VHDL_COMPILE_ARGS}
@@ -263,9 +265,11 @@ function(__xcelium_compile_lib IP_LIB)
         endforeach()
 
         ### Clean files:
-        set(__clean_files 
-            ${OUTDIR}/xrun.log
-            ${OUTDIR}/xrun.history
+        set(__clean_files
+            ${OUTDIR}/xmvlog.log
+            ${OUTDIR}/xmvlog.history
+            ${OUTDIR}/xmvhdl.log
+            ${OUTDIR}/xmvhdl.history
             ${OUTDIR}/xcelium.d
         )
 
