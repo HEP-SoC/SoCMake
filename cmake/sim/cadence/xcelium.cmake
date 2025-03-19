@@ -90,6 +90,7 @@ function(xcelium IP_LIB)
                 -64bit
                 -q
                 -nocopyright
+                -l xmelab.log
                 ${hdl_libs_args}
                 ${ARG_ELABORATE_ARGS}
                 -top ${LIBRARY}.${ARG_TOP_MODULE}
@@ -126,13 +127,12 @@ function(xcelium IP_LIB)
     ### Clean files:
     #       * 
     set(__clean_files 
-        ${OUTDIR}/xrun.log
-        ${OUTDIR}/xrun.history
-        ${OUTDIR}/xcelium.d
+        xmsim.log
     )
 
     set(run_sim_cmd xrun -R
         -64bit
+        -l xmsim.log
         $<$<BOOL:${ARG_GUI}>:-gui>
         ${hdl_libs_args}
         ${dpi_libs_args}
