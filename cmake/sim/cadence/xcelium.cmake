@@ -137,7 +137,7 @@ function(xcelium IP_LIB)
         ${hdl_libs_args}
         ${dpi_libs_args}
         ${ARG_RUN_ARGS}
-        -top ${LIBRARY}.${ARG_TOP_MODULE}
+        $<$<NOT:$<BOOL:${ARG_NO_RUN_TARGET}>>:-top ${LIBRARY}.${ARG_TOP_MODULE}>
         -xmlibdirpath ${OUTDIR}
         )
     if(NOT ARG_NO_RUN_TARGET)
