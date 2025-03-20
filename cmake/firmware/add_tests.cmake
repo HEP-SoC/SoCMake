@@ -45,7 +45,7 @@ function(add_tests EXECUTABLE DIRECTORY)
     # Add the tests for all the TESTCASES
     foreach(test ${TEST_SUBDIRS})
         # Add each test subdirectoy
-        add_subdirectory("${DIRECTORY}/${test}" "${test}_test")
+        add_subdirectory("${DIRECTORY}/${test}" "Testing/tests/${test}")
         if(SOCMAKE_DONT_ADD_TEST)
             # Skip the test if SOCMAKE_DONT_ADD_TEST is set by the project
             unset(SOCMAKE_DONT_ADD_TEST)
@@ -71,9 +71,9 @@ function(add_tests EXECUTABLE DIRECTORY)
                 get_target_property(HEX_DATA_FILE ${fw_prj} HEX_DATA_${ARG_WIDTH}bit_FILE)
                 get_target_property(SREC_TEXT_FILE ${fw_prj} SREC_TEXT_${ARG_WIDTH}bit_FILE)
                 get_target_property(SREC_DATA_FILE ${fw_prj} SREC_DATA_${ARG_WIDTH}bit_FILE)
-                # Create teh test working directory if it does not exists
-                set(test_working_dir ${test}_test/${fw_prj_name}_test)
-                execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${test_working_dir})
+                # Create the ctest working directory if it does not exists
+                set(ctest_working_dir Testing/sim/${test})
+                execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${ctest_working_dir})
                 add_test(
                     NAME ${fw_prj_name}
                     COMMAND ${EXECUTABLE}
@@ -84,9 +84,17 @@ function(add_tests EXECUTABLE DIRECTORY)
                         ${PREFIX_ARG}firmware_data_srec=${SREC_DATA_FILE}
                         ${TESTCASE_PARAM}
                         ${ARG_ARGS}
-                    WORKING_DIRECTORY ${test_working_dir}
+                    WORKING_DIRECTORY ${ctest_working_dir}
                 )
-
+                # Single test run command
+                set(run_working_dir Testing/tests/${test}/sim)
+                execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${run_working_dir})
+                ### Clean files:
+                set(__clean_files
+                    ${run_working_dir}/xmsim.log
+                    ${run_working_dir}/uart0.log
+                    ${run_working_dir}/hash_ref.txt
+                )
                 add_custom_target(run_${fw_prj_name}
                     COMMAND ${EXECUTABLE}
                         ${PREFIX_ARG}firmware=${HEX_FILE}
@@ -96,6 +104,8 @@ function(add_tests EXECUTABLE DIRECTORY)
                         ${PREFIX_ARG}firmware_data_srec=${SREC_DATA_FILE}
                         ${TESTCASE_PARAM}
                         ${ARG_ARGS}
+                    BYPRODUCTS ${__clean_files}
+                    WORKING_DIRECTORY ${run_working_dir}
                     DEPENDS ${fw_prj} ${ARG_DEPS}
                 )
                 # Add additional clean files to project

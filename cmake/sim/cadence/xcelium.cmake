@@ -100,6 +100,7 @@ function(xcelium IP_LIB)
         #       *
         set(__clean_files
             ${OUTDIR}/xmelab.log
+            ${OUTDIR}/xmelab.history
             ${OUTDIR}/xcelium.d
         )
 
@@ -150,7 +151,7 @@ function(xcelium IP_LIB)
             BYPRODUCTS ${__clean_files}
             COMMENT ${DESCRIPTION}
             DEPENDS ${IP_LIB}_xcelium
-            )
+        )
         set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
     set(SIM_RUN_CMD ${run_sim_cmd} PARENT_SCOPE)
