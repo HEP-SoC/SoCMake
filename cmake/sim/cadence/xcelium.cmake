@@ -77,7 +77,7 @@ function(xcelium IP_LIB)
     endif()
     set(comp_tgt ${IP_LIB}_xcelium_complib)
 
-    __get_xcelium_search_lib_args(${IP_LIB} 
+    __get_xcelium_search_lib_args(${IP_LIB}
         ${ARG_LIBRARY}
         OUTDIR ${OUTDIR})
     set(hdl_libs_args ${HDL_LIBS_ARGS})
@@ -97,8 +97,8 @@ function(xcelium IP_LIB)
             )
 
         ### Clean files:
-        #       * 
-        set(__clean_files 
+        #       *
+        set(__clean_files
             ${OUTDIR}/xmelab.log
             ${OUTDIR}/xcelium.d
         )
@@ -125,8 +125,8 @@ function(xcelium IP_LIB)
     ## XMSIM command for running simulation
 
     ### Clean files:
-    #       * 
-    set(__clean_files 
+    #       *
+    set(__clean_files
         xmsim.log
     )
 
@@ -138,7 +138,6 @@ function(xcelium IP_LIB)
         ${hdl_libs_args}
         ${dpi_libs_args}
         ${ARG_RUN_ARGS}
-        $<$<NOT:$<BOOL:${ARG_NO_RUN_TARGET}>>:-top ${LIBRARY}.${ARG_TOP_MODULE}>
     )
     if(NOT ARG_NO_RUN_TARGET)
         if(NOT ARG_RUN_TARGET_NAME)
