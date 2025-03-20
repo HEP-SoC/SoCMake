@@ -9,6 +9,7 @@ function(vcs IP_LIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
 
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
@@ -104,7 +105,7 @@ function(vcs IP_LIB)
                 -nc
                 -q
                 # $<$<BOOL:${ARG_GUI}>:-gui>
-                # ${dpi_libs_args}
+                ${dpi_libs_args}
                 -debug_access+r+w+nomemcbk -debug_region+cell
                 ${systemc_lib_args}
                 ${ARG_ELABORATE_ARGS}
@@ -172,6 +173,7 @@ function(__vcs_compile_lib IP_LIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
 
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
@@ -188,9 +190,6 @@ function(__vcs_compile_lib IP_LIB)
     file(MAKE_DIRECTORY ${OUTDIR})
 
     get_target_property(top_ip_type ${IP_LIB} TYPE)
-
-    # Find the VCS include directory, needed for VPI/DPI libraries
-    __add_vcs_cxx_properties_to_libs(${IP_LIB})
 
     unset(ARG_BITNESS)
     if(ARG_32BIT)
@@ -357,18 +356,27 @@ function(__get_vcs_search_lib_args IP_LIB)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
+
     # Synopsys requires synopsys_sim.setup files in order to map different libraries
     set(synopsys_sim_setup_str "WORK > DEFAULT\n")
     string(APPEND synopsys_sim_setup_str "DEFAULT: ./work\n")
 
     get_ip_links(ips ${IP_LIB})
     unset(hdl_libs)
+    unset(dpi_libs_args)
     foreach(lib ${ips})
-        # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
+        __is_socmake_systemc_lib(is_systemc_lib ${lib})
+        __is_socmake_ip_lib(is_ip_lib ${lib})
+        __is_socmake_vhpi_lib(is_vhpi_lib ${lib})
+        __is_socmake_dpic_lib(is_dpic_lib ${lib})
+
         get_target_property(ip_type ${lib} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
+        if(is_dpic_lib)
             list(APPEND dpi_libs_args $<TARGET_FILE:${lib}>)
-        else()
+        endif()
+
+        if(is_ip_lib)
             # Library of the current IP block, get it from SoCMake library if present
             # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
             get_target_property(__comp_lib_name ${lib} LIBRARY)
@@ -392,52 +400,6 @@ function(__get_vcs_search_lib_args IP_LIB)
     file(WRITE "${ARG_OUTDIR}/synopsys_sim.setup" ${synopsys_sim_setup_str})
 
     set(DPI_LIBS_ARGS ${dpi_libs_args} PARENT_SCOPE)
-endfunction()
-
-function(__add_vcs_cxx_properties_to_libs IP_LIB)
-    if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    endif()
-    # Find the Xcelium tools/include directory, needed for VPI/DPI libraries
-    find_program(vcs_exec_path vcs)
-    get_filename_component(vpi_inc_path "${vcs_exec_path}" DIRECTORY)
-    cmake_path(SET vpi_inc_path NORMALIZE "${vpi_inc_path}/../include")
-
-    get_ip_links(ips ${IP_LIB})
-    foreach(lib ${ips})
-        # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
-        get_target_property(ip_type ${lib} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
-            if(NOT vcs_exec_path)
-                message(FATAL_ERROR "VCS executable vcs was not found, cannot set include directory on DPI library")
-            endif()
-            # Add tools/include directory to the include directories of DPI libraries
-            # TODO do this only when its needed
-            target_include_directories(${lib} PUBLIC ${vpi_inc_path})
-            target_compile_definitions(${lib} PUBLIC VCS)
-        endif()
-    endforeach()
-endfunction()
-
-function(__is_socmake_systemc_lib RESULT IP_LIB)
-    get_target_property(linked_libraries ${IP_LIB} LINK_LIBRARIES)
-
-    if("SoCMake::SystemC" IN_LIST linked_libraries)
-        set(${RESULT} TRUE PARENT_SCOPE)
-    else()
-        set(${RESULT} FALSE PARENT_SCOPE)
-    endif()
-endfunction()
-
-function(__is_socmake_ip_lib RESULT IP_LIB)
-    get_target_property(ip_type ${IP_LIB} TYPE)
-    get_target_property(ip_name ${IP_LIB} IP_NAME)
-
-    if(ip_type STREQUAL "INTERFACE_LIBRARY" AND ip_name)
-        set(${RESULT} TRUE PARENT_SCOPE)
-    else()
-        set(${RESULT} FALSE PARENT_SCOPE)
-    endif()
 endfunction()
 
 function(vcs_gen_sc_wrapper IP_LIB)
@@ -652,11 +614,24 @@ function(vcs_add_cxx_libs)
         target_include_directories(vcs_systemc INTERFACE
             $ENV{VCS_HOME}/include/systemc232 # TODO select version
             $ENV{VCS_HOME}/include/cosim/bf
+            $ENV{VCS_HOME}/include
             )
 
         # In order to be able to generate HDL wrapper with syscan from .so library
         target_compile_options(vcs_systemc INTERFACE -g -fno-eliminate-unused-debug-types)
         target_link_options   (vcs_systemc INTERFACE -g)
+    endif()
+
+    if(DPI-C IN_LIST ARG_LIBRARIES)
+        add_library(vcs_dpi-c INTERFACE)
+        add_library(SoCMake::DPI-C ALIAS vcs_dpi-c)
+
+        if(ARG_32BIT)
+            target_compile_options(vcs_dpi-c INTERFACE -m32)
+            target_link_options   (vcs_dpi-c INTERFACE -m32)
+        endif()
+        target_include_directories(vcs_dpi-c INTERFACE ${vcs_home}/include)
+        target_compile_definitions(vcs_dpi-c INTERFACE VCS)
     endif()
 
 endfunction()

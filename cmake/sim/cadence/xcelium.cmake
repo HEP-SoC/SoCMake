@@ -24,6 +24,7 @@ function(xcelium IP_LIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
 
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
@@ -176,6 +177,7 @@ function(__xcelium_compile_lib IP_LIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
 
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
@@ -190,9 +192,6 @@ function(__xcelium_compile_lib IP_LIB)
         set(OUTDIR ${ARG_OUTDIR})
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
-
-    # Find the Xcelium tools/include directory, needed for VPI/DPI libraries
-    __add_xcelium_cxx_properties_to_libs(${IP_LIB})
 
     get_ip_links(__ips ${IP_LIB})
 
@@ -373,11 +372,17 @@ function(__get_xcelium_search_lib_args IP_LIB)
     get_ip_links(ips ${IP_LIB})
     unset(hdl_libs_args)
     foreach(lib ${ips})
+        __is_socmake_systemc_lib(is_systemc_lib ${lib})
+        __is_socmake_ip_lib(is_ip_lib ${lib})
+        __is_socmake_vhpi_lib(is_vhpi_lib ${lib})
+        __is_socmake_dpic_lib(is_dpic_lib ${lib})
         # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
         get_target_property(ip_type ${lib} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
+        if(is_systemc_lib OR is_dpic_lib)
             list(APPEND dpi_libs_args -sv_lib $<TARGET_FILE_DIR:${lib}>/lib$<TARGET_FILE_BASE_NAME:${lib}>)
-        else()
+        endif()
+
+        if(is_ip_lib)
             # Library of the current IP block, get it from SoCMake library if present
             # If neither LIBRARY property is set, or LIBRARY passed as argument, use "worklib" as default
             get_target_property(__comp_lib_name ${lib} LIBRARY)
@@ -406,27 +411,6 @@ function(__find_xcelium_home OUTVAR)
     cmake_path(SET xcelium_home NORMALIZE "${bin_path}/../../")
 
     set(${OUTVAR} ${xcelium_home} PARENT_SCOPE)
-endfunction()
-
-function(__add_xcelium_cxx_properties_to_libs IP_LIB)
-    if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    endif()
-    # Find the Xcelium tools/include directory, needed for VPI/DPI libraries
-    __find_xcelium_home(xcelium_home)
-    set(tools_dir_path "${xcelium_home}/tools")
-
-    get_ip_links(ips ${IP_LIB})
-    foreach(lib ${ips})
-        # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
-        get_target_property(ip_type ${lib} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY" OR ip_type STREQUAL "OBJECT_LIBRARY")
-            # Add tools/include directory to the include directories of DPI libraries
-            # TODO do this only when its needed
-            target_include_directories(${lib} PUBLIC "${tools_dir_path}/include")
-            target_compile_definitions(${lib} PUBLIC INCA)
-        endif()
-    endforeach()
 endfunction()
 
 function(xcelium_gen_sc_wrapper IP_LIB)
@@ -662,6 +646,18 @@ function(xcelium_add_cxx_libs)
             ${xcelium_home}/tools/tbsc/include
             ${xcelium_home}/tools/vic/include
         )
+    endif()
+
+    if(DPI-C IN_LIST ARG_LIBRARIES)
+        add_library(xcelium_dpi-c INTERFACE)
+        add_library(SoCMake::DPI-C ALIAS xcelium_dpi-c)
+
+        if(ARG_32BIT)
+            target_compile_options(xcelium_dpi-c INTERFACE -m32)
+            target_link_options   (xcelium_dpi-c INTERFACE -m32)
+        endif()
+        target_include_directories(xcelium_dpi-c INTERFACE ${xcelium_home}/include)
+        target_compile_definitions(xcelium_dpi-c INTERFACE INCA)
     endif()
 
 endfunction()

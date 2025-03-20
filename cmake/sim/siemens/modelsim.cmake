@@ -7,6 +7,7 @@ function(modelsim IP_LIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
 
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
@@ -172,6 +173,7 @@ function(__modelsim_compile_lib IP_LIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
 
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
@@ -189,9 +191,6 @@ function(__modelsim_compile_lib IP_LIB)
         set(bitness 64)
     endif()
 
-    # Find the modelsim tools/include directory, needed for VPI/DPI libraries
-    __add_modelsim_cxx_properties_to_libs(${IP_LIB})
-
     get_ip_links(__ips ${IP_LIB})
 
     foreach(parent ${__ips})
@@ -202,12 +201,6 @@ function(__modelsim_compile_lib IP_LIB)
 
         if(parent_is_systemc_lib)
             set_property(TARGET ${parent} PROPERTY SOCMAKE_SC_BOUNDARY_LIB TRUE)
-            # modelsim_compile_sc_lib(${parent} 
-            #     OUTDIR ${OUTDIR}
-            #     LIBRARY ${LIBRARY}
-            #     ${ARG_BITNESS}
-            # )
-            # add_dependencies(${parent} ${child}_modelsim_compile_sc_lib)
         endif()
 
         if(children_ips)
@@ -222,18 +215,10 @@ function(__modelsim_compile_lib IP_LIB)
                         ${ARG_BITNESS}
                     )
                     add_dependencies(${parent} ${child}_modelsim_gen_sc_wrapper)
-                    # set_property(TARGET ${child} APPEND PROPERTY SOCMAKE_SYSTEMC_PARENTS ${parent})
-                    # target_include_directories(${parent} PUBLIC ${OUTDIR}/csrc/sysc/include/)
                 endif()
 
                 if(parent_is_ip_lib AND child_is_systemc_lib)
                     set_property(TARGET ${child} PROPERTY SOCMAKE_SC_BOUNDARY_LIB TRUE)
-                    # modelsim_compile_sc_lib(${child} 
-                    #     OUTDIR ${OUTDIR}
-                    #     LIBRARY ${LIBRARY}
-                    #     ${ARG_BITNESS}
-                    # )
-                    # add_dependencies(${parent} ${child}_modelsim_compile_sc_lib)
                 endif()
             endforeach()
         endif()
@@ -396,16 +381,26 @@ function(__get_modelsim_search_lib_args IP_LIB)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
+
     get_ip_links(ips ${IP_LIB})
     unset(hdl_libs_args)
+    unset(dpi_libs_args)
     foreach(lib ${ips})
         __is_socmake_systemc_lib(is_systemc_lib ${lib})
-        # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
-        get_target_property(ip_type ${lib} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY" AND NOT is_systemc_lib)
-            # list(APPEND dpi_libs_args -sv_lib $<TARGET_FILE_DIR:${lib}>/lib$<TARGET_FILE_BASE_NAME:${lib}>)
+        __is_socmake_ip_lib(is_ip_lib ${lib})
+        __is_socmake_vhpi_lib(is_vhpi_lib ${lib})
+        __is_socmake_dpic_lib(is_dpic_lib ${lib})
+
+        if(is_vhpi_lib)
             list(APPEND dpi_libs_args -vhpi $<TARGET_FILE_DIR:${lib}>/lib$<TARGET_FILE_BASE_NAME:${lib}>)
-        else()
+        endif()
+
+        if(is_dpic_lib)
+            list(APPEND dpi_libs_args -sv_lib $<TARGET_FILE_DIR:${lib}>/lib$<TARGET_FILE_BASE_NAME:${lib}>)
+        endif()
+
+        if(is_ip_lib)
             # Library of the current IP block, get it from SoCMake library if present
             # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
             get_target_property(__comp_lib_name ${lib} LIBRARY)
@@ -433,27 +428,6 @@ function(__find_modelsim_home OUTVAR)
     cmake_path(SET modelsim_home NORMALIZE "${bin_path}/..")
 
     set(${OUTVAR} ${modelsim_home} PARENT_SCOPE)
-endfunction()
-
-function(__add_modelsim_cxx_properties_to_libs IP_LIB)
-    if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    endif()
-    # Find the modelsim tools/include directory, needed for VPI/DPI libraries
-    __find_modelsim_home(modelsim_home)
-    set(vpi_inc_path "${modelsim_home}/include")
-
-    get_ip_links(ips ${IP_LIB})
-    foreach(lib ${ips})
-        # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
-        get_target_property(ip_type ${lib} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
-            # Add tools/include directory to the include directories of DPI libraries
-            # TODO do this only when its needed
-            target_include_directories(${lib} PUBLIC ${vpi_inc_path})
-            target_compile_definitions(${lib} PUBLIC QUESTA)
-        endif()
-    endforeach()
 endfunction()
 
 function(modelsim_gen_sc_wrapper IP_LIB)
@@ -603,7 +577,6 @@ function(modelsim_compile_sc_lib SC_LIB)
     endif()
 
     get_target_property(cxx_sources ${SC_LIB} SOURCES)
-    message("cxx_sources: ${cxx_sources}")
 
     set(sccom_cmd sccom
             -${bitness}
@@ -660,7 +633,7 @@ function(modelsim_add_cxx_libs)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    set(allowed_libraries SystemC DPI-C)
+    set(allowed_libraries SystemC DPI-C VHPI)
     foreach(lib ${ARG_LIBRARIES})
         if(NOT ${lib} IN_LIST allowed_libraries)
             message(FATAL_ERROR "Modelsim does not support library: ${lib}")
@@ -685,6 +658,43 @@ function(modelsim_add_cxx_libs)
             ${modelsim_home}/include
             ${modelsim_home}/include/ac_types
             )
+    endif()
+
+    if(DPI-C IN_LIST ARG_LIBRARIES)
+        add_library(modelsim_dpi-c INTERFACE)
+        add_library(SoCMake::DPI-C ALIAS modelsim_dpi-c)
+
+        if(ARG_32BIT)
+            target_compile_options(modelsim_dpi-c INTERFACE -m32)
+            target_link_options   (modelsim_dpi-c INTERFACE -m32)
+        endif()
+        target_compile_definitions(modelsim_dpi-c INTERFACE QUESTA)
+    endif()
+
+    if(DPI-C IN_LIST ARG_LIBRARIES)
+        add_library(modelsim_dpi-c INTERFACE)
+        add_library(SoCMake::DPI-C ALIAS modelsim_dpi-c)
+
+        if(ARG_32BIT)
+            target_compile_options(modelsim_dpi-c INTERFACE -m32)
+            target_link_options   (modelsim_dpi-c INTERFACE -m32)
+        endif()
+        target_include_directories(modelsim_dpi-c INTERFACE ${modelsim_home}/include)
+        target_compile_definitions(modelsim_dpi-c INTERFACE QUESTA)
+    endif()
+
+    if(VHPI IN_LIST ARG_LIBRARIES)
+        add_library(modelsim_vhpi INTERFACE)
+        add_library(SoCMake::VHPI ALIAS modelsim_vhpi)
+
+        if(ARG_32BIT)
+            target_compile_options(modelsim_vhpi INTERFACE -m32)
+            target_link_options   (modelsim_vhpi INTERFACE -m32)
+        endif()
+        target_compile_definitions(modelsim_vhpi INTERFACE QUESTA)
+
+        target_include_directories(modelsim_vhpi INTERFACE ${modelsim_home}/include)
+        target_compile_definitions(modelsim_vhpi INTERFACE QUESTA)
     endif()
 
 endfunction()
