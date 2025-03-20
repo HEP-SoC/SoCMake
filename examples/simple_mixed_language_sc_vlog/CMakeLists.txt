@@ -11,7 +11,11 @@ option_enum(DUT_LANG "Language for DUT modules" "verilog;systemc" "verilog")
 option_boolean(MGC_GUI "Use GUI for modelsim" OFF)
 
 if(SIMULATOR STREQUAL "xcelium")
-    xcelium_configure_cxx()
+    xcelium_configure_cxx(LIBRARIES SystemC)
+elseif(SIMULATOR STREQUAL "mgc")
+    modelsim_configure_cxx(LIBRARIES SystemC)
+elseif(SIMULATOR STREQUAL "vcs")
+    vcs_configure_cxx(LIBRARIES SystemC)
 endif()
 
 # If Using Verilator and Testbench is Verilog, we need coroutines for --timing from C++17

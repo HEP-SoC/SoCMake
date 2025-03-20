@@ -67,22 +67,18 @@ function(vcs IP_LIB)
     endif()
     set(comp_tgt ${IP_LIB}_vcs_complib)
 
-    ### Get list of linked libraries marked as SystemC
+    ### Create arguments for loading SystemC libraries during elaboration
     get_ip_links(__ips ${IP_LIB})
-    unset(systemc_libs)
-    unset(ip_libs)
+    unset(systemc_lib_args)
     foreach(lib ${__ips})
-        get_target_property(ip_type ${lib} TYPE)
-        # TODO only SHARED_LIBRARY allowed
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY" OR ip_type STREQUAL "OBJECT_LIBRARY")
-            get_target_property(socmake_cxx_library_type ${lib} SOCMAKE_CXX_LIBRARY_TYPE)
-            if(socmake_cxx_library_type STREQUAL "SYSTEMC")
-                list(APPEND systemc_libs ${lib})
-            else()
-                list(APPEND ip_libs ${lib})
-            endif()
+        __is_socmake_systemc_lib(is_systemc_lib ${lib})
+        if(is_systemc_lib)
+            list(APPEND systemc_lib_args $<TARGET_FILE:${lib}>)
         endif()
     endforeach()
+    if(systemc_lib_args)
+        set(systemc_lib_args -sysc -ldflags -Wl,--start-group  ${systemc_lib_args}  -syslib -Wl,--end-group)
+    endif()
 
 
     __is_socmake_systemc_lib(top_is_systemc_lib ${IP_LIB})
@@ -92,32 +88,6 @@ function(vcs IP_LIB)
         set(arg_top_sim_module sc_main) # If its SystemC it can be only sc_main as top
     elseif(top_is_ip_lib)
         set(arg_top_sim_module ${LIBRARY}.${ARG_TOP_MODULE})
-    endif()
-
-    ### Add SystemC library needed includes and defines
-    unset(systemc_lib_args)
-    foreach(lib ${systemc_libs})
-        if(ARG_32BIT)
-            target_compile_options(${lib} PUBLIC -m32)
-            target_link_options   (${lib} PUBLIC -m32)
-        endif()
-        set_property(TARGET ${lib} PROPERTY POSITION_INDEPENDENT_CODE ON)
-        # In order to be able to generate HDL wrapper with syscan from .so library
-        target_compile_options(${lib} PUBLIC -g -fno-eliminate-unused-debug-types)
-        target_link_options   (${lib} PUBLIC -g)
-        target_compile_definitions(${lib} PUBLIC VCSSYSTEMC=1)
-        target_include_directories(${lib} PUBLIC
-            $ENV{VCS_HOME}/include/systemc232 # TODO select version
-            $ENV{VCS_HOME}/include/cosim/bf
-            )
-
-        get_target_property(ip_type ${lib} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY")
-            list(APPEND systemc_lib_args $<TARGET_FILE:${lib}>)
-        endif()
-    endforeach()
-    if(systemc_lib_args)
-        set(systemc_lib_args -sysc -ldflags -Wl,--start-group  ${systemc_lib_args}  -syslib -Wl,--end-group)
     endif()
 
     __get_vcs_search_lib_args(${IP_LIB} 
@@ -232,7 +202,6 @@ function(__vcs_compile_lib IP_LIB)
     foreach(parent ${__ips})
         get_target_property(children_ips ${parent} INTERFACE_LINK_LIBRARIES)
 
-
         __is_socmake_systemc_lib(parent_is_systemc_lib ${parent})
         __is_socmake_ip_lib(parent_is_ip_lib ${parent})
  
@@ -245,27 +214,20 @@ function(__vcs_compile_lib IP_LIB)
                     vcs_gen_sc_wrapper(${child} 
                         OUTDIR ${OUTDIR}
                         LIBRARY ${LIBRARY}
-                        ${ARG_BITNESS}
-                    )
+                        ${ARG_BITNESS})
                     add_dependencies(${parent} ${child}_vcs_gen_sc_wrapper)
-                    # set_property(TARGET ${child} APPEND PROPERTY SOCMAKE_SYSTEMC_PARENTS ${parent})
-                    # target_include_directories(${parent} PUBLIC ${OUTDIR}/csrc/sysc/include/)
                 endif()
 
                 if(parent_is_ip_lib AND child_is_systemc_lib)
                     vcs_gen_hdl_wrapper(${child} 
                         OUTDIR ${OUTDIR}
                         LIBRARY ${LIBRARY}
-                        ${ARG_BITNESS}
-                    )
+                        ${ARG_BITNESS})
                     add_dependencies(${parent} ${child}_vcs_gen_hdl_wrapper)
                 endif()
 
             endforeach()
         endif()
-        #
-        # if(ip_type)
-        #
 
     endforeach()
 
@@ -458,10 +420,9 @@ function(__add_vcs_cxx_properties_to_libs IP_LIB)
 endfunction()
 
 function(__is_socmake_systemc_lib RESULT IP_LIB)
-    get_target_property(ip_type ${IP_LIB} TYPE)
-    get_target_property(ip_cxx_type ${IP_LIB} SOCMAKE_CXX_LIBRARY_TYPE)
+    get_target_property(linked_libraries ${IP_LIB} LINK_LIBRARIES)
 
-    if((ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY") AND (ip_cxx_type STREQUAL "SYSTEMC"))
+    if("SoCMake::SystemC" IN_LIST linked_libraries)
         set(${RESULT} TRUE PARENT_SCOPE)
     else()
         set(${RESULT} FALSE PARENT_SCOPE)
@@ -639,5 +600,63 @@ function(vcs_gen_hdl_wrapper SC_LIB)
     set_property(TARGET ${SC_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
 
     ip_sources(${SC_LIB} VERILOG ${GEN_V_FILE})
+
+endfunction()
+
+function(__find_vcs_home OUTVAR)
+    find_program(exec_path vcs REQUIRED)
+    get_filename_component(bin_path "${exec_path}" DIRECTORY)
+    cmake_path(SET vcs_home NORMALIZE "${bin_path}/..")
+
+    set(${OUTVAR} ${vcs_home} PARENT_SCOPE)
+endfunction()
+
+macro(vcs_configure_cxx)
+    cmake_parse_arguments(ARG "32BIT" "" "LIBRARIES" ${ARGN})
+
+    if(NOT DEFINED ENV{VG_GNU_PACKAGE})
+        message(FATAL_ERROR "VG_GNU_PACKAGE variable not set for VCS. VCS CXX simulation should be used with GCC suplied by VCS")
+    endif()
+
+    if(ARG_LIBRARIES)
+        vcs_add_cxx_libs(${ARGV})
+    endif()
+endmacro()
+
+function(vcs_add_cxx_libs)
+    cmake_parse_arguments(ARG "32BIT" "" "LIBRARIES" ${ARGN})
+    # Check for any unrecognized arguments
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    set(allowed_libraries SystemC DPI-C)
+    foreach(lib ${ARG_LIBRARIES})
+        if(NOT ${lib} IN_LIST allowed_libraries)
+            message(FATAL_ERROR "VCS does not support library: ${lib}")
+        endif()
+    endforeach()
+
+    __find_vcs_home(vcs_home)
+
+    if(SystemC IN_LIST ARG_LIBRARIES)
+
+        add_library(vcs_systemc INTERFACE)
+        add_library(SoCMake::SystemC ALIAS vcs_systemc)
+
+        if(ARG_32BIT)
+            target_compile_options(vcs_systemc INTERFACE -m32)
+            target_link_options   (vcs_systemc INTERFACE -m32)
+        endif()
+        target_compile_definitions(vcs_systemc INTERFACE VCSSYSTEMC=1)
+        target_include_directories(vcs_systemc INTERFACE
+            $ENV{VCS_HOME}/include/systemc232 # TODO select version
+            $ENV{VCS_HOME}/include/cosim/bf
+            )
+
+        # In order to be able to generate HDL wrapper with syscan from .so library
+        target_compile_options(vcs_systemc INTERFACE -g -fno-eliminate-unused-debug-types)
+        target_link_options   (vcs_systemc INTERFACE -g)
+    endif()
 
 endfunction()

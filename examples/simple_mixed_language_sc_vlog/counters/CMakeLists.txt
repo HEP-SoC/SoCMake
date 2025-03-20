@@ -12,10 +12,9 @@ elseif(DUT_LANG STREQUAL "systemc")
         add_library(${IP} SHARED
             ./sc/counters.cpp)
 
-        set_target_properties(${IP}
-            PROPERTIES 
-                SOCMAKE_CXX_LIBRARY_TYPE SYSTEMC
-            )
+        target_link_libraries(${IP} PRIVATE
+            SoCMake::SystemC
+        )
 
         target_include_directories(${IP} PUBLIC ./sc)
 endif()

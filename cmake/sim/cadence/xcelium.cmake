@@ -78,48 +78,15 @@ function(xcelium IP_LIB)
     endif()
     set(comp_tgt ${IP_LIB}_xcelium_complib)
 
-    ### Get list of linked libraries marked as SystemC
+    ### Get list of linked SystemC libraries
     get_ip_links(__ips ${IP_LIB})
-    unset(systemc_libs)
+    unset(systemc_lib_args)
     foreach(lib ${__ips})
         __is_socmake_systemc_lib(is_systemc_lib ${lib})
         if(is_systemc_lib)
-            list(APPEND systemc_libs ${lib})
+            list(APPEND systemc_lib_args -loadsc $<TARGET_FILE:${lib}>)
         endif()
     endforeach()
-
-    ### Add SystemC library needed includes and defines
-    unset(systemc_lib_args)
-    if(systemc_libs)
-        set(systemc_lib_name ${IP_LIB}_xcelium_systemc)
-
-        ## Because shared library without any source files is not possible
-        file(WRITE "${OUTDIR}/__null.cpp" "")
-        add_library(${systemc_lib_name} SHARED
-            "${OUTDIR}/__null.cpp"
-            )
-        if(ARG_32BIT)
-            target_compile_options(${systemc_lib_name} PUBLIC -m32)
-            target_link_options(   ${systemc_lib_name} PUBLIC -m32)
-        endif()
-
-        if(bitness STREQUAL "64")
-            set(libpath "lib/64bit/gnu")
-        else()
-            set(libpath "lib/gnu")
-        endif()
-
-        __find_xcelium_home(xcelium_home)
-        target_link_libraries(${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_systemc PUBLIC
-            ${systemc_libs}
-            ${xcelium_home}/tools/systemc/${libpath}/libncscCoSim_sh.so
-            ${xcelium_home}/tools/systemc/${libpath}/libncscCoroutines_sh.so 
-            ${xcelium_home}/tools/systemc/${libpath}/libsystemc_sh.so
-           )
-
-        set(systemc_lib_args -loadsc $<TARGET_FILE:${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_systemc>)
-        list(APPEND comp_tgt ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_systemc)
-    endif()
 
     __get_xcelium_search_lib_args(${IP_LIB} 
         ${ARG_LIBRARY}
@@ -234,6 +201,11 @@ function(__xcelium_compile_lib IP_LIB)
 
         __is_socmake_systemc_lib(parent_is_systemc_lib ${parent})
         __is_socmake_ip_lib(parent_is_ip_lib ${parent})
+
+        # If parent is neither a SystemC library, nor IP library, not possible to generate wrappers
+        if(NOT parent_is_ip_lib AND NOT parent_is_systemc_lib)
+            continue()
+        endif()
 
         if(children_ips)
             foreach(child ${children_ips})
@@ -449,15 +421,6 @@ function(__add_xcelium_cxx_properties_to_libs IP_LIB)
         # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
         get_target_property(ip_type ${lib} TYPE)
         if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY" OR ip_type STREQUAL "OBJECT_LIBRARY")
-            get_target_property(socmake_cxx_library_type ${lib} SOCMAKE_CXX_LIBRARY_TYPE)
-
-            if(socmake_cxx_library_type STREQUAL "SYSTEMC")
-                target_include_directories(${lib} PUBLIC 
-                    ${tools_dir_path}/systemc/include
-                    ${tools_dir_path}/tbsc/include
-                    ${tools_dir_path}/vic/include
-                )
-            endif()
             # Add tools/include directory to the include directories of DPI libraries
             # TODO do this only when its needed
             target_include_directories(${lib} PUBLIC "${tools_dir_path}/include")
@@ -465,12 +428,6 @@ function(__add_xcelium_cxx_properties_to_libs IP_LIB)
         endif()
     endforeach()
 endfunction()
-
-macro(xcelium_configure_cxx)
-    __find_xcelium_home(xcelium_home)
-    set(CMAKE_CXX_COMPILER "${xcelium_home}/tools.lnx86/cdsgcc/gcc/bin/g++")
-    set(CMAKE_C_COMPILER "${xcelium_home}/tools.lnx86/cdsgcc/gcc/bin/gcc")
-endmacro()
 
 function(xcelium_gen_sc_wrapper IP_LIB)
     cmake_parse_arguments(ARG "32BIT;QUIET" "OUTDIR;LIBRARY;TOP_MODULE" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS" ${ARGN})
@@ -620,7 +577,6 @@ function(xcelium_gen_hdl_wrapper SC_LIB)
         )
 
     set(GEN_V_FILE ${OUTDIR}/${ARG_TOP_MODULE}.vs)
-    message("GEN_V_FILE: ${GEN_V_FILE}")
     set(DESCRIPTION "Generate a Verilog wrapper file for SystemC lib ${SC_LIB} with Xcelium xmshell")
     set(STAMP_FILE "${OUTDIR}/${SC_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
@@ -642,5 +598,70 @@ function(xcelium_gen_hdl_wrapper SC_LIB)
     set_property(TARGET ${SC_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
 
     ip_sources(${SC_LIB} VERILOG ${GEN_V_FILE})
+
+endfunction()
+
+
+macro(xcelium_configure_cxx)
+    cmake_parse_arguments(ARG "" "" "LIBRARIES" ${ARGN})
+
+    __find_xcelium_home(xcelium_home)
+    set(CMAKE_CXX_COMPILER "${xcelium_home}/tools.lnx86/cdsgcc/gcc/bin/g++")
+    set(CMAKE_C_COMPILER "${xcelium_home}/tools.lnx86/cdsgcc/gcc/bin/gcc")
+
+    if(ARG_LIBRARIES)
+        xcelium_add_cxx_libs(${ARGV})
+    endif()
+endmacro()
+
+function(xcelium_add_cxx_libs)
+    cmake_parse_arguments(ARG "32BIT" "" "LIBRARIES" ${ARGN})
+    # Check for any unrecognized arguments
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    set(allowed_libraries SystemC DPI-C)
+    foreach(lib ${ARG_LIBRARIES})
+        if(NOT ${lib} IN_LIST allowed_libraries)
+            message(FATAL_ERROR "Xcelium does not support library: ${lib}")
+        endif()
+    endforeach()
+
+    if(ARG_32BIT)
+        set(bitness 32)
+    else()
+        set(bitness 64)
+    endif()
+
+    __find_xcelium_home(xcelium_home)
+
+    if(SystemC IN_LIST ARG_LIBRARIES)
+        if(bitness STREQUAL "64")
+            set(libpath "lib/64bit/gnu")
+        else()
+            set(libpath "lib/gnu")
+        endif()
+
+        add_library(xcelium_systemc INTERFACE)
+        add_library(SoCMake::SystemC ALIAS xcelium_systemc)
+        target_link_libraries(xcelium_systemc INTERFACE
+            ${xcelium_home}/tools/systemc/${libpath}/libncscCoSim_sh.so
+            ${xcelium_home}/tools/systemc/${libpath}/libncscCoroutines_sh.so 
+            ${xcelium_home}/tools/systemc/${libpath}/libsystemc_sh.so
+        )
+
+        if(ARG_32BIT)
+            target_compile_options(xcelium_systemc INTERFACE -m32)
+            target_link_options(xcelium_systemc    INTERFACE -m32)
+        endif()
+        target_compile_definitions(xcelium_systemc INTERFACE INCA)
+
+        target_include_directories(xcelium_systemc INTERFACE
+            ${xcelium_home}/tools/systemc/include
+            ${xcelium_home}/tools/tbsc/include
+            ${xcelium_home}/tools/vic/include
+        )
+    endif()
 
 endfunction()

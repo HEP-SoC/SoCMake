@@ -72,31 +72,11 @@ function(modelsim IP_LIB)
     ### Get list of linked libraries marked as SystemC
     get_ip_links(__ips ${IP_LIB})
     unset(systemc_libs)
-    unset(ip_libs)
     foreach(lib ${__ips})
-        get_target_property(ip_type ${lib} TYPE)
         __is_socmake_systemc_lib(is_systemc_lib ${lib})
-        __is_socmake_ip_lib(is_ip_lib ${lib})
         if(is_systemc_lib)
             list(APPEND systemc_libs ${lib})
-        elseif(is_ip_lib)
-            list(APPEND ip_libs ${lib})
         endif()
-    endforeach()
-
-    ### Add SystemC library needed includes and defines
-    foreach(lib ${systemc_libs})
-        if(ARG_32BIT)
-            target_compile_options(${lib} PUBLIC -m32)
-            target_link_options   (${lib} PUBLIC -m32)
-        endif()
-        set_property(TARGET ${lib} PROPERTY POSITION_INDEPENDENT_CODE ON)
-        target_compile_definitions(${lib} PUBLIC MTI_SYSTEMC)
-        target_include_directories(${lib} PUBLIC
-            ${modelsim_home}/include/systemc
-            ${modelsim_home}/include
-            ${modelsim_home}/include/ac_types
-            )
     endforeach()
 
     __get_modelsim_search_lib_args(${IP_LIB} 
@@ -652,3 +632,60 @@ function(modelsim_compile_sc_lib SC_LIB)
     )
     set_property(TARGET ${SC_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
 endfunction()
+
+
+macro(modelsim_configure_cxx)
+    cmake_parse_arguments(ARG "32BIT" "" "LIBRARIES" ${ARGN})
+
+    __find_modelsim_home(modelsim_home)
+
+    if(ARG_32BIT)
+        set(bitness 32)
+    else()
+        set(bitness 64)
+    endif()
+
+    set(CMAKE_CXX_COMPILER "${modelsim_home}/gcc${bitness}/bin/g++")
+    set(CMAKE_C_COMPILER "${modelsim_home}/gcc${bitness}/bin/gcc")
+
+    if(ARG_LIBRARIES)
+        modelsim_add_cxx_libs(${ARGV})
+    endif()
+endmacro()
+
+function(modelsim_add_cxx_libs)
+    cmake_parse_arguments(ARG "32BIT" "" "LIBRARIES" ${ARGN})
+    # Check for any unrecognized arguments
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    set(allowed_libraries SystemC DPI-C)
+    foreach(lib ${ARG_LIBRARIES})
+        if(NOT ${lib} IN_LIST allowed_libraries)
+            message(FATAL_ERROR "Modelsim does not support library: ${lib}")
+        endif()
+    endforeach()
+
+    __find_modelsim_home(modelsim_home)
+
+    if(SystemC IN_LIST ARG_LIBRARIES)
+
+        add_library(modelsim_systemc INTERFACE)
+        add_library(SoCMake::SystemC ALIAS modelsim_systemc)
+
+        if(ARG_32BIT)
+            target_compile_options(modelsim_systemc INTERFACE -m32)
+            target_link_options   (modelsim_systemc INTERFACE -m32)
+        endif()
+        # set_property(TARGET modelsim_systemc PROPERTY POSITION_INDEPENDENT_CODE ON)
+        target_compile_definitions(modelsim_systemc INTERFACE MTI_SYSTEMC)
+        target_include_directories(modelsim_systemc INTERFACE
+            ${modelsim_home}/include/systemc
+            ${modelsim_home}/include
+            ${modelsim_home}/include/ac_types
+            )
+    endif()
+
+endfunction()
+

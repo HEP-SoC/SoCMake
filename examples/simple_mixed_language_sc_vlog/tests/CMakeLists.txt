@@ -14,11 +14,9 @@ elseif(TEST_LANG STREQUAL "systemc")
     set_property(TARGET ${IP} PROPERTY IP_NAME test_counters)
     target_include_directories(${IP} PUBLIC ./sc)
 
-    set_target_properties(${IP}
-        PROPERTIES 
-            SOCMAKE_CXX_LIBRARY_TYPE SYSTEMC
-            POSITION_INDEPENDENT_CODE TRUE
-        )
+    target_link_libraries(${IP} PRIVATE
+        SoCMake::SystemC
+    )
 
     target_link_libraries(${IP} PUBLIC
         counters)
@@ -28,3 +26,4 @@ add_subdirectory(../counters/ "counters")
 
 ip_link(${IP}
         counters)
+
