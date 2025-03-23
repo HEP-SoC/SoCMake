@@ -8,7 +8,6 @@ cmake
 
    firmware/index.rst
    peakrdl/index.rst
-   sim/index.rst
    synth/index.rst
    systemrdl/index.rst
    tmake/index.rst
