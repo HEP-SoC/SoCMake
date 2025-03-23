@@ -16,7 +16,9 @@ function(alias_dereference OUT LIB)
 
     # Check the library exists
     if(NOT TARGET ${LIB} AND NOT "${LIB}" MATCHES ".*LINK_ONLY:")
-        message(FATAL_ERROR "Library ${LIB} is not defined")
+        # In case library is not defined, we cannot FATAL_ERROR, as the library passed might be system library or path to .so or .a lib
+        # message(FATAL_ERROR "Library ${LIB} is not defined")
+        return()
     endif()
     # Retrive the original library name from the library property
     get_target_property(_reallib ${LIB} ALIASED_TARGET)
