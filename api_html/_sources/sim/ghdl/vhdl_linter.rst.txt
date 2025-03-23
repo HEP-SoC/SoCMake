@@ -1,0 +1,12 @@
+
+##########################
+cmake.sim/ghdl/vhdl_linter
+##########################
+
+.. module:: cmake.sim/ghdl/vhdl_linter
+
+
+.. function:: vhdl_linter(IP_LIB **kwargs)
+
+   
+
