@@ -7,7 +7,6 @@ function(vivado_sim IP_LIB)
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
-    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
 
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
@@ -253,44 +252,3 @@ function(__vivado_sim_compile_lib IP_LIB)
 
 endfunction()
 
-macro(vivado_sim_configure_cxx)
-    cmake_parse_arguments(ARG "" "" "LIBRARIES" ${ARGN})
-
-    # __find_vivado_sim_home(vivado_sim_home)
-    # set(CMAKE_CXX_COMPILER "${vivado_sim_home}/tools.lnx86/cdsgcc/gcc/bin/g++")
-    # set(CMAKE_C_COMPILER "${vivado_sim_home}/tools.lnx86/cdsgcc/gcc/bin/gcc")
-
-    if(ARG_LIBRARIES)
-        vivado_sim_add_cxx_libs(${ARGV})
-    endif()
-endmacro()
-
-function(vivado_sim_add_cxx_libs)
-    cmake_parse_arguments(ARG "32BIT" "" "LIBRARIES" ${ARGN})
-    # Check for any unrecognized arguments
-    if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    endif()
-
-    set(allowed_libraries DPI-C)
-    foreach(lib ${ARG_LIBRARIES})
-        if(NOT ${lib} IN_LIST allowed_libraries)
-            message(FATAL_ERROR "Xcelium does not support library: ${lib}")
-        endif()
-    endforeach()
-
-    # __find_vivado_sim_home(vivado_sim_home)
-
-    if(DPI-C IN_LIST ARG_LIBRARIES)
-        add_library(vivado_sim_dpi-c INTERFACE)
-        add_library(SoCMake::DPI-C ALIAS vivado_sim_dpi-c)
-
-        if(ARG_32BIT)
-            target_compile_options(vivado_sim_dpi-c INTERFACE -m32)
-            target_link_options   (vivado_sim_dpi-c INTERFACE -m32)
-        endif()
-        # target_include_directories(vivado_sim_dpi-c INTERFACE ${vivado_sim_home}/include)
-        # target_compile_definitions(vivado_sim_dpi-c INTERFACE INCA)
-    endif()
-
-endfunction()

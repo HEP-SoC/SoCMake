@@ -12,10 +12,6 @@ function(systemc_build)
         set(CMAKE_ARG_VERSION "-DVERSION=${ARG_VERSION}")
     endif()
 
-    if(CMAKE_CXX_STANDARD)
-        set(CMAKE_CXX_STANDARD_ARG "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}")
-    endif()
-
     if(NOT ARG_INSTALL_DIR)
         if(FETCHCONTENT_BASE_DIR)
             set(ARG_INSTALL_DIR ${FETCHCONTENT_BASE_DIR}/systemc)
@@ -25,7 +21,7 @@ function(systemc_build)
     endif()
 
     find_package(SystemCLanguage ${ARG_VERSION} CONFIG
-        HINTS ${SYSTEMC_HOME} $ENV{SYSTEMC_HOME} ${ARG_INSTALL_DIR} 
+        HINTS ${ARG_INSTALL_DIR}
         )
 
     if(ARG_EXACT_VERSION)
@@ -41,9 +37,7 @@ function(systemc_build)
             -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
             -B ${CMAKE_BINARY_DIR}/systemc-build 
             ${CMAKE_ARG_VERSION}
-            ${CMAKE_CXX_STANDARD_ARG}
             -DCMAKE_INSTALL_PREFIX=${ARG_INSTALL_DIR}
-            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             COMMAND_ECHO STDOUT
             )
 
