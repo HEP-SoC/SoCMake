@@ -1,6 +1,0 @@
-#port           width             Verilog         SystemC
-clk             1                 bit             bool
-rst             1                 bit             bool
-cnt1_out        8                 bitvector       sc_uint
-cnt2_out        8                 bitvector       sc_uint
-

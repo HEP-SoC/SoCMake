@@ -100,8 +100,6 @@ function(__all_vertices_removed NODE RET)
     endif()
     get_target_property(RM_LIST ${NODE} __RM_LIST)
     get_target_property(LINK_LIBS ${NODE} INTERFACE_LINK_LIBRARIES)
-    list(REMOVE_DUPLICATES LINK_LIBS)
-
     if(RM_LIST STREQUAL "RM_LIST-NOTFOUND")
         set(RM_LIST "")
     endif()
