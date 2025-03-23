@@ -1,0 +1,15 @@
+
+###############################
+cmake.sim/verisc/verisc_install
+###############################
+
+.. module:: cmake.sim/verisc/verisc_install
+
+
+.. function:: verisc_build(**kwargs)
+
+
+   .. note:: This is a macro, and so does not introduce a new scope.
+
+   
+

@@ -1,0 +1,12 @@
+
+####################################
+cmake.sim/fc4sc/fc4sc_merge_coverage
+####################################
+
+.. module:: cmake.sim/fc4sc/fc4sc_merge_coverage
+
+
+.. function:: fc4sc_merge_coverage(DIRECTORY **kwargs)
+
+   
+

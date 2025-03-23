@@ -1,0 +1,35 @@
+
+###################
+cmake.sim/sim_utils
+###################
+
+.. module:: cmake.sim/sim_utils
+
+
+.. function:: __check_linked_interface_lib()
+
+
+   .. note:: This is a macro, and so does not introduce a new scope.
+
+   
+
+
+.. function:: __is_socmake_systemc_lib(RESULT IP_LIB)
+
+   
+
+
+.. function:: __is_socmake_dpic_lib(RESULT IP_LIB)
+
+   
+
+
+.. function:: __is_socmake_vhpi_lib(RESULT IP_LIB)
+
+   
+
+
+.. function:: __is_socmake_ip_lib(RESULT IP_LIB)
+
+   
+

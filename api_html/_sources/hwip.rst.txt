@@ -281,3 +281,13 @@ cmake.hwip
    :type [NO_DEPS]: bool
    
 
+
+.. function:: socmake_add_languages()
+
+   
+
+
+.. function:: get_socmake_languages(OUTVAR)
+
+   
+
