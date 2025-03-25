@@ -22,20 +22,17 @@ function(vivado IP_LIB)
     list(FILTER SOURCES EXCLUDE REGEX ".vlt$")
 
     if(NOT ARG_TOP)
-        set(TOP ${IP_LIB})
+        get_target_property(TOP ${IP_LIB} IP_NAME)
     else()
         set(TOP ${ARG_TOP})
     endif()
 
-    # get_ip_sources(XDC_FILES ${IP_LIB} XDC)
     get_target_property(XDC_FILES ${IP_LIB} XDC)
     get_target_property(FPGA_PART ${IP_LIB} FPGA_PART)
 
     get_ip_include_directories(INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
     get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
-    foreach(def ${COMP_DEFS})
-        list(APPEND CMP_DEFS_ARG -D${def})
-    endforeach()
+    list(APPEND COMP_DEFS ${ARG_VERILOG_DEFINES})
 
     set(BITSTREAM ${OUTDIR}/${IP_LIB}.bit)
     set_source_files_properties(${BITSTREAM} PROPERTIES GENERATED TRUE)
@@ -51,7 +48,7 @@ function(vivado IP_LIB)
             --name ${IP_LIB}
             --top  ${TOP}
             --outdir ${OUTDIR}
-            --verilog-defs ${CMP_DEFS_ARG}
+            --verilog-defs ${COMP_DEFS}
 
         COMMAND /bin/sh -c date > ${STAMP_FILE}
         DEPENDS ${SOURCES} ${XDC_FILES} ${IP_LIB}
