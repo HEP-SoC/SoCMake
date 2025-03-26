@@ -11,10 +11,12 @@
 function(convert_paths_to_absolute OUTPUT_LIST)
     unset(output_list)
     foreach(path ${ARGN})
-        cmake_path(ABSOLUTE_PATH path 
-            BASE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} NORMALIZE
-            OUTPUT_VARIABLE path
-        )
+        if(NOT "${path}" MATCHES "\\$\{_IMPORT_PREFIX\}")
+            cmake_path(ABSOLUTE_PATH path 
+                BASE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} NORMALIZE
+                OUTPUT_VARIABLE path
+            )
+        endif()
         list(APPEND output_list ${path} )
     endforeach()
 
