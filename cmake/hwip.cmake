@@ -92,6 +92,7 @@ function(add_ip IP_NAME)
 
     if(ARG_DESCRIPTION)
         set_property(TARGET ${IP_LIB} PROPERTY DESCRIPTION ${ARG_DESCRIPTION})
+        set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES DESCRIPTION)
     endif()
 
     # Unset the parent variables that might have been set by previous add_ip() call
@@ -102,15 +103,19 @@ function(add_ip IP_NAME)
     if(ARG_VENDOR)
         set(IP_VENDOR ${ARG_VENDOR} PARENT_SCOPE)
         set_target_properties(${IP_LIB} PROPERTIES VENDOR ${ARG_VENDOR})
+        set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES VENDOR)
     endif()
     if(ARG_LIBRARY)
         set(IP_LIBRARY ${ARG_LIBRARY} PARENT_SCOPE)
         set_target_properties(${IP_LIB} PROPERTIES LIBRARY ${ARG_LIBRARY})
+        set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES LIBRARY)
     endif()
     set_target_properties(${IP_LIB} PROPERTIES IP_NAME ${IP_NAME})
+    set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES IP_NAME)
     if(ARG_VERSION)
         set(IP_VERSION ${ARG_VERSION} PARENT_SCOPE)
         set_target_properties(${IP_LIB} PROPERTIES VERSION ${ARG_VERSION})
+        set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES VERSION)
     endif()
 
     set(IP_NAME ${IP_NAME} PARENT_SCOPE)
@@ -304,14 +309,14 @@ function(ip_sources IP_LIB LANGUAGE)
     endif()
     # Set the target property with the new list of source and header files
     set_property(TARGET ${_reallib} PROPERTY ${sources_property} ${_sources})
-    # set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${sources_property}) # TODO don't add if already there
+    set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${sources_property}) # TODO don't add if already there
     if(ARG_HEADERS)
         foreach(header ${_headers})
             cmake_path(GET header PARENT_PATH header_incdir)
             ip_include_directories(${IP_LIB} ${LANGUAGE} ${header_incdir})
         endforeach()
         set_property(TARGET ${_reallib} PROPERTY ${headers_property} ${_headers})
-        # set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${headers_property}) # TODO don't add if already there
+        set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${headers_property}) # TODO don't add if already there
     endif()
 endfunction()
 
@@ -428,6 +433,7 @@ function(ip_include_directories IP_LIB LANGUAGE)
     convert_paths_to_absolute(dir_list ${ARGN})
     # Append the new include directories to the exsiting ones
     set_property(TARGET ${_reallib} APPEND PROPERTY ${incdir_property} ${dir_list})
+    set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${incdir_property}) # TODO don't add if already there
 endfunction()
 
 #[[[
@@ -509,7 +515,7 @@ function(check_languages LANGUAGE)
     # The user can add addition languages using the SOCMAKE_ADDITIONAL_LANGUAGES variable and global property
     get_socmake_languages(SOCMAKE_SUPPORTED_LANGUAGES)
     
-    if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
+    if(NOT "${LANGUAGE}" IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
         if(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL)
             set(_verbosity FATAL_ERROR)
         else()
@@ -737,6 +743,7 @@ function(ip_compile_definitions IP_LIB LANGUAGE)
 
     # Append the new compile definitions to the exsiting ones
     set_property(TARGET ${_reallib} APPEND PROPERTY ${comp_def_property} ${__comp_defs})
+    set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${comp_def_property}) # TODO don't add if already there
 endfunction()
 
 

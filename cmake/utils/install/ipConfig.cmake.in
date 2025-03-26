@@ -1,0 +1,15 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/adderTargets.cmake")
+check_required_components("@PROJECT_NAME@")
+
+string(REPLACE "__" "::" IP_ALIAS "@IP_LIB@")
+if(NOT "${IP_ALIAS}" STREQUAL "@IP_LIB@")
+    add_library(${IP_ALIAS} ALIAS @IP_LIB@)
+endif()
+
+if(@IP_VERSION@)
+    string(REPLACE "__@IP_VERSION@" "" IP_NO_VERSION_ALIAS "@IP_LIB@")
+    add_library(${IP_NO_VERSION_ALIAS} ALIAS @IP_LIB@)
+endif()
+
