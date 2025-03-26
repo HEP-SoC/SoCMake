@@ -15,6 +15,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/graphviz.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/option.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/find_python.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/print_list.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/install/install.cmake")
 
 # ====================================
 # ======== Additional utilities ======
