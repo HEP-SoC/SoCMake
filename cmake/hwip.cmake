@@ -405,15 +405,9 @@ endfunction()
 #]]
 function(check_languages LANGUAGE)
     # The default supported languages
-    # The user can add addition languages using the SOCMAKE_ADDITIONAL_LANGUAGES variable
-    set(SOCMAKE_SUPPORTED_LANGUAGES 
-            SYSTEMVERILOG SYSTEMVERILOG_SIM SYSTEMVERILOG_FPGA
-            VERILOG VERILOG_SIM VERILOG_FPGA
-            VHDL VHDL_SIM VHDL_FPGA
-            SYSTEMRDL SYSTEMRDL_SOCGEN
-            VERILATOR_CFG
-            ${SOCMAKE_ADDITIONAL_LANGUAGES})
-
+    # The user can add addition languages using the SOCMAKE_ADDITIONAL_LANGUAGES variable and global property
+    get_socmake_languages(SOCMAKE_SUPPORTED_LANGUAGES)
+    
     if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
         if(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL)
             set(_verbosity FATAL_ERROR)
@@ -648,4 +642,23 @@ function(recursive_get_target_property OUTVAR IP_LIB PROPERTY)
 
     # Return the collected values
     set(${OUTVAR} ${_seen_values} PARENT_SCOPE)
+endfunction()
+
+function(socmake_add_languages)
+    set_property(GLOBAL APPEND PROPERTY SOCMAKE_ADDITIONAL_LANGUAGES ${ARGN})
+endfunction()
+
+function(get_socmake_languages OUTVAR)
+    get_property(additional_languages GLOBAL PROPERTY SOCMAKE_ADDITIONAL_LANGUAGES)
+
+    set(languages
+            SYSTEMVERILOG SYSTEMVERILOG_SIM SYSTEMVERILOG_FPGA
+            VERILOG VERILOG_SIM VERILOG_FPGA
+            VHDL VHDL_SIM VHDL_FPGA
+            SYSTEMRDL SYSTEMRDL_SOCGEN
+            VERILATOR_CFG
+            ${SOCMAKE_ADDITIONAL_LANGUAGES}
+            ${additional_languages})
+
+    set(${OUTVAR} ${languages} PARENT_SCOPE)
 endfunction()
