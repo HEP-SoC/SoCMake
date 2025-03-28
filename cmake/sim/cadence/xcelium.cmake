@@ -24,22 +24,13 @@
 # :type ARGS: string
 #]]
 function(xcelium IP_LIB)
-<<<<<<< HEAD
-    # cmake_parse_arguments(ARG "ELABORATE;SYNTHESIS" "UNIQUIFY;ACCESS;TIMESCALE;SDF_CMD_FILE" "SETENV;DEFINES;ARGS" ${ARGN})
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI" "RUN_TARGET_NAME;TOP_MODULE;LIBRARY" "COMPILE_ARGS;SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS" ${ARGN})
-=======
     cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI;32BIT" "RUN_TARGET_NAME;TOP_MODULE;LIBRARY" "COMPILE_ARGS;SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS" ${ARGN})
->>>>>>> develop
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
-<<<<<<< HEAD
-    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/uniquify_files_by_basename.cmake")
-=======
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
->>>>>>> develop
 
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
@@ -160,13 +151,9 @@ function(xcelium IP_LIB)
     )
 
     set(run_sim_cmd xrun -R
-<<<<<<< HEAD
-        -64bit
         -l xmsim.log
         -xmlibdirpath ${OUTDIR}
-=======
         $<$<NOT:$<BOOL:${ARG_32BIT}>>:-64bit>
->>>>>>> develop
         $<$<BOOL:${ARG_GUI}>:-gui>
         ${hdl_libs_args}
         ${dpi_libs_args}
