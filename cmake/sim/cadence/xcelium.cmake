@@ -1,30 +1,46 @@
+#[[[ @module xcelium
+#]]
+
 #[[[
 # Create a target for invoking Xcelium (compilation, elaboration, and simulation) on IP_LIB.
 #
-# It will create a target **<IP_LIB>_xcelium_elab** that will compile, elaborate, and simulate the IP_LIB design.
+# It will create a target **run_<IP_LIB>_xcelium** that will compile, elaborate, and simulate the IP_LIB design.
 #
 # :param IP_LIB: RTL interface library, it needs to have SOURCES property set with a list of System Verilog files.
 # :type IP_LIB: INTERFACE_LIBRARY
 #
 # **Keyword Arguments**
 #
-# :keyword ELABORATE: sets xrun to compile and elaborate only the design (no simulation).
-# :type ELABORATE: string
-# :keyword UNIQUIFY: Uniquifies the list of ip sources based on the basename of the files: WARNING or FATAL_ERROR.
-# :type UNIQUIFY: string
-# :keyword SYNTHESIS: Prevents behavioural/generic RTL files to be fetched.
-# :type SYNTHESIS: string
-# :keyword ACCESS: Access rights (i.e., visibility) used to compile and elaborate the design. For debugging pass 'rwc'.
-# :type ACCESS: string
-# :keyword SETENV: List of env variables passed to xrun.
-# :type SETENV: string
-# :keyword DEFINES: List of defines passed to xrun.
-# :type DEFINES: string
-# :keyword ARGS: Additional arguments passed to xrun.
-# :type ARGS: string
+# :keyword NO_RUN_TARGET: Do not create a run target.
+# :type NO_RUN_TARGET: bool
+# :keyword GUI: Run simulation in GUI mode.
+# :type GUI: bool
+# :keyword 32BIT: Use 32 bit compilation and simulation.
+# :type 32BIT: bool
+# :keyword OUTDIR: Output directory for the Xcelium compilation and simulation.
+# :type OUTDIR: string
+# :keyword RUN_TARGET_NAME: Replace the default name of the run target.
+# :type RUN_TARGET_NAME: string
+# :keyword TOP_MODULE: Top module name to be used for elaboration and simulation.
+# :type TOP_MODULE: string
+# :keyword LIBRARY: replace the default library name (worklib) to be used for elaboration and simulation.
+# :type LIBRARY: string
+# :keyword COMPILE_ARGS: Extra arguments to be passed to the compilation step (C, C++).
+# :type COMPILE_ARGS: string
+# :keyword SV_COMPILE_ARGS: Extra arguments to be passed to the System Verilog / Verilog compilation step.
+# :type SV_COMPILE_ARGS: string
+# :keyword VHDL_COMPILE_ARGS: Extra arguments to be passed to the VHDL compilation step.
+# :type VHDL_COMPILE_ARGS: string
+# :keyword ELABORATE_ARGS: Extra arguments to be passed to the elaboration step.
+# :type ELABORATE_ARGS: string
+# :keyword RUN_ARGS: Extra arguments to be passed to the simulation step.
+# :type RUN_ARGS: string
 #]]
+
+include_guard(GLOBAL)
+
 function(xcelium IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI;32BIT" "RUN_TARGET_NAME;TOP_MODULE;LIBRARY" "COMPILE_ARGS;SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI;32BIT" "OUTDIR;RUN_TARGET_NAME;TOP_MODULE;LIBRARY" "COMPILE_ARGS;SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
