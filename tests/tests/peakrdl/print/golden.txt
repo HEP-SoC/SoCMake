@@ -1,0 +1,5 @@
+[100%] Running peakrdl dump on tests__peakrdl__top__0.0.1
+0x00-0x03: top.testreg3
+0x08-0x0b: top.ip2_i.testreg2
+0x0c-0x0f: top.ip2_i.ip1_i.some_reg
+[100%] Built target tests__peakrdl__top__0.0.1_peakrdl_print

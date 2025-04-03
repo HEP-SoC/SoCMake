@@ -33,6 +33,7 @@ if("--main" IN_LIST VERILATE_VERILATOR_ARGS)
         )
     target_link_libraries(${EXECUTABLE_NAME} PRIVATE
         ${TARGET}
+        -pthread
         )
 endif()
 

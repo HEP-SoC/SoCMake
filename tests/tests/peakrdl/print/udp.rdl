@@ -1,0 +1,14 @@
+`ifndef __UDP_RDL__
+`define __UDP_RDL__
+
+property foo {
+    component = addrmap;
+    type = string;
+};
+
+property bar {
+    component = reg;
+    type = string;
+};
+
+`endif

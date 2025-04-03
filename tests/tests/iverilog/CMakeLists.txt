@@ -1,0 +1,2 @@
+add_subdirectory(iverilog_simple_test)
+add_subdirectory(iverilog_multi_top)

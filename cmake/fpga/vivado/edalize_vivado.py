@@ -1,8 +1,8 @@
-from re import split
-from edalize.edatool import get_edatool
+import logging
 import argparse
 from typing import List
 import sys
+from edalize.edatool import get_edatool
 
 def main(
         rtl_files: List[str],
@@ -14,6 +14,21 @@ def main(
         top: str,
         outdir : str,
         ):
+
+    ###################################################################################
+    # Set up logging
+    logger = logging.getLogger("edalize_vivado.py")
+    logger.setLevel(logging.INFO)
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    # create formatter and add it to the handlers
+    FORMAT = '-- %(levelname)s: %(name)s - %(message)s'
+    formatter = logging.Formatter(FORMAT)
+    ch.setFormatter(formatter)
+    # add the handlers to the logger
+    logger.addHandler(ch)
+
+    ###################################################################################
 
     files = []
     for f in rtl_files:
@@ -39,11 +54,12 @@ def main(
         # by default params are set to one if no value is given
         param_value = '1'
         if (param_len == 1):
-            print(f"edalize_vivado.py - Warning: define {p_name} is assigned the default value of 1")
+            logger.warning(f"Verilog define '{p_name}' is assigned the default value of 1")
         elif (param_len == 2):
             param_value = param[1]
         else:
-            print(f"edalize_vivado - Fatal error: define {p_name} syntax is wrong: {define}", file=sys.stderr)
+            logger.error(f"Verilog define '{p_name}' syntax is wrong: {define}")
+            sys.exit(1)
         params[p_name] = {'datatype' : type, 'default' : param_value, 'paramtype' : 'vlogdefine'}
 
     tool = 'vivado'
@@ -61,7 +77,6 @@ def main(
     backend.configure()
     backend.build()
     backend.run()
-
 
 
 if __name__ == '__main__':
@@ -88,5 +103,3 @@ if __name__ == '__main__':
         top=args.top,
         outdir=args.outdir,
     )
-
-

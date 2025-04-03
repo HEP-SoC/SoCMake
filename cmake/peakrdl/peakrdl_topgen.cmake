@@ -10,8 +10,8 @@ function(peakrdl_topgen IP_LIB)
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/find_python.cmake")
 
-    ip_assume_last(IP_LIB ${IP_LIB})
-    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
+    alias_dereference(_reallib ${IP_LIB})
+    get_target_property(BINARY_DIR ${_reallib} BINARY_DIR)
 
     # Default output directory is regblock/
     if(NOT ARG_OUTDIR)
@@ -26,7 +26,7 @@ function(peakrdl_topgen IP_LIB)
 
     if(NOT ARG_RENAME)
         # The default name is the IP name
-        get_target_property(IP_NAME ${IP_LIB} IP_NAME)
+        get_target_property(IP_NAME ${_reallib} IP_NAME)
     else()
         set(IP_NAME ${ARG_RENAME})
     endif()
@@ -48,9 +48,9 @@ function(peakrdl_topgen IP_LIB)
 
     if(NOT ARG_RENAME)
         # The default name is the IP name
-        get_target_property(REGBLOCK_NAME ${IP_LIB} IP_NAME)
+        get_target_property(REGBLOCK_NAME ${_reallib} IP_NAME)
         if(NOT REGBLOCK_NAME)
-            message(FATAL_ERROR "IP_NAME not set for ${IP_LIB}, check if the IP was added with
+            message(FATAL_ERROR "IP_NAME not set for ${_reallib}, check if the IP was added with
                     add_ip function from SoCMake")
         endif()
         set(REGBLOCK_NAME ${REGBLOCK_NAME}_regblock)
@@ -68,16 +68,16 @@ function(peakrdl_topgen IP_LIB)
 
     # Get the SystemRDL sources to generate the register block
     # This function gets the IP sources and the deps
-    get_ip_sources(RDL_SOURCES ${IP_LIB} SYSTEMRDL)
+    get_ip_sources(RDL_SOURCES ${_reallib} SYSTEMRDL)
 
     # Get SystemRDL include directories
-    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
+    get_ip_include_directories(INC_DIRS ${_reallib} SYSTEMRDL)
     if(INC_DIRS)
         set(INCDIR_ARG -I ${INC_DIRS})
     endif()
 
     if(NOT RDL_SOURCES)
-        message(FATAL_ERROR "Library ${IP_LIB} does not have SYSTEMRDL_SOURCES property set,
+        message(FATAL_ERROR "Library ${_reallib} does not have SYSTEMRDL_SOURCES property set,
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
@@ -96,7 +96,7 @@ function(peakrdl_topgen IP_LIB)
         ${RDL_SOURCES}
     )
 
-    set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(STAMP_FILE "${BINARY_DIR}/${_reallib}_${CMAKE_CURRENT_FUNCTION}.stamp")
 
     # Regblock generated files (pkg + logic)
     set(REGBLOCK_SV_GEN
@@ -113,11 +113,11 @@ function(peakrdl_topgen IP_LIB)
         COMMAND ${__CMD}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_SOURCES}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
+        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${_reallib}"
     )
 
     # This target triggers the custom command generating the top wrapper and the register file block
-    set(TNAME ${IP_LIB}_topgen)
+    set(TNAME ${_reallib}_topgen)
     add_custom_target(
         ${TNAME}
         DEPENDS ${REGBLOCK_SV_GEN} ${WRAP_SV_GEN} ${STAMP_FILE}
@@ -129,6 +129,6 @@ function(peakrdl_topgen IP_LIB)
     endif()
 
     # Add dependency to the IP
-    add_dependencies(${IP_LIB} ${IP_LIB}_topgen)
+    add_dependencies(${_reallib} ${_reallib}_topgen)
 endfunction()
 

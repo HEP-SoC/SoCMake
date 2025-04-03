@@ -1,0 +1,10 @@
+
+ip_sources(ip SYSTEMVERILOG
+    incdir/incdir_file.sv)
+
+list(APPEND SV_SOURCES incdir/incdir_file.sv)
+
+ip_sources(ip VHDL
+    incdir/incdir_file.vhdl)
+
+list(APPEND VHDL_SOURCES incdir/incdir_file.vhdl)

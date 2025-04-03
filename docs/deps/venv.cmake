@@ -3,8 +3,9 @@ if(DEPS_USE_VENV)
     # Create the python virtual environment if not already done
     if(NOT DEFINED ENV{VIRTUAL_ENV})
         # Set an environment variable as activating a virtual env would do
-        set(ENV{VIRTUAL_ENV} "${PYTHON_VENV_BASE_DIR}/.venv")
+        set(ENV{VIRTUAL_ENV} "${CMAKE_CURRENT_LIST_DIR}/_deps/.venv")
     endif()
+    message("VIRTUAL_ENV: $ENV{VIRTUAL_ENV}")
     # The previous coommand tricks find_package() to look for a python interpreter under the
     # VIRUTAL_ENV path. Note that if the venv is deleted, the Python3_EXECUTABLE is still cached so it
     # generates an error (in this case delete the CMakeCache.txt)
@@ -13,7 +14,7 @@ if(DEPS_USE_VENV)
     string(FIND "${Python3_EXECUTABLE}" $ENV{VIRTUAL_ENV}/bin/python IN_VENV)
     if(NOT IN_VENV EQUAL 0)
         # If no venv exist, create one
-        execute_process (COMMAND "${Python3_EXECUTABLE}" -m venv "${PYTHON_VENV_BASE_DIR}/.venv")
+        execute_process (COMMAND "${Python3_EXECUTABLE}" -m venv $ENV{VIRTUAL_ENV})
         # The virtual environment is used before any other standard paths to look-up for the interpreter
         set(Python3_FIND_VIRTUALENV FIRST)
         # Remove the python executable to search for the venv one

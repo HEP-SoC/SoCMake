@@ -1,0 +1,41 @@
+name: testing_workflow 
+
+# execute this workflow automatically when a we push to master
+on: [push]
+
+jobs:
+
+  testing:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install cmake sudo iverilog make g++ perl cpanminus
+
+          # Install Verilog::Perl from GitHub
+          git clone https://github.com/Veripool/Verilog-Perl.git
+          cd Verilog-Perl
+          perl Makefile.PL
+          make
+          sudo make install
+          cd ..
+
+          pip install peakrdl rich
+
+      - name: run tests
+        run: |
+          mkdir build
+          cd build
+          cmake -DSOCMAKE_BUILD_TESTING=TRUE ../
+          make check_cdash
