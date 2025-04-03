@@ -10,22 +10,33 @@ macro(__check_linked_interface_lib)
     endif()
 endmacro()
 
+macro(__quit_if_not_target)
+    if(NOT TARGET ${IP_LIB})
+        set(${RESULT} FALSE PARENT_SCOPE)
+        return()
+    endif()
+endmacro()
+
 function(__is_socmake_systemc_lib RESULT IP_LIB)
+    __quit_if_not_target()
     set(__lib_to_check "SoCMake::SystemC")
     __check_linked_interface_lib()
 endfunction()
 
 function(__is_socmake_dpic_lib RESULT IP_LIB)
+    __quit_if_not_target()
     set(__lib_to_check "SoCMake::DPI-C")
     __check_linked_interface_lib()
 endfunction()
 
 function(__is_socmake_vhpi_lib RESULT IP_LIB)
+    __quit_if_not_target()
     set(__lib_to_check "SoCMake::VHPI")
     __check_linked_interface_lib()
 endfunction()
 
 function(__is_socmake_ip_lib RESULT IP_LIB)
+    __quit_if_not_target()
     get_target_property(ip_type ${IP_LIB} TYPE)
     get_target_property(ip_name ${IP_LIB} IP_NAME)
 
