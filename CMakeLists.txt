@@ -19,7 +19,7 @@ option(SOCMAKE_BUILD_TESTING "Enable SoCMake unit testing" OFF)
 
 if("${SOCMAKE_BUILD_TESTING}")
     include(CTest)
-    add_subdirectory(tests)
+    add_subdirectory(tests/tests)
 endif()
 
 # This is to prevent a warning

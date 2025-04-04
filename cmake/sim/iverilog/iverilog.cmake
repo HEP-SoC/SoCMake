@@ -18,7 +18,7 @@ include_guard(GLOBAL)
 # ]]]
 function(iverilog IP_LIB)
     # Parse the function arguments
-    cmake_parse_arguments(ARG "" "TOP_MODULE;OUTDIR;EXECUTABLE;CLI_FLAGS" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET" "TOP_MODULE;OUTDIR;EXECUTABLE;RUN_TARGET_NAME" ";IVERILOG_ARGS;RUN_ARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -28,78 +28,79 @@ function(iverilog IP_LIB)
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
 
     # Assume the IP library is the latest one provided if full name is not given
-    ip_assume_last(IP_LIB ${IP_LIB})
+    alias_dereference(IP_LIB ${IP_LIB})
     # Get the binary directory of the IP library
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
-    # Set the output directory for iverilog results
-    if(NOT ARG_OUTDIR)
-        set(OUTDIR ${BINARY_DIR})
-    else()
-        set(OUTDIR ${ARG_OUTDIR})
-    endif()
-
-    if(ARG_TOP_MODULE)
-        set(TOP_MODULE "-s${ARG_TOP_MODULE}")
-    endif()
-
     # Get the IP RTL sources
-    get_ip_rtl_sources(SOURCES ${IP_LIB})
-    get_ip_tb_only_rtl_sources(TB_SOURCES ${IP_LIB})
-    list(APPEND SOURCES ${TB_SOURCES})
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
     # Get IP include directories
-    get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
-    get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
-    set(INC_DIRS ${SYSTEMVERILOG_INCLUDE_DIRS} ${VERILOG_INCLUDE_DIRS})
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG)
     # Prepare include directories arguments for iverilog
     foreach(dir ${INC_DIRS})
         list(APPEND ARG_INCDIRS -I ${dir})
     endforeach()
 
     # Get IP compile definitions
-    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
-    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG)
-    set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG)
     # Prepare compile definitions arguments for iverilog
     foreach(def ${COMP_DEFS})
         list(APPEND CMP_DEFS_ARG -D${def})
     endforeach()
 
+    # Generator expression for OUTDIR = defined(ARG_OUTDIR) ? ARG_OUTDIR : BINARY_DIR
+    set(OUTDIR $<IF:$<BOOL:${ARG_OUTDIR}>,${ARG_OUTDIR},${BINARY_DIR}>)
     # Set the output executable name
-    if(NOT ARG_EXECUTABLE)
-        set(ARG_EXECUTABLE "${OUTDIR}/${IP_LIB}_iv")
-    endif()
+    set(ARG_EXECUTABLE $<IF:$<BOOL:${ARG_EXECUTABLE}>,${ARG_EXECUTABLE},${OUTDIR}/${IP_LIB}_iverilog_tb>)
 
     # Set the stamp file path (is the stamp file really needed?)
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(DESCRIPTION "Compile ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
 
-    # Add a custom command to run iverilog
-    add_custom_command(
-        OUTPUT ${ARG_EXECUTABLE} ${STAMP_FILE}
-        COMMAND iverilog
-        ${TOP_MODULE}
-        ${ARG_INCDIRS}
-        ${CMP_DEFS_ARG}
-        ${ARG_CLI_FLAGS}
-        -o ${ARG_EXECUTABLE}
-        ${SOURCES}
-        COMMAND touch ${STAMP_FILE}
-        DEPENDS ${SOURCES}
-        COMMENT "Running iverilog on ${IP_LIB}"
-    )
+    if(NOT TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
+        # Add a custom command to run iverilog
+        add_custom_command(
+            OUTPUT ${ARG_EXECUTABLE} ${STAMP_FILE}
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
+            COMMAND iverilog
+                $<$<BOOL:${ARG_TOP_MODULE}>:-s${ARG_TOP_MODULE}>
+                ${ARG_INCDIRS}
+                ${CMP_DEFS_ARG}
+                ${ARG_IVERILOG_ARGS}
+                -o ${ARG_EXECUTABLE}
+                ${SOURCES}
+            COMMAND touch ${STAMP_FILE}
+            DEPENDS ${SOURCES}
+            COMMENT ${DESCRIPTION}
+        )
 
-    # Add a custom target that depends on the executable and stamp file
-    add_custom_target(
-        ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-        DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${IP_LIB}
-    )
+        # Add a custom target that depends on the executable and stamp file
+        add_custom_target(
+            ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+            DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${IP_LIB}
+        )
+        set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+    endif()
 
-    # Add a custom target to run the generated executable
-    add_custom_target(
-        run_${IP_LIB}_iv
-        COMMAND exec ${ARG_EXECUTABLE}
-        DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${SOURCES} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-    )
+    set(__sim_run_cmd
+        vvp ${ARG_EXECUTABLE}
+            ${ARG_RUN_ARGS}
+        )
+    if(NOT ${ARG_NO_RUN_TARGET})
+        if(NOT ARG_RUN_TARGET_NAME)
+            set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
+        endif()
+        set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB}")
+        # Add a custom target to run the generated executable
+        add_custom_target(
+            ${ARG_RUN_TARGET_NAME}
+            COMMAND ${__sim_run_cmd}
+            DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${SOURCES} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+            COMMENT ${DESCRIPTION}
+        )
+        set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
+    endif()
+    set(SIM_RUN_CMD ${__sim_run_cmd} PARENT_SCOPE)
 
 endfunction()
 

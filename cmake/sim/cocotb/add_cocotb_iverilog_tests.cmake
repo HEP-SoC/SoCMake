@@ -6,7 +6,7 @@ function(add_cocotb_iverilog_tests IP_LIB DIRECTORY)
     SUBDIRLIST_EXCLUDE(TEST_SUBDIRS ${DIRECTORY} "${EXCLUDE_PATTERNS}")
 
     # Assume the IP library is the latest one provided if full name is not given
-    ip_assume_last(IP_LIB ${IP_LIB})
+    alias_dereference(IP_LIB ${IP_LIB})
 
     unset(msg)
     list(APPEND _msg "-------------------------------------------------------------------------\n")

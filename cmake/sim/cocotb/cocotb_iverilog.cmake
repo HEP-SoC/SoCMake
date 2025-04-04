@@ -18,7 +18,7 @@ include_guard(GLOBAL)
 # ]]]
 function(cocotb_iverilog IP_LIB)
     # Parse the function arguments
-    cmake_parse_arguments(ARG "" "TOP_MODULE;OUTDIR;EXECUTABLE;IVERILOG_CLI_FLAGS;TIMEUNIT;TIMEPRECISION;TOPLEVEL_LANG;TESTCASE;COCOTB_TEST" "PATH_MODULE;SIM_ARGS;PLUSARGS" ${ARGN})
+    cmake_parse_arguments(ARG "" "VIRTUAL_ENV;TOP_MODULE;OUTDIR;EXECUTABLE;IVERILOG_CLI_FLAGS;TIMEUNIT;TIMEPRECISION;TOPLEVEL_LANG;TESTCASE;COCOTB_TEST" "PATH_MODULE;SIM_ARGS;PLUSARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -28,7 +28,7 @@ function(cocotb_iverilog IP_LIB)
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
 
     # Assume the IP library is the latest one provided if full name is not given
-    ip_assume_last(IP_LIB ${IP_LIB})
+    alias_dereference(IP_LIB ${IP_LIB})
     # Get the binary directory of the IP library
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
@@ -87,26 +87,22 @@ function(cocotb_iverilog IP_LIB)
     endif()
 
     # Get the IP RTL sources
-    get_ip_rtl_sources(SOURCES ${IP_LIB})
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
     # Get the sim_only sources only if we are not running a technology-independent flow
     if(NOT TECH_FLOW)
-        get_ip_sim_only_sources(SIM_SOURCES ${IP_LIB})
+        get_ip_sources(SIM_SOURCES ${IP_LIB} SYSTEMVERILOG_SIM VERILOG_SIM)
     endif()
     list(PREPEND SOURCES ${SIM_SOURCES})
 
     # Get IP include directories
-    get_ip_include_directories(SYSTEMVERILOG_INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG)
-    get_ip_include_directories(VERILOG_INCLUDE_DIRS ${IP_LIB} VERILOG)
-    set(INC_DIRS ${SYSTEMVERILOG_INCLUDE_DIRS} ${VERILOG_INCLUDE_DIRS})
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG)
     # Prepare include directories arguments for iverilog
     foreach(dir ${INC_DIRS})
         list(APPEND ARG_INCDIRS -I ${dir})
     endforeach()
 
     # Get IP compile definitions
-    get_ip_compile_definitions(COMP_DEFS_SV ${IP_LIB} SYSTEMVERILOG)
-    get_ip_compile_definitions(COMP_DEFS_V ${IP_LIB} VERILOG)
-    set(COMP_DEFS ${COMP_DEFS_SV} ${COMP_DEFS_V})
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
     # Prepare compile definitions arguments for iverilog
     foreach(def ${COMP_DEFS})
         list(APPEND CMP_DEFS_ARG -D${def})
@@ -169,7 +165,7 @@ function(cocotb_iverilog IP_LIB)
     )
 
     # Get cocotb lib directory
-    set(_CMD ${Python3_VIRTUAL_ENV}/bin/cocotb-config --lib-dir)
+    set(_CMD cocotb-config --lib-dir)
     execute_process(
         OUTPUT_VARIABLE COCOTB_LIB_DIR
         ERROR_VARIABLE ERROR_MSG
@@ -177,13 +173,13 @@ function(cocotb_iverilog IP_LIB)
     )
     # Check the lib path is found
     if(NOT COCOTB_LIB_DIR)
-        message(FATAL_ERROR "Cocotb lib directory variable not found. Make sure cocotb package is installed in the python venv. Error output: ${ERROR_MSG}.")
+        message(FATAL_ERROR "Cocotb lib directory variable not found. Make sure cocotb package is installed in the python venv.\nError output: ${ERROR_MSG}.\nCommand called: ${_CMD}")
     endif()
     # Remove the line feed of the variable otherwise it breaks the below command
     string(STRIP ${COCOTB_LIB_DIR} COCOTB_LIB_DIR)
 
     # Get cocotb vpi library for icarus verilog
-    set(_CMD ${Python3_VIRTUAL_ENV}/bin/cocotb-config --lib-name vpi icarus)
+    set(_CMD cocotb-config --lib-name vpi icarus)
     execute_process(
         OUTPUT_VARIABLE COCOTB_LIB_VPI_ICARUS
         ERROR_VARIABLE ERROR_MSG
@@ -191,13 +187,13 @@ function(cocotb_iverilog IP_LIB)
     )
     # Check the lib is found
     if(NOT COCOTB_LIB_VPI_ICARUS)
-        message(FATAL_ERROR "Cocotb lib vpi icarus variable not found. Make sure cocotb package is installed in the python venv. Error output: ${ERROR_MSG}.")
+        message(FATAL_ERROR "Cocotb lib vpi icarus variable not found. Make sure cocotb package is installed in the python venv.\nError output: ${ERROR_MSG}.\nCommand called: ${_CMD}")
     endif()
     # Remove the line feed of the variable otherwise if breaks the below command
     string(STRIP ${COCOTB_LIB_VPI_ICARUS} COCOTB_LIB_VPI_ICARUS)
 
     set(COCOTB_ENV_VARS
-        VIRTUAL_ENV=${Python3_VIRTUAL_ENV}
+        $<$<BOOL:${ARG_VIRTUAL_ENV}>:VIRTUAL_ENV=${ARG_VIRTUAL_ENV}>
         PYTHONPATH=${PATH_MODULE}
         MODULE=${COCOTB_TEST}
         TESTCASE=${TESTCASE}

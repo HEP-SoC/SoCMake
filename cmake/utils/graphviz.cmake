@@ -8,6 +8,7 @@ if(NOT TARGET graphviz)
         COMMAND dot -Tpng "${CMAKE_BINARY_DIR}/graphviz/out.dot" -o graph.png
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     )
+    set_target_properties(graphviz PROPERTIES DESCRIPTION "Generate a build graph with graphviz")
 endif()
 
 

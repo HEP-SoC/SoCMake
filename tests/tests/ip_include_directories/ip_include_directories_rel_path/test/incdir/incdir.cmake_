@@ -1,0 +1,10 @@
+list(APPEND SV_INCDIRS
+    incdir/
+    incdir/incdir2
+    )
+ip_include_directories(ip SYSTEMVERILOG
+    incdir/
+    incdir/incdir2
+)
+
+set(SV_INCDIRS ${SV_INCDIRS} PARENT_SCOPE)
