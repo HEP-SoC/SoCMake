@@ -32,6 +32,12 @@ function(peakrdl_docusaurus IP_LIB)
     get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
     get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMRDL)
 
+    # Get SystemRDL include directories 
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
+    if(INC_DIRS)
+        set(INCDIR_ARG -I ${INC_DIRS})
+    endif()
+
     if(NOT RDL_FILES)
         message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
@@ -50,6 +56,7 @@ function(peakrdl_docusaurus IP_LIB)
     find_python3()
     set(__CMD
         ${Python3_EXECUTABLE} -m peakrdl docusaurus
+            ${INCDIR_ARG}
             -o ${OUTDIR}
             ${INCDIRS_ARG}
             ${COMPDEFS_ARG}
