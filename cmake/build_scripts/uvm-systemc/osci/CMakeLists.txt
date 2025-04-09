@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 project(uvm-systemc_build)
 
-include("../../utils/option.cmake")
+include("../../../utils/option.cmake")
 
 set(UVM-SYSTEMC_VERSIONS 1.0-beta6 1.0-beta5 1.0-beta3 1.0-beta1 1.0-alpha1)
 option_enum(VERSION "Version of UVM-SystemC to build" "${UVM-SYSTEMC_VERSIONS}" "1.0-beta6")
@@ -63,5 +63,6 @@ install(EXPORT UVM-SystemCTargets
     NAMESPACE UVM-SystemC::
     DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/UVM-SystemC)
 
-install(FILES "UVM-SystemCConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/UVM-SystemCConfigVersion.cmake"
+install(FILES "${CMAKE_CURRENT_LIST_DIR}/UVM-SystemCConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/UVM-SystemCConfigVersion.cmake"
     DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/UVM-SystemC)
+

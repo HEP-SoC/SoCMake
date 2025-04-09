@@ -27,6 +27,31 @@
 
 using namespace uvm;
 
+
+// class top_sc_main : public sc_core::sc_module{
+// public:
+//     top m_top;
+//     top_sc_main(sc_core::sc_module_name nm) :
+//         sc_core::sc_module(nm),
+//         m_top("top")
+//         {
+//   uvm::uvm_config_db<int>::set(NULL, "top.producer1", "num_packets", 2);
+//   uvm::uvm_config_db<int>::set(NULL, "top.producer2", "num_packets", 4);
+//   uvm::uvm_config_db<int>::set(NULL, "*", "recording_detail", uvm::UVM_LOW);
+// //
+// //   top mytop("top");
+// //
+//   uvm_default_printer->knobs.reference = 0;
+//
+//   uvm::uvm_root::get()->print_topology();
+//
+//   // run_test();
+//
+//         }
+// };
+//
+// SC_MODULE_EXPORT(top_sc_main);
+
 int sc_main(int, char*[])
 {
   uvm::uvm_config_db<int>::set(NULL, "top.producer1", "num_packets", 2);

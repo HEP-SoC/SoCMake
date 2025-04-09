@@ -1,0 +1,70 @@
+cmake_minimum_required(VERSION 3.25)
+project(uvm-systemc-questa_build)
+
+include("../../../utils/option.cmake")
+
+set(UVM-SYSTEMC_VERSIONS 1.0-beta6 1.0-beta5 1.0-beta3 1.0-beta1 1.0-alpha1)
+option_enum(VERSION "Version of UVM-SystemC to build" "${UVM-SYSTEMC_VERSIONS}" "1.0-beta6")
+option_enum(CMAKE_CXX_STANDARD "C++ Standard" "98;11;14;17;20;23;26" "14")
+
+include(GNUInstallDirs)
+include(ExternalProject)
+
+include("../../../sim/siemens/modelsim.cmake")
+__find_modelsim_home(questa_home)
+set(libsystemc_questa "${questa_home}/linux_x86_64/libsystemc_gcc74.a")
+set(SYSTEMC_HOME "${questa_home}/include/systemc")
+
+ExternalProject_Add(uvm-systemc
+        URL https://www.accellera.org/images/downloads/drafts-review/uvm-systemc-${VERSION}.tar.gz
+        PREFIX ${PROJECT_BINARY_DIR}
+        INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+
+        PATCH_COMMAND sed -i s|SYSTEMC_LIBS=.*|SYSTEMC_LIBS=\\\"${libsystemc_questa}\\\"| "<SOURCE_DIR>/configure.ac" &&
+                      sed -i s|SYSTEMC_INC_PREFIX=.*|SYSTEMC_INC_PREFIX=\\\"${SYSTEMC_HOME}\\\"| "<SOURCE_DIR>/configure.ac"
+        CONFIGURE_COMMAND autoreconf -fiv <SOURCE_DIR> &&
+                                    <SOURCE_DIR>/configure 
+                                    "CC=${CMAKE_C_COMPILER}" 
+                                    "CXX=${CMAKE_CXX_COMPILER}" 
+                                    "CXXFLAGS=-std=c++${CMAKE_CXX_STANDARD} -I${questa_home}/include"# -m32"
+                                    # "LDFLAGS=-pthread"
+                                    "--with-systemc=${SYSTEMC_HOME}"
+                                    "--with-arch-suffix=" 
+                                    "--prefix=${CMAKE_INSTALL_PREFIX}"
+        )
+
+
+file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/include")
+
+add_library(uvm-systemc_shared INTERFACE)
+target_link_libraries(uvm-systemc_shared INTERFACE "${CMAKE_INSTALL_PREFIX}/lib/libuvm-systemc.so")
+target_include_directories(uvm-systemc_shared INTERFACE "${CMAKE_INSTALL_PREFIX}/include")
+set_property(TARGET uvm-systemc_shared PROPERTY EXPORT_NAME shared)
+
+add_library(uvm-systemc_static INTERFACE)
+target_link_libraries(uvm-systemc_static INTERFACE "${CMAKE_INSTALL_PREFIX}/lib/libuvm-systemc.a")
+target_include_directories(uvm-systemc_static INTERFACE "${CMAKE_INSTALL_PREFIX}/include")
+set_property(TARGET uvm-systemc_static PROPERTY EXPORT_NAME static)
+
+install(TARGETS uvm-systemc_shared uvm-systemc_static
+    EXPORT UVM-SystemC-QuestaTargets
+    FILE_SET HEADERS
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    )
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "UVM-SystemC-QuestaConfigVersion.cmake"
+    VERSION ${VERSION}
+    COMPATIBILITY AnyNewerVersion)
+
+install(EXPORT UVM-SystemC-QuestaTargets
+    FILE UVM-SystemC-QuestaTargets.cmake
+    NAMESPACE UVM-SystemC-Questa::
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/UVM-SystemC-Questa)
+
+install(FILES "${CMAKE_CURRENT_LIST_DIR}/UVM-SystemC-QuestaConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/UVM-SystemC-QuestaConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/UVM-SystemC-Questa)
+

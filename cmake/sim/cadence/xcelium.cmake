@@ -605,7 +605,7 @@ function(xcelium_add_cxx_libs)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    set(allowed_libraries SystemC DPI-C)
+    set(allowed_libraries SystemC DPI-C TLM2)
     foreach(lib ${ARG_LIBRARIES})
         if(NOT ${lib} IN_LIST allowed_libraries)
             message(FATAL_ERROR "Xcelium does not support library: ${lib}")
@@ -620,13 +620,13 @@ function(xcelium_add_cxx_libs)
 
     __find_xcelium_home(xcelium_home)
 
-    if(SystemC IN_LIST ARG_LIBRARIES)
-        if(bitness STREQUAL "64")
-            set(libpath "lib/64bit/gnu")
-        else()
-            set(libpath "lib/gnu")
-        endif()
+    if(bitness STREQUAL "64")
+        set(libpath "lib/64bit/gnu")
+    else()
+        set(libpath "lib/gnu")
+    endif()
 
+    if(SystemC IN_LIST ARG_LIBRARIES)
         add_library(xcelium_systemc INTERFACE)
         add_library(SoCMake::SystemC ALIAS xcelium_systemc)
         target_link_libraries(xcelium_systemc INTERFACE
@@ -659,5 +659,20 @@ function(xcelium_add_cxx_libs)
         target_include_directories(xcelium_dpi-c INTERFACE ${xcelium_home}/include)
         target_compile_definitions(xcelium_dpi-c INTERFACE INCA)
     endif()
+
+    if(TLM2 IN_LIST ARG_LIBRARIES)
+        add_library(xcelium_tlm2 INTERFACE)
+        add_library(SoCMake::TLM2 ALIAS xcelium_tlm2)
+
+        if(ARG_32BIT)
+            target_compile_options(xcelium_tlm2 INTERFACE -m32)
+            target_link_options   (xcelium_tlm2 INTERFACE -m32)
+        endif()
+        target_include_directories(xcelium_tlm2 INTERFACE ${xcelium_home}/tools.lnx86/systemc/include/tlm2)
+        target_link_libraries(xcelium_tlm2 INTERFACE
+            ${xcelium_home}/tools/systemc/${libpath}/libxmsctlm2_sh.so
+        )
+    endif()
+
 
 endfunction()

@@ -99,7 +99,7 @@ function(modelsim IP_LIB)
         set(__sccom_link_cmd sccom -link
                 -${bitness}
                 -nologo
-                -Wl,-rpath,${modelsim_home}/${libpath}
+                -Wl,-rpath,${modelsim_home}/${libpath} 
             )
 
         ### Clean files

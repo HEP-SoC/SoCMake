@@ -1,5 +1,4 @@
-
-function(uvm_systemc_build)
+function(uvm_systemc_vcs_build)
     cmake_parse_arguments(ARG "EXACT_VERSION" "VERSION;INSTALL_DIR" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -24,12 +23,12 @@ function(uvm_systemc_build)
     find_package(UVM-SystemC CONFIG
         HINTS ${ARG_INSTALL_DIR}
         )
-    get_target_property(SYSTEMC_INC_DIR SystemC::systemc INTERFACE_INCLUDE_DIRECTORIES)
-    set(SYSTEMC_HOME "${SYSTEMC_INC_DIR}/../")
+    # get_target_property(SYSTEMC_INC_DIR SystemC::systemc INTERFACE_INCLUDE_DIRECTORIES)
+    # set(SYSTEMC_HOME "${SYSTEMC_INC_DIR}/../")
 
-    if(NOT SystemCLanguage_DIR)
-        message(FATAL_ERROR "Please provide SystemC library using \"systemc_build()\" or \"find_package()\" ")
-    endif()
+    # if(NOT SystemCLanguage_DIR)
+    #     message(FATAL_ERROR "Please provide SystemC library using \"systemc_build()\" or \"find_package()\" ")
+    # endif()
 
     if(NOT UVM-SystemC_FOUND)
         message(STATUS "${Magenta}[UVM-SystemC Not Found]${ColourReset}")
@@ -38,6 +37,7 @@ function(uvm_systemc_build)
             -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/osci
             -B ${CMAKE_BINARY_DIR}/uvm-systemc-build 
             ${CMAKE_ARG_VERSION}
+            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             -DSYSTEMC_HOME=${SYSTEMC_HOME}
             -DCMAKE_INSTALL_PREFIX=${ARG_INSTALL_DIR}
             COMMAND_ECHO STDOUT
@@ -57,4 +57,5 @@ function(uvm_systemc_build)
     message(STATUS "${Green}[Found UVM-SystemC]${ColourReset}: ${UVM-SystemC_VERSION} in ${UVM-SystemC_DIR}")
 
 endfunction()
+
 
