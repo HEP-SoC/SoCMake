@@ -25,6 +25,7 @@ SoCMake key features are:
 * Extensive HDL simulation support (Verilog, SystemVerilog, VHDL)
 * SystemC and SystemC-UVM support
 * Mixed-language SV-VHDL-SC simulation
+* SystemVerilog-UVM and VHDL-UVVM support
 * Software and IP block package managment with CMake package managers
 * HDL code generation and conversion (PeakRDL, desyrdl, yosys, sv2v, ..)
 * Build graph generation with graphviz
@@ -84,6 +85,25 @@ The following message should be printed:
 Hello from Adder!
 [100%] Built target run_adder_iverilog
 ```
+
+Examples
+--------
+
+For more examples on how to use SoCMake including the previous example visit [Examples](https://github.com/HEP-SoC/SoCMake/tree/develop/examples).
+Some of the examples include:
+
+* Simple Verilog and VHDL testbenches
+* Mixed language simulation examples SystemVerilog-VHDL, SystemC-SystemVerilog
+* UVM-SystemC and SystemC examples
+* Verilator C++ and SystemC teshbench
+* Foreign Language Interfaces such as DPI-C, VHPIDirect
+
+Additionally some more complex examples are available on separate repositories:
+
+* PicoRV32 testbench with cross-compilation of test firmware [picorv32-socmake](https://github.com/HEP-SoC/picorv32_socmake)
+* APB-CRC IP block with register file generated with PeakRDL-regblock and testbenches in [SystemC-UVM](https://github.com/Risto97/apb_crc_uvm_socmake/tree/master/sc-uvm) and [SystemVerilog-UVM](https://github.com/Risto97/apb_crc_uvm_socmake/tree/master/sv-uvm)
+* VHDL-UVVM [apb-crc](https://github.com/HEP-SoC/UVVM_SoCMake/tree/master/examples/apb_crc) testbench and [uart](https://github.com/HEP-SoC/UVVM_SoCMake/tree/master/examples/uart) testbench
+
 
 Check out the [Documentation](https://hep-soc.github.io/SoCMake/)
 
