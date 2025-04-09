@@ -15,11 +15,13 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/graphviz.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/option.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/find_python.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/print_list.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/uniquify_files_by_basename.cmake")
 
 # ====================================
 # ======== Additional utilities ======
 # ====================================
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/copy_rtl_files/copy_rtl_files.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/copy_rtl_files/read_rtl_sources.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/copy_rtl_files/vhier.cmake")
 
 # ====================================
@@ -62,10 +64,11 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/add_cocotb_iverilog_tests.cm
 # ====================================
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_regblock.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_topgen.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_halcpp.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_ipblocksvg.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_html.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_socgen/peakrdl_socgen.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_socgen.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_docusaurus.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_print.cmake")
 
@@ -89,26 +92,13 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/synth/yosys/yosys.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/synth/yosys/yosys_build.cmake")
 
 # ====================================
-# ======== Safety ====================
-# ====================================
-
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/tmrg/tmrg/tmrg.cmake")
-
-# ====================================
 # ======== FIRMWARE ==================
 # ====================================
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/fw_utils.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/add_tests.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/linker_script/gen_lds.cmake")
 
 set(IBEX_TOOLCHAIN "${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/toolchains/riscv_toolchain.cmake"  CACHE INTERNAL "IBEX_TOOLCHAIN")
-
-# ====================================
-# ======== Documentation =============
-# ====================================
-
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/docs/doxygen/doxygen.cmake")
 
 # ====================================
 # ====== Linting, Formatting =========
@@ -122,12 +112,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/ghdl/vhdl_linter.cmake")
 # ====================================
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/riscv/sail/sail_install.cmake")
-
-# ====================================
-# ====== Tmake =======================
-# ====================================
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/tmake/tmake.cmake")
-
 
 # ====================================
 # ====== Build scripts ===============
