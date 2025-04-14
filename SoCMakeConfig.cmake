@@ -58,6 +58,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/verisc/verisc_install.cmake")
 # ----- Cocotb --------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/cocotb_iverilog.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/add_cocotb_iverilog_tests.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/cocotb.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/add_cocotb_tests.cmake")
 
 # ====================================
 # ======== PeakRDL ===================
