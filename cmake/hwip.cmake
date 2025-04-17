@@ -418,6 +418,69 @@ function(check_languages LANGUAGE)
     endif()
 endfunction()
 
+
+function(__compare_version RESULT COMPARE_LHS RELATION COMPARE_RHS)
+
+    unset(NEGATION)
+    if(RELATION STREQUAL ">=")
+        set(RELATION VERSION_GREATER_EQUAL)
+    elseif(RELATION STREQUAL ">")
+        set(RELATION VERSION_GREATER)
+    elseif(RELATION STREQUAL "<=")
+        set(RELATION VERSION_LESS_EQUAL)
+    elseif(RELATION STREQUAL "<")
+        set(RELATION VERSION_LESS)
+    elseif(RELATION STREQUAL "==")
+        set(RELATION VERSION_EQUAL)
+    elseif(RELATION STREQUAL "!=")
+        set(RELATION VERSION_EQUAL)
+        set(NEGATION NOT)
+    endif()
+
+    if(${NEGATION} ${COMPARE_LHS} ${RELATION} ${COMPARE_RHS})
+        set(${RESULT} TRUE PARENT_SCOPE)
+    else()
+        set(${RESULT} FALSE PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(__ip_link_check_version OUT_IP_WO_VERSION IP_LIB)
+    string(REPLACE " " "" ip_lib_str "${IP_LIB}")
+    string(REGEX MATCH "(!=|>=|<=|==|<|>)" version_ranges "${ip_lib_str}")
+
+    # If regex did not match, there is no comparison string in the linked IP, so just exit
+    if(NOT version_ranges)
+        set(${OUT_IP_WO_VERSION} ${IP_LIB} PARENT_SCOPE)
+        return()
+    endif()
+
+    # extract the VLN from "v::l::ip2>= 1.0.0,<=2.0.0" by getting a substring until first regex match
+    # list(GET version_ranges 0 first_range_idx)
+    string(FIND "${ip_lib_str}" "${CMAKE_MATCH_1}" first_found)
+    string(SUBSTRING "${ip_lib_str}" 0 ${first_found} ip_lib_wo_version)
+    set(${OUT_IP_WO_VERSION} ${ip_lib_wo_version} PARENT_SCOPE)
+
+    string(REPLACE "${ip_lib_wo_version}" "" version_ranges "${ip_lib_str}" )
+    string(REPLACE "," ";" version_ranges "${version_ranges}")
+
+    get_target_property(ip_version ${ip_lib_wo_version} VERSION)
+
+    set(version_satisfied TRUE)
+    foreach(version_range ${version_ranges})
+        string(REGEX MATCH "^(!=|>=|<=|==|<|>)([0-9]+\.?[0-9]*\.?[0-9]*)$" version_ranges "${version_range}")
+
+        if(NOT CMAKE_MATCH_1 AND NOT CMAKE_MATCH_2)
+            message(FATAL_ERROR "Malformed version condition ${version_range}")
+        endif()
+        
+        __compare_version(satisfies "${ip_version}" "${CMAKE_MATCH_1}" "${CMAKE_MATCH_2}")
+        if(NOT satisfies)
+            set(version_satisfied FALSE)
+            message(FATAL_ERROR "Linked IP \"${ip_lib_wo_version}\" version condition \"${ip_version} ${CMAKE_MATCH_1} ${CMAKE_MATCH_2}\" cannot be satisfied")
+        endif()
+    endforeach()
+endfunction()
+
 #[[[
 # This function adds a target link library and a dependency to an IP target.
 #
@@ -425,6 +488,14 @@ endfunction()
 # if the link library exists and adds it (if it's not already added). Finally, the link library is added
 # as a dependency. This last step can be skipped with the keyword NODEPEND. The dependencies are passed
 # as a list after the parameters and the keyword.
+#
+# It is also allowed to pass version conditions to be checked as following:
+#  ```
+# ip_link(v::l::ip1::1.1.1
+#     "v::l::ip2 >= 1.0.4, <=2.0.0")
+#  ```
+# If all the comparisons are not satisfied, FATAL_ERROR is issued.
+# Allowed comparisons are ==, >=, >, <=, <
 #
 # :param IP_LIB: The target IP library name.
 # :type IP_LIB: string
@@ -455,6 +526,11 @@ function(ip_link IP_LIB)
         if(${lib} IN_LIST ALREADY_LINKED)
             continue()
         endif()
+
+        # Check the version conditions if present.
+        # Also remove the version conditions from the ${lib} string and keep only IP library VLN
+        __ip_link_check_version(lib ${lib})
+
         # Issue an error if the library does not exist
         if(NOT TARGET ${lib})
             message(FATAL_ERROR "Library ${lib} linked to ${_reallib} is not defined")
