@@ -421,6 +421,7 @@ endfunction()
 
 function(__compare_version RESULT COMPARE_LHS RELATION COMPARE_RHS)
 
+    unset(NEGATION)
     if(RELATION STREQUAL ">=")
         set(RELATION VERSION_GREATER_EQUAL)
     elseif(RELATION STREQUAL ">")
@@ -431,9 +432,12 @@ function(__compare_version RESULT COMPARE_LHS RELATION COMPARE_RHS)
         set(RELATION VERSION_LESS)
     elseif(RELATION STREQUAL "==")
         set(RELATION VERSION_EQUAL)
+    elseif(RELATION STREQUAL "!=")
+        set(RELATION VERSION_EQUAL)
+        set(NEGATION NOT)
     endif()
 
-    if(${COMPARE_LHS} ${RELATION} ${COMPARE_RHS})
+    if(${NEGATION} ${COMPARE_LHS} ${RELATION} ${COMPARE_RHS})
         set(${RESULT} TRUE PARENT_SCOPE)
     else()
         set(${RESULT} FALSE PARENT_SCOPE)
@@ -442,7 +446,7 @@ endfunction()
 
 function(__ip_link_check_version OUT_IP_WO_VERSION IP_LIB)
     string(REPLACE " " "" ip_lib_str "${IP_LIB}")
-    string(REGEX MATCHALL "(>=|<=|==|<|>)([0-9]+\.[0-9]+\.[0-9])" version_ranges "${ip_lib_str}")
+    string(REGEX MATCH "(!=|>=|<=|==|<|>)" version_ranges "${ip_lib_str}")
 
     # If regex did not match, there is no comparison string in the linked IP, so just exit
     if(NOT version_ranges)
@@ -451,17 +455,24 @@ function(__ip_link_check_version OUT_IP_WO_VERSION IP_LIB)
     endif()
 
     # extract the VLN from "v::l::ip2>= 1.0.0,<=2.0.0" by getting a substring until first regex match
-    list(GET version_ranges 0 first_range_idx)
-    string(FIND "${ip_lib_str}" "${first_range_idx}" first_found)
+    # list(GET version_ranges 0 first_range_idx)
+    string(FIND "${ip_lib_str}" "${CMAKE_MATCH_1}" first_found)
     string(SUBSTRING "${ip_lib_str}" 0 ${first_found} ip_lib_wo_version)
     set(${OUT_IP_WO_VERSION} ${ip_lib_wo_version} PARENT_SCOPE)
+
+    string(REPLACE "${ip_lib_wo_version}" "" version_ranges "${ip_lib_str}" )
+    string(REPLACE "," ";" version_ranges "${version_ranges}")
 
     get_target_property(ip_version ${ip_lib_wo_version} VERSION)
 
     set(version_satisfied TRUE)
     foreach(version_range ${version_ranges})
-        string(REGEX MATCH "(>=|<=|==|<|>)([0-9]+\.[0-9]+\.[0-9])" version_ranges "${version_range}")
+        string(REGEX MATCH "^(!=|>=|<=|==|<|>)([0-9]+\.?[0-9]*\.?[0-9]*)$" version_ranges "${version_range}")
 
+        if(NOT CMAKE_MATCH_1 AND NOT CMAKE_MATCH_2)
+            message(FATAL_ERROR "Malformed version condition ${version_range}")
+        endif()
+        
         __compare_version(satisfies "${ip_version}" "${CMAKE_MATCH_1}" "${CMAKE_MATCH_2}")
         if(NOT satisfies)
             set(version_satisfied FALSE)
