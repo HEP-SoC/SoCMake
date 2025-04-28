@@ -12,8 +12,14 @@ function(add_ip_from_ipxact COMP_XML)
     make_directory(${outdir})
 
     execute_process(COMMAND xmlstarlet tr "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ip_lib_with_filetype_modifier.xslt" ${COMP_XML}
-                OUTPUT_FILE ${output_cmake_file} 
+                    OUTPUT_VARIABLE file_lists
                 )
+
+    execute_process(COMMAND xmlstarlet tr "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/get_ip_links.xslt" ${COMP_XML}
+                    OUTPUT_VARIABLE ip_links
+                )
+
+    write_file(${output_cmake_file} ${file_lists} ${ip_links})
 
     cmake_path(GET COMP_XML PARENT_PATH ${ip_name}_SOURCE_DIR)
 
