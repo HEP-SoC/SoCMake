@@ -456,7 +456,7 @@ function(ip_link IP_LIB)
             continue()
         endif()
         # Issue an error if the library does not exist
-        if(NOT TARGET ${lib})
+        if(NOT TARGET ${lib} AND NOT SOCMAKE_ALLOW_UNDEFINED_TARGETS)
             message(FATAL_ERROR "Library ${lib} linked to ${_reallib} is not defined")
         endif()
         # In case user tries to link library to itself, raise an error
