@@ -8,21 +8,22 @@
   <xsl:output omit-xml-declaration="yes" indent="no"/>
   <xsl:template match="/">
     <xsl:call-template name="value-of-template">
-      <xsl:with-param name="select" select="//ipxact:component/ipxact:vendor"/>
+      <xsl:with-param name="select" select="/*/ipxact:vendor"/>
     </xsl:call-template>
     <xsl:text>;</xsl:text>
     <xsl:call-template name="value-of-template">
-      <xsl:with-param name="select" select="//ipxact:component/ipxact:library"/>
+      <xsl:with-param name="select" select="/*/ipxact:library"/>
     </xsl:call-template>
     <xsl:text>;</xsl:text>
     <xsl:call-template name="value-of-template">
-      <xsl:with-param name="select" select="//ipxact:component/ipxact:name"/>
+      <xsl:with-param name="select" select="/*/ipxact:name"/>
     </xsl:call-template>
     <xsl:text>;</xsl:text>
     <xsl:call-template name="value-of-template">
-      <xsl:with-param name="select" select="//ipxact:component/ipxact:version"/>
+      <xsl:with-param name="select" select="/*/ipxact:version"/>
     </xsl:call-template>
   </xsl:template>
+
   <xsl:template name="value-of-template">
     <xsl:param name="select"/>
     <xsl:value-of select="$select"/>
