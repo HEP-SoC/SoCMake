@@ -13,12 +13,12 @@
   <xsl:template match="/">
     <!-- Build the add_ip line -->
     <xsl:text>add_ip(</xsl:text>
-    <xsl:value-of select="concat(ipxact:component/ipxact:vendor, '::', ipxact:component/ipxact:library, '::', ipxact:component/ipxact:name, '::', ipxact:component/ipxact:version)"/>
-    <xsl:text>)</xsl:text>
+    <xsl:value-of select="concat(//ipxact:vendor, '::', //ipxact:library, '::', //ipxact:name, '::', //ipxact:version)"/>
+    <xsl:text> NO_ALIAS)</xsl:text>
     <xsl:text>&#10;&#10;</xsl:text>
 
     <!-- Loop over unique fileTypes by processing only the first file per type -->
-    <xsl:for-each select="ipxact:component/ipxact:fileSets/ipxact:fileSet/ipxact:file[generate-id() = generate-id(key('files-by-type', ipxact:fileType)[1])]">
+    <xsl:for-each select="//ipxact:fileSets/ipxact:fileSet/ipxact:file[generate-id() = generate-id(key('files-by-type', ipxact:fileType)[1])]">
       <xsl:variable name="ftype" select="ipxact:fileType"/>
       <xsl:text>ip_sources(${IP} </xsl:text>
 
@@ -39,9 +39,7 @@
       <!-- Now list all files for this type using the key -->
       <xsl:for-each select="key('files-by-type', $ftype)">
         <xsl:text>   </xsl:text>
-        <xsl:text>${</xsl:text>
-        <xsl:value-of select="/ipxact:component/ipxact:name"/>
-        <xsl:text>_SOURCE_DIR}/</xsl:text>
+        <xsl:text>${CMAKE_CURRENT_LIST_DIR}/</xsl:text>
         <xsl:value-of select="ipxact:name"/>
         <xsl:text>&#10;</xsl:text>
       </xsl:for-each>
