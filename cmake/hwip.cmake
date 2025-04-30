@@ -53,7 +53,7 @@ include("${CMAKE_CURRENT_LIST_DIR}//utils/file_paths.cmake")
 # :type DESCRIPTION: string
 #]]
 function(add_ip IP_NAME)
-    cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_ALIAS" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
 
     # Vendor and library arguments are expected at the minimum
     if(ARG_UNPARSED_ARGUMENTS)
@@ -81,7 +81,7 @@ function(add_ip IP_NAME)
         endif()
 
         # TODO Maybe delete short name without version
-        if(ARG_VERSION)
+        if(ARG_VERSION AND NOT ARG_NO_ALIAS)
             create_ip_vlnv(IP_LIB_SHORT ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "")
             string(REPLACE "__" "::" ALIAS_NAME_SHORT "${IP_LIB_SHORT}")
             if(NOT "${IP_LIB}" STREQUAL "${ALIAS_NAME_SHORT}")
@@ -532,7 +532,7 @@ function(ip_link IP_LIB)
         __ip_link_check_version(lib ${lib})
 
         # Issue an error if the library does not exist
-        if(NOT TARGET ${lib})
+        if(NOT TARGET ${lib} AND NOT SOCMAKE_ALLOW_UNDEFINED_TARGETS)
             message(FATAL_ERROR "Library ${lib} linked to ${_reallib} is not defined")
         endif()
         # In case user tries to link library to itself, raise an error
