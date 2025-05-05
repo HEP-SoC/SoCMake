@@ -52,9 +52,9 @@ function(cocotb IP_LIB)
     # Add COCOTB_SIM define for all simulators
     list(APPEND COMP_DEFS COCOTB_SIM)
 
-    if(${ARG_SIM} IN_LIST _SIMULATOR_DEFINE_DASH)
+    if("${ARG_SIM}" IN_LIST _SIMULATOR_DEFINE_DASH)
         set(_define_prefix "-D")
-    elseif(${ARG_SIM} IN_LIST _SIMULATOR_DEFINE_PLUS)
+    elseif("${ARG_SIM}" IN_LIST _SIMULATOR_DEFINE_PLUS)
         set(_define_prefix "+define+")
     else()
         message(FATAL_ERROR "Unsupported simulator: ${ARG_SIM}\nSupported simulators are: icarus, verilator, xcelium, modelsim, vcs.")
@@ -69,10 +69,6 @@ function(cocotb IP_LIB)
 
     # Get IP include directories
     get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG)
-    # # Prepare include directories arguments for iverilog
-    # foreach(dir ${INC_DIRS})
-    #     list(APPEND ARG_INCDIRS -I ${dir})
-    # endforeach()
 
     # Generator expression for OUTDIR = defined(ARG_OUTDIR) ? ARG_OUTDIR : BINARY_DIR
     set(OUTDIR $<IF:$<BOOL:${ARG_OUTDIR}>,${ARG_OUTDIR},${BINARY_DIR}>)
@@ -101,32 +97,21 @@ function(cocotb IP_LIB)
         COMMAND ${COCOTB_CONFIG_EXECUTABLE} --makefiles
     )
 
-    # set(COCOTB_MAKE_VARS
-    #     PYTHONPATH=${PYTHONPATH}
-    #     TOPLEVEL=${ARG_TOP_MODULE}
-    #     MODULE=${ARG_COCOTB_MODULE}
-    #     # SIM_BUILD=${OUTDIR}
-    #     $<$<BOOL:${ARG_COCOTB_TESTCASE}>:TESTCASE=${ARG_COCOTB_TESTCASE}>
-    #     $<$<BOOL:${ARG_TOP_MODULE_LANG}>:TOPLEVEL_LANG=${ARG_TOP_MODULE_LANG}>
-    #     $<$<BOOL:${ARG_SIM}>:SIM=${ARG_SIM}>
-    #     $<$<BOOL:${ARG_COMPILE_ARGS}>:COMPILE_ARGS=${ARG_COMPILE_ARGS}>
-    #     $<$<BOOL:${ARG_RUN_ARGS}>:SIM_ARGS=${ARG_RUN_ARGS}>
-    #     $<$<BOOL:${ARG_COCOTB_ARGS}>:${ARG_COCOTB_ARGS}>
-    # )
-
     set(run_sim_cmd
         PYTHONPATH=${PYTHONPATH}
         TOPLEVEL=${ARG_TOP_MODULE}
         MODULE=${ARG_COCOTB_MODULE}
         SIM_BUILD=${OUTDIR}
+        $<$<BOOL:${ARG_GUI}>:GUI=1>
         $<$<BOOL:${ARG_COCOTB_TESTCASE}>:TESTCASE=${ARG_COCOTB_MODULE}_test_${ARG_COCOTB_TESTCASE}>
         $<$<BOOL:${ARG_TOP_MODULE_LANG}>:TOPLEVEL_LANG=${ARG_TOP_MODULE_LANG}>
-        $<$<BOOL:${ARG_SIM}>:SIM=${ARG_SIM}>
+        SIM=${ARG_SIM}
         COMPILE_ARGS="${COMPILE_ARGS}"
         $<$<BOOL:${ARG_RUN_ARGS}>:SIM_ARGS=${ARG_RUN_ARGS}>
         $<$<BOOL:${ARG_COCOTB_ARGS}>:${ARG_COCOTB_ARGS}>
         VERILOG_SOURCES="${SOURCES}"
         VERILOG_INCLUDE_DIRS="${INC_DIRS}"
+        COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
         make -f Makefile.sim sim -C ${COCOTB_MAKEFILES_DIR}
     )
 
@@ -134,35 +119,35 @@ function(cocotb IP_LIB)
     add_custom_command(
         OUTPUT ${COCOTB_RESULTS_FILE}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
-        # COMMAND ${COCOTB_MAKE_VARS} make -C ${COCOTB_MAKEFILES_DIR} sim
         COMMAND ${run_sim_cmd}
-        DEPENDS ${CUSTOM_TARGET_NAME}
+        DEPENDS ${IP_LIB}
         COMMENT "Running cocotb simulation on ${IP_LIB}"
-        # WORKING_DIRECTORY ${OUTDIR}
     )
 
-    # message(STATUS "Running cocotb simulation on ${IP_LIB} with command: ${COCOTB_ENV_VARS} ${COCOTB_IVERILOG_CMD}")
-
-    # Use TESTCASE for target name if it exists to have a unique name
-    if(ARG_RUN_TARGET_NAME)
-        set(CUSTOM_TARGET_NAME ${ARG_RUN_TARGET_NAME})
-    else()
-        if(ARG_COCOTB_TESTCASE)
-            set(TESTCASE _test_${ARG_COCOTB_TESTCASE})
+    if(NOT ARG_NO_RUN_TARGET)
+        # Use TESTCASE for target name if it exists to have a unique name
+        if(ARG_RUN_TARGET_NAME)
+            set(CUSTOM_TARGET_NAME ${ARG_RUN_TARGET_NAME})
+        else()
+            if(ARG_COCOTB_TESTCASE)
+                set(TESTCASE _test_${ARG_COCOTB_TESTCASE})
+            endif()
+            set(CUSTOM_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_${ARG_COCOTB_MODULE}${TESTCASE})
         endif()
-        set(CUSTOM_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_${ARG_COCOTB_MODULE}${TESTCASE})
+
+        # Add a custom target that depends on the executable and stamp file
+        add_custom_target(
+            ${CUSTOM_TARGET_NAME}
+            DEPENDS ${COCOTB_RESULTS_FILE}
+        )
     endif()
 
-    # Add a custom target that depends on the executable and stamp file
-    add_custom_target(
-        ${CUSTOM_TARGET_NAME}
-        DEPENDS ${COCOTB_RESULTS_FILE}
-    )
-
     # Set the command as a property to be easily found by add_test()
-    string(TOUPPER ${ARG_COCOTB_MODULE}${TESTCASE} COCOTB_RUN_PROP)
-    set_target_properties(${IP_LIB} PROPERTIES COCOTB_${COCOTB_RUN_PROP} "${run_sim_cmd}")
+    # string(TOUPPER ${ARG_COCOTB_MODULE}${TESTCASE} COCOTB_RUN_PROP)
+    # set_target_properties(${IP_LIB} PROPERTIES COCOTB_${COCOTB_RUN_PROP} "${run_sim_cmd}")
     # set_target_properties(${IP_LIB} PROPERTIES COCOTB_IVERILOG_${COCOTB_TEST_PROP}_ENV "${COCOTB_ENV_VARS}")
+
+    set(SIM_RUN_CMD ${run_sim_cmd} PARENT_SCOPE)
 
 endfunction()
 

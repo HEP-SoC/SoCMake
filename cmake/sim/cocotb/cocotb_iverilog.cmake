@@ -60,7 +60,7 @@ function(cocotb_iverilog IP_LIB)
         set(COCOTB_HDL_TIMEPRECISION "1ps")
     endif()
     # Default parameters based on cocotb Makefile.inc
-    set(COCOTB_RESULTS_FILE "${OUTDIR}/cocotb_results.xml")
+    set(COCOTB_RESULTS_FILE ${OUTDIR}/results.xml)
 
     # Cocotb simulation options
     # Cocotb module to run (python script)
@@ -131,7 +131,7 @@ function(cocotb_iverilog IP_LIB)
     endif()
 
     # Set the stamp file path (is the stamp file really needed?)
-    set(STAMP_FILE "${OUTDIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(STAMP_FILE "${OUTDIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_iverilog.stamp")
 
     # Add a custom command to run iverilog
     add_custom_command(
@@ -199,7 +199,7 @@ function(cocotb_iverilog IP_LIB)
         TESTCASE=${TESTCASE}
         TOPLEVEL=${TOP_MODULE}
         TOPLEVEL_LANG=${TOPLEVEL_LANG}
-        COCOTB_RESULTS_FILE=${OUTDIR}/results.xml
+        COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
     )
     set(COCOTB_IVERILOG_CMD
         # iverilog run-time engine must be in your path
@@ -212,16 +212,18 @@ function(cocotb_iverilog IP_LIB)
     )
 
     # Add a custom command to run cocotb
+    set(COCOTB_CMD ${COCOTB_ENV_VARS} ${ARG_SIM_CMD_PREFIX} ${COCOTB_IVERILOG_CMD})
+    set(STAMP_FILE "${OUTDIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_cocotb.stamp")
     add_custom_command(
-        OUTPUT ${COCOTB_RESULTS_FILE}
-        COMMAND ${COCOTB_ENV_VARS}
-        # sim command prefix, e.g., for debugging: 'gdb --args'
-        ${ARG_SIM_CMD_PREFIX}
-        ${COCOTB_IVERILOG_CMD}
+        OUTPUT ${STAMP_FILE} ${COCOTB_RESULTS_FILE}
+        COMMAND ${COCOTB_CMD}
+        COMMAND /bin/sh -c date > ${STAMP_FILE}
         DEPENDS ${CUSTOM_TARGET_NAME}
-        COMMENT "Running cocotb simulation on ${IP_LIB}"
+        COMMENT "Running cocotb simulation on ${CUSTOM_TARGET_NAME}"
         WORKING_DIRECTORY ${OUTDIR}
     )
+
+    message(STATUS "Cocotb simulation command ${CUSTOM_TARGET_NAME}: ${COCOTB_CMD}")
 
     # Set the command as a property to be easily found by add_test()
     string(TOUPPER ${CUSTOM_TARGET_NAME} COCOTB_TEST_PROP)
@@ -231,7 +233,7 @@ function(cocotb_iverilog IP_LIB)
     # Add a custom target that depends on the executable and stamp file
     add_custom_target(
         run_${CUSTOM_TARGET_NAME}
-        DEPENDS ${COCOTB_RESULTS_FILE}
+        DEPENDS ${STAMP_FILE} ${COCOTB_RESULTS_FILE}
     )
 
 endfunction()

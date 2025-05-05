@@ -27,9 +27,12 @@ function(add_cocotb_iverilog_tests IP_LIB DIRECTORY)
             string(TOUPPER ${cocotb_test} COCOTB_TEST_PROP)
             get_target_property(COCOTB_IVERILOG_TEST_CMD ${IP_LIB} COCOTB_IVERILOG_${COCOTB_TEST_PROP}_CMD)
             get_target_property(COCOTB_IVERILOG_TEST_ENV ${IP_LIB} COCOTB_IVERILOG_${COCOTB_TEST_PROP}_ENV)
+            set(run_working_dir Testing/tests/${cocotb_test})
+            execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${run_working_dir})
             add_test(
                 NAME ${cocotb_test}
                 COMMAND ${COCOTB_IVERILOG_TEST_CMD}
+                WORKING_DIRECTORY ${run_working_dir}
             )
             # The ENVIRONMENT property expect the variables in a specific format so its safer to
             # set them one by one and let the function do the correct formating
