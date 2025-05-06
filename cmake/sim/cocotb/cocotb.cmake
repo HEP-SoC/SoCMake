@@ -45,6 +45,8 @@ function(cocotb IP_LIB)
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
     # find_package(Python3 COMPONENTS Interpreter Development)
 
+    alias_dereference(IP_LIB ${IP_LIB})
+
     if(NOT ARG_TOP_MODULE)
         get_target_property(ARG_TOP_MODULE ${IP_LIB} IP_NAME)
     endif()
@@ -67,9 +69,15 @@ function(cocotb IP_LIB)
         ERROR_VARIABLE ERROR_MSG
         COMMAND ${COCOTB_CONFIG_EXECUTABLE} --prefix
     )
+    execute_process(
+        OUTPUT_VARIABLE COCOTB_LIB_DIR
+        ERROR_VARIABLE ERROR_MSG
+        COMMAND ${COCOTB_CONFIG_EXECUTABLE} --lib-dir
+    )
     # Remove the line feed of the variable
     string(STRIP ${COCOTB_PY_DIR} COCOTB_PY_DIR)
-    set(COCOTB_LIB_DIR ${COCOTB_PY_DIR}/cocotb/libs)
+    string(STRIP ${COCOTB_LIB_DIR} COCOTB_LIB_DIR)
+    set(COCOTB_SHARE_DIR ${COCOTB_PY_DIR}/cocotb/share)
     # First get all Python files from cocotb
     file(GLOB_RECURSE COCOTB_PY_DEPS ${COCOTB_PY_DIR}/*.py)
     # Get all files in the cocotb library directory
@@ -89,7 +97,7 @@ function(cocotb IP_LIB)
             if(XCELIUM_EXECUTABLE)
                 set(ARG_SIM xcelium)
             else()
-                message(FATAL_ERROR "No simulator found. Please provide a simulator using the SIM argument.")
+                message(FATAL_ERROR "Neither icarus or xcelium simulator found. Please provide a simulator using the SIM argument.")
             endif()
         endif()
     endif()
@@ -102,11 +110,6 @@ function(cocotb IP_LIB)
         file(TOUCH ${CMDS_FILE})
         file(WRITE ${CMDS_FILE} "+timescale+1ns/1ps\n")
 
-        execute_process(
-            OUTPUT_VARIABLE COCOTB_LIB_DIR
-            ERROR_VARIABLE ERROR_MSG
-            COMMAND ${COCOTB_CONFIG_EXECUTABLE} --lib-dir
-        )
         # Get the simulator VPI library
         execute_process(
             OUTPUT_VARIABLE COCOTB_LIB_NAME
@@ -114,7 +117,6 @@ function(cocotb IP_LIB)
             COMMAND ${COCOTB_CONFIG_EXECUTABLE} --lib-name vpi icarus
         )
         # Remove the line feed of the variable
-        string(STRIP ${COCOTB_LIB_DIR} COCOTB_LIB_DIR)
         string(STRIP ${COCOTB_LIB_NAME} COCOTB_LIB_NAME)
 
         iverilog(${IP_LIB}
@@ -128,7 +130,24 @@ function(cocotb IP_LIB)
         set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
         set(sim_build_dep ${IP_LIB}_iverilog)
     elseif(${ARG_SIM} STREQUAL verilator)
-        message(FATAL_ERROR "Using Verilator simulator is not supported yet by SoCMake")
+        message(STATUS "Using Verilator simulator")
+
+        verilator(${IP_LIB}
+            NO_RUN_TARGET
+            TOP_MODULE ${ARG_TOP_MODULE}
+            DIRECTORY ${cocotb_sim_build}
+            PREFIX Vtop
+            VERILATOR_ARGS --Wno-fatal -DCOCOTB_SIM=1 --vpi --public-flat-rw
+        )
+
+        add_executable(cocotb_verilator
+            ${COCOTB_SHARE_DIR}/lib/verilator/verilator.cpp
+        )
+        target_link_libraries(cocotb_verilator PRIVATE ${IP_LIB}__vlt)
+        target_link_options(cocotb_verilator PRIVATE -Wl,-rpath,${COCOTB_LIB_DIR} -L${COCOTB_LIB_DIR} -lcocotbvpi_verilator)
+
+        set(sim_run_cmd ${PROJECT_BINARY_DIR}/cocotb_verilator ${ARG_RUN_ARGS})
+        set(sim_build_dep cocotb_verilator)
     elseif(${ARG_SIM} STREQUAL xcelium)
         message(STATUS "Using Xcelium simulator")
 
@@ -163,11 +182,13 @@ function(cocotb IP_LIB)
         set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
         set(sim_build_dep ${IP_LIB}_xcelium)
     elseif(${ARG_SIM} STREQUAL modelsim OR ${ARG_SIM} STREQUAL questa)
-        message(FATAL_ERROR "Using ModelSim/QuestaSim simulator is not supported yet by SoCMake")
+        message(FATAL_ERROR "Using ModelSim/QuestaSim simulator is not supported by SoCMake yet")
+        # TODO: Add support for QuestaSim
     elseif(${ARG_SIM} STREQUAL vcs)
-        message(FATAL_ERROR "Using VCS simulator is not supported yet by SoCMake")
+        message(FATAL_ERROR "Using VCS simulator is not supported by SoCMake yet")
+        # TODO: Add support for QuestaSim
     else()
-        message(FATAL_ERROR "Unsupported cocotb simulator: ${ARG_SIM}\nSupported simulators are: icarus/iverilog, verilator, xcelium, questa/modelsim, vcs.")
+        message(FATAL_ERROR "Unsupported cocotb simulator: ${ARG_SIM}\nSupported simulators are: icarus/iverilog, verilator, xcelium, questa/modelsim (supported by cocotb but not by SoCMake yet), vcs (supported by cocotb but not by SoCMake yet).")
     endif()
 
     # If no test cases are provided, all test cases are run sequentially
