@@ -37,6 +37,16 @@ function(iverilog IP_LIB)
     # Include the hardware IP management cmake functions
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
 
+    # Check the executables are available
+    find_program(IVERILOG_EXECUTABLE iverilog)
+    if(NOT IVERILOG_EXECUTABLE)
+        message(FATAL_ERROR "iverilog not found in PATH. Please install icarus verilog or add it to your PATH.")
+    endif()
+    find_program(VVP_EXECUTABLE vvp)
+    if(NOT VVP_EXECUTABLE)
+        message(FATAL_ERROR "vvp not found in PATH. Please install icarus verilog or add it to your PATH.")
+    endif()
+
     # Assume the IP library is the latest one provided if full name is not given
     alias_dereference(IP_LIB ${IP_LIB})
     # Get the binary directory of the IP library
@@ -72,7 +82,7 @@ function(iverilog IP_LIB)
         add_custom_command(
             OUTPUT ${ARG_EXECUTABLE} ${STAMP_FILE}
             COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
-            COMMAND iverilog
+            COMMAND ${IVERILOG_EXECUTABLE}
                 $<$<BOOL:${ARG_TOP_MODULE}>:-s${ARG_TOP_MODULE}>
                 ${ARG_INCDIRS}
                 ${CMP_DEFS_ARG}
@@ -93,7 +103,7 @@ function(iverilog IP_LIB)
     endif()
 
     set(__sim_run_cmd
-        vvp ${ARG_RUN_ARGS} ${ARG_EXECUTABLE}
+        ${VVP_EXECUTABLE} ${ARG_RUN_ARGS} ${ARG_EXECUTABLE}
     )
     if(NOT ${ARG_NO_RUN_TARGET})
         if(NOT ARG_RUN_TARGET_NAME)
