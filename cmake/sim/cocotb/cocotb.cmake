@@ -78,20 +78,36 @@ function(cocotb IP_LIB)
     # Combine the deps
     set(cocotb_custom_sim_deps ${COCOTB_PY_DEPS} ${COCOTB_LIB_DEPS})
 
+    # If no simulator is provided, try to find one
+    if(NOT ARG_SIM)
+        find_program(IVERILOG_EXECUTABLE iverilog)
+        find_program(VVP_EXECUTABLE vvp)
+        if(IVERILOG_EXECUTABLE AND VVP_EXECUTABLE)
+            set(ARG_SIM icarus)
+        else()
+            find_program(XCELIUM_EXECUTABLE xrun)
+            if(XCELIUM_EXECUTABLE)
+                set(ARG_SIM xcelium)
+            else()
+                message(FATAL_ERROR "No simulator found. Please provide a simulator using the SIM argument.")
+            endif()
+        endif()
+    endif()
+
     # Generate the executable based on the simulator
-    if(${ARG_SIM} STREQUAL icarus)
+    if(${ARG_SIM} STREQUAL icarus OR ${ARG_SIM} STREQUAL iverilog)
         message(STATUS "Using Icarus Verilog simulator")
         # A command file as to be created to pass the timescale information to iverilog
         set(CMDS_FILE ${cocotb_sim_build}/cmds.f)
         file(TOUCH ${CMDS_FILE})
         file(WRITE ${CMDS_FILE} "+timescale+1ns/1ps\n")
 
-        # find_program(COCOTB_CONFIG_EXECUTABLE cocotb-config)
         execute_process(
             OUTPUT_VARIABLE COCOTB_LIB_DIR
             ERROR_VARIABLE ERROR_MSG
             COMMAND ${COCOTB_CONFIG_EXECUTABLE} --lib-dir
         )
+        # Get the simulator VPI library
         execute_process(
             OUTPUT_VARIABLE COCOTB_LIB_NAME
             ERROR_VARIABLE ERROR_MSG
@@ -114,15 +130,44 @@ function(cocotb IP_LIB)
     elseif(${ARG_SIM} STREQUAL verilator)
         message(FATAL_ERROR "Using Verilator simulator is not supported yet by SoCMake")
     elseif(${ARG_SIM} STREQUAL xcelium)
-        message(FATAL_ERROR "Using Xcelium simulator is not supported yet by SoCMake")
-    elseif(${ARG_SIM} STREQUAL modelsim)
-        message(FATAL_ERROR "Using ModelSim simulator is not supported yet by SoCMake")
+        message(STATUS "Using Xcelium simulator")
+
+        # Get the simulator VPI/VHPI library paths
+        execute_process(
+            OUTPUT_VARIABLE COCOTB_VPI_PATH
+            ERROR_VARIABLE ERROR_MSG
+            COMMAND ${COCOTB_CONFIG_EXECUTABLE} --lib-name-path vpi xcelium
+        )
+        execute_process(
+            OUTPUT_VARIABLE COCOTB_VHPI_PATH
+            ERROR_VARIABLE ERROR_MSG
+            COMMAND ${COCOTB_CONFIG_EXECUTABLE} --lib-name-path vhpi xcelium
+        )
+        # Remove the line feed of the variable
+        string(STRIP ${COCOTB_VPI_PATH} COCOTB_VPI_PATH)
+        string(STRIP ${COCOTB_VHPI_PATH} COCOTB_VHPI_PATH)
+
+        if(ARG_GUI)
+            set(ARG_GUI GUI)
+        endif()
+
+        xcelium(
+            ${IP_LIB}
+            NO_RUN_TARGET
+            ${ARG_GUI}
+            TOP_MODULE ${ARG_TOP_MODULE}
+            OUTDIR ${cocotb_sim_build}
+            ELABORATE_ARGS -access +rwc -timescale 1ns/1ps -loadvpi ${COCOTB_VPI_PATH}:vlog_startup_routines_bootstrap -loadvhpi ${COCOTB_VHPI_PATH}:cocotbvhpi_entry_point
+            SV_COMPILE_ARGS -DCOCOTB_SIM=1
+        )
+        set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
+        set(sim_build_dep ${IP_LIB}_xcelium)
+    elseif(${ARG_SIM} STREQUAL modelsim OR ${ARG_SIM} STREQUAL questa)
+        message(FATAL_ERROR "Using ModelSim/QuestaSim simulator is not supported yet by SoCMake")
     elseif(${ARG_SIM} STREQUAL vcs)
         message(FATAL_ERROR "Using VCS simulator is not supported yet by SoCMake")
-    elseif(${ARG_SIM} STREQUAL questa)
-        message(FATAL_ERROR "Using QuestaSim simulator is not supported yet by SoCMake")
     else()
-        message(FATAL_ERROR "Unsupported cocotb simulator: ${ARG_SIM}\nSupported simulators are: icarus, verilator, xcelium, questa/modelsim, vcs.")
+        message(FATAL_ERROR "Unsupported cocotb simulator: ${ARG_SIM}\nSupported simulators are: icarus/iverilog, verilator, xcelium, questa/modelsim, vcs.")
     endif()
 
     # If no test cases are provided, all test cases are run sequentially
