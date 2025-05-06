@@ -104,7 +104,7 @@ function(cocotb IP_LIB)
 
     # Generate the executable based on the simulator
     if(${ARG_SIM} STREQUAL icarus OR ${ARG_SIM} STREQUAL iverilog)
-        message(STATUS "Using Icarus Verilog simulator")
+        message(DEBUG "COCOTB: Using Icarus Verilog simulator")
         # A command file as to be created to pass the timescale information to iverilog
         set(CMDS_FILE ${cocotb_sim_build}/cmds.f)
         file(TOUCH ${CMDS_FILE})
@@ -130,7 +130,7 @@ function(cocotb IP_LIB)
         set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
         set(sim_build_dep ${IP_LIB}_iverilog)
     elseif(${ARG_SIM} STREQUAL verilator)
-        message(STATUS "Using Verilator simulator")
+        message(DEBUG "COCOTB: Using Verilator simulator")
 
         verilator(${IP_LIB}
             NO_RUN_TARGET
@@ -149,7 +149,7 @@ function(cocotb IP_LIB)
         set(sim_run_cmd ${PROJECT_BINARY_DIR}/cocotb_verilator ${ARG_RUN_ARGS})
         set(sim_build_dep cocotb_verilator)
     elseif(${ARG_SIM} STREQUAL xcelium)
-        message(STATUS "Using Xcelium simulator")
+        message(DEBUG "COCOTB: Using Xcelium simulator")
 
         # Get the simulator VPI/VHPI library paths
         execute_process(
