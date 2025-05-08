@@ -132,22 +132,27 @@ function(cocotb IP_LIB)
     elseif(${ARG_SIM} STREQUAL verilator)
         message(DEBUG "COCOTB: Using Verilator simulator")
 
+        set(EXEC_TARGET cocotb_verilator_${IP_LIB})
+        add_executable(${EXEC_TARGET}
+            ${COCOTB_SHARE_DIR}/lib/verilator/verilator.cpp
+        )
+
         verilator(${IP_LIB}
             NO_RUN_TARGET
+            EXEC_TARGET ${EXEC_TARGET}
             TOP_MODULE ${ARG_TOP_MODULE}
             DIRECTORY ${cocotb_sim_build}
             PREFIX Vtop
+            SYSTEMC
             VERILATOR_ARGS --Wno-fatal -DCOCOTB_SIM=1 --vpi --public-flat-rw
         )
 
-        add_executable(cocotb_verilator
-            ${COCOTB_SHARE_DIR}/lib/verilator/verilator.cpp
-        )
-        target_link_libraries(cocotb_verilator PRIVATE ${IP_LIB}__vlt)
-        target_link_options(cocotb_verilator PRIVATE -Wl,-rpath,${COCOTB_LIB_DIR} -L${COCOTB_LIB_DIR} -lcocotbvpi_verilator)
+        target_link_libraries(${EXEC_TARGET} PRIVATE ${IP_LIB}__vlt)
+        target_link_libraries(${EXEC_TARGET} PRIVATE cocotbvpi_verilator)
+        target_link_options(${EXEC_TARGET} PRIVATE -Wl,-rpath,${COCOTB_LIB_DIR} -L${COCOTB_LIB_DIR})
 
-        set(sim_run_cmd ${PROJECT_BINARY_DIR}/cocotb_verilator ${ARG_RUN_ARGS})
-        set(sim_build_dep cocotb_verilator)
+        set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
+        set(sim_build_dep ${EXEC_TARGET})
     elseif(${ARG_SIM} STREQUAL xcelium)
         message(DEBUG "COCOTB: Using Xcelium simulator")
 
