@@ -15,6 +15,8 @@ function(verilator IP_LIB)
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
 
+    enable_language(C CXX)
+
     # Check verilator is installed
     find_package(verilator REQUIRED HINTS $ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
     set(VERILATOR_INCLUDE_DIR ${VERILATOR_ROOT}/include)

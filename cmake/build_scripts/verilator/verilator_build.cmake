@@ -7,6 +7,8 @@ function(verilator_build)
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/colours.cmake")
 
+    enable_language(C CXX)
+
     unset(CMAKE_ARG_VERSION)
     if(ARG_VERSION)
         set(CMAKE_ARG_VERSION "-DVERSION=${ARG_VERSION}")
@@ -57,6 +59,11 @@ function(verilator_build)
         message(STATUS "${Magenta}[Verilator version updated]${ColourReset}")
         set(VERILATOR_ROOT ${ARG_INSTALL_DIR} CACHE PATH "VERILATOR_ROOT" FORCE)
         set(VERILATOR_BIN ${ARG_INSTALL_DIR}/bin/verilator_bin CACHE PATH "Path to a program." FORCE)
+    endif()
+
+    set(__version_missing_root 5.012 5.014 5.016 5.018 5.020)
+    if(${ARG_VERSION} IN_LIST __version_missing_root)
+        set(ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
     endif()
 
     message(STATUS "${Green}[Found Verilator]${ColourReset}: ${verilator_VERSION} in ${verilator_DIR}")
