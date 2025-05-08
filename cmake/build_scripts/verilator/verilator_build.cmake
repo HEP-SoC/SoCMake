@@ -53,7 +53,7 @@ function(verilator_build)
         )
     endif()
 
-    find_package(verilator ${ARG_VERSION} REQUIRED HINTS ${ARG_INSTALL_DIR})
+    find_package(verilator ${ARG_VERSION} EXACT REQUIRED HINTS ${ARG_INSTALL_DIR})
     # Update cached variable if a new version is required
     if(NOT ${VERILATOR_ROOT} STREQUAL ${ARG_INSTALL_DIR})
         message(STATUS "${Magenta}[Verilator version updated]${ColourReset}")

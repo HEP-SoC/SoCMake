@@ -126,6 +126,13 @@ function(verilator IP_LIB)
         OPT_GLOBAL ${ARG_OPT_GLOBAL}
     )
 
+    set_property(
+        TARGET ${VERILATED_LIB}
+        APPEND PROPERTY ADDITIONAL_CLEAN_FILES
+            ${DIRECTORY}
+    )
+
+
     if(ARG_SYSTEMC)
         find_package(SystemCLanguage REQUIRED HINTS ${SYSTEMC_ROOT})
         verilator_link_systemc(${VERILATED_LIB})
