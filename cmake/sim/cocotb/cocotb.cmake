@@ -64,6 +64,9 @@ function(cocotb IP_LIB)
     file(MAKE_DIRECTORY ${cocotb_sim_build})
 
     find_program(COCOTB_CONFIG_EXECUTABLE cocotb-config)
+    if(NOT COCOTB_CONFIG_EXECUTABLE)
+        message(FATAL_ERROR "Cocotb not found. Please install it or provide the path to the cocotb-config executable.")
+    endif()
     execute_process(
         OUTPUT_VARIABLE COCOTB_PY_DIR
         ERROR_VARIABLE ERROR_MSG
@@ -228,11 +231,14 @@ function(cocotb IP_LIB)
                 set(CUSTOM_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_${ARG_COCOTB_MODULE})
             endif()
 
+            set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB} with ${ARG_SIM}")
             # Add a custom target that depends on the executable and stamp file
             add_custom_target(
                 ${CUSTOM_TARGET_NAME}
                 DEPENDS ${COCOTB_RESULTS_FILE}
+                COMMENT ${DESCRIPTION}
             )
+            set_property(TARGET ${CUSTOM_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
         endif()
     else() # ARG_COCOTB_TESTCASE
         foreach(i RANGE 1 ${ARG_COCOTB_TESTCASE})
@@ -277,11 +283,14 @@ function(cocotb IP_LIB)
                     set(CUSTOM_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_${ARG_COCOTB_MODULE}_test_${test_num})
                 endif()
 
+                set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB} with ${ARG_SIM}")
                 # Add a custom target that depends on the executable and stamp file
                 add_custom_target(
                     ${CUSTOM_TARGET_NAME}
                     DEPENDS ${COCOTB_RESULTS_FILE}
+                    COMMENT ${DESCRIPTION}
                 )
+                set_property(TARGET ${CUSTOM_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
             endif() # NOT ARG_NO_RUN_TARGET
         endforeach()
     endif() # ARG_COCOTB_TESTCASE
