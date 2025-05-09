@@ -36,12 +36,8 @@ function(verilator IP_LIB)
         set(VERILATOR_HOME "${verilator_DIR}/../../")
     endif()
 
-    find_file(_VERILATED_H verilated.h REQUIRED
-        HINTS ${VERILATOR_HOME}/include ${verilator_DIR}/include
-        )
-    get_filename_component(VERILATOR_INCLUDE_DIR ${_VERILATED_H} DIRECTORY)
-
-    set(VERILATOR_ROOT ${VERILATOR_INCLUDE_DIR}/../)
+    find_package(verilator REQUIRED HINTS $ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
+    set(VERILATOR_INCLUDE_DIR ${VERILATOR_ROOT}/include)
     ##################################
 
     get_ip_include_directories(INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG)
