@@ -26,6 +26,8 @@ include_guard(GLOBAL)
 # :type COCOTB_TESTCASE: integer
 # :keyword SIM: Simulator to use. Supported simulators is: icarus (cocotb also support verilator, xcelium, vcs and modelsim/questasim, not yet supported by SoCMake).
 # :type SIM: string
+# :keyword TIMESCALE: Simulation timscale. Default is 1ns/1ps.
+# :type TIMESCALE: string
 # :keyword PYTHONPATH: List of paths to be added to the PYTHONPATH environment variable to include python modules needed for the simulation.
 # :type PYTHONPATH: string
 # :keyword SV_COMPILE_ARGS: Extra arguments to be passed to the System Verilog / Verilog compilation step.
@@ -35,7 +37,7 @@ include_guard(GLOBAL)
 # ]]]
 function(cocotb IP_LIB)
     # Parse the function arguments
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI" "OUTDIR;RUN_TARGET_NAME;TOP_MODULE;COCOTB_MODULE;COCOTB_TESTCASE;SIM" "PYTHONPATH;SV_COMPILE_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI" "OUTDIR;RUN_TARGET_NAME;TOP_MODULE;COCOTB_MODULE;COCOTB_TESTCASE;SIM;TIMESCALE" "PYTHONPATH;SV_COMPILE_ARGS;RUN_ARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -105,6 +107,10 @@ function(cocotb IP_LIB)
         endif()
     endif()
 
+    if(NOT ARG_TIMESCALE)
+        set(ARG_TIMESCALE 1ns/1ps)
+    endif()
+
     # Generate the executable based on the simulator
     if(${ARG_SIM} STREQUAL icarus OR ${ARG_SIM} STREQUAL iverilog)
         message(DEBUG "COCOTB: Using Icarus Verilog simulator")
@@ -113,7 +119,7 @@ function(cocotb IP_LIB)
         # A command file as to be created to pass the timescale information to iverilog
         set(CMDS_FILE ${cocotb_sim_build}/cmds.f)
         file(TOUCH ${CMDS_FILE})
-        file(WRITE ${CMDS_FILE} "+timescale+1ns/1ps\n")
+        file(WRITE ${CMDS_FILE} "+timescale+${ARG_TIMESCALE}\n")
 
         # Get the simulator VPI library
         execute_process(
@@ -189,7 +195,7 @@ function(cocotb IP_LIB)
             ${ARG_GUI}
             TOP_MODULE ${ARG_TOP_MODULE}
             OUTDIR ${cocotb_sim_build}
-            ELABORATE_ARGS -access +rwc -timescale 1ns/1ps -loadvpi ${COCOTB_VPI_PATH}:vlog_startup_routines_bootstrap -loadvhpi ${COCOTB_VHPI_PATH}:cocotbvhpi_entry_point
+            ELABORATE_ARGS -access +rwc -timescale ${ARG_TIMESCALE} -loadvpi ${COCOTB_VPI_PATH}:vlog_startup_routines_bootstrap -loadvhpi ${COCOTB_VHPI_PATH}:cocotbvhpi_entry_point
             SV_COMPILE_ARGS -DCOCOTB_SIM=1
         )
         set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
