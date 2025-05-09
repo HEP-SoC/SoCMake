@@ -108,6 +108,8 @@ function(cocotb IP_LIB)
     # Generate the executable based on the simulator
     if(${ARG_SIM} STREQUAL icarus OR ${ARG_SIM} STREQUAL iverilog)
         message(DEBUG "COCOTB: Using Icarus Verilog simulator")
+        set(cocotb_sim_build ${cocotb_sim_build}/icarus)
+        file(MAKE_DIRECTORY ${cocotb_sim_build})
         # A command file as to be created to pass the timescale information to iverilog
         set(CMDS_FILE ${cocotb_sim_build}/cmds.f)
         file(TOUCH ${CMDS_FILE})
@@ -132,33 +134,36 @@ function(cocotb IP_LIB)
 
         set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
         set(sim_build_dep ${IP_LIB}_iverilog)
+        message(DEBUG "COCOTB: Icarus verilog run command: ${sim_run_cmd}")
     elseif(${ARG_SIM} STREQUAL verilator)
         message(DEBUG "COCOTB: Using Verilator simulator")
-
-        set(EXEC_TARGET cocotb_verilator_${IP_LIB})
+        set(cocotb_sim_build ${cocotb_sim_build}/verilator)
+        file(MAKE_DIRECTORY ${cocotb_sim_build})
+    
+        set(EXEC_TARGET cocotb_verilator_${ARG_COCOTB_MODULE}_${IP_LIB})
         add_executable(${EXEC_TARGET}
             ${COCOTB_SHARE_DIR}/lib/verilator/verilator.cpp
         )
 
         verilator(${IP_LIB}
             NO_RUN_TARGET
-            EXEC_TARGET ${EXEC_TARGET}
             TOP_MODULE ${ARG_TOP_MODULE}
             DIRECTORY ${cocotb_sim_build}
             PREFIX Vtop
-            SYSTEMC
-            VERILATOR_ARGS --Wno-fatal -DCOCOTB_SIM=1 --vpi --public-flat-rw
+            VERILATOR_ARGS -DCOCOTB_SIM=1 --vpi --public-flat-rw
         )
 
         target_link_libraries(${EXEC_TARGET} PRIVATE ${IP_LIB}__vlt)
         target_link_libraries(${EXEC_TARGET} PRIVATE cocotbvpi_verilator)
         target_link_options(${EXEC_TARGET} PRIVATE -Wl,-rpath,${COCOTB_LIB_DIR} -L${COCOTB_LIB_DIR})
 
-        set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
+        set(sim_run_cmd ${PROJECT_BINARY_DIR}/${EXEC_TARGET} ${ARG_RUN_ARGS})
         set(sim_build_dep ${EXEC_TARGET})
+        message(DEBUG "COCOTB: Verilator run command: ${sim_run_cmd}")
     elseif(${ARG_SIM} STREQUAL xcelium)
         message(DEBUG "COCOTB: Using Xcelium simulator")
-
+        set(cocotb_sim_build ${cocotb_sim_build}/xcelium)
+        file(MAKE_DIRECTORY ${cocotb_sim_build})
         # Get the simulator VPI/VHPI library paths
         execute_process(
             OUTPUT_VARIABLE COCOTB_VPI_PATH
@@ -189,6 +194,7 @@ function(cocotb IP_LIB)
         )
         set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
         set(sim_build_dep ${IP_LIB}_xcelium)
+        message(DEBUG "COCOTB: Xcelium run command: ${sim_run_cmd}")
     elseif(${ARG_SIM} STREQUAL modelsim OR ${ARG_SIM} STREQUAL questa)
         message(FATAL_ERROR "Using ModelSim/QuestaSim simulator is not supported by SoCMake yet")
         # TODO: Add support for QuestaSim

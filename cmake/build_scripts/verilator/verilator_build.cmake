@@ -61,7 +61,7 @@ function(verilator_build)
         set(VERILATOR_BIN ${ARG_INSTALL_DIR}/bin/verilator_bin CACHE PATH "Path to a program." FORCE)
     endif()
 
-    set(__version_missing_root 5.012 5.014 5.016 5.018 5.020)
+    set(__version_missing_root 5.012 5.014 5.016 5.018 5.020 5.022 5.024)
     if(${ARG_VERSION} IN_LIST __version_missing_root)
         set(ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
     endif()

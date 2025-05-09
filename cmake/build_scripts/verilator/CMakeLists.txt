@@ -3,7 +3,7 @@ project(verilator_build)
 
 include("../../utils/option.cmake")
 
-set(VERILATOR_VERSIONS 5.012 5.014 5.016 5.018 5.020 5.036)
+set(VERILATOR_VERSIONS 5.012 5.014 5.016 5.018 5.020 5.022 5.024)
 option_enum(VERSION "Version of Verilator to build" "${VERILATOR_VERSIONS}" "5.012")
 option_enum(CMAKE_CXX_STANDARD "C++ Standard" "98;11;14;17;20;23;26" "17")
 
