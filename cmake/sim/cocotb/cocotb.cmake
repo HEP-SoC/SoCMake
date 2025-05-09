@@ -221,15 +221,6 @@ function(cocotb IP_LIB)
             ${sim_run_cmd}
         )
 
-        # Add a custom command to run cocotb
-        add_custom_command(
-            OUTPUT ${COCOTB_RESULTS_FILE}
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
-            COMMAND ${__sim_run_cmd}
-            DEPENDS ${sim_build_dep} ${cocotb_custom_sim_deps}
-            COMMENT "Running cocotb simulation on ${IP_LIB}"
-        )
-
         if(NOT ARG_NO_RUN_TARGET)
             if(ARG_RUN_TARGET_NAME)
                 set(CUSTOM_TARGET_NAME ${ARG_RUN_TARGET_NAME})
@@ -237,11 +228,13 @@ function(cocotb IP_LIB)
                 set(CUSTOM_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_${ARG_COCOTB_MODULE})
             endif()
 
-            set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB} with ${ARG_SIM}")
+            set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} simulation compiled from ${IP_LIB} with ${ARG_SIM}")
             # Add a custom target that depends on the executable and stamp file
-            add_custom_target(
-                ${CUSTOM_TARGET_NAME}
-                DEPENDS ${COCOTB_RESULTS_FILE}
+            add_custom_target(${CUSTOM_TARGET_NAME}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
+                COMMAND ${__sim_run_cmd}
+                BYPRODUCTS ${COCOTB_RESULTS_FILE}
+                DEPENDS ${sim_build_dep} ${cocotb_custom_sim_deps}
                 COMMENT ${DESCRIPTION}
             )
             set_property(TARGET ${CUSTOM_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
@@ -272,16 +265,6 @@ function(cocotb IP_LIB)
                 ${sim_run_cmd}
             )
 
-            # Add a custom command to run cocotb
-            add_custom_command(
-                OUTPUT ${COCOTB_RESULTS_FILE}
-                COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
-                COMMAND TESTCASE=${ARG_COCOTB_MODULE}_test_${test_num}
-                ${__sim_run_cmd}
-                DEPENDS ${sim_build_dep} ${cocotb_custom_sim_deps}
-                COMMENT "Running cocotb simulation on ${IP_LIB}"
-            )
-
             if(NOT ARG_NO_RUN_TARGET)
                 if(ARG_RUN_TARGET_NAME)
                     set(CUSTOM_TARGET_NAME ${ARG_RUN_TARGET_NAME})
@@ -289,11 +272,13 @@ function(cocotb IP_LIB)
                     set(CUSTOM_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_${ARG_COCOTB_MODULE}_test_${test_num})
                 endif()
 
-                set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB} with ${ARG_SIM}")
+                set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} simulation compiled from ${IP_LIB} with ${ARG_SIM}")
                 # Add a custom target that depends on the executable and stamp file
-                add_custom_target(
-                    ${CUSTOM_TARGET_NAME}
-                    DEPENDS ${COCOTB_RESULTS_FILE}
+                add_custom_target(${CUSTOM_TARGET_NAME}
+                    COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
+                    COMMAND TESTCASE=${ARG_COCOTB_MODULE}_test_${test_num} ${__sim_run_cmd}
+                    BYPRODUCTS ${COCOTB_RESULTS_FILE}
+                    DEPENDS ${sim_build_dep} ${cocotb_custom_sim_deps}
                     COMMENT ${DESCRIPTION}
                 )
                 set_property(TARGET ${CUSTOM_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
