@@ -26,10 +26,10 @@ function(verilator_build)
         endif()
     endif()
 
-    find_package(verilator HINTS $ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
+    find_package(verilator HINTS $ENV{VERILATOR_ROOT} ${VERILATOR_ROOT} ${ARG_INSTALL_DIR})
 
     if(ARG_EXACT_VERSION)
-        if(NOT "${verilator_VERSION_MAJOR}.${verilator_VERSION_MINOR}" STREQUAL ${ARG_VERSION})
+        if(NOT "${verilator_VERSION_MAJOR}.${verilator_VERSION_MINOR}" VERSION_EQUAL "${ARG_VERSION}")
             set(verilator_FOUND FALSE)
         endif()
     endif()
