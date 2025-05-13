@@ -5,6 +5,7 @@ find_package(verilator HINTS $ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
 if (NOT verilator_FOUND)
   message(FATAL_ERROR "Verilator was not found. Either install it, or set the VERILATOR_ROOT environment variable")
 endif()
+
 # Certain versions of verilator require VERILATOR_ROOT as an environment variable
 if(NOT DEFINED ENV{VERILATOR_ROOT})
     set(ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
