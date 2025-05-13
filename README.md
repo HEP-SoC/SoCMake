@@ -26,6 +26,7 @@ SoCMake key features are:
 * SystemC and SystemC-UVM support
 * Mixed-language SV-VHDL-SC simulation
 * SystemVerilog-UVM and VHDL-UVVM support
+* CocoTB Python co-simulation support
 * Software and IP block package managment with CMake package managers
 * HDL code generation and conversion (PeakRDL, desyrdl, yosys, sv2v, ..)
 * Build graph generation with graphviz
