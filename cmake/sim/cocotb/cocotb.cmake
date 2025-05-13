@@ -111,6 +111,10 @@ function(cocotb IP_LIB)
         set(ARG_TIMESCALE 1ns/1ps)
     endif()
 
+    if(ARG_GUI)
+        set(ARG_GUI GUI)
+    endif()
+
     # Generate the executable based on the simulator
     if(${ARG_SIM} STREQUAL icarus OR ${ARG_SIM} STREQUAL iverilog)
         message(DEBUG "COCOTB: Using Icarus Verilog simulator")
@@ -145,7 +149,7 @@ function(cocotb IP_LIB)
         message(DEBUG "COCOTB: Using Verilator simulator")
         set(cocotb_sim_build ${cocotb_sim_build}/verilator)
         file(MAKE_DIRECTORY ${cocotb_sim_build})
-    
+
         set(EXEC_TARGET cocotb_verilator_${ARG_COCOTB_MODULE}_${IP_LIB})
         add_executable(${EXEC_TARGET}
             ${COCOTB_SHARE_DIR}/lib/verilator/verilator.cpp
@@ -185,10 +189,6 @@ function(cocotb IP_LIB)
         string(STRIP ${COCOTB_VPI_PATH} COCOTB_VPI_PATH)
         string(STRIP ${COCOTB_VHPI_PATH} COCOTB_VHPI_PATH)
 
-        if(ARG_GUI)
-            set(ARG_GUI GUI)
-        endif()
-
         xcelium(
             ${IP_LIB}
             NO_RUN_TARGET
@@ -205,8 +205,38 @@ function(cocotb IP_LIB)
         message(FATAL_ERROR "Using ModelSim/QuestaSim simulator is not supported by SoCMake yet")
         # TODO: Add support for QuestaSim
     elseif(${ARG_SIM} STREQUAL vcs)
-        message(FATAL_ERROR "Using VCS simulator is not supported by SoCMake yet")
-        # TODO: Add support for QuestaSim
+        message(DEBUG "COCOTB: Using VCS simulator")
+
+        # Can't do this using an argument, we have to create a PLI table file
+        # enabling write access to the design
+        set(PLI_FILE ${cocotb_sim_build}/pli.tab)
+        file(TOUCH ${PLI_FILE})
+        file(WRITE ${PLI_FILE} "acc+=rw,wn:*\n")
+
+        set(cocotb_sim_build ${cocotb_sim_build}/vcs)
+        file(MAKE_DIRECTORY ${cocotb_sim_build})
+        # Get the simulator VPI library paths
+        execute_process(
+            OUTPUT_VARIABLE COCOTB_VPI_PATH
+            ERROR_VARIABLE ERROR_MSG
+            COMMAND ${COCOTB_CONFIG_EXECUTABLE} --lib-name-path vpi vcs
+        )
+        # Remove the line feed of the variable
+        string(STRIP ${COCOTB_VPI_PATH} COCOTB_VPI_PATH)
+
+        vcs(
+            ${IP_LIB}
+            NO_RUN_TARGET
+            ${ARG_GUI}
+            TOP_MODULE ${ARG_TOP_MODULE}
+            OUTDIR ${cocotb_sim_build}
+            ELABORATE_ARGS -debug_access+r+w-memcbk -P ${PLI_FILE} -debug_region+cell +vpi -sverilog -timescale=${ARG_TIMESCALE} -debug_acc+pp+f+dmptf -debug_region+cell+encrypt -load ${COCOTB_VPI_PATH}
+            SV_COMPILE_ARGS +define+COCOTB_SIM=1
+            RUN_ARGS +define+COCOTB_SIM=1
+        )
+        set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
+        set(sim_build_dep ${IP_LIB}_vcs)
+        message(DEBUG "COCOTB: VCS run command: ${sim_run_cmd}")
     else()
         message(FATAL_ERROR "Unsupported cocotb simulator: ${ARG_SIM}\nSupported simulators are: icarus/iverilog, verilator, xcelium, questa/modelsim (supported by cocotb but not by SoCMake yet), vcs (supported by cocotb but not by SoCMake yet).")
     endif()

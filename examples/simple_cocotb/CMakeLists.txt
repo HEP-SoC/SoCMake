@@ -3,7 +3,7 @@ project(simple_cocotb_example CXX)
 
 include("../../SoCMakeConfig.cmake")
 
-option_enum(SIMULATOR "Which simulator to use" "iverilog;xcelium;verilator" "iverilog")
+option_enum(SIMULATOR "Which simulator to use" "iverilog;xcelium;verilator;vcs" "iverilog")
 
 if(${SIMULATOR} STREQUAL "verilator")
     verilator_build(VERSION 5.012 EXACT_VERSION)
