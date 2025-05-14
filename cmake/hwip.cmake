@@ -223,7 +223,7 @@ endfunction()
 #[[[
 # This function adds source file(s) to an IP target.
 #
-# This functions adds source file(s) to an IP target as a property named after the type of source file(s)
+# This functions adds source file(s) under a file set to an IP target as a property named after the name of the file set, type of source file(s)
 # and the suffix '__SOURCES'. If source files of the same type already exist they are appended to the
 # existing list. Ne source files can also be prepended with the optional keyword PREPEND. The source
 # files are later used to create the list of files to be compiled (e.g., by a simulator) by a tool to
@@ -235,6 +235,8 @@ endfunction()
 # :type IP_LIB: string
 # :param TYPE: The type of source file(s).
 # :type TYPE: string
+# :param FILE_SET: Specify to which file set to associate the listed files
+# :type FILE_SET: string
 # :param HEADERS: List of header files. Header files are stored in separate property ${LANGUAGE}_HEADERS
 # :type HEADERS: list
 #
@@ -244,10 +246,31 @@ endfunction()
 # :type PREPEND: string
 #]]
 function(ip_sources IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "PREPEND;REPLACE" "" "HEADERS" ${ARGN})
+    cmake_parse_arguments(ARG "PREPEND;REPLACE" "FILE_SET" "HEADERS" ${ARGN})
     # Delete PREPEND and REPLACE from argument list, so only sources are left
     list(REMOVE_ITEM ARGN "PREPEND")
     list(REMOVE_ITEM ARGN "REPLACE")
+
+    check_languages(${LANGUAGE})
+    # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
+    alias_dereference(_reallib ${IP_LIB})
+
+    if(ARG_FILE_SET)
+        set(sources_property ${LANGUAGE}_${ARG_FILE_SET}_SOURCES)
+        set(headers_property ${LANGUAGE}_${ARG_FILE_SET}_HEADERS)
+        set(get_sources_fileset_arg FILE_SETS ${ARG_FILE_SET})
+
+        get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
+        if(NOT ARG_FILE_SET IN_LIST filesets)
+            set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${ARG_FILE_SET})
+        endif()
+    else()
+        set(sources_property ${LANGUAGE}_SOURCES)
+        set(headers_property ${LANGUAGE}_HEADERS)
+        unset(get_sources_fileset_arg)
+    endif()
+    list(REMOVE_ITEM ARGN "${ARG_FILE_SET}")
+    list(REMOVE_ITEM ARGN "FILE_SET")
 
     # If headers are passed, use files until HEADERS as sources, while the rest are HEADERS
     if(ARG_HEADERS)
@@ -255,18 +278,14 @@ function(ip_sources IP_LIB LANGUAGE)
         list(SUBLIST ARGN 0 ${headers_idx} ARGN)
     endif()
 
-    check_languages(${LANGUAGE})
-    # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
-    alias_dereference(_reallib ${IP_LIB})
-
     # Convert all listed files to absolute paths relative to ${CMAKE_CURRENT_SOURCE_DIR}
     convert_paths_to_absolute(file_list ${ARGN})
     convert_paths_to_absolute(header_list ${ARG_HEADERS})
 
     if(NOT ARG_REPLACE)
         # Get the existing source and header files if any
-        get_ip_sources(_sources ${_reallib} ${LANGUAGE} NO_DEPS)
-        get_ip_sources(_headers ${_reallib} ${LANGUAGE} HEADERS NO_DEPS)
+        get_ip_sources(_sources ${_reallib} ${LANGUAGE} ${get_sources_fileset_arg} NO_DEPS) # TODO filesets
+        get_ip_sources(_headers ${_reallib} ${LANGUAGE} ${get_sources_fileset_arg} HEADERS NO_DEPS)
     endif()
 
     # If the PREPEND option is passed prepend the new sources to the old ones
@@ -278,9 +297,9 @@ function(ip_sources IP_LIB LANGUAGE)
         set(_headers ${_headers} ${header_list})
     endif()
     # Set the target property with the new list of source and header files
-    set_property(TARGET ${_reallib} PROPERTY ${LANGUAGE}_SOURCES ${_sources})
+    set_property(TARGET ${_reallib} PROPERTY ${sources_property} ${_sources})
     if(ARG_HEADERS)
-        set_property(TARGET ${_reallib} PROPERTY ${LANGUAGE}_HEADERS ${_headers})
+        set_property(TARGET ${_reallib} PROPERTY ${headers_property} ${_headers})
     endif()
 endfunction()
 
@@ -297,10 +316,12 @@ endfunction()
 # :type [NO_DEPS]: bool
 # :keyword [HEADERS]: Return the list of HEADER files only.
 # :type [HEADERS]: bool
+# :keyword [FILE_SETS]: Specify list of File sets to retrieve the files from
+# :type [FILE_SETS]: list[string]
 #
 #]]
 function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS;HEADERS" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS;HEADERS" "" "FILE_SETS" ${ARGN})
     unset(_no_deps)
     if(ARG_NO_DEPS)
         set(_no_deps "NO_DEPS")
@@ -314,16 +335,36 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     else()
         set(property_type SOURCES)
     endif()
-
+    
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
 
+    # In case FILE_SETS function argument is not specified, return all defined file sets
+    # Otherwise return only files in listed file sets
+    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    if(NOT ARG_FILE_SETS)
+        set(filesets ${ip_filesets})
+    else()
+        set(filesets ${ARG_FILE_SETS})
+        foreach(fileset ${ARG_FILE_SETS})
+            list(REMOVE_ITEM ARGN "${fileset}")
+        endforeach()
+        list(REMOVE_ITEM ARGN "FILE_SETS")
+    endif()
+
     unset(SOURCES)
-    # Get all the <LANGUAGE>_SOURCES or <LANGUAGE>_HEADERS lists in order
+    # Get all the <LANGUAGE>_<FILE_SET>_SOURCES or <LANGUAGE>_<FILE_SET>_HEADERS lists in order
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
-        get_ip_property(_lang_sources ${_reallib} ${_lang}_${property_type} ${_no_deps})
-        list(APPEND SOURCES ${_lang_sources})
+        if(filesets)
+            foreach(fileset ${filesets})
+                get_ip_property(_lang_sources ${_reallib} ${_lang}_${fileset}_${property_type} ${_no_deps})
+                list(APPEND SOURCES ${_lang_sources})
+            endforeach()
+        else()
+            get_ip_property(_lang_sources ${_reallib} ${_lang}_${property_type} ${_no_deps})
+            list(APPEND SOURCES ${_lang_sources})
+        endif()
     endforeach()
 
     list(REMOVE_DUPLICATES SOURCES)
