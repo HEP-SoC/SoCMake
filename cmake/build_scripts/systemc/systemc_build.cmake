@@ -25,7 +25,7 @@ function(systemc_build)
     endif()
 
     find_package(SystemCLanguage ${ARG_VERSION} CONFIG
-        HINTS ${SYSTEMC_HOME} $ENV{SYSTEMC_HOME} ${ARG_INSTALL_DIR} 
+        HINTS ${SYSTEMC_HOME} $ENV{SYSTEMC_HOME} ${ARG_INSTALL_DIR}
         )
 
     if(ARG_EXACT_VERSION)
@@ -39,7 +39,7 @@ function(systemc_build)
         message(STATUS "${Magenta}[Building SystemC]${ColourReset}")
         execute_process(COMMAND ${CMAKE_COMMAND}
             -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
-            -B ${CMAKE_BINARY_DIR}/systemc-build 
+            -B ${CMAKE_BINARY_DIR}/systemc-build
             ${CMAKE_ARG_VERSION}
             ${CMAKE_CXX_STANDARD_ARG}
             -DCMAKE_INSTALL_PREFIX=${ARG_INSTALL_DIR}

@@ -16,18 +16,26 @@ endif()
 include(GNUInstallDirs)
 include(ExternalProject)
 
+# UVM-SystemC configure script is searching SystemC library in lib${LIB_ARCH_SUFFIX},
+# while SystemC install lib folder depends on CMAKE_INSTALL_LIBDIR which is set to
+# lib or lib64 according to GNUInstallDirs
+set(SYSTEMC_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
+if(NOT SYSTEMC_INSTALL_LIBDIR MATCHES "^lib")
+    message(FATAL_ERROR "SYSTEMC_INSTALL_LIBDIR (${SYSTEMC_INSTALL_LIBDIR}) does not start with 'lib'")
+endif()
+string(REGEX REPLACE "^lib" "" LIB_ARCH_SUFFIX "${SYSTEMC_INSTALL_LIBDIR}")
+
 ExternalProject_Add(uvm-systemc
         URL https://www.accellera.org/images/downloads/drafts-review/uvm-systemc-${VERSION}.tar.gz
         PREFIX ${PROJECT_BINARY_DIR}
         INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
-
         CONFIGURE_COMMAND autoreconf -fiv <SOURCE_DIR> &&
-                          <SOURCE_DIR>/configure 
-                              CC=${CMAKE_C_COMPILER} 
-                              CXX=${CMAKE_CXX_COMPILER} 
+                          <SOURCE_DIR>/configure
+                              CC=${CMAKE_C_COMPILER}
+                              CXX=${CMAKE_CXX_COMPILER}
                               CXXFLAGS=-std=c++${CMAKE_CXX_STANDARD}
                               --with-systemc=${SYSTEMC_HOME}
-                              --with-arch-suffix= 
+                              --with-arch-suffix=${LIB_ARCH_SUFFIX}
                               --prefix=${CMAKE_INSTALL_PREFIX}
         )
 
