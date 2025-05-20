@@ -56,8 +56,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/fc4sc/fc4sc_merge_coverage.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/verisc/verisc_install.cmake")
 
 # ----- Cocotb --------
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/cocotb_iverilog.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/add_cocotb_iverilog_tests.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/cocotb.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cocotb/add_cocotb_tests.cmake")
 
 # ====================================
 # ======== PeakRDL ===================
@@ -118,3 +118,4 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/riscv/sail/sail_install.cmake")
 # ====================================
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/systemc/systemc_build.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/uvm-systemc/uvm-systemc_build.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/verilator/verilator_build.cmake")
