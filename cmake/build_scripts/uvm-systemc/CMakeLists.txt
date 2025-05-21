@@ -41,22 +41,23 @@ ExternalProject_Add(uvm-systemc
 
 
 file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/include")
+set(libdir "lib${LIB_ARCH_SUFFIX}")
 
 add_library(uvm-systemc_shared INTERFACE)
-target_link_libraries(uvm-systemc_shared INTERFACE "${CMAKE_INSTALL_PREFIX}/lib/libuvm-systemc.so")
+target_link_libraries(uvm-systemc_shared INTERFACE "${CMAKE_INSTALL_PREFIX}/${libdir}/libuvm-systemc.so")
 target_include_directories(uvm-systemc_shared INTERFACE "${CMAKE_INSTALL_PREFIX}/include")
 set_property(TARGET uvm-systemc_shared PROPERTY EXPORT_NAME shared)
 
 add_library(uvm-systemc_static INTERFACE)
-target_link_libraries(uvm-systemc_static INTERFACE "${CMAKE_INSTALL_PREFIX}/lib/libuvm-systemc.a")
+target_link_libraries(uvm-systemc_static INTERFACE "${CMAKE_INSTALL_PREFIX}/${libdir}/libuvm-systemc.a")
 target_include_directories(uvm-systemc_static INTERFACE "${CMAKE_INSTALL_PREFIX}/include")
 set_property(TARGET uvm-systemc_static PROPERTY EXPORT_NAME static)
 
 install(TARGETS uvm-systemc_shared uvm-systemc_static
     EXPORT UVM-SystemCTargets
     FILE_SET HEADERS
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION ${libdir}
+    ARCHIVE DESTINATION ${libdir}
     RUNTIME DESTINATION bin
     )
 
@@ -69,7 +70,7 @@ write_basic_package_version_file(
 install(EXPORT UVM-SystemCTargets
     FILE UVM-SystemCTargets.cmake
     NAMESPACE UVM-SystemC::
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/UVM-SystemC)
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${libdir}/cmake/UVM-SystemC)
 
 install(FILES "UVM-SystemCConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/UVM-SystemCConfigVersion.cmake"
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/UVM-SystemC)
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${libdir}/cmake/UVM-SystemC)
