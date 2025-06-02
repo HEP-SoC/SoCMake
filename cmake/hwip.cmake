@@ -236,6 +236,10 @@ endfunction()
 # :type IP_LIB: string
 # :param TYPE: The type of source file(s).
 # :type TYPE: string
+# :param FILE_SET: Specify to which file set to associate the listed files
+# :type FILE_SET: string
+# :param HEADERS: List of header files. Header files are stored in separate property ${LANGUAGE}_HEADERS, the include directory will also be set.
+# :type HEADERS: list
 #
 # **Keyword Arguments**
 #
@@ -301,6 +305,10 @@ function(ip_sources IP_LIB LANGUAGE)
     set_property(TARGET ${_reallib} PROPERTY ${sources_property} ${_sources})
     # set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${sources_property}) # TODO don't add if already there
     if(ARG_HEADERS)
+        foreach(header ${_headers})
+            cmake_path(GET header PARENT_PATH header_incdir)
+            ip_include_directories(${IP_LIB} ${LANGUAGE} ${header_incdir})
+        endforeach()
         set_property(TARGET ${_reallib} PROPERTY ${headers_property} ${_headers})
         # set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${headers_property}) # TODO don't add if already there
     endif()
