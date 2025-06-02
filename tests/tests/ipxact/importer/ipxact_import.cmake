@@ -43,4 +43,5 @@ function(${${TEST_NAME}})
     get_ip_include_directories(incdirs ${IP} SYSTEMVERILOG)
     ct_assert_equal(incdirs "${CDIR}")
 
+    file(REMOVE "${CDIR}/socmake_tests_file_sets_1.0.cmake")
 endfunction()
