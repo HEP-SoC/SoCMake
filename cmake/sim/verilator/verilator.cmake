@@ -171,6 +171,7 @@ function(verilator IP_LIB)
             # For the configuration phase, this is set in the verilator/CMakeLists.txt file
             # For the build phase, this is the simplest (only?) solution
             BUILD_COMMAND ${CMAKE_COMMAND} -E env VERILATOR_ROOT=${VERILATOR_ROOT} make
+            BUILD_JOB_SERVER_AWARE 1
             INSTALL_COMMAND ""
             DEPENDS ${IP_LIB}
             EXCLUDE_FROM_ALL 1
