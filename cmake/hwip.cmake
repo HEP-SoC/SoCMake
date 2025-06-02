@@ -851,6 +851,7 @@ function(get_socmake_languages OUTVAR)
             VERILOG VERILOG_SIM VERILOG_FPGA
             VHDL VHDL_SIM VHDL_FPGA
             SYSTEMRDL SYSTEMRDL_SOCGEN
+            IPXACT
             VERILATOR_CFG
             ${SOCMAKE_ADDITIONAL_LANGUAGES}
             ${additional_languages})
