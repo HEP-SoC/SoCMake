@@ -6,47 +6,89 @@
 
   <xsl:output method="text" indent="no"/>
 
-  <!-- Grouping key for unique fileTypes -->
-  <xsl:key name="files-by-type" match="ipxact:file" use="ipxact:fileType"/>
+  <!-- Keys for matching sources and headers and group by file set name and fileType -->
+  <xsl:key name="sources-by-set-and-language" 
+           match="ipxact:file[not(ipxact:isIncludeFile='true')]" 
+           use="concat(../ipxact:name, '|', ipxact:fileType)"/>
 
-  <!-- Main template -->
-  <xsl:template match="/">
-    <!-- Build the add_ip line -->
-    <xsl:text>add_ip(</xsl:text>
-    <xsl:value-of select="concat(//ipxact:vendor, '::', //ipxact:library, '::', //ipxact:name, '::', //ipxact:version)"/>
-    <xsl:text> NO_ALIAS)</xsl:text>
-    <xsl:text>&#10;&#10;</xsl:text>
+  <!-- Key for header files -->
+  <xsl:key name="headers-by-set-and-language" 
+           match="ipxact:file[ipxact:isIncludeFile='true']" 
+           use="concat(../ipxact:name, '|', ipxact:fileType)"/>
 
-    <!-- Loop over unique fileTypes by processing only the first file per type -->
-    <xsl:for-each select="//ipxact:fileSets/ipxact:fileSet/ipxact:file[generate-id() = generate-id(key('files-by-type', ipxact:fileType)[1])]">
-      <xsl:variable name="ftype" select="ipxact:fileType"/>
-      <xsl:text>ip_sources(${IP} </xsl:text>
 
-      <!-- Transform fileType to uppercase prefix -->
-      <xsl:variable name="baseType">
+  <!-- Template to write a single ip_sources(${IP} <LANGUAGE> [HEADERS] ...files... ) call -->
+  <xsl:template name="write-ip-sources">
+    <xsl:param name="sources"/>
+    <xsl:param name="language"/>
+    <xsl:param name="file_set"/>
+    <xsl:param name="is_header" select="false()"/>
+
+    <xsl:text>ip_sources(${IP} </xsl:text>
+    <xsl:variable name="socmake_language">
         <xsl:choose>
-          <xsl:when test="contains($ftype, 'Source')">
-            <xsl:value-of select="substring-before($ftype, 'Source')"/>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:value-of select="$ftype"/>
-          </xsl:otherwise>
+            <xsl:when test="contains($language, 'Source')">
+                <xsl:value-of select="substring-before($language, 'Source')"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$language"/>
+            </xsl:otherwise>
         </xsl:choose>
-      </xsl:variable>
-      <xsl:value-of select="translate($baseType, 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
-      <xsl:text>&#10;</xsl:text>
+    </xsl:variable>
 
-      <!-- Now list all files for this type using the key -->
-      <xsl:for-each select="key('files-by-type', $ftype)">
-        <xsl:text>   </xsl:text>
-        <xsl:text>${CMAKE_CURRENT_LIST_DIR}/</xsl:text>
+    <xsl:value-of select="translate($socmake_language, 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')"/>
+
+    <xsl:text> FILE_SET </xsl:text>
+    <xsl:value-of select="$file_set"/>
+
+    <xsl:if test="$is_header"> HEADERS</xsl:if>
+    <xsl:text>&#10;</xsl:text>
+
+    <xsl:for-each select="$sources">
+        <xsl:text>    ${CMAKE_CURRENT_LIST_DIR}/</xsl:text>
         <xsl:value-of select="ipxact:name"/>
         <xsl:text>&#10;</xsl:text>
-      </xsl:for-each>
-
-      <xsl:text>)</xsl:text>
-      <xsl:text>&#10;&#10;</xsl:text>
     </xsl:for-each>
+
+    <xsl:text>)&#10;&#10;</xsl:text>
+  </xsl:template>
+
+  <!-- Template to match root document and create an IP block with sources -->
+  <xsl:template match="/">
+      <xsl:text>add_ip(</xsl:text>
+      <xsl:value-of select="concat(//ipxact:vendor, '::', //ipxact:library, '::', //ipxact:name, '::', //ipxact:version)"/>
+      <xsl:text> NO_ALIAS)&#10;&#10;</xsl:text>
+
+      <xsl:for-each select="//ipxact:fileSets/ipxact:fileSet">
+        <xsl:variable name="file_set_name" select="ipxact:name"/>
+        
+        <!-- Write ip_sources for source files -->
+        <xsl:for-each select="ipxact:file[not(ipxact:isIncludeFile='true')]
+                              [count(. | key('sources-by-set-and-language', 
+                                   concat($file_set_name, '|', ipxact:fileType))[1]) = 1]">
+          <xsl:call-template name="write-ip-sources">
+            <xsl:with-param name="sources" 
+                            select="key('sources-by-set-and-language', 
+                                   concat($file_set_name, '|', ipxact:fileType))"/>
+            <xsl:with-param name="language" select="ipxact:fileType"/>
+            <xsl:with-param name="file_set" select="$file_set_name"/>
+          </xsl:call-template>
+        </xsl:for-each>
+        
+        <!-- Write ip_sources for header files -->
+        <xsl:for-each select="ipxact:file[ipxact:isIncludeFile='true']
+                              [count(. | key('headers-by-set-and-language', 
+                                   concat($file_set_name, '|', ipxact:fileType))[1]) = 1]">
+          <xsl:call-template name="write-ip-sources">
+            <xsl:with-param name="sources" 
+                            select="key('headers-by-set-and-language', 
+                                   concat($file_set_name, '|', ipxact:fileType))"/>
+            <xsl:with-param name="language" select="ipxact:fileType"/>
+            <xsl:with-param name="file_set" select="$file_set_name"/>
+            <xsl:with-param name="is_header" select="true()"/>
+          </xsl:call-template>
+        </xsl:for-each>
+      </xsl:for-each>
   </xsl:template>
 
 </xsl:stylesheet>
