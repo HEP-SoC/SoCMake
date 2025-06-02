@@ -44,6 +44,7 @@ function(systemc_build)
             ${CMAKE_CXX_STANDARD_ARG}
             -DCMAKE_INSTALL_PREFIX=${ARG_INSTALL_DIR}
             -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
             COMMAND_ECHO STDOUT
             )
 
