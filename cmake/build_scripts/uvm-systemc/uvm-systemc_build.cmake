@@ -36,7 +36,7 @@ function(uvm_systemc_build)
         message(STATUS "${Magenta}[Building UVM-SystemC]${ColourReset}")
         execute_process(COMMAND ${CMAKE_COMMAND}
             -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
-            -B ${CMAKE_BINARY_DIR}/uvm-systemc-build 
+            -B ${CMAKE_BINARY_DIR}/uvm-systemc-build
             ${CMAKE_ARG_VERSION}
             -DSYSTEMC_HOME=${SYSTEMC_HOME}
             -DCMAKE_INSTALL_PREFIX=${ARG_INSTALL_DIR}
@@ -45,7 +45,7 @@ function(uvm_systemc_build)
 
         execute_process(COMMAND ${CMAKE_COMMAND}
                 --build ${CMAKE_BINARY_DIR}/uvm-systemc-build
-                --parallel
+                --parallel ${CMAKE_BUILD_PARALLEL_LEVEL}
                 --target install
             )
     endif()

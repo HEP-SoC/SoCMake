@@ -96,9 +96,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/synth/yosys/yosys_build.cmake")
 # ====================================
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/fw_utils.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/add_tests.cmake")
-
-set(IBEX_TOOLCHAIN "${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/toolchains/riscv_toolchain.cmake"  CACHE INTERNAL "IBEX_TOOLCHAIN")
 
 # ====================================
 # ====== Linting, Formatting =========
