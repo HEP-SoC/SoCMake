@@ -20,5 +20,6 @@ ExternalProject_Add(verilator-v${VERSION}
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
         -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
         -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_CXX_FLAGS="-pthread"
         -DPACKAGE_VERSION_NUMBER=${VERSION}
 )
