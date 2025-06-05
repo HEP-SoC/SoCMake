@@ -93,7 +93,6 @@ function(${${TEST_NAME}})
         )
 
     get_ip_sources(sources ${IP} VHDL)
-    message("SOURCES: ${sources}")
     ct_assert_list(sources)
     ct_assert_equal(sources "${CDIR}/vhdlfile1.vhd;${CDIR}/vhdlfile2.vhd;${CDIR}/vhdlfile3.vhd;${CDIR}/vhdlfile4.vhd")
 
@@ -108,6 +107,14 @@ function(${${TEST_NAME}})
     get_ip_sources(sources ${IP} VERILOG FILE_SETS SIMULATION SYNTHESIS)
     ct_assert_not_list(sources)
     ct_assert_equal(sources "")
+
+    get_ip_sources(sources ${IP} VERILOG FILE_SETS DEFAULT)
+    ct_assert_list(sources)
+    ct_assert_equal(sources "${CDIR}/vfile1.v;${CDIR}/vfile2.v")
+
+    get_ip_sources(sources ${IP} VHDL FILE_SETS DEFAULT)
+    ct_assert_list(sources)
+    ct_assert_equal(sources "${CDIR}/vhdlfile3.vhd;${CDIR}/vhdlfile4.vhd")
 endfunction()
 
 set(TEST_NAME ip_sources_file_set_headers_1)
