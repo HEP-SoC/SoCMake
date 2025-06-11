@@ -78,8 +78,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/systemrdl/desyrdl.cmake")
 # ======== FPGA ======================
 # ====================================
 
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/fpga/uart_programmer/uart_programmer.cmake")
-
 # ------- Vivado --------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/fpga/vivado/vivado.cmake")
 
