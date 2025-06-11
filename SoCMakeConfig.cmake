@@ -92,12 +92,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/synth/yosys/yosys.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/synth/yosys/yosys_build.cmake")
 
 # ====================================
-# ======== FIRMWARE ==================
-# ====================================
-
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/fw_utils.cmake")
-
-# ====================================
 # ====== Linting, Formatting =========
 # ====================================
 
