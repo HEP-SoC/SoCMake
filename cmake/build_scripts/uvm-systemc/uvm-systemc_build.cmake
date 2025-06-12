@@ -22,8 +22,8 @@ function(uvm_systemc_build)
 
     # TODO ARG_VERSION cannot be used as its not following major.minor.patch
     find_package(UVM-SystemC CONFIG
-        HINTS ${ARG_INSTALL_DIR}
-        )
+        HINTS ${UVM_SYSTEMC_HOME} $ENV{UVM_SYSTEMC_HOME} ${ARG_INSTALL_DIR}
+    )
     get_target_property(SYSTEMC_INC_DIR SystemC::systemc INTERFACE_INCLUDE_DIRECTORIES)
     set(SYSTEMC_HOME "${SYSTEMC_INC_DIR}/../")
 
@@ -36,7 +36,7 @@ function(uvm_systemc_build)
         message(STATUS "${Magenta}[Building UVM-SystemC]${ColourReset}")
         execute_process(COMMAND ${CMAKE_COMMAND}
             -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
-            -B ${CMAKE_BINARY_DIR}/uvm-systemc-build 
+            -B ${CMAKE_BINARY_DIR}/uvm-systemc-build
             ${CMAKE_ARG_VERSION}
             -DSYSTEMC_HOME=${SYSTEMC_HOME}
             -DCMAKE_INSTALL_PREFIX=${ARG_INSTALL_DIR}
@@ -45,7 +45,7 @@ function(uvm_systemc_build)
 
         execute_process(COMMAND ${CMAKE_COMMAND}
                 --build ${CMAKE_BINARY_DIR}/uvm-systemc-build
-                --parallel
+                --parallel ${CMAKE_BUILD_PARALLEL_LEVEL}
                 --target install
             )
     endif()
@@ -57,4 +57,3 @@ function(uvm_systemc_build)
     message(STATUS "${Green}[Found UVM-SystemC]${ColourReset}: ${UVM-SystemC_VERSION} in ${UVM-SystemC_DIR}")
 
 endfunction()
-

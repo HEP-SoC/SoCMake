@@ -78,8 +78,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/systemrdl/desyrdl.cmake")
 # ======== FPGA ======================
 # ====================================
 
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/fpga/uart_programmer/uart_programmer.cmake")
-
 # ------- Vivado --------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/fpga/vivado/vivado.cmake")
 
@@ -90,15 +88,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/fpga/vivado/vivado.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/synth/sv2v.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/synth/yosys/yosys.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/synth/yosys/yosys_build.cmake")
-
-# ====================================
-# ======== FIRMWARE ==================
-# ====================================
-
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/fw_utils.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/add_tests.cmake")
-
-set(IBEX_TOOLCHAIN "${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/toolchains/riscv_toolchain.cmake"  CACHE INTERNAL "IBEX_TOOLCHAIN")
 
 # ====================================
 # ====== Linting, Formatting =========
