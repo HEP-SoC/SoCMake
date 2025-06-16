@@ -30,6 +30,7 @@ function(verilator_build)
 
     if(ARG_EXACT_VERSION)
         if(NOT "${verilator_VERSION_MAJOR}.${verilator_VERSION_MINOR}" VERSION_EQUAL "${ARG_VERSION}")
+            message(STATUS "${Magenta}[Verilator Not Found]${ColourReset}: requested version is ${ARG_VERSION} but found ${verilator_VERSION_MAJOR}.${verilator_VERSION_MINOR}")
             set(verilator_FOUND FALSE)
         endif()
     endif()
@@ -51,14 +52,19 @@ function(verilator_build)
             --build ${CMAKE_BINARY_DIR}/verilator-build/v${ARG_VERSION}
             --parallel 4
         )
-    endif()
 
-    find_package(verilator ${ARG_VERSION} EXACT REQUIRED HINTS ${ARG_INSTALL_DIR})
-    # Update cached variable if a new version is required
-    if(NOT ${VERILATOR_ROOT} STREQUAL ${ARG_INSTALL_DIR})
-        message(STATUS "${Magenta}[Verilator version updated]${ColourReset}")
-        set(VERILATOR_ROOT ${ARG_INSTALL_DIR} CACHE PATH "VERILATOR_ROOT" FORCE)
-        set(VERILATOR_BIN ${ARG_INSTALL_DIR}/bin/verilator_bin CACHE PATH "Path to a program." FORCE)
+        find_package(verilator ${ARG_VERSION} EXACT REQUIRED HINTS ${ARG_INSTALL_DIR})
+
+        if(NOT verilator_FOUND)
+            message(FATAL_ERROR "Verilator was not found after building. Please check the build logs for errors.")
+        endif()
+
+        # Update cached variable if a new version is required
+        if(NOT ${VERILATOR_ROOT} STREQUAL ${ARG_INSTALL_DIR})
+            message(STATUS "${Magenta}[Verilator version updated]${ColourReset}")
+            set(VERILATOR_ROOT ${ARG_INSTALL_DIR} CACHE PATH "VERILATOR_ROOT" FORCE)
+            set(VERILATOR_BIN ${ARG_INSTALL_DIR}/bin/verilator_bin CACHE PATH "Path to a program." FORCE)
+        endif()
     endif()
 
     set(__version_missing_root 5.012 5.014 5.016 5.018 5.020 5.022 5.024)
