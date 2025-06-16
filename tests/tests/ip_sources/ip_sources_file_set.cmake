@@ -319,3 +319,50 @@ function(${${TEST_NAME}})
     ct_assert_not_list(sources)
     ct_assert_equal(sources "")
 endfunction()
+
+set(TEST_NAME ip_sources_file_set_links_2)
+ct_add_test(NAME ${TEST_NAME})
+function(${${TEST_NAME}})
+    add_ip(ip_links_21)
+
+    ip_sources(${IP} VERILOG FILE_SET SYNTHESIS
+        ${CDIR}/vfile1.v
+        ${CDIR}/vfile2.v
+        HEADERS
+        ${CDIR}/vheader1.vh
+        ${CDIR}/vheader2.vh
+        )
+
+    add_ip(ip_links_22)
+
+    ip_sources(${IP} VERILOG FILE_SET SYNTHESIS
+        ${CDIR}/vfile3.v
+        ${CDIR}/vfile4.v
+        HEADERS
+        ${CDIR}/vheader3.vh
+        ${CDIR}/vheader4.vh
+    )
+
+    ip_link(ip_links_21 ip_links_22)
+
+
+    get_ip_sources(sources ip_links_21 VERILOG NO_DEPS)
+    ct_assert_list(sources)
+    ct_assert_equal(sources "${CDIR}/vfile1.v;${CDIR}/vfile2.v")
+
+    get_ip_sources(sources ip_links_21 VERILOG FILE_SETS SYNTHESIS NO_DEPS)
+    ct_assert_list(sources)
+    ct_assert_equal(sources "${CDIR}/vfile1.v;${CDIR}/vfile2.v")
+
+    get_ip_sources(headers ip_links_21 VERILOG HEADERS NO_DEPS)
+    ct_assert_list(headers)
+    ct_assert_equal(headers "${CDIR}/vheader1.vh;${CDIR}/vheader2.vh")
+
+    get_ip_sources(headers ip_links_21 VERILOG HEADERS FILE_SETS SYNTHESIS NO_DEPS)
+    ct_assert_list(headers)
+    ct_assert_equal(headers "${CDIR}/vheader1.vh;${CDIR}/vheader2.vh")
+
+    get_ip_sources(sources ip_links_21 VERILOG HEADERS FILE_SETS DEFAULT NO_DEPS)
+    ct_assert_not_list(sources)
+    ct_assert_equal(sources "")
+endfunction()
