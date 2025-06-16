@@ -1,9 +1,7 @@
 include("${CMAKE_CURRENT_LIST_DIR}/../../../CMakeLists.txt")
 set(CDIR ${CMAKE_CURRENT_LIST_DIR})
 
-set(TEST_NAME ip_include_directories)
-
-set(TEST_NAME ip_sources_file_set_1)
+set(TEST_NAME ip_include_directories_file_set_1)
 ct_add_test(NAME ${TEST_NAME})
 function(${${TEST_NAME}})
     add_ip(ip1)
@@ -26,7 +24,7 @@ function(${${TEST_NAME}})
     ct_assert_equal(incdirs "")
 endfunction()
 
-set(TEST_NAME ip_sources_file_set_2)
+set(TEST_NAME ip_include_directories_file_set_2)
 ct_add_test(NAME ${TEST_NAME})
 function(${${TEST_NAME}})
     add_ip(ip2)

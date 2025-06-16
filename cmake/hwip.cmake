@@ -682,11 +682,31 @@ endfunction()
 # :param LANGUAGE: Language to which the definition should apply.
 # :type LANGUAGE: string
 #
+# **Keyword Arguments**
+#
+# :param FILE_SET: Specify to which file set to associate the listed include directories 
+# :type FILE_SET: string
+#
 #]]
 function(ip_compile_definitions IP_LIB LANGUAGE)
+    cmake_parse_arguments(ARG "" "FILE_SET" "" ${ARGN})
     check_languages(${LANGUAGE})
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
+    # DEFAULT file set is used if not specified
+    if(NOT ARG_FILE_SET)
+        set(ARG_FILE_SET DEFAULT)
+    endif()
+    set(comp_def_property ${LANGUAGE}_${ARG_FILE_SET}_COMPILE_DEFINITIONS)
+    set(fileset_arg FILE_SETS ${ARG_FILE_SET})
+    # Add the file set to the FILE_SETS property
+    get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
+    if(NOT ARG_FILE_SET IN_LIST filesets)
+        set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${ARG_FILE_SET})
+    endif()
+    # Remove the FILE_SET argument and its value from ARGN to not interfere with directory list
+    list(REMOVE_ITEM ARGN "${ARG_FILE_SET}")
+    list(REMOVE_ITEM ARGN "FILE_SET")
 
     # Strip -D
     set(__comp_defs ${ARGN})
@@ -694,7 +714,7 @@ function(ip_compile_definitions IP_LIB LANGUAGE)
     list(REMOVE_ITEM __comp_defs "")
 
     # Append the new compile definitions to the exsiting ones
-    set_property(TARGET ${_reallib} APPEND PROPERTY ${LANGUAGE}_COMPILE_DEFINITIONS ${__comp_defs})
+    set_property(TARGET ${_reallib} APPEND PROPERTY ${comp_def_property} ${__comp_defs})
 endfunction()
 
 
@@ -708,12 +728,16 @@ endfunction()
 # :type IP_LIB: string
 # :param LANGUAGE: Language to which the definition apply.
 # :type LANGUAGE: string
-# :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
-# :type [NO_DEPS]: bool
 #
+# **Keyword Arguments**
+#
+# :keyword [NO_DEPS]: Only return the list off IPs that are immediate childrean from the current IP
+# :type [NO_DEPS]: bool
+# :keyword [FILE_SETS]: Specify list of File sets to retrieve the include directories from
+# :type [FILE_SETS]: list[string]
 #]]
 function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS" "" "FILE_SETS" ${ARGN})
     unset(_no_deps)
     if(ARG_NO_DEPS)
         set(_no_deps "NO_DEPS")
@@ -721,14 +745,29 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
 
+    # In case FILE_SETS function argument is not specified, return all defined file sets
+    # Otherwise return only directories in listed file sets
+    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    if(NOT ARG_FILE_SETS)
+        set(filesets ${ip_filesets})
+    else()
+        set(filesets ${ARG_FILE_SETS})
+        foreach(fileset ${ARG_FILE_SETS})
+            list(REMOVE_ITEM ARGN "${fileset}")
+        endforeach()
+        list(REMOVE_ITEM ARGN "FILE_SETS")
+    endif()
+
     # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
     list(REMOVE_ITEM ARGN NO_DEPS)
     unset(COMPDEFS)
     # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
-        get_ip_property(_lang_compdefs ${_reallib} ${_lang}_COMPILE_DEFINITIONS ${_no_deps})
-        list(APPEND COMPDEFS ${_lang_compdefs})
+        foreach(fileset ${filesets})
+            get_ip_property(_lang_compdefs ${_reallib} ${_lang}_${fileset}_COMPILE_DEFINITIONS ${_no_deps})
+            list(APPEND COMPDEFS ${_lang_compdefs})
+        endforeach()
     endforeach()
 
     list(REMOVE_DUPLICATES COMPDEFS)
