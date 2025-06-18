@@ -1,7 +1,7 @@
 function(verilator IP_LIB)
     set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN;NO_RUN_TARGET;SED_WOR")
     set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY;EXECUTABLE_NAME;RUN_TARGET_NAME")
-    set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL;RUN_ARGS")
+    set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL;RUN_ARGS;FILE_SETS")
 
     cmake_parse_arguments(ARG
         "${OPTIONS}"
@@ -26,6 +26,11 @@ function(verilator IP_LIB)
         set(DIRECTORY ${ARG_DIRECTORY})
     endif()
 
+    if(ARG_FILE_SETS)
+        list(REMOVE_ITEM MULTI_PARAM_ARGS "FILE_SETS")
+        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
+    endif()
+
     ##################################
     ## Find verilator installation ###
     ##################################
@@ -44,7 +49,7 @@ function(verilator IP_LIB)
     set(VERILATOR_ROOT ${VERILATOR_INCLUDE_DIR}/../)
     ##################################
 
-    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG)
+    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
 
     if(ARG_TOP_MODULE)
         set(ARG_TOP_MODULE ${ARG_TOP_MODULE})
@@ -63,12 +68,12 @@ function(verilator IP_LIB)
     list(APPEND ARG_VERILATOR_ARGS ${VERILATOR_ARGS})
     ##
 
-    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG)
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
     foreach(def ${COMP_DEFS})
         list(APPEND ARG_VERILATOR_ARGS -D${def})
     endforeach()
 
-    get_ip_sources(SOURCES ${IP_LIB} VERILATOR_CFG SYSTEMVERILOG_SIM VERILOG_SIM SYSTEMVERILOG VERILOG)
+    get_ip_sources(SOURCES ${IP_LIB} VERILATOR_CFG SYSTEMVERILOG_SIM VERILOG_SIM SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
 
     if(ARG_SED_WOR)
         include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/sed_wor/sed_wor.cmake)

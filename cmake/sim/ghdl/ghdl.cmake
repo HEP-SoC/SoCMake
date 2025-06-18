@@ -13,7 +13,7 @@ function(__ghdl_get_standard_arg OUTVAR)
 endfunction()
 
 function(ghdl IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;" "OUTDIR;TOP_MODULE;EXECUTABLE_NAME;STANDARD" "VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;" "OUTDIR;TOP_MODULE;EXECUTABLE_NAME;STANDARD" "VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -43,6 +43,10 @@ function(ghdl IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
+    if(ARG_FILE_SETS)
+        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
+    endif()
+
     __ghdl_get_standard_arg(STANDARD ${ARG_STANDARD})
 
     if(ARG_VHDL_COMPILE_ARGS)
@@ -56,6 +60,7 @@ function(ghdl IP_LIB)
             STANDARD ${STANDARD}
             ${ARG_LIBRARY}
             ${ARG_VHDL_COMPILE_ARGS}
+            ${ARG_FILE_SETS}
             )
     endif()
     set(__comp_tgt ${IP_LIB}_ghdl_complib)
@@ -68,7 +73,7 @@ function(ghdl IP_LIB)
 
     ##### GHDL Elaborate
     if(NOT TARGET ${IP_LIB}_ghdl)
-        get_ip_sources(VHDL_SOURCES ${IP_LIB} VHDL)
+        get_ip_sources(VHDL_SOURCES ${IP_LIB} VHDL ${ARG_FILE_SETS})
         set(__ghdl_elab_cmd ghdl elaborate
                 --std=${STANDARD}
                 -fsynopsys
@@ -128,7 +133,7 @@ function(ghdl IP_LIB)
 endfunction()
 
 function(__ghdl_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "" "LIBRARY;OUTDIR;STANDARD" "VHDL_COMPILE_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "" "LIBRARY;OUTDIR;STANDARD" "VHDL_COMPILE_ARGS;FILE_SETS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -145,6 +150,10 @@ function(__ghdl_compile_lib IP_LIB)
         set(OUTDIR ${ARG_OUTDIR})
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
+
+    if(ARG_FILE_SETS)
+        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
+    endif()
 
     __ghdl_get_standard_arg(STANDARD ${ARG_STANDARD})
 
@@ -174,7 +183,7 @@ function(__ghdl_compile_lib IP_LIB)
         set(hdl_libs_args ${HDL_LIBS_ARGS})
 
         # VHDL files and arguments
-        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS)
+        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS ${ARG_FILE_SETS})
         set(ghdl_analyze_cmd ghdl analyze
                 --std=${STANDARD}
                 -fsynopsys
