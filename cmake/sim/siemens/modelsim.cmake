@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
 function(modelsim IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER;32BIT" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER;32BIT" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -55,6 +55,10 @@ function(modelsim IP_LIB)
         set(ARG_VHDL_COMPILE_ARGS VHDL_COMPILE_ARGS ${ARG_VHDL_COMPILE_ARGS})
     endif()
 
+    if(ARG_FILE_SETS)
+        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
+    endif()
+
     __find_modelsim_home(modelsim_home)
 
     ### Compile with vcom and vlog
@@ -66,6 +70,7 @@ function(modelsim IP_LIB)
             ${ARG_LIBRARY}
             ${ARG_SV_COMPILE_ARGS}
             ${ARG_VHDL_COMPILE_ARGS}
+            ${ARG_FILE_SETS}
             )
     endif()
     set(comp_tgt ${IP_LIB}_modelsim_complib)
@@ -166,7 +171,7 @@ endfunction()
 
 
 function(__modelsim_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "QUIET;32BIT" "OUTDIR;LIBRARY" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "QUIET;32BIT" "OUTDIR;LIBRARY" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;FILE_SETS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -183,6 +188,10 @@ function(__modelsim_compile_lib IP_LIB)
         set(OUTDIR ${BINARY_DIR}/${IP_LIB}_modelsim)
     else()
         set(OUTDIR ${ARG_OUTDIR})
+    endif()
+
+    if(ARG_FILE_SETS)
+        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
     endif()
 
     if(ARG_32BIT)
@@ -244,12 +253,12 @@ function(__modelsim_compile_lib IP_LIB)
         set(hdl_libs_args ${HDL_LIBS_ARGS})
 
         # SystemVerilog and Verilog files and arguments
-        get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS)
-        get_ip_sources(SV_HEADERS ${lib} SYSTEMVERILOG VERILOG VHDL HEADERS)
+        get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
+        get_ip_sources(SV_HEADERS ${lib} SYSTEMVERILOG VERILOG VHDL HEADERS ${ARG_FILE_SETS})
         unset(sv_compile_cmd)
         if(SV_SOURCES)
-            get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG)
-            get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG)
+            get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+            get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
 
             foreach(dir ${SV_INC_DIRS})
                 list(APPEND SV_ARG_INCDIRS +incdir+${dir})
@@ -276,7 +285,7 @@ function(__modelsim_compile_lib IP_LIB)
         endif()
 
         # VHDL files and arguments
-        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS)
+        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS ${ARG_FILE_SETS})
         unset(vhdl_compile_cmd)
         if(VHDL_SOURCES)
             set(vhdl_compile_cmd vcom
@@ -431,7 +440,7 @@ function(__find_modelsim_home OUTVAR)
 endfunction()
 
 function(modelsim_gen_sc_wrapper IP_LIB)
-    cmake_parse_arguments(ARG "32BIT;QUIET" "OUTDIR;LIBRARY;TOP_MODULE" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "32BIT;QUIET" "OUTDIR;LIBRARY;TOP_MODULE" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;FILE_SETS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -453,6 +462,10 @@ function(modelsim_gen_sc_wrapper IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
+    if(ARG_FILE_SETS)
+        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
+    endif()
+
     get_target_property(__comp_lib_name ${IP_LIB} LIBRARY)
     if(NOT __comp_lib_name)
         set(__comp_lib_name work)
@@ -470,12 +483,12 @@ function(modelsim_gen_sc_wrapper IP_LIB)
     endif()
 
 
-    get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS)
+    get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
     list(GET SV_SOURCES -1 last_sv_file) # TODO this is not correct, as the last Verilog file might not be top
     unset(sv_compile_cmd)
     if(SV_SOURCES)
-        get_ip_include_directories(SV_INC_DIRS ${IP_LIB}  SYSTEMVERILOG VERILOG)
-        get_ip_compile_definitions(SV_COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG)
+        get_ip_include_directories(SV_INC_DIRS ${IP_LIB}  SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+        get_ip_compile_definitions(SV_COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
 
         foreach(dir ${SV_INC_DIRS})
             list(APPEND SV_ARG_INCDIRS +incdir+${dir})
