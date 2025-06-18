@@ -104,8 +104,8 @@ set(IBEX_TOOLCHAIN "${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/toolchains/riscv_to
 # ====== Linting, Formatting =========
 # ====================================
 
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/verible/verible.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/ghdl/vhdl_linter.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/lint/verible.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/lint/vhdl_linter.cmake")
 
 # ====================================
 # ====== Riscv =======================
