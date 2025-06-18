@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
 function(vivado_sim IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI" "RUN_TARGET_NAME;TOP_MODULE" "XVLOG_ARGS;XVHDL_ARGS;XELAB_ARGS;XSIM_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI" "RUN_TARGET_NAME;TOP_MODULE" "XVLOG_ARGS;XVHDL_ARGS;XELAB_ARGS;XSIM_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -35,6 +35,10 @@ function(vivado_sim IP_LIB)
         set(ARG_XVHDL_ARGS XVHDL_ARGS ${ARG_XVHDL_ARGS})
     endif()
 
+    if(ARG_FILE_SETS)
+        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
+    endif()
+
     get_ip_links(IPS_LIST ${IP_LIB})
 
     unset(__lib_args)
@@ -52,11 +56,12 @@ function(vivado_sim IP_LIB)
         OUTDIR ${OUTDIR}
         ${ARG_XVLOG_ARGS}
         ${ARG_XVHDL_ARGS}
+        ${ARG_FILE_SETS}
         )
     set(lib_comp_tgt ${IP_LIB}_vivado_sim_complib)
 
     if(NOT TARGET ${IP_LIB}_vivado_sim)
-        get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL)
+        get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL ${ARG_FILE_SETS})
         ## Xelab command for elaborating simulation
         set(__xelab_cmd COMMAND xelab
                 ${LIB_SEARCH_DIRS}
@@ -128,7 +133,7 @@ function(vivado_sim IP_LIB)
 endfunction()
 
 function(__vivado_sim_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR" "XVLOG_ARGS;XVHDL_ARGS" ${ARGN})
+    cmake_parse_arguments(ARG "" "OUTDIR" "XVLOG_ARGS;XVHDL_ARGS;FILE_SETS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -151,6 +156,10 @@ function(__vivado_sim_compile_lib IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
+    if(ARG_FILE_SETS)
+        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
+    endif()
+
     get_ip_links(__ips ${IP_LIB})
     unset(all_stamp_files)
     unset(lib_search_dirs)
@@ -165,11 +174,11 @@ function(__vivado_sim_compile_lib IP_LIB)
         set(lib_outdir ${OUTDIR}/${__comp_lib_name})
 
         # SystemVerilog and Verilog files and arguments
-        get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS)
+        get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
         unset(__xvlog_cmd)
         if(SV_SOURCES)
-            get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG)
-            get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG)
+            get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+            get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
 
             foreach(dir ${SV_INC_DIRS})
                 list(APPEND SV_ARG_INCDIRS -i ${dir})
@@ -193,7 +202,7 @@ function(__vivado_sim_compile_lib IP_LIB)
 
 
         # VHDL files and arguments
-        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS)
+        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS ${ARG_FILE_SETS})
         unset(__xvhdl_cmd)
         if(VHDL_SOURCES)
 
