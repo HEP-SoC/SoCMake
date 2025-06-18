@@ -16,6 +16,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/option.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/find_python.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/print_list.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/uniquify_files_by_basename.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/install/install.cmake")
 
 # ====================================
 # ======== Additional utilities ======
@@ -118,3 +119,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/riscv/sail/sail_install.cmake")
 # ====================================
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/systemc/systemc_build.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/uvm-systemc/uvm-systemc_build.cmake")
+
+# ====================================
+# ====== IPXact ======================
+# ====================================
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/ipxact/importer/ipxact_ip_importer.cmake")

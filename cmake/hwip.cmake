@@ -53,7 +53,7 @@ include("${CMAKE_CURRENT_LIST_DIR}//utils/file_paths.cmake")
 # :type DESCRIPTION: string
 #]]
 function(add_ip IP_NAME)
-    cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_ALIAS" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
 
     # Vendor and library arguments are expected at the minimum
     if(ARG_UNPARSED_ARGUMENTS)
@@ -81,7 +81,7 @@ function(add_ip IP_NAME)
         endif()
 
         # TODO Maybe delete short name without version
-        if(ARG_VERSION)
+        if(ARG_VERSION AND NOT ARG_NO_ALIAS)
             create_ip_vlnv(IP_LIB_SHORT ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "")
             string(REPLACE "__" "::" ALIAS_NAME_SHORT "${IP_LIB_SHORT}")
             if(NOT "${IP_LIB}" STREQUAL "${ALIAS_NAME_SHORT}")
@@ -92,6 +92,7 @@ function(add_ip IP_NAME)
 
     if(ARG_DESCRIPTION)
         set_property(TARGET ${IP_LIB} PROPERTY DESCRIPTION ${ARG_DESCRIPTION})
+        set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES DESCRIPTION)
     endif()
 
     # Unset the parent variables that might have been set by previous add_ip() call
@@ -102,15 +103,19 @@ function(add_ip IP_NAME)
     if(ARG_VENDOR)
         set(IP_VENDOR ${ARG_VENDOR} PARENT_SCOPE)
         set_target_properties(${IP_LIB} PROPERTIES VENDOR ${ARG_VENDOR})
+        set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES VENDOR)
     endif()
     if(ARG_LIBRARY)
         set(IP_LIBRARY ${ARG_LIBRARY} PARENT_SCOPE)
         set_target_properties(${IP_LIB} PROPERTIES LIBRARY ${ARG_LIBRARY})
+        set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES LIBRARY)
     endif()
     set_target_properties(${IP_LIB} PROPERTIES IP_NAME ${IP_NAME})
+    set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES IP_NAME)
     if(ARG_VERSION)
         set(IP_VERSION ${ARG_VERSION} PARENT_SCOPE)
         set_target_properties(${IP_LIB} PROPERTIES VERSION ${ARG_VERSION})
+        set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES VERSION)
     endif()
 
     set(IP_NAME ${IP_NAME} PARENT_SCOPE)
@@ -223,7 +228,7 @@ endfunction()
 #[[[
 # This function adds source file(s) to an IP target.
 #
-# This functions adds source file(s) to an IP target as a property named after the type of source file(s)
+# This functions adds source file(s) under a file set to an IP target as a property named after the name of the file set, type of source file(s)
 # and the suffix '__SOURCES'. If source files of the same type already exist they are appended to the
 # existing list. Ne source files can also be prepended with the optional keyword PREPEND. The source
 # files are later used to create the list of files to be compiled (e.g., by a simulator) by a tool to
@@ -235,7 +240,9 @@ endfunction()
 # :type IP_LIB: string
 # :param TYPE: The type of source file(s).
 # :type TYPE: string
-# :param HEADERS: List of header files. Header files are stored in separate property ${LANGUAGE}_HEADERS
+# :param FILE_SET: Specify to which file set to associate the listed files
+# :type FILE_SET: string
+# :param HEADERS: List of header files. Header files are stored in separate property ${LANGUAGE}_HEADERS, the include directory will also be set.
 # :type HEADERS: list
 #
 # **Keyword Arguments**
@@ -244,10 +251,30 @@ endfunction()
 # :type PREPEND: string
 #]]
 function(ip_sources IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "PREPEND;REPLACE" "" "HEADERS" ${ARGN})
+    cmake_parse_arguments(ARG "PREPEND;REPLACE" "FILE_SET" "HEADERS" ${ARGN})
     # Delete PREPEND and REPLACE from argument list, so only sources are left
     list(REMOVE_ITEM ARGN "PREPEND")
     list(REMOVE_ITEM ARGN "REPLACE")
+
+    check_languages(${LANGUAGE})
+    # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
+    alias_dereference(_reallib ${IP_LIB})
+    if(NOT ARG_FILE_SET)
+        set(ARG_FILE_SET DEFAULT)
+    endif()
+
+    if(ARG_FILE_SET)
+        set(sources_property ${LANGUAGE}_${ARG_FILE_SET}_SOURCES)
+        set(headers_property ${LANGUAGE}_${ARG_FILE_SET}_HEADERS)
+        set(get_sources_fileset_arg FILE_SETS ${ARG_FILE_SET})
+
+        get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
+        if(NOT ARG_FILE_SET IN_LIST filesets)
+            set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${ARG_FILE_SET})
+        endif()
+    endif()
+    list(REMOVE_ITEM ARGN "${ARG_FILE_SET}")
+    list(REMOVE_ITEM ARGN "FILE_SET")
 
     # If headers are passed, use files until HEADERS as sources, while the rest are HEADERS
     if(ARG_HEADERS)
@@ -255,18 +282,14 @@ function(ip_sources IP_LIB LANGUAGE)
         list(SUBLIST ARGN 0 ${headers_idx} ARGN)
     endif()
 
-    check_languages(${LANGUAGE})
-    # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
-    alias_dereference(_reallib ${IP_LIB})
-
     # Convert all listed files to absolute paths relative to ${CMAKE_CURRENT_SOURCE_DIR}
     convert_paths_to_absolute(file_list ${ARGN})
     convert_paths_to_absolute(header_list ${ARG_HEADERS})
 
     if(NOT ARG_REPLACE)
         # Get the existing source and header files if any
-        get_ip_sources(_sources ${_reallib} ${LANGUAGE} NO_DEPS)
-        get_ip_sources(_headers ${_reallib} ${LANGUAGE} HEADERS NO_DEPS)
+        get_ip_sources(_sources ${_reallib} ${LANGUAGE} ${get_sources_fileset_arg} NO_DEPS) # TODO filesets
+        get_ip_sources(_headers ${_reallib} ${LANGUAGE} ${get_sources_fileset_arg} HEADERS NO_DEPS)
     endif()
 
     # If the PREPEND option is passed prepend the new sources to the old ones
@@ -278,9 +301,15 @@ function(ip_sources IP_LIB LANGUAGE)
         set(_headers ${_headers} ${header_list})
     endif()
     # Set the target property with the new list of source and header files
-    set_property(TARGET ${_reallib} PROPERTY ${LANGUAGE}_SOURCES ${_sources})
+    set_property(TARGET ${_reallib} PROPERTY ${sources_property} ${_sources})
+    set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${sources_property}) # TODO don't add if already there
     if(ARG_HEADERS)
-        set_property(TARGET ${_reallib} PROPERTY ${LANGUAGE}_HEADERS ${_headers})
+        foreach(header ${_headers})
+            cmake_path(GET header PARENT_PATH header_incdir)
+            ip_include_directories(${IP_LIB} ${LANGUAGE} ${header_incdir})
+        endforeach()
+        set_property(TARGET ${_reallib} PROPERTY ${headers_property} ${_headers})
+        set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${headers_property}) # TODO don't add if already there
     endif()
 endfunction()
 
@@ -297,10 +326,12 @@ endfunction()
 # :type [NO_DEPS]: bool
 # :keyword [HEADERS]: Return the list of HEADER files only.
 # :type [HEADERS]: bool
+# :keyword [FILE_SETS]: Specify list of File sets to retrieve the files from
+# :type [FILE_SETS]: list[string]
 #
 #]]
 function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS;HEADERS" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS;HEADERS" "" "FILE_SETS" ${ARGN})
     unset(_no_deps)
     if(ARG_NO_DEPS)
         set(_no_deps "NO_DEPS")
@@ -314,16 +345,35 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     else()
         set(property_type SOURCES)
     endif()
-
+    
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
 
+    # In case FILE_SETS function argument is not specified, return all defined file sets
+    # Otherwise return only files in listed file sets
+    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    if(NOT ARG_FILE_SETS)
+        set(filesets ${ip_filesets})
+    else()
+        set(filesets ${ARG_FILE_SETS})
+        foreach(fileset ${ARG_FILE_SETS})
+            list(REMOVE_ITEM ARGN "${fileset}")
+        endforeach()
+        list(REMOVE_ITEM ARGN "FILE_SETS")
+    endif()
+
     unset(SOURCES)
-    # Get all the <LANGUAGE>_SOURCES or <LANGUAGE>_HEADERS lists in order
+    # Get all the <LANGUAGE>_<FILE_SET>_SOURCES or <LANGUAGE>_<FILE_SET>_HEADERS lists in order
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
-        get_ip_property(_lang_sources ${_reallib} ${_lang}_${property_type} ${_no_deps})
-        list(APPEND SOURCES ${_lang_sources})
+        if(NOT ARG_FILE_SETS)
+            get_ip_property(_lang_sources ${_reallib} ${_lang}_${property_type} ${_no_deps})
+            list(APPEND SOURCES ${_lang_sources})
+        endif()
+        foreach(fileset ${filesets})
+            get_ip_property(_lang_sources ${_reallib} ${_lang}_${fileset}_${property_type} ${_no_deps})
+            list(APPEND SOURCES ${_lang_sources})
+        endforeach()
     endforeach()
 
     list(REMOVE_DUPLICATES SOURCES)
@@ -352,6 +402,7 @@ function(ip_include_directories IP_LIB LANGUAGE)
     convert_paths_to_absolute(dir_list ${ARGN})
     # Append the new include directories to the exsiting ones
     set_property(TARGET ${_reallib} APPEND PROPERTY ${LANGUAGE}_INCLUDE_DIRECTORIES ${dir_list})
+    set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${LANGUAGE}_INCLUDE_DIRECTORIES) # TODO don't add if already there
 endfunction()
 
 #[[[
@@ -408,7 +459,7 @@ function(check_languages LANGUAGE)
     # The user can add addition languages using the SOCMAKE_ADDITIONAL_LANGUAGES variable and global property
     get_socmake_languages(SOCMAKE_SUPPORTED_LANGUAGES)
     
-    if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
+    if(NOT "${LANGUAGE}" IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
         if(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL)
             set(_verbosity FATAL_ERROR)
         else()
@@ -532,7 +583,7 @@ function(ip_link IP_LIB)
         __ip_link_check_version(lib ${lib})
 
         # Issue an error if the library does not exist
-        if(NOT TARGET ${lib})
+        if(NOT TARGET ${lib} AND NOT SOCMAKE_ALLOW_UNDEFINED_TARGETS)
             message(FATAL_ERROR "Library ${lib} linked to ${_reallib} is not defined")
         endif()
         # In case user tries to link library to itself, raise an error
@@ -615,6 +666,7 @@ function(ip_compile_definitions IP_LIB LANGUAGE)
 
     # Append the new compile definitions to the exsiting ones
     set_property(TARGET ${_reallib} APPEND PROPERTY ${LANGUAGE}_COMPILE_DEFINITIONS ${__comp_defs})
+    set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${LANGUAGE}_COMPILE_DEFINITIONS) # TODO don't add if already there
 endfunction()
 
 
@@ -732,6 +784,7 @@ function(get_socmake_languages OUTVAR)
             VERILOG VERILOG_SIM VERILOG_FPGA
             VHDL VHDL_SIM VHDL_FPGA
             SYSTEMRDL SYSTEMRDL_SOCGEN
+            IPXACT
             VERILATOR_CFG
             ${SOCMAKE_ADDITIONAL_LANGUAGES}
             ${additional_languages})
