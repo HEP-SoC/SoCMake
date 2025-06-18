@@ -29,19 +29,8 @@ function(verilator IP_LIB)
     ##################################
     ## Find verilator installation ###
     ##################################
-    if(NOT VERILATOR_HOME)
-        find_package(verilator REQUIRED
-            HINTS ${VERISC_HOME}/open/* $ENV{VERISC_HOME}/open/*
-            )
-        set(VERILATOR_HOME "${verilator_DIR}/../../")
-    endif()
-
-    find_file(_VERILATED_H verilated.h REQUIRED
-        HINTS ${VERILATOR_HOME}/include ${verilator_DIR}/include
-        )
-    get_filename_component(VERILATOR_INCLUDE_DIR ${_VERILATED_H} DIRECTORY)
-
-    set(VERILATOR_ROOT ${VERILATOR_INCLUDE_DIR}/../)
+    find_package(verilator REQUIRED HINTS $ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
+    set(VERILATOR_INCLUDE_DIR ${VERILATOR_ROOT}/include)
     ##################################
 
     get_ip_include_directories(INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG)
@@ -94,12 +83,12 @@ function(verilator IP_LIB)
     if(ARG_RUN_ARGS)
         set(__ARG_RUN_ARGS ${ARG_RUN_ARGS})
         unset(ARG_RUN_ARGS)
-    endif() 
+    endif()
 
     if(ARG_NO_RUN_TARGET)
         set(__ARG_NO_RUN_TARGET ${ARG_NO_RUN_TARGET})
         unset(ARG_NO_RUN_TARGET)
-    endif() 
+    endif()
 
     set(PASS_ADDITIONAL_MULTIPARAM SOURCES INCLUDE_DIRS) # Additional parameters to pass
     set(PASS_ADDITIONAL_ONEPARAM DIRECTORY PREFIX)
@@ -178,7 +167,11 @@ function(verilator IP_LIB)
                 ${EXT_PRJ_ARGS}
                 -DVERILATOR_ROOT=${VERILATOR_ROOT}
                 -DSYSTEMC_ROOT=${SYSTEMC_HOME}
-
+            # VERILATOR_ROOT env variable is required for some older versions of verilator
+            # For the configuration phase, this is set in the verilator/CMakeLists.txt file
+            # For the build phase, this is the simplest (only?) solution
+            BUILD_COMMAND ${CMAKE_COMMAND} -E env VERILATOR_ROOT=${VERILATOR_ROOT} make
+            BUILD_JOB_SERVER_AWARE 1
             INSTALL_COMMAND ""
             DEPENDS ${IP_LIB}
             EXCLUDE_FROM_ALL 1
