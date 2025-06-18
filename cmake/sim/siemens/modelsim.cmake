@@ -222,6 +222,7 @@ function(__modelsim_compile_lib IP_LIB)
                         OUTDIR ${OUTDIR}
                         LIBRARY ${LIBRARY}
                         ${ARG_BITNESS}
+                        ${ARG_FILE_SETS}
                     )
                     add_dependencies(${parent} ${child}_modelsim_gen_sc_wrapper)
                 endif()
