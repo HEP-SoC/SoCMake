@@ -53,9 +53,10 @@ function(ghdl IP_LIB)
         set(ARG_VHDL_COMPILE_ARGS VHDL_COMPILE_ARGS ${ARG_VHDL_COMPILE_ARGS})
     endif()
 
+    get_ip_links(deps_list ${IP_LIB})
     ##### GHDL Analyze
     if(NOT TARGET ${IP_LIB}_ghdl_complib)
-        __ghdl_compile_lib(${IP_LIB}
+        __ghdl_compile_lib(${IP_LIB} "${deps_list}"
             OUTDIR ${OUTDIR}
             STANDARD ${STANDARD}
             ${ARG_LIBRARY}
@@ -65,7 +66,7 @@ function(ghdl IP_LIB)
     endif()
     set(__comp_tgt ${IP_LIB}_ghdl_complib)
 
-    __get_ghdl_search_lib_args(${IP_LIB} 
+    __get_ghdl_search_lib_args(${IP_LIB} "${DEPS_LIST}" 
         ${ARG_LIBRARY}
         OUTDIR ${OUTDIR})
     set(hdl_libs_args ${HDL_LIBS_ARGS})
@@ -73,7 +74,7 @@ function(ghdl IP_LIB)
 
     ##### GHDL Elaborate
     if(NOT TARGET ${IP_LIB}_ghdl)
-        get_ip_sources(VHDL_SOURCES ${IP_LIB} VHDL ${ARG_FILE_SETS})
+        get_ip_sources(VHDL_SOURCES ${IP_LIB} VHDL NO_TOPSORT)
         set(__ghdl_elab_cmd ghdl elaborate
                 --std=${STANDARD}
                 -fsynopsys
@@ -132,8 +133,8 @@ function(ghdl IP_LIB)
 
 endfunction()
 
-function(__ghdl_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "" "LIBRARY;OUTDIR;STANDARD" "VHDL_COMPILE_ARGS;FILE_SETS" ${ARGN})
+function(__ghdl_compile_lib IP_LIB DEPS_LIST)
+    cmake_parse_arguments(ARG "" "LIBRARY;OUTDIR;STANDARD" "VHDL_COMPILE_ARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -158,12 +159,10 @@ function(__ghdl_compile_lib IP_LIB)
     __ghdl_get_standard_arg(STANDARD ${ARG_STANDARD})
 
     # Find the GHDL tools/include directory, needed for VPI/VHPI libraries
-    __add_ghdl_cxx_properties_to_libs(${IP_LIB})
+    __add_ghdl_cxx_properties_to_libs(${IP_LIB} "${DEPS_LIST}")
 
-    get_ip_links(__ips ${IP_LIB})
     unset(all_stamp_files)
-    foreach(lib ${__ips})
-
+    foreach(lib ${DEPS_LIST})
         # VHDL library of the current IP block, get it from SoCMake library if present
         # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
         get_target_property(__comp_lib_name ${lib} LIBRARY)
@@ -178,12 +177,12 @@ function(__ghdl_compile_lib IP_LIB)
         set(lib_outdir ${OUTDIR}/${__comp_lib_name})
         file(MAKE_DIRECTORY ${lib_outdir})
 
-        __get_ghdl_search_lib_args(${lib}
+        __get_ghdl_search_lib_args(${lib} "${DEPS_LIST}"
             OUTDIR ${OUTDIR})
         set(hdl_libs_args ${HDL_LIBS_ARGS})
 
         # VHDL files and arguments
-        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS ${ARG_FILE_SETS})
+        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS NO_TOPSORT)
         set(ghdl_analyze_cmd ghdl analyze
                 --std=${STANDARD}
                 -fsynopsys
@@ -207,7 +206,7 @@ function(__ghdl_compile_lib IP_LIB)
 
         # Modelsim custom command of current IP block should depend on stamp files of immediate linked IPs
         # Extract the list from __ghdl_<LIB>_stamp_files
-        get_ip_links(ip_subdeps ${lib} NO_DEPS)
+        get_ip_links(ip_subdeps ${lib} NO_DEPS NO_TOPSORT)
         unset(__ghdl_subdep_stamp_files)
         foreach(ip_dep ${ip_subdeps})
             list(APPEND __ghdl_subdep_stamp_files ${__ghdl_${ip_dep}_stamp_files})
@@ -232,7 +231,7 @@ function(__ghdl_compile_lib IP_LIB)
     endforeach()
 
     if(NOT TARGET ${IP_LIB}_ghdl_complib)
-        add_custom_target(
+        add_custom_target( 
             ${IP_LIB}_ghdl_complib
             DEPENDS ${all_stamp_files} ${IP_LIB}
         )
@@ -242,15 +241,14 @@ function(__ghdl_compile_lib IP_LIB)
 
 endfunction()
 
-function(__get_ghdl_search_lib_args IP_LIB)
+function(__get_ghdl_search_lib_args IP_LIB DEPS_LIST)
     cmake_parse_arguments(ARG "" "OUTDIR;LIBRARY" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    get_ip_links(ips ${IP_LIB})
     unset(hdl_libs_args)
-    foreach(lib ${ips})
+    foreach(lib ${DEPS_LIST})
         # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
         get_target_property(ip_type ${lib} TYPE)
         if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
@@ -281,7 +279,7 @@ function(__get_ghdl_search_lib_args IP_LIB)
     set(DPI_LIBS_ARGS ${dpi_libs_args} PARENT_SCOPE)
 endfunction()
 
-function(__add_ghdl_cxx_properties_to_libs IP_LIB)
+function(__add_ghdl_cxx_properties_to_libs IP_LIB DEPS_LIST)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -290,8 +288,7 @@ function(__add_ghdl_cxx_properties_to_libs IP_LIB)
     get_filename_component(vpi_inc_path "${ghdl_exec_path}" DIRECTORY)
     cmake_path(SET vpi_inc_path NORMALIZE "${vpi_inc_path}/../include/ghdl")
 
-    get_ip_links(ips ${IP_LIB})
-    foreach(lib ${ips})
+    foreach(lib ${DEPS_LIST})
         # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
         get_target_property(ip_type ${lib} TYPE)
         if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")

@@ -61,9 +61,10 @@ function(modelsim IP_LIB)
 
     __find_modelsim_home(modelsim_home)
 
+    get_ip_links(deps_list ${IP_LIB})
     ### Compile with vcom and vlog
     if(NOT TARGET ${IP_LIB}_modelsim_complib)
-        __modelsim_compile_lib(${IP_LIB}
+        __modelsim_compile_lib(${IP_LIB} "${deps_list}"
             OUTDIR ${OUTDIR}
             ${ARG_BITNESS}
             ${ARG_QUIET}
@@ -76,16 +77,15 @@ function(modelsim IP_LIB)
     set(comp_tgt ${IP_LIB}_modelsim_complib)
 
     ### Get list of linked libraries marked as SystemC
-    get_ip_links(__ips ${IP_LIB})
     unset(systemc_libs)
-    foreach(lib ${__ips})
+    foreach(lib ${deps_list})
         __is_socmake_systemc_lib(is_systemc_lib ${lib})
         if(is_systemc_lib)
             list(APPEND systemc_libs ${lib})
         endif()
     endforeach()
 
-    __get_modelsim_search_lib_args(${IP_LIB} 
+    __get_modelsim_search_lib_args(${IP_LIB} "${deps_list}"
         ${ARG_LIBRARY}
         OUTDIR ${OUTDIR})
     set(hdl_libs_args ${HDL_LIBS_ARGS})
@@ -170,8 +170,8 @@ function(modelsim IP_LIB)
 endfunction()
 
 
-function(__modelsim_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "QUIET;32BIT" "OUTDIR;LIBRARY" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;FILE_SETS" ${ARGN})
+function(__modelsim_compile_lib IP_LIB DEPS_LIST)
+    cmake_parse_arguments(ARG "QUIET;32BIT" "OUTDIR;LIBRARY" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -200,9 +200,7 @@ function(__modelsim_compile_lib IP_LIB)
         set(bitness 64)
     endif()
 
-    get_ip_links(__ips ${IP_LIB})
-
-    foreach(parent ${__ips})
+    foreach(parent ${DEPS_LIST})
         get_target_property(children_ips ${parent} INTERFACE_LINK_LIBRARIES)
 
         __is_socmake_systemc_lib(parent_is_systemc_lib ${parent})
@@ -250,16 +248,17 @@ function(__modelsim_compile_lib IP_LIB)
         # Create output directoy for the VHDL library
         set(lib_outdir ${OUTDIR}/${__comp_lib_name})
 
-        __get_modelsim_search_lib_args(${lib})
+        get_ip_links(sub_deps_list ${lib})
+        __get_modelsim_search_lib_args(${lib} "${sub_deps_list}")
         set(hdl_libs_args ${HDL_LIBS_ARGS})
 
         # SystemVerilog and Verilog files and arguments
-        get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
-        get_ip_sources(SV_HEADERS ${lib} SYSTEMVERILOG VERILOG VHDL HEADERS ${ARG_FILE_SETS})
+        get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS NO_TOPSORT)
+        get_ip_sources(SV_HEADERS ${lib} SYSTEMVERILOG VERILOG VHDL HEADERS NO_TOPSORT)
         unset(sv_compile_cmd)
         if(SV_SOURCES)
-            get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
-            get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+            get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG NO_TOPSORT)
+            get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG NO_TOPSORT)
 
             foreach(dir ${SV_INC_DIRS})
                 list(APPEND SV_ARG_INCDIRS +incdir+${dir})
@@ -286,7 +285,7 @@ function(__modelsim_compile_lib IP_LIB)
         endif()
 
         # VHDL files and arguments
-        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS ${ARG_FILE_SETS})
+        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS NO_TOPSORT)
         unset(vhdl_compile_cmd)
         if(VHDL_SOURCES)
             set(vhdl_compile_cmd vcom
@@ -314,7 +313,7 @@ function(__modelsim_compile_lib IP_LIB)
 
         # Modelsim custom command of current IP block should depend on stamp files of immediate linked IPs
         # Extract the list from __modelsim_<LIB>_stamp_files
-        get_ip_links(ip_subdeps ${lib} NO_DEPS)
+        get_ip_links(ip_subdeps ${lib} NO_DEPS NO_TOPSORT)
         unset(__modelsim_subdep_stamp_files)
         foreach(ip_dep ${ip_subdeps})
             list(APPEND __modelsim_subdep_stamp_files ${__modelsim_${ip_dep}_stamp_files})
@@ -385,7 +384,7 @@ function(__modelsim_compile_lib IP_LIB)
 endfunction()
 
 
-function(__get_modelsim_search_lib_args IP_LIB)
+function(__get_modelsim_search_lib_args IP_LIB DEPS_LIST)
     cmake_parse_arguments(ARG "" "OUTDIR;LIBRARY" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -393,10 +392,9 @@ function(__get_modelsim_search_lib_args IP_LIB)
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
 
-    get_ip_links(ips ${IP_LIB})
     unset(hdl_libs_args)
     unset(dpi_libs_args)
-    foreach(lib ${ips})
+    foreach(lib ${DEPS_LIST})
         __is_socmake_systemc_lib(is_systemc_lib ${lib})
         __is_socmake_ip_lib(is_ip_lib ${lib})
         __is_socmake_vhpi_lib(is_vhpi_lib ${lib})
@@ -484,12 +482,12 @@ function(modelsim_gen_sc_wrapper IP_LIB)
     endif()
 
 
-    get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
+    get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS NO_TOPSORT)
     list(GET SV_SOURCES -1 last_sv_file) # TODO this is not correct, as the last Verilog file might not be top
     unset(sv_compile_cmd)
     if(SV_SOURCES)
-        get_ip_include_directories(SV_INC_DIRS ${IP_LIB}  SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
-        get_ip_compile_definitions(SV_COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+        get_ip_include_directories(SV_INC_DIRS ${IP_LIB}  SYSTEMVERILOG VERILOG NO_TOPSORT)
+        get_ip_compile_definitions(SV_COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG NO_TOPSORT)
 
         foreach(dir ${SV_INC_DIRS})
             list(APPEND SV_ARG_INCDIRS +incdir+${dir})
@@ -499,7 +497,7 @@ function(modelsim_gen_sc_wrapper IP_LIB)
             list(APPEND SV_CMP_DEFS_ARG +define+${def})
         endforeach()
 
-        get_ip_sources(sc_portmap ${IP_LIB} VCS_SC_PORTMAP NO_DEPS)
+        get_ip_sources(sc_portmap ${IP_LIB} VCS_SC_PORTMAP NO_DEPS NO_TOPSORT)
         unset(sc_portmap_arg)
         if(sc_portmap)
             set(sc_portmap_arg -sc_portmap ${sc_portmap})
@@ -584,7 +582,7 @@ function(modelsim_compile_sc_lib SC_LIB)
         set(bitness 64)
     endif()
 
-    get_ip_sources(sc_portmap ${SC_LIB} VCS_SC_PORTMAP NO_DEPS)
+    get_ip_sources(sc_portmap ${SC_LIB} VCS_SC_PORTMAP NO_DEPS NO_TOPSORT)
     unset(sc_portmap_arg)
     if(sc_portmap)
         set(sc_portmap_arg -port ${sc_portmap})
