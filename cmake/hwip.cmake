@@ -1,4 +1,3 @@
-
 include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_graph.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils/alias_dereference.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils/safe_get_target_property.cmake")
@@ -337,13 +336,15 @@ endfunction()
 #]]
 function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     cmake_parse_arguments(ARG "NO_DEPS;HEADERS;NO_TOPSORT" "" "FILE_SETS" ${ARGN})
+    unset(no_deps)
     if(ARG_NO_DEPS)
-        set(ARG_NO_DEPS "NO_DEPS")
+        set(no_deps "NO_DEPS")
         # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
         list(REMOVE_ITEM ARGN NO_DEPS)
     endif()
+    unset(no_topsort)
     if(ARG_NO_TOPSORT)
-        set(ARG_NO_TOPSORT "NO_TOPSORT")
+        set(no_topsort "NO_TOPSORT")
         # ARGN contains extra languages passed, it might also include NO_TOPSORT so remove it from the list
         list(REMOVE_ITEM ARGN NO_TOPSORT)
     endif()
@@ -360,7 +361,7 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
     # Otherwise return only files in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${ARG_NO_DEPS} ${ARG_NO_TOPSORT})
+    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${no_deps} ${no_topsort})
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
@@ -376,11 +377,11 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
         if(NOT ARG_FILE_SETS)
-            get_ip_property(_lang_sources ${_reallib} ${_lang}_${property_type} ${ARG_NO_DEPS} ${ARG_NO_TOPSORT})
+            get_ip_property(_lang_sources ${_reallib} ${_lang}_${property_type} ${no_deps} ${no_topsort})
             list(APPEND SOURCES ${_lang_sources})
         endif()
         foreach(fileset ${filesets})
-            get_ip_property(_lang_sources ${_reallib} ${_lang}_${fileset}_${property_type} ${ARG_NO_DEPS} ${ARG_NO_TOPSORT})
+            get_ip_property(_lang_sources ${_reallib} ${_lang}_${fileset}_${property_type} ${no_deps} ${no_topsort})
             list(APPEND SOURCES ${_lang_sources})
         endforeach()
     endforeach()
@@ -448,25 +449,42 @@ endfunction()
 # :type [NO_TOPSORT]: bool
 #]]
 function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS;NO_TOPSORT" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS;NO_TOPSORT" "" "FILE_SETS" ${ARGN})
+    unset(no_deps)
     if(ARG_NO_DEPS)
-        set(ARG_NO_DEPS "NO_DEPS")
+        set(no_deps "NO_DEPS")
     endif()
+    unset(no_topsort)
     if(ARG_NO_TOPSORT)
-        set(ARG_NO_TOPSORT "NO_TOPSORT")
+        set(no_topsort "NO_TOPSORT")
     endif()
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
 
-    # ARGN contains extra languages passed, it might also include NO_DEPS, NO_TOPSORT so remove it from the list
+    # In case FILE_SETS function argument is not specified, return all defined file sets
+    # Otherwise return only directories in listed file sets
+    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${no_deps} ${no_topsort})
+    if(NOT ARG_FILE_SETS)
+        set(filesets ${ip_filesets})
+    else()
+        set(filesets ${ARG_FILE_SETS})
+        foreach(fileset ${ARG_FILE_SETS})
+            list(REMOVE_ITEM ARGN "${fileset}")
+        endforeach()
+        list(REMOVE_ITEM ARGN "FILE_SETS")
+    endif()
+
+    # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
     list(REMOVE_ITEM ARGN NO_DEPS)
     list(REMOVE_ITEM ARGN NO_TOPSORT)
     unset(INCDIRS)
     # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
-        get_ip_property(_lang_incdirs ${_reallib} ${_lang}_INCLUDE_DIRECTORIES ${ARG_NO_DEPS} ${ARG_NO_TOPSORT})
-        list(APPEND INCDIRS ${_lang_incdirs})
+        foreach(fileset ${filesets})
+            get_ip_property(_lang_incdirs ${_reallib} ${_lang}_${fileset}_INCLUDE_DIRECTORIES ${no_deps} ${no_topsort})
+            list(APPEND INCDIRS ${_lang_incdirs})
+        endforeach()
     endforeach()
 
     list(REMOVE_DUPLICATES INCDIRS)
@@ -741,25 +759,42 @@ endfunction()
 # :type [NO_TOPSORT]: bool
 #]]
 function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS;NO_TOPSORT" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS;NO_TOPSORT" "" "FILE_SETS" ${ARGN})
+    unset(no_deps)
     if(ARG_NO_DEPS)
-        set(ARG_NO_DEPS "NO_DEPS")
+        set(no_deps "NO_DEPS")
     endif()
+    unset(no_topsort)
     if(ARG_NO_TOPSORT)
-        set(ARG_NO_TOPSORT "NO_TOPSORT")
+        set(no_topsort "NO_TOPSORT")
     endif()
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
 
-    # ARGN contains extra languages passed, it might also include NO_DEPS, NO_TOPSORT so remove it from the list
+    # In case FILE_SETS function argument is not specified, return all defined file sets
+    # Otherwise return only directories in listed file sets
+    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${no_deps} ${no_topsort})
+    if(NOT ARG_FILE_SETS)
+        set(filesets ${ip_filesets})
+    else()
+        set(filesets ${ARG_FILE_SETS})
+        foreach(fileset ${ARG_FILE_SETS})
+            list(REMOVE_ITEM ARGN "${fileset}")
+        endforeach()
+        list(REMOVE_ITEM ARGN "FILE_SETS")
+    endif()
+
+    # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
     list(REMOVE_ITEM ARGN NO_DEPS)
     list(REMOVE_ITEM ARGN NO_TOPSORT)
     unset(COMPDEFS)
     # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
-        get_ip_property(_lang_compdefs ${_reallib} ${_lang}_COMPILE_DEFINITIONS ${ARG_NO_DEPS} ${ARG_NO_TOPSORT})
-        list(APPEND COMPDEFS ${_lang_compdefs})
+        foreach(fileset ${filesets})
+            get_ip_property(_lang_compdefs ${_reallib} ${_lang}_${fileset}_COMPILE_DEFINITIONS ${no_deps} ${no_topsort})
+            list(APPEND COMPDEFS ${_lang_compdefs})
+        endforeach()
     endforeach()
 
     list(REMOVE_DUPLICATES COMPDEFS)
@@ -854,3 +889,4 @@ function(get_socmake_languages OUTVAR)
 
     set(${OUTVAR} ${languages} PARENT_SCOPE)
 endfunction()
+
