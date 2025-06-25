@@ -26,10 +26,8 @@ function(verilator IP_LIB)
         set(DIRECTORY ${ARG_DIRECTORY})
     endif()
 
-    if(ARG_FILE_SETS)
-        list(REMOVE_ITEM MULTI_PARAM_ARGS "FILE_SETS")
-        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
-    endif()
+    # For perfomance reasons call flatten_graph() and use NO_TOPSORT in get_ip_...() function calls
+    flatten_graph(${IP_LIB})
 
     ##################################
     ## Find verilator installation ###
@@ -49,7 +47,7 @@ function(verilator IP_LIB)
     set(VERILATOR_ROOT ${VERILATOR_INCLUDE_DIR}/../)
     ##################################
 
-    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+    get_ip_include_directories(INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG NO_TOPSORT)
 
     if(ARG_TOP_MODULE)
         set(ARG_TOP_MODULE ${ARG_TOP_MODULE})
@@ -64,16 +62,16 @@ function(verilator IP_LIB)
     endif()
 
     ## TODO deprecate
-    get_ip_property(VERILATOR_ARGS ${IP_LIB} VERILATOR_ARGS)
+    get_ip_property(VERILATOR_ARGS ${IP_LIB} VERILATOR_ARGS NO_TOPSORT)
     list(APPEND ARG_VERILATOR_ARGS ${VERILATOR_ARGS})
     ##
 
-    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG NO_TOPSORT)
     foreach(def ${COMP_DEFS})
         list(APPEND ARG_VERILATOR_ARGS -D${def})
     endforeach()
 
-    get_ip_sources(SOURCES ${IP_LIB} VERILATOR_CFG SYSTEMVERILOG_SIM VERILOG_SIM SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+    get_ip_sources(SOURCES ${IP_LIB} VERILATOR_CFG SYSTEMVERILOG_SIM VERILOG_SIM SYSTEMVERILOG VERILOG NO_TOPSORT)
 
     if(ARG_SED_WOR)
         include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/sed_wor/sed_wor.cmake)
@@ -218,7 +216,7 @@ function(verilator IP_LIB)
         target_link_libraries(${VERILATED_LIB} INTERFACE -pthread)
 
         # Search for linked libraries that are Shared or Static libraries and link them to the verilated library
-        get_ip_links(IPS_LIST ${IP_LIB})
+        get_ip_links(IPS_LIST ${IP_LIB} NO_TOPSORT)
         foreach(ip ${IPS_LIST})
             get_target_property(ip_type ${ip} TYPE)
             if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")

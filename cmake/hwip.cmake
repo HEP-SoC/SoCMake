@@ -1,4 +1,3 @@
-
 include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_graph.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils/alias_dereference.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils/safe_get_target_property.cmake")
@@ -53,7 +52,7 @@ include("${CMAKE_CURRENT_LIST_DIR}//utils/file_paths.cmake")
 # :type DESCRIPTION: string
 #]]
 function(add_ip IP_NAME)
-    cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_ALIAS" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
 
     # Vendor and library arguments are expected at the minimum
     if(ARG_UNPARSED_ARGUMENTS)
@@ -81,7 +80,7 @@ function(add_ip IP_NAME)
         endif()
 
         # TODO Maybe delete short name without version
-        if(ARG_VERSION)
+        if(ARG_VERSION AND NOT ARG_NO_ALIAS)
             create_ip_vlnv(IP_LIB_SHORT ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "")
             string(REPLACE "__" "::" ALIAS_NAME_SHORT "${IP_LIB_SHORT}")
             if(NOT "${IP_LIB}" STREQUAL "${ALIAS_NAME_SHORT}")
@@ -236,6 +235,10 @@ endfunction()
 # :type IP_LIB: string
 # :param TYPE: The type of source file(s).
 # :type TYPE: string
+# :param FILE_SET: Specify to which file set to associate the listed files
+# :type FILE_SET: string
+# :param HEADERS: List of header files. Header files are stored in separate property ${LANGUAGE}_HEADERS, the include directory will also be set.
+# :type HEADERS: list
 #
 # **Keyword Arguments**
 #
@@ -301,6 +304,10 @@ function(ip_sources IP_LIB LANGUAGE)
     set_property(TARGET ${_reallib} PROPERTY ${sources_property} ${_sources})
     # set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${sources_property}) # TODO don't add if already there
     if(ARG_HEADERS)
+        foreach(header ${_headers})
+            cmake_path(GET header PARENT_PATH header_incdir)
+            ip_include_directories(${IP_LIB} ${LANGUAGE} ${header_incdir})
+        endforeach()
         set_property(TARGET ${_reallib} PROPERTY ${headers_property} ${_headers})
         # set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${headers_property}) # TODO don't add if already there
     endif()
@@ -324,14 +331,22 @@ endfunction()
 # :type [HEADERS]: bool
 # :keyword [FILE_SETS]: Specify list of File sets to retrieve the files from
 # :type [FILE_SETS]: list[string]
+# :keyword [NO_TOPSORT]: Do not perform topological sort on the dependency graph (be careful, make sure that it was computed earlied, use for performance)
+# :type [NO_TOPSORT]: bool
 #]]
 function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS;HEADERS" "" "FILE_SETS" ${ARGN})
-    unset(_no_deps)
+    cmake_parse_arguments(ARG "NO_DEPS;HEADERS;NO_TOPSORT" "" "FILE_SETS" ${ARGN})
+    unset(no_deps)
     if(ARG_NO_DEPS)
-        set(_no_deps "NO_DEPS")
+        set(no_deps "NO_DEPS")
         # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
         list(REMOVE_ITEM ARGN NO_DEPS)
+    endif()
+    unset(no_topsort)
+    if(ARG_NO_TOPSORT)
+        set(no_topsort "NO_TOPSORT")
+        # ARGN contains extra languages passed, it might also include NO_TOPSORT so remove it from the list
+        list(REMOVE_ITEM ARGN NO_TOPSORT)
     endif()
     if(ARG_HEADERS)
         set(property_type HEADERS)
@@ -346,7 +361,7 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
     # Otherwise return only files in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${no_deps} ${no_topsort})
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
@@ -361,8 +376,12 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     # Get all the <LANGUAGE>_<FILE_SET>_SOURCES or <LANGUAGE>_<FILE_SET>_HEADERS lists in order
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
+        if(NOT ARG_FILE_SETS)
+            get_ip_property(_lang_sources ${_reallib} ${_lang}_${property_type} ${no_deps} ${no_topsort})
+            list(APPEND SOURCES ${_lang_sources})
+        endif()
         foreach(fileset ${filesets})
-            get_ip_property(_lang_sources ${_reallib} ${_lang}_${fileset}_${property_type} ${_no_deps})
+            get_ip_property(_lang_sources ${_reallib} ${_lang}_${fileset}_${property_type} ${no_deps} ${no_topsort})
             list(APPEND SOURCES ${_lang_sources})
         endforeach()
     endforeach()
@@ -424,26 +443,27 @@ endfunction()
 # :type IP_LIB: string
 # :param LANGUAGE: Language of the included files.
 # :type LANGUAGE: string
-#
-# **Keyword Arguments**
-#
-# :keyword [NO_DEPS]: Only return the list off IPs that are immediate childrean from the current IP
+# :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
 # :type [NO_DEPS]: bool
-# :keyword [FILE_SETS]: Specify list of File sets to retrieve the include directories from
-# :type [FILE_SETS]: list[string]
+# :keyword [NO_TOPSORT]: Do not perform topological sort on the dependency graph (be careful, make sure that it was computed earlied, use for performance)
+# :type [NO_TOPSORT]: bool
 #]]
 function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "FILE_SETS" ${ARGN})
-    unset(_no_deps)
+    cmake_parse_arguments(ARG "NO_DEPS;NO_TOPSORT" "" "FILE_SETS" ${ARGN})
+    unset(no_deps)
     if(ARG_NO_DEPS)
-        set(_no_deps "NO_DEPS")
+        set(no_deps "NO_DEPS")
+    endif()
+    unset(no_topsort)
+    if(ARG_NO_TOPSORT)
+        set(no_topsort "NO_TOPSORT")
     endif()
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
     # Otherwise return only directories in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${no_deps} ${no_topsort})
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
@@ -456,12 +476,13 @@ function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
 
     # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
     list(REMOVE_ITEM ARGN NO_DEPS)
+    list(REMOVE_ITEM ARGN NO_TOPSORT)
     unset(INCDIRS)
     # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
         foreach(fileset ${filesets})
-            get_ip_property(_lang_incdirs ${_reallib} ${_lang}_${fileset}_INCLUDE_DIRECTORIES ${_no_deps})
+            get_ip_property(_lang_incdirs ${_reallib} ${_lang}_${fileset}_INCLUDE_DIRECTORIES ${no_deps} ${no_topsort})
             list(APPEND INCDIRS ${_lang_incdirs})
         endforeach()
     endforeach()
@@ -612,7 +633,7 @@ function(ip_link IP_LIB)
         __ip_link_check_version(lib ${lib})
 
         # Issue an error if the library does not exist
-        if(NOT TARGET ${lib})
+        if(NOT TARGET ${lib} AND NOT SOCMAKE_ALLOW_UNDEFINED_TARGETS)
             message(FATAL_ERROR "Library ${lib} linked to ${_reallib} is not defined")
         endif()
         # In case user tries to link library to itself, raise an error
@@ -640,26 +661,30 @@ endfunction()
 # :type PROPERTY: string
 # :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
 # :type [NO_DEPS]: bool
-#
+# :keyword [NO_TOPSORT]: Do not perform topological sort on the dependency graph (be careful, make sure that it was computed earlied, use for performance)
+# :type [NO_TOPSORT]: bool
 #]]
 function(get_ip_property OUTVAR IP_LIB PROPERTY)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS;NO_TOPSORT" "" "" ${ARGN})
 
     # Retrieve the real library name in case an alias is used
     alias_dereference(_reallib ${IP_LIB})
 
     set(OUT_LIST "")
     if(ARG_NO_DEPS)
-        safe_get_target_property(OUT_LIST ${_reallib} ${PROPERTY} "")
+        safe_get_target_property(OUT_LIST ${_reallib} ${PROPERTY})
     else()
-        # Flatten the target graph to get all the dependencies in the correct order
-        flatten_graph(${_reallib})
+        if(NOT ARG_NO_TOPSORT)
+            # Flatten the target graph to get all the dependencies in the correct order
+            flatten_graph(${_reallib})
+        endif()
+        # message("REALLIB: ${_reallib}")
         # Get all the dependencies
         get_target_property(DEPS ${_reallib} FLAT_GRAPH)
 
         # Append the property of all the deps into a single list (e.g., the source files of an IP)
         foreach(d ${DEPS})
-            safe_get_target_property(PROP ${d} ${PROPERTY} "")
+            safe_get_target_property(PROP ${d} ${PROPERTY})
             list(APPEND OUT_LIST ${PROP})
         endforeach()
     endif()
@@ -728,26 +753,27 @@ endfunction()
 # :type IP_LIB: string
 # :param LANGUAGE: Language to which the definition apply.
 # :type LANGUAGE: string
-#
-# **Keyword Arguments**
-#
-# :keyword [NO_DEPS]: Only return the list off IPs that are immediate childrean from the current IP
+# :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
 # :type [NO_DEPS]: bool
-# :keyword [FILE_SETS]: Specify list of File sets to retrieve the include directories from
-# :type [FILE_SETS]: list[string]
+# :keyword [NO_TOPSORT]: Do not perform topological sort on the dependency graph (be careful, make sure that it was computed earlied, use for performance)
+# :type [NO_TOPSORT]: bool
 #]]
 function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "FILE_SETS" ${ARGN})
-    unset(_no_deps)
+    cmake_parse_arguments(ARG "NO_DEPS;NO_TOPSORT" "" "FILE_SETS" ${ARGN})
+    unset(no_deps)
     if(ARG_NO_DEPS)
-        set(_no_deps "NO_DEPS")
+        set(no_deps "NO_DEPS")
+    endif()
+    unset(no_topsort)
+    if(ARG_NO_TOPSORT)
+        set(no_topsort "NO_TOPSORT")
     endif()
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
     # Otherwise return only directories in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${no_deps} ${no_topsort})
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
@@ -760,12 +786,13 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
 
     # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
     list(REMOVE_ITEM ARGN NO_DEPS)
+    list(REMOVE_ITEM ARGN NO_TOPSORT)
     unset(COMPDEFS)
     # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
         foreach(fileset ${filesets})
-            get_ip_property(_lang_compdefs ${_reallib} ${_lang}_${fileset}_COMPILE_DEFINITIONS ${_no_deps})
+            get_ip_property(_lang_compdefs ${_reallib} ${_lang}_${fileset}_COMPILE_DEFINITIONS ${no_deps} ${no_topsort})
             list(APPEND COMPDEFS ${_lang_compdefs})
         endforeach()
     endforeach()
@@ -781,9 +808,11 @@ endfunction()
 # :type OUTVAR: string
 # :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
 # :type [NO_DEPS]: bool
+# :keyword [NO_TOPSORT]: Do not perform topological sort on the dependency graph (be careful, make sure that it was computed earlied, use for performance)
+# :type [NO_TOPSORT]: bool
 #]]
 function(get_ip_links OUTVAR IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS;NO_TOPSORT" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -793,7 +822,9 @@ function(get_ip_links OUTVAR IP_LIB)
     if(ARG_NO_DEPS)
         get_property(__flat_graph TARGET ${_reallib} PROPERTY INTERFACE_LINK_LIBRARIES)
     else()
-        flatten_graph(${_reallib})
+        if(NOT ARG_NO_TOPSORT)
+            flatten_graph(${_reallib})
+        endif()
 
         get_property(__flat_graph TARGET ${_reallib} PROPERTY FLAT_GRAPH)
     endif()
@@ -851,9 +882,11 @@ function(get_socmake_languages OUTVAR)
             VERILOG VERILOG_SIM VERILOG_FPGA
             VHDL VHDL_SIM VHDL_FPGA
             SYSTEMRDL SYSTEMRDL_SOCGEN
+            IPXACT
             VERILATOR_CFG
             ${SOCMAKE_ADDITIONAL_LANGUAGES}
             ${additional_languages})
 
     set(${OUTVAR} ${languages} PARENT_SCOPE)
 endfunction()
+

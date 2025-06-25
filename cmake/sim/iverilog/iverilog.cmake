@@ -34,21 +34,20 @@ function(iverilog IP_LIB)
     # Get the binary directory of the IP library
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
-    if(ARG_FILE_SETS)
-        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
-    endif()
+    # For perfomance reasons call flatten_graph() and use NO_TOPSORT in get_ip_...() function calls
+    flatten_graph(${IP_LIB})
 
     # Get the IP RTL sources
-    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_TOPSORT)
     # Get IP include directories
-    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG NO_TOPSORT)
     # Prepare include directories arguments for iverilog
     foreach(dir ${INC_DIRS})
         list(APPEND ARG_INCDIRS -I ${dir})
     endforeach()
 
     # Get IP compile definitions
-    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG NO_TOPSORT)
     # Prepare compile definitions arguments for iverilog
     foreach(def ${COMP_DEFS})
         list(APPEND CMP_DEFS_ARG -D${def})

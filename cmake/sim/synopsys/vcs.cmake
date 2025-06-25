@@ -55,14 +55,10 @@ function(vcs IP_LIB)
         set(ARG_VHDL_COMPILE_ARGS VHDL_COMPILE_ARGS ${ARG_VHDL_COMPILE_ARGS})
     endif()
 
-    if(ARG_FILE_SETS)
-        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
-    endif()
-
-    get_ip_links(IPS_LIST ${IP_LIB})
+    get_ip_links(deps_list ${IP_LIB})
 
     if(NOT TARGET ${IP_LIB}_vcs_complib)
-        __vcs_compile_lib(${IP_LIB}
+        __vcs_compile_lib(${IP_LIB} "${deps_list}"
             OUTDIR ${OUTDIR}
             ${ARG_BITNESS}
             ${ARG_LIBRARY}
@@ -74,9 +70,8 @@ function(vcs IP_LIB)
     set(comp_tgt ${IP_LIB}_vcs_complib)
 
     ### Create arguments for loading SystemC libraries during elaboration
-    get_ip_links(__ips ${IP_LIB})
     unset(systemc_lib_args)
-    foreach(lib ${__ips})
+    foreach(lib ${deps_list})
         __is_socmake_systemc_lib(is_systemc_lib ${lib})
         if(is_systemc_lib)
             list(APPEND systemc_lib_args $<TARGET_FILE:${lib}>)
@@ -96,13 +91,13 @@ function(vcs IP_LIB)
         set(arg_top_sim_module ${LIBRARY}.${ARG_TOP_MODULE})
     endif()
 
-    __get_vcs_search_lib_args(${IP_LIB} 
+    __get_vcs_search_lib_args(${IP_LIB} "${DEPS_LIST}"
         ${ARG_LIBRARY}
         OUTDIR ${OUTDIR})
     set(dpi_libs_args ${DPI_LIBS_ARGS})
 
-    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL ${ARG_FILE_SETS})
-    get_ip_sources(HEADERS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL HEADERS ${ARG_FILE_SETS})
+    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL NO_TOPSORT)
+    get_ip_sources(HEADERS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL HEADERS NO_TOPSORT)
     ## VCS command for compiling executable
     if(NOT TARGET ${IP_LIB}_vcs)
         set(elaborate_cmd vcs
@@ -170,8 +165,8 @@ function(vcs IP_LIB)
 
 endfunction()
 
-function(__vcs_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "32BIT" "OUTDIR;LIBRARY;TOP_MODULE" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS;FILE_SETS" ${ARGN})
+function(__vcs_compile_lib IP_LIB DEPS_LIST)
+    cmake_parse_arguments(ARG "32BIT" "OUTDIR;LIBRARY;TOP_MODULE" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -205,9 +200,7 @@ function(__vcs_compile_lib IP_LIB)
         set(ARG_BITNESS 32BIT)
     endif()
 
-    get_ip_links(__ips ${IP_LIB})
-
-    foreach(parent ${__ips})
+    foreach(parent ${DEPS_LIST})
         get_target_property(children_ips ${parent} INTERFACE_LINK_LIBRARIES)
 
         __is_socmake_systemc_lib(parent_is_systemc_lib ${parent})
@@ -241,7 +234,7 @@ function(__vcs_compile_lib IP_LIB)
     endforeach()
 
     unset(all_stamp_files)
-    foreach(lib ${__ips})
+    foreach(lib ${DEPS_LIST})
         # Library of the current IP block, get it from SoCMake library if present
         # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
         get_target_property(__comp_lib_name ${lib} LIBRARY)
@@ -255,16 +248,17 @@ function(__vcs_compile_lib IP_LIB)
         # Create output directory for the library
         set(lib_outdir ${OUTDIR}/${__comp_lib_name})
 
-        __get_vcs_search_lib_args(${lib}
+        get_ip_links(sub_deps_list ${lib})
+        __get_vcs_search_lib_args(${lib} "${sub_deps_list}"
             OUTDIR ${OUTDIR})
 
         # SystemVerilog and Verilog files and arguments
-        get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
-        get_ip_sources(SV_HEADERS ${lib} SYSTEMVERILOG VERILOG HEADERS ${ARG_FILE_SETS})
+        get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS NO_TOPSORT)
+        get_ip_sources(SV_HEADERS ${lib} SYSTEMVERILOG VERILOG HEADERS NO_TOPSORT)
         unset(sv_compile_cmd)
         if(SV_SOURCES)
-            get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
-            get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+            get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG NO_TOPSORT)
+            get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG NO_TOPSORT)
 
             foreach(dir ${SV_INC_DIRS})
                 list(APPEND SV_ARG_INCDIRS +incdir+${dir})
@@ -288,7 +282,7 @@ function(__vcs_compile_lib IP_LIB)
         endif()
 
         # VHDL files and arguments
-        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS ${ARG_FILE_SETS})
+        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS NO_TOPSORT)
         unset(vhdl_compile_cmd)
         if(VHDL_SOURCES)
             set(vhdl_compile_cmd COMMAND vhdlan
@@ -303,7 +297,7 @@ function(__vcs_compile_lib IP_LIB)
 
         # VCS custom command of current IP block should depend on stamp files of immediate linked IPs
         # Extract the list from __vcs_<LIB>_stamp_files
-        get_ip_links(ip_subdeps ${lib} NO_DEPS)
+        get_ip_links(ip_subdeps ${lib} NO_DEPS NO_TOPSORT)
         unset(__vcs_subdep_stamp_files)
         foreach(ip_dep ${ip_subdeps})
             list(APPEND __vcs_subdep_stamp_files ${__vcs_${ip_dep}_stamp_files})
@@ -360,7 +354,7 @@ function(__vcs_compile_lib IP_LIB)
 
 endfunction()
 
-function(__get_vcs_search_lib_args IP_LIB)
+function(__get_vcs_search_lib_args IP_LIB DEPS_LIST)
     cmake_parse_arguments(ARG "" "OUTDIR;LIBRARY" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -372,10 +366,9 @@ function(__get_vcs_search_lib_args IP_LIB)
     set(synopsys_sim_setup_str "WORK > DEFAULT\n")
     string(APPEND synopsys_sim_setup_str "DEFAULT: ./work\n")
 
-    get_ip_links(ips ${IP_LIB})
     unset(hdl_libs)
     unset(dpi_libs_args)
-    foreach(lib ${ips})
+    foreach(lib ${DEPS_LIST})
         __is_socmake_systemc_lib(is_systemc_lib ${lib})
         __is_socmake_ip_lib(is_ip_lib ${lib})
         __is_socmake_vhpi_lib(is_vhpi_lib ${lib})
@@ -448,12 +441,12 @@ function(vcs_gen_sc_wrapper IP_LIB)
     endif()
 
 
-    get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
+    get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS NO_TOPSORT)
     list(GET SV_SOURCES -1 last_sv_file) # TODO this is not correct, as the last Verilog file might not be top
     unset(sv_compile_cmd)
     if(SV_SOURCES)
-        get_ip_include_directories(SV_INC_DIRS ${IP_LIB}  SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
-        get_ip_compile_definitions(SV_COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+        get_ip_include_directories(SV_INC_DIRS ${IP_LIB}  SYSTEMVERILOG VERILOG NO_TOPSORT)
+        get_ip_compile_definitions(SV_COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG NO_TOPSORT)
 
         foreach(dir ${SV_INC_DIRS})
             list(APPEND SV_ARG_INCDIRS +incdir+${dir})
@@ -463,7 +456,7 @@ function(vcs_gen_sc_wrapper IP_LIB)
             list(APPEND SV_CMP_DEFS_ARG +define+${def})
         endforeach()
 
-        get_ip_sources(sc_portmap ${IP_LIB} VCS_SC_PORTMAP NO_DEPS)
+        get_ip_sources(sc_portmap ${IP_LIB} VCS_SC_PORTMAP NO_DEPS NO_TOPSORT)
         unset(sc_portmap_arg)
         if(sc_portmap)
             set(sc_portmap_arg -sc_portmap ${sc_portmap})
@@ -538,7 +531,7 @@ function(vcs_gen_hdl_wrapper SC_LIB)
         set(__comp_lib_name ${ARG_LIBRARY})
     endif()
 
-    get_ip_sources(sc_portmap ${SC_LIB} VCS_SC_PORTMAP NO_DEPS)
+    get_ip_sources(sc_portmap ${SC_LIB} VCS_SC_PORTMAP NO_DEPS NO_TOPSORT)
     unset(sc_portmap_arg)
     if(sc_portmap)
         set(sc_portmap_arg -port ${sc_portmap})
