@@ -8,8 +8,9 @@ if(NOT "${IP_ALIAS}" STREQUAL "@IP_LIB@")
     add_library(${IP_ALIAS} ALIAS @IP_LIB@)
 endif()
 
-if(@IP_VERSION@)
+if(@VERSION_USED@)
     string(REPLACE "__@IP_VERSION@" "" IP_NO_VERSION_ALIAS "@IP_LIB@")
+    string(REPLACE "__" "::" IP_NO_VERSION_ALIAS "${IP_NO_VERSION_ALIAS}")
     add_library(${IP_NO_VERSION_ALIAS} ALIAS @IP_LIB@)
 endif()
 
