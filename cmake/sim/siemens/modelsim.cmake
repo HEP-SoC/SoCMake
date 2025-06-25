@@ -233,7 +233,7 @@ function(__modelsim_compile_lib IP_LIB DEPS_LIST)
     endforeach()
 
     unset(all_stamp_files)
-    foreach(lib ${__ips})
+    foreach(lib ${DEPS_LIST})
 
         # VHDL library of the current IP block, get it from SoCMake library if present
         # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
@@ -249,7 +249,7 @@ function(__modelsim_compile_lib IP_LIB DEPS_LIST)
         set(lib_outdir ${OUTDIR}/${__comp_lib_name})
 
         get_ip_links(sub_deps_list ${lib})
-        __get_modelsim_search_lib_args(${lib} "${sub_deps_list}")
+        __get_modelsim_search_lib_args(${lib} "${sub_deps_list}" LIBRARY ${ARG_LIBRARY})
         set(hdl_libs_args ${HDL_LIBS_ARGS})
 
         # SystemVerilog and Verilog files and arguments

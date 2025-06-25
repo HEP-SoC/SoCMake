@@ -285,7 +285,7 @@ function(__xcelium_compile_lib IP_LIB DEPS_LIST)
         set(lib_outdir ${OUTDIR}/xcelium.d/${__comp_lib_name})
 
         get_ip_links(sub_deps_list ${lib})
-        __get_xcelium_search_lib_args(${lib} "${sub_deps_list}"
+        __get_xcelium_search_lib_args(${lib} "${sub_deps_list}" LIBRARY ${ARG_LIBRARY}
             OUTDIR ${OUTDIR})
         set(hdl_libs_args ${HDL_LIBS_ARGS})
 
