@@ -1,5 +1,12 @@
 include_guard(GLOBAL)
 
+function(make_outdir_path OUTVAR IP_LIB)
+    alias_dereference(_reallib ${IP_LIB})
+    string(REPLACE "__" "/" outpath "${_reallib}")
+
+    set(${OUTVAR} ${outpath} PARENT_SCOPE)
+endfunction()
+
 function(ip_install IP_LIB)
     cmake_parse_arguments(ARG "" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
@@ -7,9 +14,12 @@ function(ip_install IP_LIB)
     endif()
 
 
+    set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES FILE_SETS)
     get_property(export_sources TARGET ${IP_LIB} PROPERTY EXPORT_PROPERTIES)
-    message("export_source: ${export_sources}")
+    get_property(filesets TARGET ${IP_LIB} PROPERTY FILE_SETS)
     # list(FILTER export_sources INCLUDE REGEX "(_SOURCES|_HEADERS|_INCLUDE_DIRECTORIES)$")
+
+    make_outdir_path(OUTDIR ${IP_LIB})
 
     set(sources_list ${export_sources})
     list(FILTER sources_list INCLUDE REGEX "_SOURCES$")
@@ -20,34 +30,38 @@ function(ip_install IP_LIB)
     set(inc_dirs_list ${export_sources})
     list(FILTER inc_dirs_list INCLUDE REGEX "_INCLUDE_DIRECTORIES$")
 
-    foreach(fileset ${sources_list})
-        string(REGEX REPLACE "_SOURCES$" "" fileset ${fileset})
+    foreach(fileset ${filesets})
+        string(REPLACE "::" ";" fileset_list "${fileset}")
+        list(GET fileset_list 0 fileset_language)
+        list(GET fileset_list 1 fileset_name)
+
+        # string(REGEX REPLACE "_SOURCES$" "" fileset ${fileset})
         # message("fileset is: ${fileset}")
-        get_ip_sources(${fileset} ${IP_LIB} ${fileset})
+        get_ip_sources(${fileset} ${IP_LIB} ${fileset_language} FILE_SETS ${fileset_name})
 
         unset(${fileset}_copy)
         foreach(source ${${fileset}})
             cmake_path(GET source FILENAME filename)
-            list(APPEND ${fileset}_copy "\${_IMPORT_PREFIX}/${fileset}/${filename}")
+            list(APPEND ${fileset}_copy "\${_IMPORT_PREFIX}/${OUTDIR}/${fileset_language}/${fileset_name}/${filename}")
         endforeach()
         
-        ip_sources(${IP_LIB} ${fileset} REPLACE
+        ip_sources(${IP_LIB} ${fileset_language} FILE_SET ${fileset_name} REPLACE
             ${${fileset}_copy}
             )
 
-            
         install(FILES ${${fileset}}
-                      DESTINATION ${fileset}
+            DESTINATION "${OUTDIR}/${fileset_language}/${fileset_name}"
             )
-        get_ip_sources(sources ${IP_LIB} ${fileset})
     endforeach()
 
     get_property(IP_NAME TARGET ${IP_LIB} PROPERTY IP_NAME)
     get_property(IP_VERSION TARGET ${IP_LIB} PROPERTY VERSION)
+    set(VERSION_USED FALSE)
     if(NOT IP_VERSION)
         set(VERSION 0.0.1)
     else()
         set(VERSION ${IP_VERSION})
+        set(VERSION_USED TRUE)
     endif()
 
     include(CMakePackageConfigHelpers)
@@ -65,15 +79,16 @@ function(ip_install IP_LIB)
     configure_package_config_file(
         "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ipConfig.cmake.in"
         "${PROJECT_BINARY_DIR}/${IP_NAME}Config.cmake"
-        INSTALL_DESTINATION lib/cmake/${IP_NAME}
+        INSTALL_DESTINATION "${OUTDIR}/lib/cmake/${IP_NAME}"
     )
 
     install(EXPORT ${IP_NAME}Targets 
-        DESTINATION lib/cmake/${IP_NAME})
+        DESTINATION "${OUTDIR}/lib/cmake/${IP_NAME}"
+    )
 
     install(FILES "${PROJECT_BINARY_DIR}/${IP_NAME}ConfigVersion.cmake"
                   "${PROJECT_BINARY_DIR}/${IP_NAME}Config.cmake"
-                  DESTINATION lib/cmake/${IP_NAME}
+                  DESTINATION "${OUTDIR}/lib/cmake/${IP_NAME}"
         )
 
 endfunction()

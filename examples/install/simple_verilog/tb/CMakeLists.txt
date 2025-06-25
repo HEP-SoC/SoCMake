@@ -9,11 +9,12 @@ add_ip(tb
 ip_sources(${IP} VERILOG
     tb.v)
 
-find_package(adder CONFIG REQUIRED
-    HINTS ../install
+find_package(adder 0.0.10 CONFIG REQUIRED
+    HINTS ${PROJECT_SOURCE_DIR}/../build/here/*/*/*/*
     )
-ip_link(${IP} adder)
+ip_link(${IP} vendor::ip::adder)
 
-modelsim(${IP})
+
+iverilog(${IP})
 
 help()
