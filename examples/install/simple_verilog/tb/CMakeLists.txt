@@ -1,0 +1,20 @@
+cmake_minimum_required(VERSION 3.25)
+project(simple_verilog_example NONE)
+
+include("../../../../SoCMakeConfig.cmake")
+
+add_ip(tb
+    DESCRIPTION "Simple verilog testbench")
+
+ip_sources(${IP} VERILOG
+    tb.v)
+
+find_package(adder 0.0.10 CONFIG REQUIRED
+    HINTS ${PROJECT_SOURCE_DIR}/../build/here/*/*/*/*
+    )
+ip_link(${IP} vendor::ip::adder)
+
+
+iverilog(${IP})
+
+help()
