@@ -8,7 +8,7 @@ function(make_outdir_path OUTVAR IP_LIB)
 endfunction()
 
 function(ip_install IP_LIB)
-    cmake_parse_arguments(ARG "" "" "FILE_SETS;EXCLUDE_FILE_SETS" ${ARGN})
+    cmake_parse_arguments(ARG "" "" "LANGUAGES;FILE_SETS;EXCLUDE_FILE_SETS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -20,9 +20,13 @@ function(ip_install IP_LIB)
     set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES IP_NAME)
     set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES VERSION)
 
-    set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES FILE_SETS)
+    set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES LANG_FILE_SETS)
     get_property(export_sources TARGET ${IP_LIB} PROPERTY EXPORT_PROPERTIES)
-    get_property(filesets TARGET ${IP_LIB} PROPERTY FILE_SETS)
+    
+    # Get file sets that were set on the IP block
+    # This is a combination of {LANGUAGE}::{FILE_SET}
+    get_property(filesets TARGET ${IP_LIB} PROPERTY LANG_FILE_SETS)
+
     # list(FILTER export_sources INCLUDE REGEX "(_SOURCES|_HEADERS|_INCLUDE_DIRECTORIES)$")
 
     make_outdir_path(OUTDIR ${IP_LIB})
