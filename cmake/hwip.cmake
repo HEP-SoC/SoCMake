@@ -269,10 +269,10 @@ function(ip_sources IP_LIB LANGUAGE)
     set(headers_property ${LANGUAGE}_${ARG_FILE_SET}_HEADERS)
     set(get_sources_fileset_arg FILE_SETS ${ARG_FILE_SET})
 
-    get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
+    get_property(filesets TARGET ${_reallib} PROPERTY LANG_FILE_SETS)
     set(file_set "${LANGUAGE}::${ARG_FILE_SET}")
     if(NOT file_set IN_LIST filesets)
-        set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${file_set})
+        set_property(TARGET ${_reallib} APPEND PROPERTY LANG_FILE_SETS ${file_set})
     endif()
 
     list(REMOVE_ITEM ARGN "${ARG_FILE_SET}")
@@ -353,7 +353,7 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
     # Otherwise return only files in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    get_ip_property(ip_filesets ${_reallib} LANG_FILE_SETS ${_no_deps})
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
@@ -415,11 +415,11 @@ function(ip_include_directories IP_LIB LANGUAGE)
     endif()
     set(incdir_property ${LANGUAGE}_${ARG_FILE_SET}_INCLUDE_DIRECTORIES)
 
-    # Add the file set to the FILE_SETS property
-    get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
+    # Add the file set to the LANG_FILE_SETS property
+    get_property(filesets TARGET ${_reallib} PROPERTY LANG_FILE_SETS)
     set(file_set "${LANGUAGE}::${ARG_FILE_SET}")
     if(NOT file_set IN_LIST filesets)
-        set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${file_set})
+        set_property(TARGET ${_reallib} APPEND PROPERTY LANG_FILE_SETS ${file_set})
     endif()
     # Remove the FILE_SET argument and its value from ARGN to not interfere with directory list
     list(REMOVE_ITEM ARGN "${ARG_FILE_SET}")
@@ -458,7 +458,7 @@ function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
     # Otherwise return only files in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    get_ip_property(ip_filesets ${_reallib} LANG_FILE_SETS ${_no_deps})
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
@@ -722,11 +722,11 @@ function(ip_compile_definitions IP_LIB LANGUAGE)
     endif()
     set(comp_def_property ${LANGUAGE}_${ARG_FILE_SET}_COMPILE_DEFINITIONS)
 
-    # Add the file set to the FILE_SETS property
-    get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
+    # Add the file set to the LANG_FILE_SETS property
+    get_property(filesets TARGET ${_reallib} PROPERTY LANG_FILE_SETS)
     set(file_set "${LANGUAGE}::${ARG_FILE_SET}")
     if(NOT file_set IN_LIST filesets)
-        set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${file_set})
+        set_property(TARGET ${_reallib} APPEND PROPERTY LANG_FILE_SETS ${file_set})
     endif()
     # Remove the FILE_SET argument and its value from ARGN to not interfere with directory list
     list(REMOVE_ITEM ARGN "${ARG_FILE_SET}")
@@ -771,7 +771,7 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
     # Otherwise return only files in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    get_ip_property(ip_filesets ${_reallib} LANG_FILE_SETS ${_no_deps})
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
