@@ -8,7 +8,7 @@ function(make_outdir_path OUTVAR IP_LIB)
 endfunction()
 
 function(ip_install IP_LIB)
-    cmake_parse_arguments(ARG "" "" "LANGUAGES;FILE_SETS;EXCLUDE_FILE_SETS" ${ARGN})
+    cmake_parse_arguments(ARG "" "" "LANGUAGES;FILE_SETS;EXCLUDE_LANGUAGES;EXCLUDE_FILE_SETS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -60,6 +60,18 @@ function(ip_install IP_LIB)
         endforeach()
     endif()
     message("FILE_SETS: ${filesets}")
+
+    if(ARG_EXCLUDE_LANGUAGES)
+        foreach(lang ${ARG_EXCLUDE_LANGUAGES})
+            list(FILTER filesets EXCLUDE REGEX "^${lang}::")
+        endforeach()
+    endif()
+
+    if(ARG_EXCLUDE_FILE_SETS)
+        foreach(fileset ${ARG_EXCLUDE_FILE_SETS})
+            list(FILTER filesets EXCLUDE REGEX "::${fileset}$")
+        endforeach()
+    endif()
 
     # list(FILTER export_sources INCLUDE REGEX "(_SOURCES|_HEADERS|_INCLUDE_DIRECTORIES)$")
 
