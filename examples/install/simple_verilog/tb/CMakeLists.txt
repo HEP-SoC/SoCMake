@@ -9,12 +9,14 @@ add_ip(tb
 ip_sources(${IP} VERILOG
     tb.v)
 
-find_package(adder 0.0.10 CONFIG REQUIRED
-    HINTS ${PROJECT_SOURCE_DIR}/../build/here/*/*/*/*
+find_package(vendor__ip__mult CONFIG REQUIRED
+    HINTS ${PROJECT_SOURCE_DIR}/../build/here/vendor/ip/mult/0.0.1
     )
-ip_link(${IP} vendor::ip::adder)
+# add_subdirectory("..//" mult)
+ip_link(${IP} vendor::ip::mult::0.0.1)
 
 
 iverilog(${IP})
+ip_install(${IP})
 
 help()

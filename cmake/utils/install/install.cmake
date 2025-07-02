@@ -8,6 +8,8 @@ function(make_outdir_path OUTVAR IP_LIB)
 endfunction()
 
 function(ip_install IP_LIB)
+    set(CMAKE_EXPERIMENTAL_EXPORT_PACKAGE_DEPENDENCIES "1942b4fa-b2c5-4546-9385-83f254070067")
+
     cmake_parse_arguments(ARG "" "" "LANGUAGES;FILE_SETS;EXCLUDE_LANGUAGES;EXCLUDE_FILE_SETS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -98,7 +100,7 @@ function(ip_install IP_LIB)
         set_property(TARGET ${IP_LIB} APPEND PROPERTY EXPORT_PROPERTIES ${fileset_property}_COMPILE_DEFINITIONS)
         # string(REGEX REPLACE "_SOURCES$" "" fileset ${fileset})
         # message("fileset is: ${fileset}")
-        get_ip_sources(${fileset} ${IP_LIB} ${fileset_language} FILE_SETS ${fileset_name})
+        get_ip_sources(${fileset} ${IP_LIB} ${fileset_language} FILE_SETS ${fileset_name} NO_DEPS)
 
         unset(${fileset}_copy)
         foreach(source ${${fileset}})
@@ -117,6 +119,7 @@ function(ip_install IP_LIB)
 
     get_property(IP_NAME TARGET ${IP_LIB} PROPERTY IP_NAME)
     get_property(IP_VERSION TARGET ${IP_LIB} PROPERTY VERSION)
+
     set(VERSION_USED FALSE)
     if(NOT IP_VERSION)
         set(VERSION 0.0.1)
@@ -125,31 +128,34 @@ function(ip_install IP_LIB)
         set(VERSION_USED TRUE)
     endif()
 
+    string(REPLACE "__${VERSION}" "" package_name "${IP_LIB}")
+
     include(CMakePackageConfigHelpers)
     write_basic_package_version_file(
-        "${PROJECT_BINARY_DIR}/${IP_NAME}ConfigVersion.cmake"
+        "${PROJECT_BINARY_DIR}/${package_name}ConfigVersion.cmake"
         VERSION ${VERSION}
         COMPATIBILITY AnyNewerVersion
     )
 
     install(TARGETS ${IP_LIB}
-        EXPORT ${IP_NAME}Targets
+        EXPORT ${package_name}Targets
     )
-
+    
     include(CMakePackageConfigHelpers)
     configure_package_config_file(
         "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ipConfig.cmake.in"
-        "${PROJECT_BINARY_DIR}/${IP_NAME}Config.cmake"
-        INSTALL_DESTINATION "${OUTDIR}/lib/cmake/${IP_NAME}"
+        "${PROJECT_BINARY_DIR}/${package_name}Config.cmake"
+        INSTALL_DESTINATION "${OUTDIR}/lib/cmake/${package_name}"
     )
 
-    install(EXPORT ${IP_NAME}Targets 
-        DESTINATION "${OUTDIR}/lib/cmake/${IP_NAME}"
+    install(EXPORT ${package_name}Targets 
+        DESTINATION "${OUTDIR}/lib/cmake/${package_name}"
+        EXPORT_PACKAGE_DEPENDENCIES
     )
 
-    install(FILES "${PROJECT_BINARY_DIR}/${IP_NAME}ConfigVersion.cmake"
-                  "${PROJECT_BINARY_DIR}/${IP_NAME}Config.cmake"
-                  DESTINATION "${OUTDIR}/lib/cmake/${IP_NAME}"
+    install(FILES "${PROJECT_BINARY_DIR}/${package_name}ConfigVersion.cmake"
+                  "${PROJECT_BINARY_DIR}/${package_name}Config.cmake"
+                  DESTINATION "${OUTDIR}/lib/cmake/${package_name}"
         )
 
 endfunction()
