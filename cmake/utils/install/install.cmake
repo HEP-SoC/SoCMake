@@ -61,7 +61,6 @@ function(ip_install IP_LIB)
             endforeach()
         endforeach()
     endif()
-    message("FILE_SETS: ${filesets}")
 
     if(ARG_EXCLUDE_LANGUAGES)
         foreach(lang ${ARG_EXCLUDE_LANGUAGES})
@@ -145,17 +144,17 @@ function(ip_install IP_LIB)
     configure_package_config_file(
         "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ipConfig.cmake.in"
         "${PROJECT_BINARY_DIR}/${package_name}Config.cmake"
-        INSTALL_DESTINATION "${OUTDIR}/lib/cmake/${package_name}"
+        INSTALL_DESTINATION "lib/cmake/${package_name}"
     )
 
     install(EXPORT ${package_name}Targets 
-        DESTINATION "${OUTDIR}/lib/cmake/${package_name}"
+        DESTINATION "lib/cmake/${package_name}"
         EXPORT_PACKAGE_DEPENDENCIES
     )
 
     install(FILES "${PROJECT_BINARY_DIR}/${package_name}ConfigVersion.cmake"
                   "${PROJECT_BINARY_DIR}/${package_name}Config.cmake"
-                  DESTINATION "${OUTDIR}/lib/cmake/${package_name}"
+                  DESTINATION "lib/cmake/${package_name}"
         )
 
 endfunction()
