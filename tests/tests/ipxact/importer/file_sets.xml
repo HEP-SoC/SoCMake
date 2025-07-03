@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ipxact:component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:ipxact="http://www.accellera.org/XMLSchema/IPXACT/1685-2022"
+                  xsi:schemaLocation="http://www.accellera.org/XMLSchema/IPXACT/1685-2022 http://www.accellera.org/XMLSchema/IPXACT/1685-2022/index.xsd">
+   <ipxact:vendor>socmake</ipxact:vendor>
+   <ipxact:library>tests</ipxact:library>
+   <ipxact:name>file_sets</ipxact:name>
+   <ipxact:version>1.0</ipxact:version>
+   <ipxact:fileSets>
+      <ipxact:fileSet>
+         <ipxact:name>rtl_files</ipxact:name>
+         <ipxact:file>
+            <ipxact:name>i2c_top.v</ipxact:name>
+            <ipxact:fileType>verilogSource</ipxact:fileType>
+         </ipxact:file>
+         <ipxact:file>
+            <ipxact:name>i2c_rx.v</ipxact:name>
+            <ipxact:fileType>verilogSource</ipxact:fileType>
+         </ipxact:file>
+         <ipxact:file>
+            <ipxact:name>i2c_tx.v</ipxact:name>
+            <ipxact:fileType>verilogSource</ipxact:fileType>
+         </ipxact:file>
+         <ipxact:file>
+            <ipxact:name>fifo.vhd</ipxact:name>
+            <ipxact:fileType>vhdlSource</ipxact:fileType>
+         </ipxact:file>
+         <ipxact:file>
+            <ipxact:name>i2c_defs.vh</ipxact:name>
+            <ipxact:fileType>verilogSource</ipxact:fileType>
+            <ipxact:isIncludeFile>true</ipxact:isIncludeFile>
+         </ipxact:file>
+         <ipxact:file>
+            <ipxact:name>apb_defs.vh</ipxact:name>
+            <ipxact:fileType>verilogSource</ipxact:fileType>
+            <ipxact:isIncludeFile>true</ipxact:isIncludeFile>
+         </ipxact:file>
+      </ipxact:fileSet>
+
+      <ipxact:fileSet>
+         <ipxact:name>simulation</ipxact:name>
+         <ipxact:file>
+            <ipxact:name>i2c_tb.sv</ipxact:name>
+            <ipxact:fileType>systemVerilogSource</ipxact:fileType>
+         </ipxact:file>
+         <ipxact:file>
+            <ipxact:name>clk_gen.sv</ipxact:name>
+            <ipxact:fileType>systemVerilogSource</ipxact:fileType>
+         </ipxact:file>
+         <ipxact:file>
+            <ipxact:name>i2c_tb_defs.svh</ipxact:name>
+            <ipxact:fileType>systemVerilogSource</ipxact:fileType>
+            <ipxact:isIncludeFile>true</ipxact:isIncludeFile>
+         </ipxact:file>
+      </ipxact:fileSet>
+
+      <ipxact:fileSet>
+         <ipxact:name>synthesis</ipxact:name>
+         <ipxact:file>
+            <ipxact:name>i2c_cells.v</ipxact:name>
+            <ipxact:fileType>verilogSource</ipxact:fileType>
+         </ipxact:file>
+         <ipxact:file>
+            <ipxact:name>clk_gate.sv</ipxact:name>
+            <ipxact:fileType>systemVerilogSource</ipxact:fileType>
+         </ipxact:file>
+      </ipxact:fileSet>
+   </ipxact:fileSets>
+</ipxact:component>
+
+

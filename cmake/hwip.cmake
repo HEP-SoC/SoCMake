@@ -53,7 +53,7 @@ include("${CMAKE_CURRENT_LIST_DIR}//utils/file_paths.cmake")
 # :type DESCRIPTION: string
 #]]
 function(add_ip IP_NAME)
-    cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_ALIAS" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
 
     # Vendor and library arguments are expected at the minimum
     if(ARG_UNPARSED_ARGUMENTS)
@@ -81,7 +81,7 @@ function(add_ip IP_NAME)
         endif()
 
         # TODO Maybe delete short name without version
-        if(ARG_VERSION)
+        if(ARG_VERSION AND NOT ARG_NO_ALIAS)
             create_ip_vlnv(IP_LIB_SHORT ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "")
             string(REPLACE "__" "::" ALIAS_NAME_SHORT "${IP_LIB_SHORT}")
             if(NOT "${IP_LIB}" STREQUAL "${ALIAS_NAME_SHORT}")
@@ -236,6 +236,10 @@ endfunction()
 # :type IP_LIB: string
 # :param TYPE: The type of source file(s).
 # :type TYPE: string
+# :param FILE_SET: Specify to which file set to associate the listed files
+# :type FILE_SET: string
+# :param HEADERS: List of header files. Header files are stored in separate property ${LANGUAGE}_HEADERS, the include directory will also be set.
+# :type HEADERS: list
 #
 # **Keyword Arguments**
 #
@@ -265,9 +269,10 @@ function(ip_sources IP_LIB LANGUAGE)
     set(headers_property ${LANGUAGE}_${ARG_FILE_SET}_HEADERS)
     set(get_sources_fileset_arg FILE_SETS ${ARG_FILE_SET})
 
-    get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
-    if(NOT ARG_FILE_SET IN_LIST filesets)
-        set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${ARG_FILE_SET})
+    get_property(filesets TARGET ${_reallib} PROPERTY LANG_FILE_SETS)
+    set(file_set "${LANGUAGE}::${ARG_FILE_SET}")
+    if(NOT file_set IN_LIST filesets)
+        set_property(TARGET ${_reallib} APPEND PROPERTY LANG_FILE_SETS ${file_set})
     endif()
 
     list(REMOVE_ITEM ARGN "${ARG_FILE_SET}")
@@ -299,10 +304,12 @@ function(ip_sources IP_LIB LANGUAGE)
     endif()
     # Set the target property with the new list of source and header files
     set_property(TARGET ${_reallib} PROPERTY ${sources_property} ${_sources})
-    # set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${sources_property}) # TODO don't add if already there
     if(ARG_HEADERS)
+        foreach(header ${_headers})
+            cmake_path(GET header PARENT_PATH header_incdir)
+            ip_include_directories(${IP_LIB} ${LANGUAGE} ${header_incdir})
+        endforeach()
         set_property(TARGET ${_reallib} PROPERTY ${headers_property} ${_headers})
-        # set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${headers_property}) # TODO don't add if already there
     endif()
 endfunction()
 
@@ -346,15 +353,18 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
     # Otherwise return only files in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    get_ip_property(ip_filesets ${_reallib} LANG_FILE_SETS ${_no_deps})
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
-        set(filesets ${ARG_FILE_SETS})
-        foreach(fileset ${ARG_FILE_SETS})
-            list(REMOVE_ITEM ARGN "${fileset}")
-        endforeach()
+        list(REMOVE_ITEM ARGN ${ARG_FILE_SETS})
         list(REMOVE_ITEM ARGN "FILE_SETS")
+        unset(filesets)
+        foreach(lang ${LANGUAGE} ${ARGN})
+            foreach(fileset_name ${ARG_FILE_SETS})
+                list(APPEND filesets ${lang}::${fileset_name})
+            endforeach()
+        endforeach()
     endif()
 
     unset(SOURCES)
@@ -362,8 +372,13 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
         foreach(fileset ${filesets})
-            get_ip_property(_lang_sources ${_reallib} ${_lang}_${fileset}_${property_type} ${_no_deps})
-            list(APPEND SOURCES ${_lang_sources})
+            string(REPLACE "::" ";" fileset_list "${fileset}")
+            list(GET fileset_list 0 fileset_language)
+            list(GET fileset_list 1 fileset_name)
+            if(fileset_language STREQUAL ${_lang})
+                get_ip_property(_lang_sources ${_reallib} ${fileset_language}_${fileset_name}_${property_type} ${_no_deps})
+                list(APPEND SOURCES ${_lang_sources})
+            endif()
         endforeach()
     endforeach()
 
@@ -399,12 +414,12 @@ function(ip_include_directories IP_LIB LANGUAGE)
         set(ARG_FILE_SET DEFAULT)
     endif()
     set(incdir_property ${LANGUAGE}_${ARG_FILE_SET}_INCLUDE_DIRECTORIES)
-    set(fileset_arg FILE_SETS ${ARG_FILE_SET})
 
-    # Add the file set to the FILE_SETS property
-    get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
-    if(NOT ARG_FILE_SET IN_LIST filesets)
-        set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${ARG_FILE_SET})
+    # Add the file set to the LANG_FILE_SETS property
+    get_property(filesets TARGET ${_reallib} PROPERTY LANG_FILE_SETS)
+    set(file_set "${LANGUAGE}::${ARG_FILE_SET}")
+    if(NOT file_set IN_LIST filesets)
+        set_property(TARGET ${_reallib} APPEND PROPERTY LANG_FILE_SETS ${file_set})
     endif()
     # Remove the FILE_SET argument and its value from ARGN to not interfere with directory list
     list(REMOVE_ITEM ARGN "${ARG_FILE_SET}")
@@ -442,16 +457,19 @@ function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
     alias_dereference(_reallib ${IP_LIB})
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
-    # Otherwise return only directories in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    # Otherwise return only files in listed file sets
+    get_ip_property(ip_filesets ${_reallib} LANG_FILE_SETS ${_no_deps})
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
-        set(filesets ${ARG_FILE_SETS})
-        foreach(fileset ${ARG_FILE_SETS})
-            list(REMOVE_ITEM ARGN "${fileset}")
-        endforeach()
+        list(REMOVE_ITEM ARGN ${ARG_FILE_SETS})
         list(REMOVE_ITEM ARGN "FILE_SETS")
+        unset(filesets)
+        foreach(lang ${LANGUAGE} ${ARGN})
+            foreach(fileset_name ${ARG_FILE_SETS})
+                list(APPEND filesets ${lang}::${fileset_name})
+            endforeach()
+        endforeach()
     endif()
 
     # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
@@ -461,8 +479,13 @@ function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
         foreach(fileset ${filesets})
-            get_ip_property(_lang_incdirs ${_reallib} ${_lang}_${fileset}_INCLUDE_DIRECTORIES ${_no_deps})
-            list(APPEND INCDIRS ${_lang_incdirs})
+            string(REPLACE "::" ";" fileset_list "${fileset}")
+            list(GET fileset_list 0 fileset_language)
+            list(GET fileset_list 1 fileset_name)
+            if(fileset_language STREQUAL ${_lang})
+                get_ip_property(_lang_incdirs ${_reallib} ${fileset_language}_${fileset_name}_INCLUDE_DIRECTORIES ${_no_deps})
+                list(APPEND INCDIRS ${_lang_incdirs})
+            endif()
         endforeach()
     endforeach()
 
@@ -488,7 +511,7 @@ function(check_languages LANGUAGE)
     # The user can add addition languages using the SOCMAKE_ADDITIONAL_LANGUAGES variable and global property
     get_socmake_languages(SOCMAKE_SUPPORTED_LANGUAGES)
     
-    if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
+    if(NOT "${LANGUAGE}" IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
         if(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL)
             set(_verbosity FATAL_ERROR)
         else()
@@ -612,7 +635,7 @@ function(ip_link IP_LIB)
         __ip_link_check_version(lib ${lib})
 
         # Issue an error if the library does not exist
-        if(NOT TARGET ${lib})
+        if(NOT TARGET ${lib} AND NOT SOCMAKE_ALLOW_UNDEFINED_TARGETS)
             message(FATAL_ERROR "Library ${lib} linked to ${_reallib} is not defined")
         endif()
         # In case user tries to link library to itself, raise an error
@@ -698,11 +721,12 @@ function(ip_compile_definitions IP_LIB LANGUAGE)
         set(ARG_FILE_SET DEFAULT)
     endif()
     set(comp_def_property ${LANGUAGE}_${ARG_FILE_SET}_COMPILE_DEFINITIONS)
-    set(fileset_arg FILE_SETS ${ARG_FILE_SET})
-    # Add the file set to the FILE_SETS property
-    get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
-    if(NOT ARG_FILE_SET IN_LIST filesets)
-        set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${ARG_FILE_SET})
+
+    # Add the file set to the LANG_FILE_SETS property
+    get_property(filesets TARGET ${_reallib} PROPERTY LANG_FILE_SETS)
+    set(file_set "${LANGUAGE}::${ARG_FILE_SET}")
+    if(NOT file_set IN_LIST filesets)
+        set_property(TARGET ${_reallib} APPEND PROPERTY LANG_FILE_SETS ${file_set})
     endif()
     # Remove the FILE_SET argument and its value from ARGN to not interfere with directory list
     list(REMOVE_ITEM ARGN "${ARG_FILE_SET}")
@@ -746,16 +770,19 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
     alias_dereference(_reallib ${IP_LIB})
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
-    # Otherwise return only directories in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    # Otherwise return only files in listed file sets
+    get_ip_property(ip_filesets ${_reallib} LANG_FILE_SETS ${_no_deps})
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
-        set(filesets ${ARG_FILE_SETS})
-        foreach(fileset ${ARG_FILE_SETS})
-            list(REMOVE_ITEM ARGN "${fileset}")
-        endforeach()
+        list(REMOVE_ITEM ARGN ${ARG_FILE_SETS})
         list(REMOVE_ITEM ARGN "FILE_SETS")
+        unset(filesets)
+        foreach(lang ${LANGUAGE} ${ARGN})
+            foreach(fileset_name ${ARG_FILE_SETS})
+                list(APPEND filesets ${lang}::${fileset_name})
+            endforeach()
+        endforeach()
     endif()
 
     # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
@@ -765,8 +792,13 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
     foreach(_lang ${LANGUAGE} ${ARGN})
         check_languages(${_lang})
         foreach(fileset ${filesets})
-            get_ip_property(_lang_compdefs ${_reallib} ${_lang}_${fileset}_COMPILE_DEFINITIONS ${_no_deps})
-            list(APPEND COMPDEFS ${_lang_compdefs})
+            string(REPLACE "::" ";" fileset_list "${fileset}")
+            list(GET fileset_list 0 fileset_language)
+            list(GET fileset_list 1 fileset_name)
+            if(fileset_language STREQUAL ${_lang})
+                get_ip_property(_lang_compdefs ${_reallib} ${fileset_language}_${fileset_name}_COMPILE_DEFINITIONS ${_no_deps})
+                list(APPEND COMPDEFS ${_lang_compdefs})
+            endif()
         endforeach()
     endforeach()
 
@@ -851,6 +883,7 @@ function(get_socmake_languages OUTVAR)
             VERILOG VERILOG_SIM VERILOG_FPGA
             VHDL VHDL_SIM VHDL_FPGA
             SYSTEMRDL SYSTEMRDL_SOCGEN
+            IPXACT
             VERILATOR_CFG
             ${SOCMAKE_ADDITIONAL_LANGUAGES}
             ${additional_languages})
