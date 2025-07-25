@@ -53,7 +53,7 @@ include("${CMAKE_CURRENT_LIST_DIR}//utils/file_paths.cmake")
 # :type DESCRIPTION: string
 #]]
 function(add_ip IP_NAME)
-    cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_ALIAS" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
 
     # Vendor and library arguments are expected at the minimum
     if(ARG_UNPARSED_ARGUMENTS)
@@ -81,7 +81,7 @@ function(add_ip IP_NAME)
         endif()
 
         # TODO Maybe delete short name without version
-        if(ARG_VERSION)
+        if(ARG_VERSION AND NOT ARG_NO_ALIAS)
             create_ip_vlnv(IP_LIB_SHORT ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "")
             string(REPLACE "__" "::" ALIAS_NAME_SHORT "${IP_LIB_SHORT}")
             if(NOT "${IP_LIB}" STREQUAL "${ALIAS_NAME_SHORT}")
@@ -236,6 +236,10 @@ endfunction()
 # :type IP_LIB: string
 # :param TYPE: The type of source file(s).
 # :type TYPE: string
+# :param FILE_SET: Specify to which file set to associate the listed files
+# :type FILE_SET: string
+# :param HEADERS: List of header files. Header files are stored in separate property ${LANGUAGE}_HEADERS, the include directory will also be set.
+# :type HEADERS: list
 #
 # **Keyword Arguments**
 #
@@ -302,6 +306,10 @@ function(ip_sources IP_LIB LANGUAGE)
     set_property(TARGET ${_reallib} PROPERTY ${sources_property} ${_sources})
     # set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${sources_property}) # TODO don't add if already there
     if(ARG_HEADERS)
+        foreach(header ${_headers})
+            cmake_path(GET header PARENT_PATH header_incdir)
+            ip_include_directories(${IP_LIB} ${LANGUAGE} ${header_incdir})
+        endforeach()
         set_property(TARGET ${_reallib} PROPERTY ${headers_property} ${_headers})
         # set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${headers_property}) # TODO don't add if already there
     endif()
@@ -625,7 +633,7 @@ function(ip_link IP_LIB)
         __ip_link_check_version(lib ${lib})
 
         # Issue an error if the library does not exist
-        if(NOT TARGET ${lib})
+        if(NOT TARGET ${lib} AND NOT SOCMAKE_ALLOW_UNDEFINED_TARGETS)
             message(FATAL_ERROR "Library ${lib} linked to ${_reallib} is not defined")
         endif()
         # In case user tries to link library to itself, raise an error
@@ -871,6 +879,7 @@ function(get_socmake_languages OUTVAR)
             VERILOG VERILOG_SIM VERILOG_FPGA
             VHDL VHDL_SIM VHDL_FPGA
             SYSTEMRDL SYSTEMRDL_SOCGEN
+            IPXACT
             VERILATOR_CFG
             ${SOCMAKE_ADDITIONAL_LANGUAGES}
             ${additional_languages})
