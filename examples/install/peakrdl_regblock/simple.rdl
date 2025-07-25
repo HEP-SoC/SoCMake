@@ -1,0 +1,5 @@
+addrmap simple{
+    reg {
+        field {} f1[32];
+    } r1;
+};
