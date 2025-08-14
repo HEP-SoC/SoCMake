@@ -13,7 +13,6 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/svheader1.svh
         ${CDIR}/svheader2.svh
-            
         )
 
     ip_sources(${IP} VERILOG
@@ -73,6 +72,65 @@ function(${${TEST_NAME}})
     get_ip_sources(V_SOURCES ${IP} VERILOG HEADERS)
     ct_assert_list(V_SOURCES)
     ct_assert_equal(V_SOURCES "${CDIR}/vheader1.vh;${CDIR}/vheader2.vh;${CDIR}/vheader3.vh;${CDIR}/vheader4.vh")
+
+endfunction()
+
+set(TEST_NAME ip_sources_headers_filesets)
+ct_add_test(NAME ${TEST_NAME})
+function(${${TEST_NAME}})
+    add_ip(ip_filesets1)
+
+    ip_sources(${IP} SYSTEMVERILOG FILE_SET sim
+        ${CDIR}/svfile1.sv
+        ${CDIR}/svfile2.sv
+        HEADERS
+        ${CDIR}/svheader1.svh
+        ${CDIR}/svheader2.svh
+            
+        )
+
+    ip_sources(${IP} VERILOG FILE_SET synth
+        ${CDIR}/vfile1.v
+        ${CDIR}/vfile2.v
+        HEADERS
+        ${CDIR}/vheader1.vh
+        ${CDIR}/vheader2.vh
+        )
+
+    get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG HEADERS FILE_SETS sim)
+    ct_assert_list(SV_SOURCES)
+    ct_assert_equal(SV_SOURCES "${CDIR}/svheader1.svh;${CDIR}/svheader2.svh")
+
+    get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG HEADERS)
+    ct_assert_list(SV_SOURCES)
+    ct_assert_equal(SV_SOURCES "${CDIR}/svheader1.svh;${CDIR}/svheader2.svh")
+
+    get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG HEADERS FILE_SETS synth)
+    ct_assert_not_list(SV_SOURCES)
+
+    ip_sources(${IP} SYSTEMVERILOG FILE_SET synth
+        ${CDIR}/svfile3.sv
+        ${CDIR}/svfile4.sv
+        HEADERS
+        ${CDIR}/svheader3.svh
+        ${CDIR}/svheader4.svh
+        )
+
+    get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG HEADERS FILE_SETS synth)
+    ct_assert_list(SV_SOURCES)
+    ct_assert_equal(SV_SOURCES "${CDIR}/svheader3.svh;${CDIR}/svheader4.svh")
+
+    get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG VERILOG HEADERS FILE_SETS synth)
+    ct_assert_list(SV_SOURCES)
+    ct_assert_equal(SV_SOURCES "${CDIR}/svheader3.svh;${CDIR}/svheader4.svh;${CDIR}/vheader1.vh;${CDIR}/vheader2.vh")
+
+    get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG VERILOG HEADERS FILE_SETS sim)
+    ct_assert_list(SV_SOURCES)
+    ct_assert_equal(SV_SOURCES "${CDIR}/svheader1.svh;${CDIR}/svheader2.svh")
+
+    get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG VERILOG HEADERS FILE_SETS sim synth)
+    ct_assert_list(SV_SOURCES)
+    ct_assert_equal(SV_SOURCES "${CDIR}/svheader1.svh;${CDIR}/svheader2.svh;${CDIR}/svheader3.svh;${CDIR}/svheader4.svh;${CDIR}/vheader1.vh;${CDIR}/vheader2.vh")
 
 endfunction()
 

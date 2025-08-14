@@ -359,12 +359,19 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
+        # Remove filesets argument first from the ARGN in order to be able to access LANGUAGES from ARGN
         unset(filesets)
         foreach(fileset ${ARG_FILE_SETS})
-            list(APPEND filesets "${LANGUAGE}::${fileset}")
             list(REMOVE_ITEM ARGN "${fileset}")
         endforeach()
         list(REMOVE_ITEM ARGN "FILE_SETS")
+
+        # Now only languages are left in ARGN, we can construct filesets strings
+        foreach(fileset ${ARG_FILE_SETS})
+            foreach(lang ${LANGUAGE} ${ARGN})
+                list(APPEND filesets "${lang}::${fileset}")
+            endforeach()
+        endforeach()
     endif()
 
     unset(SOURCES)
@@ -457,17 +464,24 @@ function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
     alias_dereference(_reallib ${IP_LIB})
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
-    # Otherwise return only directories in listed file sets
+    # Otherwise return only files in listed file sets
     get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
+        # Remove filesets argument first from the ARGN in order to be able to access LANGUAGES from ARGN
         unset(filesets)
         foreach(fileset ${ARG_FILE_SETS})
-            list(APPEND filesets "${LANGUAGE}::${fileset}")
             list(REMOVE_ITEM ARGN "${fileset}")
         endforeach()
         list(REMOVE_ITEM ARGN "FILE_SETS")
+
+        # Now only languages are left in ARGN, we can construct filesets strings
+        foreach(fileset ${ARG_FILE_SETS})
+            foreach(lang ${LANGUAGE} ${ARGN})
+                list(APPEND filesets "${lang}::${fileset}")
+            endforeach()
+        endforeach()
     endif()
 
     # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
@@ -768,18 +782,26 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
     alias_dereference(_reallib ${IP_LIB})
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
-    # Otherwise return only directories in listed file sets
+    # Otherwise return only files in listed file sets
     get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
     if(NOT ARG_FILE_SETS)
         set(filesets ${ip_filesets})
     else()
+        # Remove filesets argument first from the ARGN in order to be able to access LANGUAGES from ARGN
         unset(filesets)
         foreach(fileset ${ARG_FILE_SETS})
-            list(APPEND filesets "${LANGUAGE}::${fileset}")
             list(REMOVE_ITEM ARGN "${fileset}")
         endforeach()
         list(REMOVE_ITEM ARGN "FILE_SETS")
+
+        # Now only languages are left in ARGN, we can construct filesets strings
+        foreach(fileset ${ARG_FILE_SETS})
+            foreach(lang ${LANGUAGE} ${ARGN})
+                list(APPEND filesets "${lang}::${fileset}")
+            endforeach()
+        endforeach()
     endif()
+
 
     # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
     list(REMOVE_ITEM ARGN NO_DEPS)
