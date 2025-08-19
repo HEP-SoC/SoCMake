@@ -1,5 +1,5 @@
 function(verilator IP_LIB)
-    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN;NO_RUN_TARGET;SED_WOR")
+    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN;NO_RUN_TARGET")
     set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY;EXECUTABLE_NAME;RUN_TARGET_NAME")
     set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL;RUN_ARGS;FILE_SETS")
 
@@ -21,10 +21,11 @@ function(verilator IP_LIB)
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_DIRECTORY)
-        set(DIRECTORY "${BINARY_DIR}/${IP_LIB}_verilator")
+        set(VERILATE_PRJ_PREFIX_DIR "${BINARY_DIR}/${IP_LIB}_verilator")
     else()
-        set(DIRECTORY ${ARG_DIRECTORY})
+        set(VERILATE_PRJ_PREFIX_DIR "${ARG_DIRECTORY}")
     endif()
+    set(DIRECTORY "${VERILATE_PRJ_PREFIX_DIR}/verilate")
 
     if(ARG_FILE_SETS)
         list(REMOVE_ITEM MULTI_PARAM_ARGS "FILE_SETS")
@@ -74,13 +75,6 @@ function(verilator IP_LIB)
     endforeach()
 
     get_ip_sources(SOURCES ${IP_LIB} VERILATOR_CFG SYSTEMVERILOG_SIM VERILOG_SIM SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
-
-    if(ARG_SED_WOR)
-        include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/sed_wor/sed_wor.cmake)
-        sed_wor(${IP_LIB} ${BINARY_DIR} "${SOURCES}")
-        set(SOURCES ${SED_WOR_SOURCES})
-        unset(ARG_SED_WOR)
-    endif()
 
     if(NOT SOURCES)
         message(FATAL_ERROR "Verilate function needs at least one VERILOG or SYSTEMVERILOG source added to the IP")
@@ -165,8 +159,8 @@ function(verilator IP_LIB)
         ExternalProject_Add(${VERILATE_TARGET}
             DOWNLOAD_COMMAND ""
             SOURCE_DIR "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/verilator"
-            PREFIX ${DIRECTORY}
-            BINARY_DIR ${DIRECTORY}
+            PREFIX ${VERILATE_PRJ_PREFIX_DIR}
+            BINARY_DIR ${VERILATE_PRJ_PREFIX_DIR}
             LIST_SEPARATOR |
             BUILD_ALWAYS 1
 
@@ -190,16 +184,17 @@ function(verilator IP_LIB)
             COMMENT ${DESCRIPTION}
             )
 
+        set(VLT_STATIC_LIB "${VERILATE_PRJ_PREFIX_DIR}/lib${ARG_TOP_MODULE}.a")
+        set(INC_DIR ${DIRECTORY})
+
         set_property(
             TARGET ${VERILATE_TARGET}
             APPEND PROPERTY ADDITIONAL_CLEAN_FILES
                 ${DIRECTORY}
                 ${EXECUTABLE_PATH}
+                ${VLT_STATIC_LIB}
         )
         set_property(TARGET ${VERILATE_TARGET} PROPERTY DESCRIPTION ${DESCRIPTION})
-
-        set(VLT_STATIC_LIB "${DIRECTORY}/lib${ARG_TOP_MODULE}.a")
-        set(INC_DIR ${DIRECTORY})
 
         set(VERILATED_LIB ${IP_LIB}__vlt)
         add_library(${VERILATED_LIB} STATIC IMPORTED)
@@ -246,9 +241,4 @@ function(verilator IP_LIB)
         set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
     set(SIM_RUN_CMD ${__sim_run_cmd} PARENT_SCOPE)
-
-    # TODO: Remove this if Verilator ever supports "wor"
-    if(TARGET ${IP_LIB}_sed_wor)
-        add_dependencies(${VERILATE_TARGET} ${IP_LIB}_sed_wor)
-    endif()
 endfunction()
