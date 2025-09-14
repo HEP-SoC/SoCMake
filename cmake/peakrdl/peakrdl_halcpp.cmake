@@ -39,7 +39,7 @@
 # :type OUTDIR: string path
 #]]
 function(peakrdl_halcpp IP_LIB)
-    cmake_parse_arguments(ARG "SKIP_BUSES" "OUTDIR" "PARAMETERS" ${ARGN})
+    cmake_parse_arguments(ARG "SKIP_BUSES;GENERATE_TESTS" "OUTDIR" "PARAMETERS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -78,6 +78,10 @@ function(peakrdl_halcpp IP_LIB)
         set(SKIB_BUSES_ARG --skip-buses)
     endif()
 
+    if(ARG_GENERATE_TESTS)
+        set(ARG_GENERATE_TESTS --generate-tests)
+    endif()
+
     if(NOT RDL_FILES)
         message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
@@ -99,6 +103,7 @@ function(peakrdl_halcpp IP_LIB)
             ${EXT_ARG}
             ${INCDIRS_ARG}
             ${COMPDEFS_ARG}
+            ${ARG_GENERATE_TESTS}
             ${SKIB_BUSES_ARG} -o ${OUTDIR}
             ${OVERWRITTEN_PARAMETERS}
     )
