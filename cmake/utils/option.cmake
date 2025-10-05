@@ -64,7 +64,7 @@ endfunction()
 # :param DEFAULT: default value of the variable
 # :type DEFAULT: string 
 # :param ADVANCED: optional, mark options as advanced, it will not show in help menu
-# :type DEFAULT: boolean
+# :type DEFAULT: string
 #]]
 function(option_string VARIABLE DESCRIPTION DEFAULT)
     cmake_parse_arguments(ARG "ADVANCED" "" "" ${ARGN})
@@ -74,6 +74,70 @@ function(option_string VARIABLE DESCRIPTION DEFAULT)
     __define_socmake_option(${VARIABLE} "String" ${DESCRIPTION} ${DEFAULT} ${ARG_ADVANCED})
 
     set(${VARIABLE} ${DEFAULT} CACHE STRING "${DESCRIPTION}")
+endfunction()
+
+#[[[
+# Create a CMake file path option that can be modified through CLI.
+# Option defined this way will be visible in `cmake-gui` interface as well as SoCMake `help_options()` help menu.
+# To override the variable use `cmake -D<VARIABLE>=<VALUE>`
+#
+# :param VARIABLE: name of the variable.
+# :type VARIABLE: string
+# :param DESCRIPTION: short description string for the variable
+# :type DESCRIPTION: string
+# :param DEFAULT: default value of the variable
+# :type DEFAULT: string 
+# :param ADVANCED: optional, mark options as advanced, it will not show in help menu
+# :type DEFAULT: string
+# :param CHECK_EXISTS: optional, check if the file path exists at the time of configuring the project, default FALSE
+# :type DEFAULT: boolean
+#]]
+function(option_file VARIABLE DESCRIPTION DEFAULT)
+    cmake_parse_arguments(ARG "ADVANCED;CHECK_EXISTS" "" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+    __define_socmake_option(${VARIABLE} "File" ${DESCRIPTION} ${DEFAULT} ${ARG_ADVANCED})
+
+    set(${VARIABLE} ${DEFAULT} CACHE FILEPATH "${DESCRIPTION}")
+
+    if(ARG_CHECK_EXISTS)
+        if(NOT EXISTS ${${VARIABLE}})
+            message(FATAL_ERROR "The path \"${${VARIABLE}}\" provided by configuration option ${VARIABLE} does not exist in the filesystem")
+        endif()
+    endif()
+endfunction()
+
+#[[[
+# Create a CMake directory path option that can be modified through CLI.
+# Option defined this way will be visible in `cmake-gui` interface as well as SoCMake `help_options()` help menu.
+# To override the variable use `cmake -D<VARIABLE>=<VALUE>`
+#
+# :param VARIABLE: name of the variable.
+# :type VARIABLE: string
+# :param DESCRIPTION: short description string for the variable
+# :type DESCRIPTION: string
+# :param DEFAULT: default value of the variable
+# :type DEFAULT: string 
+# :param ADVANCED: optional, mark options as advanced, it will not show in help menu
+# :type DEFAULT: string
+# :param CHECK_EXISTS: optional, check if the directory path exists at the time of configuring the project, default FALSE
+# :type DEFAULT: boolean
+#]]
+function(option_directory VARIABLE DESCRIPTION DEFAULT)
+    cmake_parse_arguments(ARG "ADVANCED;CHECK_EXISTS" "" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+    __define_socmake_option(${VARIABLE} "Directory" ${DESCRIPTION} ${DEFAULT} ${ARG_ADVANCED})
+
+    set(${VARIABLE} ${DEFAULT} CACHE PATH "${DESCRIPTION}")
+
+    if(ARG_CHECK_EXISTS)
+        if(NOT EXISTS ${${VARIABLE}})
+            message(FATAL_ERROR "The path \"${${VARIABLE}}\" provided by configuration option ${VARIABLE} does not exist in the filesystem")
+        endif()
+    endif()
 endfunction()
 
 #[[[
