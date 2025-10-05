@@ -123,3 +123,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/uvm-systemc/uvm-systemc_b
 # ====== IPXact ======================
 # ====================================
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/ipxact/importer/ipxact_ip_importer.cmake")
+
+# fusesoc importer
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/fusesoc/add_ip_from_fusesoc.cmake")
