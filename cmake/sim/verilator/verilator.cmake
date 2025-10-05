@@ -145,13 +145,7 @@ function(verilator IP_LIB)
     ##################################
     ## Prepare help message ##########
     ##################################
-    if(EXECUTABLE_PATH)
-        set(OUTPUT_TYPE "EXECUTABLE")
-    else()
-        set(OUTPUT_TYPE "STATIC_LIBRARY")
-    endif()
-    set(DESCRIPTION "Compiling ${IP_LIB} with verilator as ${OUTPUT_TYPE}")
-    ###
+    set(DESCRIPTION "Compiling ${IP_LIB} with verilator as static library")
 
     set(VERILATE_TARGET ${IP_LIB}_verilate)
     if(NOT TARGET ${IP_LIB}_verilate)
@@ -164,6 +158,7 @@ function(verilator IP_LIB)
             LIST_SEPARATOR |
             BUILD_ALWAYS 1
 
+
             CMAKE_ARGS
                 ${ARG_CMAKE_CXX_STANDARD}
                 -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
@@ -173,7 +168,6 @@ function(verilator IP_LIB)
 
                 -DTARGET=${ARG_TOP_MODULE}
                 -DARGUMENTS_LIST=${ARGUMENTS_LIST}
-                -DEXECUTABLE_NAME=${ARG_EXECUTABLE_NAME}
                 ${EXT_PRJ_ARGS}
                 -DVERILATOR_ROOT=${VERILATOR_ROOT}
                 -DSYSTEMC_ROOT=${SYSTEMC_HOME}
@@ -181,19 +175,17 @@ function(verilator IP_LIB)
             INSTALL_COMMAND ""
             DEPENDS ${IP_LIB}
             EXCLUDE_FROM_ALL 1
+
+            # For Ninja so it prints status live and not delayed
+            USES_TERMINAL_CONFIGURE TRUE
+            USES_TERMINAL_BUILD TRUE
+
             COMMENT ${DESCRIPTION}
             )
+        file(MAKE_DIRECTORY ${DIRECTORY})
 
         set(VLT_STATIC_LIB "${VERILATE_PRJ_PREFIX_DIR}/lib${ARG_TOP_MODULE}.a")
-        set(INC_DIR ${DIRECTORY})
 
-        set_property(
-            TARGET ${VERILATE_TARGET}
-            APPEND PROPERTY ADDITIONAL_CLEAN_FILES
-                ${DIRECTORY}
-                ${EXECUTABLE_PATH}
-                ${VLT_STATIC_LIB}
-        )
         set_property(TARGET ${VERILATE_TARGET} PROPERTY DESCRIPTION ${DESCRIPTION})
 
         set(VERILATED_LIB ${IP_LIB}__vlt)
@@ -202,7 +194,7 @@ function(verilator IP_LIB)
         add_dependencies(${VERILATED_LIB} ${VERILATE_TARGET})
         set_target_properties(${VERILATED_LIB} PROPERTIES IMPORTED_LOCATION ${VLT_STATIC_LIB})
 
-        target_include_directories(${VERILATED_LIB} INTERFACE ${INC_DIR})
+        target_include_directories(${VERILATED_LIB} INTERFACE ${DIRECTORY})
         target_include_directories(${VERILATED_LIB} INTERFACE
             "${VERILATOR_INCLUDE_DIR}"
             "${VERILATOR_INCLUDE_DIR}/vltstd")
@@ -224,6 +216,30 @@ function(verilator IP_LIB)
         string(REPLACE "__" "::" ALIAS_NAME "${VERILATED_LIB}")
         add_library(${ALIAS_NAME} ALIAS ${VERILATED_LIB})
     endif()
+
+    if(EXECUTABLE_PATH)
+        set(GENERATED_MAIN "${DIRECTORY}/${PREFIX}__main.cpp")
+        set_property(SOURCE ${GENERATED_MAIN} PROPERTY GENERATED TRUE)
+        add_executable(${ARG_EXECUTABLE_NAME}
+            ${GENERATED_MAIN}
+            )
+        target_include_directories(${ARG_EXECUTABLE_NAME} PRIVATE
+            ${VERILATOR_ROOT}/include
+            )
+        target_link_libraries(${ARG_EXECUTABLE_NAME} PRIVATE
+            ${VERILATED_LIB}
+            -pthread
+            )
+    endif()
+
+    ## Files to be deleted on make clean
+    set_property(
+        TARGET ${VERILATE_TARGET}
+        APPEND PROPERTY ADDITIONAL_CLEAN_FILES
+            ${DIRECTORY}
+            ${EXECUTABLE_PATH}
+            ${VLT_STATIC_LIB}
+    )
 
     set(__sim_run_cmd ${EXECUTABLE_PATH} ${__ARG_RUN_ARGS})
     if(EXECUTABLE_PATH AND NOT __ARG_NO_RUN_TARGET)
