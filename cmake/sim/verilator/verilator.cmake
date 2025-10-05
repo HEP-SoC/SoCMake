@@ -1,5 +1,5 @@
 function(verilator IP_LIB)
-    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN;NO_RUN_TARGET")
+    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN;TIMING;NO_RUN_TARGET")
     set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY;EXECUTABLE_NAME;RUN_TARGET_NAME")
     set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL;RUN_ARGS;FILE_SETS")
 
@@ -90,6 +90,20 @@ function(verilator IP_LIB)
         unset(ARG_MAIN)
     endif()
 
+    # Additional libraries and options that should be forwarded to the executable that links to the verilated library (like libz when TRACE_FST is used, ...)
+    unset(interface_compile_options)
+    unset(interface_link_libraries)
+
+    if(ARG_TIMING)
+        list(APPEND ARG_VERILATOR_ARGS --timing)
+        list(APPEND interface_compile_options -fcoroutines)
+        unset(ARG_TIMING)
+    endif()
+
+    if(ARG_TRACE_FST)
+        list(APPEND interface_link_libraries z)
+    endif()
+
     if(ARG_RUN_ARGS)
         set(__ARG_RUN_ARGS ${ARG_RUN_ARGS})
         unset(ARG_RUN_ARGS)
@@ -147,6 +161,8 @@ function(verilator IP_LIB)
     ##################################
     set(DESCRIPTION "Compiling ${IP_LIB} with verilator as static library")
 
+    set(VLT_STATIC_LIB "${VERILATE_PRJ_PREFIX_DIR}/lib${ARG_TOP_MODULE}.a")
+
     set(VERILATE_TARGET ${IP_LIB}_verilate)
     if(NOT TARGET ${IP_LIB}_verilate)
         include(ExternalProject)
@@ -157,6 +173,7 @@ function(verilator IP_LIB)
             BINARY_DIR ${VERILATE_PRJ_PREFIX_DIR}
             LIST_SEPARATOR |
             BUILD_ALWAYS 1
+            BUILD_BYPRODUCTS ${VLT_STATIC_LIB}
 
 
             CMAKE_ARGS
@@ -182,11 +199,16 @@ function(verilator IP_LIB)
 
             COMMENT ${DESCRIPTION}
             )
-        file(MAKE_DIRECTORY ${DIRECTORY})
-
-        set(VLT_STATIC_LIB "${VERILATE_PRJ_PREFIX_DIR}/lib${ARG_TOP_MODULE}.a")
-
         set_property(TARGET ${VERILATE_TARGET} PROPERTY DESCRIPTION ${DESCRIPTION})
+
+        file(MAKE_DIRECTORY ${DIRECTORY}) # target_include_directories would fail otherwise
+
+        ################################################################
+        ## Create the IMPORTED library from the static verilated library
+        ################################################################
+
+        set(THREADS_PREFER_PTHREAD_FLAG ON)
+        find_package(Threads REQUIRED)
 
         set(VERILATED_LIB ${IP_LIB}__vlt)
         add_library(${VERILATED_LIB} STATIC IMPORTED)
@@ -194,15 +216,17 @@ function(verilator IP_LIB)
         add_dependencies(${VERILATED_LIB} ${VERILATE_TARGET})
         set_target_properties(${VERILATED_LIB} PROPERTIES IMPORTED_LOCATION ${VLT_STATIC_LIB})
 
-        target_include_directories(${VERILATED_LIB} INTERFACE ${DIRECTORY})
         target_include_directories(${VERILATED_LIB} INTERFACE
+            "${DIRECTORY}"
             "${VERILATOR_INCLUDE_DIR}"
             "${VERILATOR_INCLUDE_DIR}/vltstd")
-
-        set(THREADS_PREFER_PTHREAD_FLAG ON)
-        find_package(Threads REQUIRED)
-
-        target_link_libraries(${VERILATED_LIB} INTERFACE -pthread)
+        target_compile_options(${VERILATED_LIB} INTERFACE
+            ${interface_compile_options}
+        )
+        target_link_libraries(${VERILATED_LIB} INTERFACE
+            ${interface_link_libraries}
+            -pthread
+        )
 
         # Search for linked libraries that are Shared or Static libraries and link them to the verilated library
         get_ip_links(IPS_LIST ${IP_LIB})
@@ -223,12 +247,8 @@ function(verilator IP_LIB)
         add_executable(${ARG_EXECUTABLE_NAME}
             ${GENERATED_MAIN}
             )
-        target_include_directories(${ARG_EXECUTABLE_NAME} PRIVATE
-            ${VERILATOR_ROOT}/include
-            )
         target_link_libraries(${ARG_EXECUTABLE_NAME} PRIVATE
             ${VERILATED_LIB}
-            -pthread
             )
         add_dependencies(${ARG_EXECUTABLE_NAME} ${VERILATE_TARGET})
     endif()
