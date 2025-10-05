@@ -230,6 +230,7 @@ function(verilator IP_LIB)
             ${VERILATED_LIB}
             -pthread
             )
+        add_dependencies(${ARG_EXECUTABLE_NAME} ${VERILATE_TARGET})
     endif()
 
     ## Files to be deleted on make clean
@@ -253,6 +254,7 @@ function(verilator IP_LIB)
             COMMAND ${__sim_run_cmd}
             DEPENDS ${EXECUTABLE_PATH} ${STAMP_FILE} ${VERILATE_TARGET}
             COMMENT ${DESCRIPTION}
+            USES_TERMINAL
         )
         set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
