@@ -1,7 +1,6 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_graph.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils/alias_dereference.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/utils/safe_get_target_property.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}//utils/file_paths.cmake")
 
 #[[[
@@ -505,34 +504,6 @@ function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
     set(${OUTVAR} ${INCDIRS} PARENT_SCOPE)
 endfunction()
 
-#[[[
-# This function checks the the language is supported by SoCMake.
-#
-# This function checks the the language is supported by SoCMake and issue a warning/error depending
-# on the verbosity level. The supported languages can be augmented using the variable
-# SOCMAKE_ADDITIONAL_LANGUAGES.
-#
-# :param OUT: The variable in which to store the original retrieved name.
-# :type OUT: string
-# :param LIB: The target IP library name.
-# :type LIB: string
-#
-#]]
-function(check_languages LANGUAGE)
-    # The default supported languages
-    # The user can add addition languages using the SOCMAKE_ADDITIONAL_LANGUAGES variable and global property
-    get_socmake_languages(SOCMAKE_SUPPORTED_LANGUAGES)
-    
-    if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
-        if(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL)
-            set(_verbosity FATAL_ERROR)
-        else()
-            set(_verbosity WARNING)
-        endif()
-        message(${_verbosity} "Language not supported: ${LANGUAGE}")
-    endif()
-endfunction()
-
 
 function(__compare_version RESULT COMPARE_LHS RELATION COMPARE_RHS)
 
@@ -685,17 +656,22 @@ function(get_ip_property OUTVAR IP_LIB PROPERTY)
 
     set(OUT_LIST "")
     if(ARG_NO_DEPS)
-        safe_get_target_property(OUT_LIST ${_reallib} ${PROPERTY} "")
+        get_target_property(prop ${_reallib} ${PROPERTY})
+        if(prop)
+            set(OUT_LIST ${prop})
+        endif()
     else()
         # Flatten the target graph to get all the dependencies in the correct order
-        flatten_graph(${_reallib})
+        flatten_graph_if_allowed(${_reallib})
         # Get all the dependencies
         get_target_property(DEPS ${_reallib} FLAT_GRAPH)
 
         # Append the property of all the deps into a single list (e.g., the source files of an IP)
         foreach(d ${DEPS})
-            safe_get_target_property(PROP ${d} ${PROPERTY} "")
-            list(APPEND OUT_LIST ${PROP})
+            get_target_property(prop ${d} ${PROPERTY})
+            if(prop)
+                list(APPEND OUT_LIST ${prop})
+            endif()
         endforeach()
     endif()
 
@@ -843,7 +819,7 @@ function(get_ip_links OUTVAR IP_LIB)
     if(ARG_NO_DEPS)
         get_property(__flat_graph TARGET ${_reallib} PROPERTY INTERFACE_LINK_LIBRARIES)
     else()
-        flatten_graph(${_reallib})
+        flatten_graph_if_allowed(${_reallib})
 
         get_property(__flat_graph TARGET ${_reallib} PROPERTY FLAT_GRAPH)
     endif()
@@ -852,43 +828,13 @@ function(get_ip_links OUTVAR IP_LIB)
 endfunction()
 
 #[[[
-# This function recursively get the property PROPERTY from the target IP_LIB and
-# returns a list stored in OUTVAR.
+# Add languages to the list of supported languages
+# There is no special meaning of language being supported by SoCMake, 
+# other than not issuing a warning message if an unsupported language is detected.
 #
-# :param OUT_VAR: Variable containing the requested property.
-# :type OUT_VAR: string
-# :param IP_LIB: The target IP library name.
-# :type IP_LIB: string
-# :param PROPERTY: Property to search recursively.
-# :type PROPERTY: string
-#
+# :param ARGN: list of languages to add
+# :type ARGN: list[string]
 #]]
-function(recursive_get_target_property OUTVAR IP_LIB PROPERTY)
-    set(_seen_values)
-
-    alias_dereference(_reallib ${IP_LIB})
-
-    # Get the value of the specified property for the current target
-    get_target_property(_current_value ${_reallib} ${PROPERTY})
-
-    if(_current_value AND NOT _current_value STREQUAL "<${PROPERTY}>-NOTFOUND")
-        list(APPEND _seen_values ${_current_value})
-
-        # Check if the property value is a list of targets or a single target
-        foreach(_subtarget ${_current_value})
-            # Recursively process sub-targets if they exist
-            if(TARGET ${_subtarget})
-                recursive_get_target_property(_recursive_values ${_subtarget} ${PROPERTY})
-                list(APPEND _seen_values ${_recursive_values})
-                list(REMOVE_DUPLICATES _seen_values)
-            endif()
-        endforeach()
-    endif()
-
-    # Return the collected values
-    set(${OUTVAR} ${_seen_values} PARENT_SCOPE)
-endfunction()
-
 function(socmake_add_languages)
     set_property(GLOBAL APPEND PROPERTY SOCMAKE_ADDITIONAL_LANGUAGES ${ARGN})
 endfunction()
@@ -907,4 +853,61 @@ function(get_socmake_languages OUTVAR)
             ${additional_languages})
 
     set(${OUTVAR} ${languages} PARENT_SCOPE)
+endfunction()
+
+#[[[
+# This function checks the the language is supported by SoCMake.
+#
+# This function checks the the language is supported by SoCMake and issue a warning/error depending
+# on the verbosity level. The supported languages can be augmented using the variable
+# SOCMAKE_ADDITIONAL_LANGUAGES.
+#
+# :param OUT: The variable in which to store the original retrieved name.
+# :type OUT: string
+# :param LIB: The target IP library name.
+# :type LIB: string
+#
+#]]
+function(check_languages LANGUAGE)
+    # The default supported languages
+    # The user can add addition languages using the SOCMAKE_ADDITIONAL_LANGUAGES variable and global property
+    get_socmake_languages(SOCMAKE_SUPPORTED_LANGUAGES)
+    
+    if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
+        if(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL)
+            set(_verbosity FATAL_ERROR)
+        else()
+            set(_verbosity WARNING)
+        endif()
+        message(${_verbosity} "Language not supported: ${LANGUAGE}")
+    endif()
+endfunction()
+
+
+# Optimization to disable graph flattening too often in EDA tool functions
+function(flatten_graph_and_disallow_flattening IP_LIB)
+    get_ip_links(ips ${IP_LIB})
+    foreach(ip ${ips})
+        flatten_graph(${ip})
+    endforeach()
+    socmake_allow_topological_sort(OFF)
+endfunction()
+
+function(socmake_allow_topological_sort STATE)
+    set_property(GLOBAL PROPERTY SOCMAKE_ALLOW_TOPOLOGICAL_SORT ${STATE})
+endfunction()
+
+function(socmake_get_topological_sort_state OUTVAR)
+    get_property(state GLOBAL PROPERTY SOCMAKE_ALLOW_TOPOLOGICAL_SORT)
+    if(NOT DEFINED state)
+        set(state ON)
+    endif()
+    set(${OUTVAR} ${state} PARENT_SCOPE)
+endfunction()
+
+function(flatten_graph_if_allowed IP_LIB)
+    socmake_get_topological_sort_state(state)
+    if(state)
+        flatten_graph(${IP_LIB})
+    endif()
 endfunction()

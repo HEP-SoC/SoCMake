@@ -5,6 +5,8 @@ function(modelsim IP_LIB)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
+    # Optimization to not do topological sort of linked IPs on get_ip_...() calls
+    flatten_graph_and_disallow_flattening(${IP_LIB})
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
@@ -167,6 +169,8 @@ function(modelsim IP_LIB)
     endif()
     set(SIM_RUN_CMD ${run_sim_cmd} PARENT_SCOPE)
 
+    # Allow again topological sort outside the function
+    socmake_allow_topological_sort(ON)
 endfunction()
 
 
@@ -369,7 +373,7 @@ function(__modelsim_compile_lib IP_LIB)
             list(APPEND __modelsim_${lib}_stamp_files ${STAMP_FILE})
         endif()
 
-        if(NOT SV_SOURCES AND NOT VHDL AND NOT is_sc_boundary_lib)
+        if(NOT SV_SOURCES AND NOT VHDL_SOURCES AND NOT is_sc_boundary_lib)
             set(DESCRIPTION "Generate library ${__comp_lib_name} for ${lib} for modelsim")
             set(STAMP_FILE "${lib_outdir}/.${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
