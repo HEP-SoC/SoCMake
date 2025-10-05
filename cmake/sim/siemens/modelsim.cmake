@@ -236,6 +236,7 @@ function(__modelsim_compile_lib IP_LIB)
 
     unset(all_stamp_files)
     foreach(lib ${__ips})
+        unset(lib_stamp_files)
 
         # VHDL library of the current IP block, get it from SoCMake library if present
         # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
@@ -250,7 +251,7 @@ function(__modelsim_compile_lib IP_LIB)
         # Create output directoy for the VHDL library
         set(lib_outdir ${OUTDIR}/${__comp_lib_name})
 
-        __get_modelsim_search_lib_args(${lib})
+        __get_modelsim_search_lib_args(${lib} LIBRARY ${__comp_lib_name})
         set(hdl_libs_args ${HDL_LIBS_ARGS})
 
         # SystemVerilog and Verilog files and arguments
@@ -276,7 +277,7 @@ function(__modelsim_compile_lib IP_LIB)
                     $<$<BOOL:${ARG_QUIET}>:-quiet>
                     -sv
                     -sv17compat
-                    -work ${lib_outdir}
+                    -work ${__comp_lib_name}
                     -Ldir ${OUTDIR} ${hdl_libs_args}
                     ${ARG_SV_COMPILE_ARGS}
                     ${SV_ARG_INCDIRS}
@@ -293,7 +294,7 @@ function(__modelsim_compile_lib IP_LIB)
                     -nologo
                     -${bitness}
                     $<$<BOOL:${ARG_QUIET}>:-quiet>
-                    -work ${lib_outdir}
+                    -work ${__comp_lib_name}
                     ${ARG_VHDL_COMPILE_ARGS}
                     ${VHDL_SOURCES}
                 )
@@ -305,7 +306,7 @@ function(__modelsim_compile_lib IP_LIB)
             get_target_property(cxx_sources ${lib} SOURCES)
             set(sccom_cmd sccom
                     -${bitness}
-                    -work ${lib_outdir}
+                    -work ${__comp_lib_name}
                     "$<PATH:ABSOLUTE_PATH,NORMALIZE,$<LIST:GET,$<TARGET_PROPERTY:${lib},SOURCES>,-1>,$<TARGET_PROPERTY:${lib},SOURCE_DIR>>" # Get Absolute path to the last source file
                     "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${lib},INCLUDE_DIRECTORIES>,PREPEND,-I>" 
                     "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${lib},COMPILE_DEFINITIONS>,PREPEND,-D>" 
@@ -323,12 +324,11 @@ function(__modelsim_compile_lib IP_LIB)
         unset(__modelsim_${lib}_stamp_files)
         if(SV_SOURCES)
             set(DESCRIPTION "Compile SV, and Verilog sources of ${lib} with modelsim vlog in library ${__comp_lib_name}")
-            set(STAMP_FILE "${lib_outdir}/${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(STAMP_FILE "${lib_outdir}/.${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND ${sv_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
-                BYPRODUCTS ${lib_outdir}
                 WORKING_DIRECTORY ${OUTDIR}
                 DEPENDS ${SV_SOURCES} ${SV_HEADERS} ${__modelsim_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
@@ -339,12 +339,11 @@ function(__modelsim_compile_lib IP_LIB)
 
         if(VHDL_SOURCES)
             set(DESCRIPTION "Compile VHDL sources for ${lib} with modelsim vlog in library ${__comp_lib_name}")
-            set(STAMP_FILE "${lib_outdir}/${lib}_vcom_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(STAMP_FILE "${lib_outdir}/.${lib}_vcom_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND ${vhdl_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
-                BYPRODUCTS ${lib_outdir}
                 WORKING_DIRECTORY ${OUTDIR}
                 DEPENDS ${VHDL_SOURCES} ${__modelsim_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
@@ -355,17 +354,30 @@ function(__modelsim_compile_lib IP_LIB)
 
         if(is_sc_boundary_lib)
             set(DESCRIPTION "Compile SystemC language boundary library ${lib} with sccom in library ${__comp_lib_name}")
-            set(STAMP_FILE "${lib_outdir}/${lib}_sc_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(STAMP_FILE "${lib_outdir}/.${lib}_sc_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND ${sccom_cmd}
                 COMMAND touch ${STAMP_FILE}
-                BYPRODUCTS ${lib_outdir}
                 WORKING_DIRECTORY ${OUTDIR}
                 DEPENDS ${lib}
                 COMMENT ${DESCRIPTION}
                 COMMAND_EXPAND_LISTS
                 # VERBATIM
+            )
+            list(APPEND all_stamp_files ${STAMP_FILE})
+            list(APPEND __modelsim_${lib}_stamp_files ${STAMP_FILE})
+        endif()
+
+        if(NOT SV_SOURCES AND NOT VHDL AND NOT is_sc_boundary_lib)
+            set(DESCRIPTION "Generate library ${__comp_lib_name} for ${lib} for modelsim")
+            set(STAMP_FILE "${lib_outdir}/.${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp")
+            add_custom_command(
+                OUTPUT ${STAMP_FILE}
+                COMMAND vlib "${lib_outdir}" > /dev/null 2>&1
+                COMMAND touch ${STAMP_FILE}
+                DEPENDS ${__modelsim_subdep_stamp_files}
+                COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
             list(APPEND __modelsim_${lib}_stamp_files ${STAMP_FILE})
@@ -380,6 +392,8 @@ function(__modelsim_compile_lib IP_LIB)
         )
         set_property(TARGET ${IP_LIB}_modelsim_complib PROPERTY 
             DESCRIPTION "Compile VHDL, SV, and Verilog files for ${IP_LIB} with modelsim in library ${LIBRARY}")
+
+        set_property(TARGET ${IP_LIB}_modelsim_complib APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${lib_outdir})
     endif()
 
 endfunction()
@@ -511,7 +525,7 @@ function(modelsim_gen_sc_wrapper IP_LIB)
                 $<$<BOOL:${ARG_QUIET}>:-quiet>
                 -sv
                 -sv17compat
-                -work ${lib_outdir}
+                -work ${__comp_lib_name}
                 ${ARG_SV_COMPILE_ARGS}
                 ${SV_ARG_INCDIRS}
                 ${SV_CMP_DEFS_ARG}
@@ -672,17 +686,6 @@ function(modelsim_add_cxx_libs)
             ${modelsim_home}/include
             ${modelsim_home}/include/ac_types
             )
-    endif()
-
-    if(DPI-C IN_LIST ARG_LIBRARIES)
-        add_library(modelsim_dpi-c INTERFACE)
-        add_library(SoCMake::DPI-C ALIAS modelsim_dpi-c)
-
-        if(ARG_32BIT)
-            target_compile_options(modelsim_dpi-c INTERFACE -m32)
-            target_link_options   (modelsim_dpi-c INTERFACE -m32)
-        endif()
-        target_compile_definitions(modelsim_dpi-c INTERFACE QUESTA)
     endif()
 
     if(DPI-C IN_LIST ARG_LIBRARIES)
