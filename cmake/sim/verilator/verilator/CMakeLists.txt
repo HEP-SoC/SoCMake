@@ -23,20 +23,6 @@ if(VERILATE_SYSTEMC)
     verilator_link_systemc(${TARGET})
 endif()
 
-if("--main" IN_LIST VERILATE_VERILATOR_ARGS)
-    set(GENERATED_MAIN "${VERILATE_DIRECTORY}/${VERILATE_PREFIX}__main.cpp")
-    add_executable(${EXECUTABLE_NAME}
-        ${GENERATED_MAIN}
-        )
-    target_include_directories(${EXECUTABLE_NAME} PRIVATE
-        ${VERILATOR_ROOT}/include
-        )
-    target_link_libraries(${EXECUTABLE_NAME} PRIVATE
-        ${TARGET}
-        -pthread
-        )
-endif()
-
 ### Avoid warnings
 if(SYSTEMC_ROOT)
 endif()
