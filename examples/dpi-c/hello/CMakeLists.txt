@@ -11,8 +11,6 @@ if(SIMULATOR STREQUAL "modelsim")
     target_link_options(hello_dpi PRIVATE -m32)
 endif() 
 
-if(NOT SIMULATOR STREQUAL "verilator")
-    target_link_libraries(hello_dpi PRIVATE
-        SoCMake::DPI-C
-    )
-endif()
+target_link_libraries(hello_dpi PRIVATE
+    SoCMake::DPI-C
+)
