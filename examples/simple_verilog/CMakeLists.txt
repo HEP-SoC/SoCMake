@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(simple_verilog_example NONE)
+project(simple_verilog_example CXX C)
 
 include("../../SoCMakeConfig.cmake")
 
@@ -16,7 +16,6 @@ ip_sources(${IP} VERILOG
 
 add_subdirectory(adder)
 ip_link(${IP} adder)
-
 
 if(SIMULATOR STREQUAL "iverilog" OR ALL_SIMS)
     iverilog(${IP})
@@ -41,5 +40,6 @@ endif()
 if(SIMULATOR STREQUAL "vcs" OR ALL_SIMS)
     vcs(${IP})
 endif()
+
 
 help()
