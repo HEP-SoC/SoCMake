@@ -254,8 +254,7 @@ endfunction()
 function(ip_sources IP_LIB LANGUAGE)
     cmake_parse_arguments(ARG "PREPEND;REPLACE" "FILE_SET" "HEADERS" ${ARGN})
     # Delete PREPEND and REPLACE from argument list, so only sources are left
-    list(REMOVE_ITEM ARGN "PREPEND")
-    list(REMOVE_ITEM ARGN "REPLACE")
+    list(REMOVE_ITEM ARGN "PREPEND" "REPLACE")
 
     check_languages(${LANGUAGE})
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
@@ -274,8 +273,7 @@ function(ip_sources IP_LIB LANGUAGE)
         set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${file_set})
     endif()
 
-    list(REMOVE_ITEM ARGN "${ARG_FILE_SET}")
-    list(REMOVE_ITEM ARGN "FILE_SET")
+    list(REMOVE_ITEM ARGN "${ARG_FILE_SET}" "FILE_SET")
 
     # If headers are passed, use files until HEADERS as sources, while the rest are HEADERS
     if(ARG_HEADERS)
@@ -287,30 +285,28 @@ function(ip_sources IP_LIB LANGUAGE)
     convert_paths_to_absolute(file_list ${ARGN})
     convert_paths_to_absolute(header_list ${ARG_HEADERS})
 
-    if(NOT ARG_REPLACE)
-        # Get the existing source and header files if any
-        get_ip_sources(_sources ${_reallib} ${LANGUAGE} ${get_sources_fileset_arg} NO_DEPS)
-        get_ip_sources(_headers ${_reallib} ${LANGUAGE} ${get_sources_fileset_arg} HEADERS NO_DEPS)
-    endif()
-
+    unset(append_arg)
     # If the PREPEND option is passed prepend the new sources to the old ones
     if(ARG_PREPEND)
+        get_ip_sources(_sources ${_reallib} ${LANGUAGE} ${get_sources_fileset_arg} NO_DEPS)
+        get_ip_sources(_headers ${_reallib} ${LANGUAGE} ${get_sources_fileset_arg} HEADERS NO_DEPS)
         set(_sources ${file_list} ${_sources})
         set(_headers ${header_list} ${_headers})
     else()
-        set(_sources ${_sources} ${file_list})
-        set(_headers ${_headers} ${header_list})
+        set(_sources ${file_list})
+        set(_headers ${header_list})
+        if(NOT ARG_REPLACE)
+            set(append_arg APPEND)
+        endif()
     endif()
-    # Set the target property with the new list of source and header files
-    set_property(TARGET ${_reallib} PROPERTY ${sources_property} ${_sources})
-    # set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${sources_property}) # TODO don't add if already there
+
+    set_property(TARGET ${_reallib} ${append_arg} PROPERTY ${sources_property} ${_sources})
     if(ARG_HEADERS)
+        set_property(TARGET ${_reallib} ${append_arg} PROPERTY ${headers_property} ${_headers})
         foreach(header ${_headers})
             cmake_path(GET header PARENT_PATH header_incdir)
             ip_include_directories(${IP_LIB} ${LANGUAGE} ${header_incdir})
         endforeach()
-        set_property(TARGET ${_reallib} PROPERTY ${headers_property} ${_headers})
-        # set_property(TARGET ${_reallib} APPEND PROPERTY EXPORT_PROPERTIES ${headers_property}) # TODO don't add if already there
     endif()
 endfunction()
 
