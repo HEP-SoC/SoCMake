@@ -12,6 +12,7 @@ function(add_ip_from_fusesoc CORE_FILE)
     set(output_cmake_file "${ip_source_dir}/${file_name}")
     
     if(NOT EXISTS ${output_cmake_file} OR FUSESOC_IMPORT)
+        message(STATUS "Generating SoCMake file from fusesoc ${CORE_FILE}")
         find_python3()
         set(__cmd ${Python3_EXECUTABLE}
             "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/fusesoc_to_socmake.py"
