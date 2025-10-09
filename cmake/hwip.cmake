@@ -305,7 +305,7 @@ function(ip_sources IP_LIB LANGUAGE)
         set_property(TARGET ${_reallib} ${append_arg} PROPERTY ${headers_property} ${_headers})
         foreach(header ${_headers})
             cmake_path(GET header PARENT_PATH header_incdir)
-            ip_include_directories(${IP_LIB} ${LANGUAGE} ${header_incdir})
+            ip_include_directories(${IP_LIB} ${LANGUAGE} FILE_SET ${ARG_FILE_SET} ${header_incdir})
         endforeach()
     endif()
 endfunction()
@@ -331,58 +331,71 @@ endfunction()
 #]]
 function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     cmake_parse_arguments(ARG "NO_DEPS;HEADERS" "" "FILE_SETS" ${ARGN})
+    alias_dereference(_reallib ${IP_LIB})
+
+    # Handle NO_DEPS flag
     unset(_no_deps)
     if(ARG_NO_DEPS)
         set(_no_deps "NO_DEPS")
         # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
         list(REMOVE_ITEM ARGN NO_DEPS)
     endif()
+
+    # Determine property type
+    set(property_type SOURCES)
     if(ARG_HEADERS)
         set(property_type HEADERS)
-        # ARGN contains extra languages passed, it might also include HEADERS so remove it from the list
         list(REMOVE_ITEM ARGN HEADERS)
-    else()
-        set(property_type SOURCES)
     endif()
     
-    # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
-    alias_dereference(_reallib ${IP_LIB})
-
-    # In case FILE_SETS function argument is not specified, return all defined file sets
-    # Otherwise return only files in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
-    if(NOT ARG_FILE_SETS)
-        set(filesets ${ip_filesets})
-    else()
-        # Remove filesets argument first from the ARGN in order to be able to access LANGUAGES from ARGN
-        unset(filesets)
-        foreach(fileset ${ARG_FILE_SETS})
-            list(REMOVE_ITEM ARGN "${fileset}")
+    # In case FILE_SETS function argument is not passed, return all file sets that were defined in IP or sub IPs
+    # Otherwise return only files in listed in FILE_SETS argument
+    get_ip_property(all_filesets ${_reallib} FILE_SETS ${_no_deps})
+    list(REMOVE_DUPLICATES all_filesets)
+    if(ARG_FILE_SETS)
+        # Clean ARGN from FILE_SETS and listed sets
+        foreach(fs ${ARG_FILE_SETS})
+            list(REMOVE_ITEM ARGN "${fs}")
         endforeach()
         list(REMOVE_ITEM ARGN "FILE_SETS")
 
-        # Now only languages are left in ARGN, we can construct filesets strings
-        foreach(fileset ${ARG_FILE_SETS})
-            foreach(lang ${LANGUAGE} ${ARGN})
-                list(APPEND filesets "${lang}::${fileset}")
+        # Build language::fileset combos
+        unset(filesets)
+        foreach(lang ${LANGUAGE} ${ARGN})
+            check_languages(${lang})
+            foreach(fs ${ARG_FILE_SETS})
+                list(APPEND filesets "${lang}::${fs}")
             endforeach()
         endforeach()
+    else()
+        set(filesets ${all_filesets})
     endif()
 
+    if(_no_deps)
+        set(ips ${_reallib})
+    else()
+        get_ip_links(ips ${_reallib})
+    endif()
+
+    set(asked_languges ${LANGUAGE} ${ARGN})
     unset(SOURCES)
     # Get all the <LANGUAGE>_<FILE_SET>_SOURCES or <LANGUAGE>_<FILE_SET>_HEADERS lists in order
-    foreach(_lang ${LANGUAGE} ${ARGN})
-        check_languages(${_lang})
-        foreach(fileset ${filesets})
-            string(REPLACE "::" ";" fileset_list "${fileset}")
-            list(GET fileset_list 0 fileset_language)
-            list(GET fileset_list 1 fileset_name)
-            if(fileset_language STREQUAL ${_lang})
-                get_ip_property(_lang_sources ${_reallib} ${fileset_language}_${fileset_name}_${property_type} ${_no_deps})
-                list(APPEND SOURCES ${_lang_sources})
-            endif()
-        endforeach()
+    # foreach(_lang ${LANGUAGE} ${ARGN})
+    foreach(fileset ${filesets})
+        string(REPLACE "::" ";" fs_list "${fileset}")
+        list(GET fs_list 0 fs_lang)
+        list(GET fs_list 1 fs_name)
+        if(fs_lang IN_LIST asked_languges)
+            set(prop "${fs_lang}_${fs_name}_${property_type}")
+            foreach(ip ${ips})
+                get_ip_property(_src ${ip} ${prop} NO_DEPS)
+                if(_src)
+                    list(APPEND SOURCES ${_src})
+                endif()
+            endforeach()
+        endif()
     endforeach()
+    # endforeach()
 
     list(REMOVE_DUPLICATES SOURCES)
     set(${OUTVAR} ${SOURCES} PARENT_SCOPE)
@@ -460,9 +473,10 @@ function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
     # Otherwise return only files in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    get_ip_property(filesets ${_reallib} FILE_SETS ${_no_deps})
+    list(REMOVE_DUPLICATES filesets)
     if(NOT ARG_FILE_SETS)
-        set(filesets ${ip_filesets})
+        set(filesets ${filesets})
     else()
         # Remove filesets argument first from the ARGN in order to be able to access LANGUAGES from ARGN
         unset(filesets)
@@ -708,6 +722,7 @@ function(ip_compile_definitions IP_LIB LANGUAGE)
 
     # Add the file set to the FILE_SETS property
     get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
+    # list(REMOVE_DUPLICATES filesets)
     set(file_set "${LANGUAGE}::${ARG_FILE_SET}")
     if(NOT file_set IN_LIST filesets)
         set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${file_set})
@@ -755,9 +770,9 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
     # Otherwise return only files in listed file sets
-    get_ip_property(ip_filesets ${_reallib} FILE_SETS ${_no_deps})
+    get_ip_property(filesets ${_reallib} FILE_SETS ${_no_deps})
     if(NOT ARG_FILE_SETS)
-        set(filesets ${ip_filesets})
+        set(filesets ${filesets})
     else()
         # Remove filesets argument first from the ARGN in order to be able to access LANGUAGES from ARGN
         unset(filesets)
@@ -883,6 +898,7 @@ endfunction()
 # Optimization to disable graph flattening too often in EDA tool functions
 function(flatten_graph_and_disallow_flattening IP_LIB)
     get_ip_links(ips ${IP_LIB})
+    list(POP_BACK ips ips) # get_ip_links already flattens top ip
     foreach(ip ${ips})
         flatten_graph(${ip})
     endforeach()
