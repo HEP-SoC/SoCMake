@@ -67,7 +67,8 @@ def append_and_create(dict_ref: Dict[Any, List[Any]], key: Any, val: Any) -> Non
     if key not in dict_ref:
         dict_ref[key] = [val]
     else:
-        dict_ref[key].append(val)
+        if val not in dict_ref[key]:
+            dict_ref[key].append(val)
 
 
 def fusesoc_to_socmake(input_file: Path):
@@ -101,7 +102,9 @@ def fusesoc_to_socmake(input_file: Path):
         depend: list[str] | None = fs_data.get("depend", None)
         if depend:
             for dep in depend:
-                dependencies.append(convert_depend_vlnv(dep))
+                dep_vlnv: str = convert_depend_vlnv(dep)
+                if dep_vlnv not in dependencies:
+                    dependencies.append(dep_vlnv)
 
         if files:
             for f in files:
