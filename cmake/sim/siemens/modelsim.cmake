@@ -10,6 +10,8 @@ function(modelsim IP_LIB)
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/colours.cmake")
+
 
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
@@ -63,8 +65,23 @@ function(modelsim IP_LIB)
 
     __find_modelsim_home(modelsim_home)
 
+    #######################
+    ### Set target names ##
+    #######################
+
+    set(compile_target ${IP_LIB}_modelsim_complib)
+    set(run_target ${ARG_RUN_TARGET_NAME})
+    if(NOT ARG_RUN_TARGET_NAME)
+        set(run_target run_${IP_LIB}_modelsim)
+    endif()
+    set(elaborate_target ${run_target})
+    if(ARG_NO_RUN_TARGET)
+        unset(run_target)
+        unset(elaborate_target) # Elab and run target are the same for modelsim
+    endif()
+
     ### Compile with vcom and vlog
-    if(NOT TARGET ${IP_LIB}_modelsim_complib)
+    if(NOT TARGET ${compile_target})
         __modelsim_compile_lib(${IP_LIB}
             OUTDIR ${OUTDIR}
             ${ARG_BITNESS}
@@ -75,7 +92,6 @@ function(modelsim IP_LIB)
             ${ARG_FILE_SETS}
             )
     endif()
-    set(comp_tgt ${IP_LIB}_modelsim_complib)
 
     ### Get list of linked libraries marked as SystemC
     get_ip_links(__ips ${IP_LIB})
@@ -122,7 +138,7 @@ function(modelsim IP_LIB)
             COMMAND touch ${STAMP_FILE}
             # BYPRODUCTS  ${__clean_files}
             WORKING_DIRECTORY ${OUTDIR}
-            DEPENDS ${comp_tgt} #${SC_SOURCES}
+            DEPENDS ${compile_target} #${SC_SOURCES}
             COMMENT ${DESCRIPTION}
             )
 
@@ -147,27 +163,34 @@ function(modelsim IP_LIB)
     if(NOT ARG_GUI AND NOT ARG_GUI_VISUALIZER)
         list(APPEND run_sim_cmd
             -c 
-            -do "run -all\; quit"
+            -do \"run -all\"
         )
 
     endif()
 
     if(NOT ARG_NO_RUN_TARGET)
-        if(NOT ARG_RUN_TARGET_NAME)
-            set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
-        endif()
         set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB}")
         add_custom_target(
-            ${ARG_RUN_TARGET_NAME}
+            ${run_target}
             COMMAND  ${run_sim_cmd} -noautoldlibpath
-            DEPENDS ${comp_tgt} ${sccom_link_tgt}
+            DEPENDS ${compile_target} ${sccom_link_tgt}
             WORKING_DIRECTORY ${OUTDIR}
             COMMENT ${DESCRIPTION}
+            USES_TERMINAL
             VERBATIM
         )
-        set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${run_target} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
-    set(SIM_RUN_CMD ${run_sim_cmd} PARENT_SCOPE)
+
+    set(SOCMAKE_SIM_RUN_CMD cd ${OUTDIR} && ${run_sim_cmd} PARENT_SCOPE)
+    set(SOCMAKE_COMPILE_TARGET ${compile_target} PARENT_SCOPE)
+    if(NOT ARG_NO_RUN_TARGET)
+        set(SOCMAKE_ELABORATE_TARGET ${run_target} PARENT_SCOPE)
+        set(SOCMAKE_RUN_TARGET ${run_target} PARENT_SCOPE)
+    else()
+        unset(SOCMAKE_ELABORATE_TARGET PARENT_SCOPE)
+        unset(SOCMAKE_RUN_TARGET PARENT_SCOPE)
+    endif()
 
     # Allow again topological sort outside the function
     socmake_allow_topological_sort(ON)
@@ -260,8 +283,10 @@ function(__modelsim_compile_lib IP_LIB)
 
         # SystemVerilog and Verilog files and arguments
         get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
-        get_ip_sources(SV_HEADERS ${lib} SYSTEMVERILOG VERILOG VHDL HEADERS ${ARG_FILE_SETS})
+        get_ip_sources(SV_HEADERS ${lib} SYSTEMVERILOG VERILOG NO_DEPS HEADERS ${ARG_FILE_SETS})
         unset(sv_compile_cmd)
+        unset(SV_ARG_INCDIRS)
+        unset(SV_CMP_DEFS_ARG)
         if(SV_SOURCES)
             get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
             get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
@@ -274,7 +299,7 @@ function(__modelsim_compile_lib IP_LIB)
                 list(APPEND SV_CMP_DEFS_ARG +define+${def})
             endforeach()
 
-            set(DESCRIPTION "Compile Verilog and SV files of ${lib} with modelsim vlog")
+            set(DESCRIPTION "${Green}Compile Verilog and SV files of ${lib} with modelsim vlog${ColourReset}")
             set(sv_compile_cmd vlog
                     -${bitness}
                     -nologo
@@ -327,7 +352,7 @@ function(__modelsim_compile_lib IP_LIB)
 
         unset(__modelsim_${lib}_stamp_files)
         if(SV_SOURCES)
-            set(DESCRIPTION "Compile SV, and Verilog sources of ${lib} with modelsim vlog in library ${__comp_lib_name}")
+            set(DESCRIPTION "${Green}Compile SV, and Verilog sources of ${lib} with modelsim vlog in library ${__comp_lib_name}${ColourReset}")
             set(STAMP_FILE "${lib_outdir}/.${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}

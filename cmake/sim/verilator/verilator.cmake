@@ -12,6 +12,8 @@ function(verilator IP_LIB)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
+    # Optimization to not do topological sort of linked IPs on get_ip_...() calls
+    flatten_graph_and_disallow_flattening(${IP_LIB})
 
     enable_language(CXX C)      # We need to enable CXX and C for Verilator
 
@@ -74,7 +76,7 @@ function(verilator IP_LIB)
         list(APPEND ARG_VERILATOR_ARGS -D${def})
     endforeach()
 
-    get_ip_sources(SOURCES ${IP_LIB} VERILATOR_CFG SYSTEMVERILOG_SIM VERILOG_SIM SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
+    get_ip_sources(SOURCES ${IP_LIB} VERILATOR_CFG SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
 
     if(NOT SOURCES)
         message(FATAL_ERROR "Verilate function needs at least one VERILOG or SYSTEMVERILOG source added to the IP")
@@ -241,7 +243,7 @@ function(verilator IP_LIB)
         add_library(${ALIAS_NAME} ALIAS ${VERILATED_LIB})
     endif()
 
-    if(EXECUTABLE_PATH)
+    if(EXECUTABLE_PATH AND NOT TARGET ${ARG_EXECUTABLE_NAME})
         set(GENERATED_MAIN "${DIRECTORY}/${PREFIX}__main.cpp")
         set_property(SOURCE ${GENERATED_MAIN} PROPERTY GENERATED TRUE)
         add_executable(${ARG_EXECUTABLE_NAME}
@@ -278,7 +280,18 @@ function(verilator IP_LIB)
         )
         set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
-    set(SIM_RUN_CMD ${__sim_run_cmd} PARENT_SCOPE)
+
+    set(SOCMAKE_SIM_RUN_CMD ${__sim_run_cmd} PARENT_SCOPE)
+    set(SOCMAKE_COMPILE_TARGET ${VERILATE_TARGET} PARENT_SCOPE)
+    set(SOCMAKE_ELABORATE_TARGET ${ARG_EXECUTABLE_NAME} PARENT_SCOPE)
+    if(NOT ARG_NO_RUN_TARGET)
+        set(SOCMAKE_RUN_TARGET ${ARG_RUN_TARGET_NAME} PARENT_SCOPE)
+    else()
+        unset(SOCMAKE_RUN_TARGET PARENT_SCOPE)
+    endif()
+
+    # Allow again topological sort outside the function
+    socmake_allow_topological_sort(ON)
 endfunction()
 
 macro(verilator_configure_cxx)
