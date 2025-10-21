@@ -76,8 +76,7 @@ function(verilator IP_LIB)
         list(APPEND ARG_VERILATOR_ARGS -D${def})
     endforeach()
 
-    get_ip_sources(SOURCES ${IP_LIB} VERILATOR_CFG SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
-
+    get_ip_sources(SOURCES ${IP_LIB} VLT VERILATOR_CFG SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
     if(NOT SOURCES)
         message(FATAL_ERROR "Verilate function needs at least one VERILOG or SYSTEMVERILOG source added to the IP")
     endif()
