@@ -39,7 +39,7 @@ function(modelsim IP_LIB)
     if(ARG_GUI_VISUALIZER)
         set(ARG_GUI FALSE)
     endif()
-    
+
     if(ARG_32BIT)
         set(bitness 32)
         set(ARG_BITNESS 32BIT)
@@ -85,7 +85,7 @@ function(modelsim IP_LIB)
         endif()
     endforeach()
 
-    __get_modelsim_search_lib_args(${IP_LIB} 
+    __get_modelsim_search_lib_args(${IP_LIB}
         ${ARG_LIBRARY}
         OUTDIR ${OUTDIR})
     set(hdl_libs_args ${HDL_LIBS_ARGS})
@@ -144,7 +144,7 @@ function(modelsim IP_LIB)
 
     if(NOT ARG_GUI AND NOT ARG_GUI_VISUALIZER)
         list(APPEND run_sim_cmd
-            -c 
+            -c
             -do "run -all\; quit"
         )
 
@@ -218,7 +218,7 @@ function(__modelsim_compile_lib IP_LIB)
                 __is_socmake_ip_lib(child_is_ip_lib ${child})
 
                 if(parent_is_systemc_lib AND child_is_ip_lib)
-                    modelsim_gen_sc_wrapper(${child} 
+                    modelsim_gen_sc_wrapper(${child}
                         OUTDIR ${OUTDIR}
                         LIBRARY ${LIBRARY}
                         ${ARG_BITNESS}
@@ -307,8 +307,8 @@ function(__modelsim_compile_lib IP_LIB)
                     -${bitness}
                     -work ${lib_outdir}
                     "$<PATH:ABSOLUTE_PATH,NORMALIZE,$<LIST:GET,$<TARGET_PROPERTY:${lib},SOURCES>,-1>,$<TARGET_PROPERTY:${lib},SOURCE_DIR>>" # Get Absolute path to the last source file
-                    "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${lib},INCLUDE_DIRECTORIES>,PREPEND,-I>" 
-                    "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${lib},COMPILE_DEFINITIONS>,PREPEND,-D>" 
+                    "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${lib},INCLUDE_DIRECTORIES>,PREPEND,-I>"
+                    "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${lib},COMPILE_DEFINITIONS>,PREPEND,-D>"
                 )
         endif()
 
@@ -378,7 +378,7 @@ function(__modelsim_compile_lib IP_LIB)
             ${IP_LIB}_modelsim_complib
             DEPENDS ${all_stamp_files} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_modelsim_complib PROPERTY 
+        set_property(TARGET ${IP_LIB}_modelsim_complib PROPERTY
             DESCRIPTION "Compile VHDL, SV, and Verilog files for ${IP_LIB} with modelsim in library ${LIBRARY}")
     endif()
 
@@ -596,8 +596,8 @@ function(modelsim_compile_sc_lib SC_LIB)
             -${bitness}
             -work ${__comp_lib_name}
             "$<PATH:ABSOLUTE_PATH,NORMALIZE,$<LIST:GET,$<TARGET_PROPERTY:${SC_LIB},SOURCES>,-1>,$<TARGET_PROPERTY:${SC_LIB},SOURCE_DIR>>" # Get Absolute path to the last source file
-            "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},INCLUDE_DIRECTORIES>,PREPEND,-I>" 
-            "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},COMPILE_DEFINITIONS>,PREPEND,-D>" 
+            "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},INCLUDE_DIRECTORIES>,PREPEND,-I>"
+            "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},COMPILE_DEFINITIONS>,PREPEND,-D>"
         )
 
     set(DESCRIPTION "Compile SystemC language boundary library ${SC_LIB} with sccom")
@@ -672,17 +672,6 @@ function(modelsim_add_cxx_libs)
             ${modelsim_home}/include
             ${modelsim_home}/include/ac_types
             )
-    endif()
-
-    if(DPI-C IN_LIST ARG_LIBRARIES)
-        add_library(modelsim_dpi-c INTERFACE)
-        add_library(SoCMake::DPI-C ALIAS modelsim_dpi-c)
-
-        if(ARG_32BIT)
-            target_compile_options(modelsim_dpi-c INTERFACE -m32)
-            target_link_options   (modelsim_dpi-c INTERFACE -m32)
-        endif()
-        target_compile_definitions(modelsim_dpi-c INTERFACE QUESTA)
     endif()
 
     if(DPI-C IN_LIST ARG_LIBRARIES)
