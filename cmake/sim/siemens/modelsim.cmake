@@ -163,7 +163,7 @@ function(modelsim IP_LIB)
     if(NOT ARG_GUI AND NOT ARG_GUI_VISUALIZER)
         list(APPEND run_sim_cmd
             -c 
-            -do \"run -all\"
+            -do "run -all"
         )
 
     endif()
@@ -177,7 +177,6 @@ function(modelsim IP_LIB)
             WORKING_DIRECTORY ${OUTDIR}
             COMMENT ${DESCRIPTION}
             USES_TERMINAL
-            VERBATIM
         )
         set_property(TARGET ${run_target} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
@@ -353,7 +352,7 @@ function(__modelsim_compile_lib IP_LIB)
         unset(__modelsim_${lib}_stamp_files)
         if(SV_SOURCES)
             set(DESCRIPTION "${Green}Compile SV, and Verilog sources of ${lib} with modelsim vlog in library ${__comp_lib_name}${ColourReset}")
-            set(STAMP_FILE "${lib_outdir}/.${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(STAMP_FILE "${OUTDIR}/.${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND ${sv_compile_cmd}
@@ -368,7 +367,7 @@ function(__modelsim_compile_lib IP_LIB)
 
         if(VHDL_SOURCES)
             set(DESCRIPTION "Compile VHDL sources for ${lib} with modelsim vlog in library ${__comp_lib_name}")
-            set(STAMP_FILE "${lib_outdir}/.${lib}_vcom_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(STAMP_FILE "${OUTDIR}/.${lib}_vcom_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND ${vhdl_compile_cmd}
@@ -383,7 +382,7 @@ function(__modelsim_compile_lib IP_LIB)
 
         if(is_sc_boundary_lib)
             set(DESCRIPTION "Compile SystemC language boundary library ${lib} with sccom in library ${__comp_lib_name}")
-            set(STAMP_FILE "${lib_outdir}/.${lib}_sc_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(STAMP_FILE "${OUTDIR}/.${lib}_sc_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND ${sccom_cmd}
@@ -400,7 +399,7 @@ function(__modelsim_compile_lib IP_LIB)
 
         if(NOT SV_SOURCES AND NOT VHDL_SOURCES AND NOT is_sc_boundary_lib)
             set(DESCRIPTION "Generate library ${__comp_lib_name} for ${lib} for modelsim")
-            set(STAMP_FILE "${lib_outdir}/.${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(STAMP_FILE "${OUTDIR}/.${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND vlib "${lib_outdir}" > /dev/null 2>&1
