@@ -895,6 +895,46 @@ function(check_languages LANGUAGE)
 endfunction()
 
 
+#[[[
+# This macro wraps the find_package() calls.
+#
+# It always searches for packages in CONFIG mode
+# The name of the IP_LIB is sanitized to replace : with _
+#
+# Use it as following:
+# find_package(Vendor::Library::Name REQUIRED)
+# 
+# This will then search for a file called "Vendor__Library__NameConfig.cmake" or "vendor__library__name-config.cmake"
+# It is recommended to place the directory of this file in "CMAKE_PREFIX_PATH" variable, to facilitate finding it
+#
+# :param IP_LIB: the name of the IP library to search for.
+# :type IP_LIB: string
+#]]
+macro(find_ip IP_LIB)
+    string(REPLACE ":" "_" ip_lib_sanitized "${IP_LIB}" )
+    find_package("${ip_lib_sanitized}" CONFIG ${ARGN})
+endmacro()
+
+
+#[[[
+# This function combines ip_link() and find_ip() functions.
+#
+# It checks first if the library is already defined.
+# In case it is not already defined it calls ip_find(<ip_lib> REQUIRED)
+# Finally it calls ip_link() to link it.
+#
+# :param IP_LIB: the name of the IP library to search for.
+# :type IP_LIB: string
+#]]
+function(ip_find_and_link IP_LIB)
+    foreach(ip_dep ${ARGN})
+        if(NOT TARGET ${ip_dep})
+            find_ip(${ip_dep} REQUIRED)
+        endif()
+        ip_link(${IP_LIB} ${ip_dep})
+    endforeach()
+endfunction()
+
 # Optimization to disable graph flattening too often in EDA tool functions
 function(flatten_graph_and_disallow_flattening IP_LIB)
     get_ip_links(ips ${IP_LIB})
