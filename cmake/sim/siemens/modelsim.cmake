@@ -75,10 +75,6 @@ function(modelsim IP_LIB)
         set(run_target run_${IP_LIB}_modelsim)
     endif()
     set(elaborate_target ${run_target})
-    if(ARG_NO_RUN_TARGET)
-        unset(run_target)
-        unset(elaborate_target) # Elab and run target are the same for modelsim
-    endif()
 
     ### Compile with vcom and vlog
     if(NOT TARGET ${compile_target})
@@ -215,6 +211,7 @@ function(__modelsim_compile_lib IP_LIB)
     else()
         set(OUTDIR ${ARG_OUTDIR})
     endif()
+    file(MAKE_DIRECTORY ${OUTDIR})
 
     if(ARG_FILE_SETS)
         set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
@@ -355,6 +352,7 @@ function(__modelsim_compile_lib IP_LIB)
             set(STAMP_FILE "${OUTDIR}/.${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
+                COMMAND vlib "${lib_outdir}" > /dev/null 2>&1 || true
                 COMMAND ${sv_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
                 WORKING_DIRECTORY ${OUTDIR}
@@ -370,6 +368,7 @@ function(__modelsim_compile_lib IP_LIB)
             set(STAMP_FILE "${OUTDIR}/.${lib}_vcom_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
+                COMMAND vlib "${lib_outdir}" > /dev/null 2>&1 || true
                 COMMAND ${vhdl_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
                 WORKING_DIRECTORY ${OUTDIR}
@@ -402,7 +401,7 @@ function(__modelsim_compile_lib IP_LIB)
             set(STAMP_FILE "${OUTDIR}/.${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
-                COMMAND vlib "${lib_outdir}" > /dev/null 2>&1
+                COMMAND vlib "${lib_outdir}" > /dev/null 2>&1 || true
                 COMMAND touch ${STAMP_FILE}
                 DEPENDS ${__modelsim_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
