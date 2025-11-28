@@ -7,6 +7,8 @@ function(vcs IP_LIB)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
+    # Optimization to not do topological sort of linked IPs on get_ip_...() calls
+    flatten_graph_and_disallow_flattening(${IP_LIB})
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
@@ -59,9 +61,20 @@ function(vcs IP_LIB)
         set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
     endif()
 
+    #######################
+    ### Set target names ##
+    #######################
+
+    set(compile_target ${IP_LIB}_vcs_complib)
+    set(run_target ${ARG_RUN_TARGET_NAME})
+    set(elaborate_target ${IP_LIB}_vcs)
+    if(NOT ARG_RUN_TARGET_NAME)
+        set(run_target run_${IP_LIB}_vcs)
+    endif()
+
     get_ip_links(IPS_LIST ${IP_LIB})
 
-    if(NOT TARGET ${IP_LIB}_vcs_complib)
+    if(NOT TARGET ${compile_target})
         __vcs_compile_lib(${IP_LIB}
             OUTDIR ${OUTDIR}
             ${ARG_BITNESS}
@@ -71,7 +84,6 @@ function(vcs IP_LIB)
             ${ARG_FILE_SETS}
             )
     endif()
-    set(comp_tgt ${IP_LIB}_vcs_complib)
 
     ### Create arguments for loading SystemC libraries during elaboration
     get_ip_links(__ips ${IP_LIB})
@@ -104,7 +116,7 @@ function(vcs IP_LIB)
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL ${ARG_FILE_SETS})
     get_ip_sources(HEADERS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL HEADERS ${ARG_FILE_SETS})
     ## VCS command for compiling executable
-    if(NOT TARGET ${IP_LIB}_vcs)
+    if(NOT TARGET ${elaborate_target})
         set(elaborate_cmd vcs
                 $<$<NOT:$<BOOL:${ARG_32BIT}>>:-full64>
                 -nc
@@ -136,17 +148,17 @@ function(vcs IP_LIB)
             COMMAND ${elaborate_cmd}
             COMMAND touch ${STAMP_FILE}
             COMMENT ${DESCRIPTION}
-            BYPRODUCTS ${__clean_files}
             WORKING_DIRECTORY ${OUTDIR}
-            DEPENDS ${comp_tgt} ${SOURCES} ${HEADERS} ${IP_LIB}
+            DEPENDS ${compile_target} ${SOURCES} ${HEADERS} ${IP_LIB}
             # COMMAND_EXPAND_LISTS
             # VERBATIM
             )
 
-        add_custom_target(${IP_LIB}_vcs
+        add_custom_target(${elaborate_target}
             DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_vcs PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${elaborate_target} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${elaborate_target} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${__clean_files})
     endif()
 
     set(run_sim_cmd ${SIM_EXEC_PATH} 
@@ -157,17 +169,27 @@ function(vcs IP_LIB)
             set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
         endif()
         set(DESCRIPTION "Run simulation on ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
-        add_custom_target(${ARG_RUN_TARGET_NAME}
+        add_custom_target(${run_target}
             COMMAND ${run_sim_cmd}
             COMMENT ${DESCRIPTION}
-            BYPRODUCTS ${__clean_files}
             WORKING_DIRECTORY ${OUTDIR}
-            DEPENDS ${IP_LIB}_vcs
+            DEPENDS ${elaborate_target}
             )
-        set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${run_target} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
     set(SIM_RUN_CMD ${run_sim_cmd} PARENT_SCOPE)
 
+    set(SOCMAKE_SIM_RUN_CMD cd ${OUTDIR} && ${run_sim_cmd} PARENT_SCOPE)
+    set(SOCMAKE_COMPILE_TARGET ${compile_target} PARENT_SCOPE)
+    set(SOCMAKE_ELABORATE_TARGET ${elaborate_target} PARENT_SCOPE)
+    if(NOT ARG_NO_RUN_TARGET)
+        set(SOCMAKE_RUN_TARGET ${run_target} PARENT_SCOPE)
+    else()
+        unset(SOCMAKE_RUN_TARGET PARENT_SCOPE)
+    endif()
+
+    # Allow again topological sort outside the function
+    socmake_allow_topological_sort(ON)
 endfunction()
 
 function(__vcs_compile_lib IP_LIB)
@@ -262,6 +284,8 @@ function(__vcs_compile_lib IP_LIB)
         get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
         get_ip_sources(SV_HEADERS ${lib} SYSTEMVERILOG VERILOG HEADERS ${ARG_FILE_SETS})
         unset(sv_compile_cmd)
+        unset(SV_ARG_INCDIRS)
+        unset(SV_CMP_DEFS_ARG)
         if(SV_SOURCES)
             get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
             get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
@@ -322,7 +346,6 @@ function(__vcs_compile_lib IP_LIB)
                 OUTPUT ${STAMP_FILE}
                 ${sv_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
-                BYPRODUCTS ${lib_outdir} ${__clean_files}
                 WORKING_DIRECTORY ${OUTDIR}
                 DEPENDS ${SV_SOURCES} ${SV_HEADERS} ${__vcs_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
@@ -338,7 +361,6 @@ function(__vcs_compile_lib IP_LIB)
                 OUTPUT ${STAMP_FILE}
                 COMMAND ${vhdl_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
-                BYPRODUCTS ${lib_outdir} ${__clean_files}
                 WORKING_DIRECTORY ${OUTDIR}
                 DEPENDS ${VHDL_SOURCES} ${__vcs_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
@@ -347,6 +369,18 @@ function(__vcs_compile_lib IP_LIB)
             list(APPEND __vcs_${lib}_stamp_files ${STAMP_FILE})
         endif()
 
+        if(NOT SV_SOURCES AND NOT VHDL_SOURCES)
+            set(DESCRIPTION "Creating stamp file for ${lib} for xcelium")
+            set(STAMP_FILE "${lib_outdir}/.${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp")
+            add_custom_command(
+                OUTPUT ${STAMP_FILE}
+                COMMAND touch ${STAMP_FILE}
+                DEPENDS ${__vcs_subdep_stamp_files}
+                COMMENT ${DESCRIPTION}
+            )
+            list(APPEND all_stamp_files ${STAMP_FILE})
+            list(APPEND __vcs_${lib}_stamp_files ${STAMP_FILE})
+        endif()
 
     endforeach()
 
@@ -356,6 +390,7 @@ function(__vcs_compile_lib IP_LIB)
             DEPENDS ${all_stamp_files} ${IP_LIB}
         )
         set_property(TARGET ${IP_LIB}_vcs_complib PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${IP_LIB}_vcs_complib APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${lib_outdir} ${__clean_files})
     endif()
 
 endfunction()
@@ -491,7 +526,6 @@ function(vcs_gen_sc_wrapper IP_LIB)
             OUTPUT ${STAMP_FILE} ${OUTDIR}/csrc/sysc/include/${IP_LIB}.h
             COMMAND touch ${STAMP_FILE}
             ${sv_compile_cmd}
-            BYPRODUCTS ${OUTDIR}
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${last_sv_file} ${SV_HEADERS}
             COMMENT ${DESCRIPTION}
@@ -502,6 +536,7 @@ function(vcs_gen_sc_wrapper IP_LIB)
             DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
         set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR})
 
         target_include_directories(${IP_LIB} INTERFACE ${OUTDIR}/csrc/sysc/include/)
 
