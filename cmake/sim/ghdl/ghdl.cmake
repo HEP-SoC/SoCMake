@@ -94,7 +94,6 @@ function(ghdl IP_LIB)
             OUTPUT ${STAMP_FILE}
             COMMAND ${__ghdl_elab_cmd}
             COMMAND touch ${STAMP_FILE}
-            # BYPRODUCTS  ${__clean_files}
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${__comp_tgt} ${VHDL_SOURCES}
             COMMENT ${DESCRIPTION}
@@ -220,7 +219,6 @@ function(__ghdl_compile_lib IP_LIB)
                 OUTPUT ${STAMP_FILE}
                 COMMAND ${ghdl_analyze_cmd}
                 COMMAND touch ${STAMP_FILE}
-                BYPRODUCTS ${cf_files} ${obj_files}
                 WORKING_DIRECTORY ${OUTDIR}
                 DEPENDS ${VHDL_SOURCES} ${__ghdl_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
@@ -238,6 +236,7 @@ function(__ghdl_compile_lib IP_LIB)
         )
         set_property(TARGET ${IP_LIB}_ghdl_complib PROPERTY DESCRIPTION 
             "Compile VHDL files for ${IP_LIB} with ghdl")
+        set_property(TARGET ${IP_LIB}_ghdl_complib APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${cf_files} ${obj_files})
     endif()
 
 endfunction()
