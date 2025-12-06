@@ -132,7 +132,6 @@ function(modelsim IP_LIB)
             OUTPUT ${STAMP_FILE}
             COMMAND ${__sccom_link_cmd}
             COMMAND touch ${STAMP_FILE}
-            # BYPRODUCTS  ${__clean_files}
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${compile_target} #${SC_SOURCES}
             COMMENT ${DESCRIPTION}
@@ -572,7 +571,6 @@ function(modelsim_gen_sc_wrapper IP_LIB)
             COMMAND touch ${STAMP_FILE}
             COMMAND ${sv_compile_cmd}
             COMMAND ${scgenmod_cmd} > ${generated_header}
-            BYPRODUCTS ${OUTDIR}
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${last_sv_file} ${SV_HEADERS}
             COMMENT ${DESCRIPTION}
@@ -583,6 +581,7 @@ function(modelsim_gen_sc_wrapper IP_LIB)
             DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
         set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR})
 
         target_include_directories(${IP_LIB} INTERFACE ${OUTDIR})
         # target_sources(${IP_LIB} INTERFACE ${generated_header})
