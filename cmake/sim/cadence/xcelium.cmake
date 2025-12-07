@@ -46,6 +46,8 @@ function(xcelium IP_LIB)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
+    # Optimization to not do topological sort of linked IPs on get_ip_...() calls
+    flatten_graph_and_disallow_flattening(${IP_LIB})
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
@@ -95,7 +97,18 @@ function(xcelium IP_LIB)
         set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
     endif()
 
-    if(NOT TARGET ${IP_LIB}_xcelium_complib)
+    #######################
+    ### Set target names ##
+    #######################
+
+    set(compile_target ${IP_LIB}_xcelium_complib)
+    set(elaborate_target ${IP_LIB}_xcelium)
+    set(run_target ${ARG_RUN_TARGET_NAME})
+    if(NOT ARG_RUN_TARGET_NAME)
+        set(run_target run_${IP_LIB}_xcelium)
+    endif()
+
+    if(NOT TARGET ${compile_target})
         __xcelium_compile_lib(${IP_LIB}
             OUTDIR ${OUTDIR}
             ${ARG_BITNESS}
@@ -106,7 +119,6 @@ function(xcelium IP_LIB)
             ${ARG_FILE_SETS}
             )
     endif()
-    set(comp_tgt ${IP_LIB}_xcelium_complib)
 
     ### Get list of linked SystemC libraries
     get_ip_links(__ips ${IP_LIB})
@@ -126,7 +138,7 @@ function(xcelium IP_LIB)
 
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL ${ARG_FILE_SETS})
     get_ip_sources(HEADERS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL HEADERS ${ARG_FILE_SETS})
-    if(NOT TARGET ${IP_LIB}_xcelium)
+    if(NOT TARGET ${elaborate_target})
         set(elaborate_cmd COMMAND xrun -elaborate
                 $<$<NOT:$<BOOL:${ARG_32BIT}>>:-64bit>
                 -q
@@ -153,16 +165,16 @@ function(xcelium IP_LIB)
             COMMAND ${elaborate_cmd}
             COMMAND touch ${STAMP_FILE}
             COMMENT ${DESCRIPTION}
-            BYPRODUCTS  ${__clean_files}
             WORKING_DIRECTORY ${OUTDIR}
-            DEPENDS ${comp_tgt} ${SOURCES} ${HEADERS}
+            DEPENDS ${compile_target} ${SOURCES} ${HEADERS}
             COMMAND_EXPAND_LISTS
             )
 
-        add_custom_target(${IP_LIB}_xcelium
+        add_custom_target(${elaborate_target}
             DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_xcelium PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${elaborate_target} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${elaborate_target} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${__clean_files})
     endif()
 
     ## XMSIM command for running simulation
@@ -190,14 +202,23 @@ function(xcelium IP_LIB)
         add_custom_target(${ARG_RUN_TARGET_NAME}
             COMMAND ${run_sim_cmd}
             WORKING_DIRECTORY ${OUTDIR}
-            BYPRODUCTS ${__clean_files}
             COMMENT ${DESCRIPTION}
-            DEPENDS ${IP_LIB}_xcelium
+            DEPENDS ${elaborate_target}
         )
         set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${ARG_RUN_TARGET_NAME} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${__clean_files})
     endif()
-    set(SIM_RUN_CMD ${run_sim_cmd} PARENT_SCOPE)
+    set(SOCMAKE_SIM_RUN_CMD cd ${OUTDIR} && ${run_sim_cmd} PARENT_SCOPE)
+    set(SOCMAKE_COMPILE_TARGET ${compile_target} PARENT_SCOPE)
+    set(SOCMAKE_ELABORATE_TARGET ${elaborate_target} PARENT_SCOPE)
+    if(NOT ARG_NO_RUN_TARGET)
+        set(SOCMAKE_RUN_TARGET ${run_target} PARENT_SCOPE)
+    else()
+        unset(SOCMAKE_RUN_TARGET PARENT_SCOPE)
+    endif()
 
+    # Allow again topological sort outside the function
+    socmake_allow_topological_sort(ON)
 endfunction()
 
 function(__xcelium_compile_lib IP_LIB)
@@ -228,6 +249,10 @@ function(__xcelium_compile_lib IP_LIB)
         set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
     endif()
 
+    if(ARG_LIBRARY)
+        set(ARG_LIBRARY_FORWARD LIBRARY ${LIBRARY})
+    endif()
+
     get_ip_links(__ips ${IP_LIB})
 
     foreach(parent ${__ips})
@@ -250,7 +275,7 @@ function(__xcelium_compile_lib IP_LIB)
                     set_property(TARGET ${child} PROPERTY SOCMAKE_HDL_BOUNDARY_LIB TRUE)
                     xcelium_gen_sc_wrapper(${child} 
                         OUTDIR ${OUTDIR}
-                        LIBRARY ${LIBRARY}
+                        ${ARG_LIBRARY_FORWARD}
                         ${ARG_BITNESS}
                     )
                     add_dependencies(${parent} ${child}_xcelium_gen_sc_wrapper)
@@ -260,7 +285,7 @@ function(__xcelium_compile_lib IP_LIB)
                     set_property(TARGET ${child} PROPERTY SOCMAKE_SC_BOUNDARY_LIB TRUE)
                     xcelium_gen_hdl_wrapper(${child} 
                         OUTDIR ${OUTDIR}
-                        LIBRARY ${LIBRARY}
+                        ${ARG_LIBRARY_FORWARD}
                         ${ARG_BITNESS}
                     )
                     add_dependencies(${parent} ${child}_xcelium_gen_hdl_wrapper)
@@ -274,19 +299,14 @@ function(__xcelium_compile_lib IP_LIB)
 
         # VHDL library of the current IP block, get it from SoCMake library if present
         # If neither LIBRARY property is set, or LIBRARY passed as argument, use "worklib" as default
-        get_target_property(__comp_lib_name ${lib} LIBRARY)
-        if(NOT __comp_lib_name)
-            set(__comp_lib_name worklib)
-        endif()
-        if(ARG_LIBRARY)
-            set(__comp_lib_name ${ARG_LIBRARY})
-        endif()
+        __xcelium_default_library(__comp_lib_name ${lib})
 
         # Create output directoy for the VHDL library
         set(lib_outdir ${OUTDIR}/xcelium.d/${__comp_lib_name})
 
         __get_xcelium_search_lib_args(${lib}
-            OUTDIR ${OUTDIR})
+            OUTDIR ${OUTDIR}
+            ${ARG_LIBRARY_FORWARD})
         set(hdl_libs_args ${HDL_LIBS_ARGS})
 
         # SystemVerilog and Verilog files and arguments
@@ -365,7 +385,6 @@ function(__xcelium_compile_lib IP_LIB)
                 OUTPUT ${STAMP_FILE}
                 ${sv_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
-                BYPRODUCTS ${lib_outdir} ${__clean_files}
                 WORKING_DIRECTORY ${OUTDIR}
                 DEPENDS ${SV_SOURCES} ${SV_HEADERS} ${__xcelium_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
@@ -381,9 +400,21 @@ function(__xcelium_compile_lib IP_LIB)
                 OUTPUT ${STAMP_FILE}
                 ${vhdl_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
-                BYPRODUCTS ${lib_outdir} ${__clean_files}
                 WORKING_DIRECTORY ${OUTDIR}
                 DEPENDS ${VHDL_SOURCES} ${__xcelium_subdep_stamp_files}
+                COMMENT ${DESCRIPTION}
+            )
+            list(APPEND all_stamp_files ${STAMP_FILE})
+            list(APPEND __xcelium_${lib}_stamp_files ${STAMP_FILE})
+        endif()
+
+        if(NOT SV_SOURCES AND NOT VHDL_SOURCES)
+            set(DESCRIPTION "Generate stamp file for ${lib} for xcelium")
+            set(STAMP_FILE "${lib_outdir}/.${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp")
+            add_custom_command(
+                OUTPUT ${STAMP_FILE}
+                COMMAND touch ${STAMP_FILE}
+                DEPENDS ${__xcelium_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
@@ -398,6 +429,7 @@ function(__xcelium_compile_lib IP_LIB)
             DEPENDS ${all_stamp_files} ${IP_LIB}
         )
         set_property(TARGET ${IP_LIB}_xcelium_complib PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${IP_LIB}_xcelium_complib APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${__clean_files} ${lib_outdir})
     endif()
 
 endfunction()
@@ -424,13 +456,7 @@ function(__get_xcelium_search_lib_args IP_LIB)
         if(is_ip_lib)
             # Library of the current IP block, get it from SoCMake library if present
             # If neither LIBRARY property is set, or LIBRARY passed as argument, use "worklib" as default
-            get_target_property(__comp_lib_name ${lib} LIBRARY)
-            if(NOT __comp_lib_name)
-                set(__comp_lib_name worklib)
-            endif()
-            if(ARG_LIBRARY)
-                set(__comp_lib_name ${ARG_LIBRARY})
-            endif()
+            __xcelium_default_library(__comp_lib_name ${lib})
 
             set(lib_outdir ${ARG_OUTDIR}/xcelium.d/${__comp_lib_name})
             # Append current library outdhdl_libs_argsir to list of search directories
@@ -479,13 +505,7 @@ function(xcelium_gen_sc_wrapper IP_LIB)
         set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
     endif()
 
-    get_target_property(__comp_lib_name ${IP_LIB} LIBRARY)
-    if(NOT __comp_lib_name)
-        set(__comp_lib_name worklib)
-    endif()
-    if(ARG_LIBRARY)
-        set(__comp_lib_name ${ARG_LIBRARY})
-    endif()
+    __xcelium_default_library(__comp_lib_name ${IP_LIB})
     # Create output directoy for the VHDL library
     set(lib_outdir ${OUTDIR}/${__comp_lib_name})
 
@@ -540,7 +560,6 @@ function(xcelium_gen_sc_wrapper IP_LIB)
             COMMAND ${sv_compile_cmd}
             COMMAND ${xmshell_cmd}
             COMMAND touch ${STAMP_FILE}
-            BYPRODUCTS ${OUTDIR}
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${last_sv_file} ${SV_HEADERS}
             COMMENT ${DESCRIPTION}
@@ -551,6 +570,7 @@ function(xcelium_gen_sc_wrapper IP_LIB)
             DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
         set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR})
 
         target_include_directories(${IP_LIB} INTERFACE ${OUTDIR})
     endif()
@@ -579,10 +599,7 @@ function(xcelium_gen_hdl_wrapper SC_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
-    set(__comp_lib_name worklib)
-    if(ARG_LIBRARY)
-        set(__comp_lib_name ${ARG_LIBRARY})
-    endif()
+    __xcelium_default_library(__comp_lib_name ${SC_LIB})
 
     set(xmsc_cmd xmsc
             $<$<NOT:$<BOOL:${ARG_32BIT}>>:-64bit>
@@ -703,4 +720,22 @@ function(xcelium_add_cxx_libs)
         target_compile_definitions(xcelium_dpi-c INTERFACE INCA)
     endif()
 
+endfunction()
+
+function(__xcelium_default_library OUT_LIB IP_LIB)
+    cmake_parse_arguments(ARG "" "LIBRARY" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    get_target_property(__comp_lib_name ${IP_LIB} LIBRARY)
+    if(NOT __comp_lib_name)
+        set(__comp_lib_name worklib)
+    endif()
+    if(ARG_LIBRARY)
+        set(__comp_lib_name ${ARG_LIBRARY})
+    endif()
+    # Xcelium doesnt like some characters in the name of the libraries, sanitize
+    string(MAKE_C_IDENTIFIER "${__comp_lib_name}" __comp_lib_name)
+    set(${OUT_LIB} ${__comp_lib_name} PARENT_SCOPE)
 endfunction()

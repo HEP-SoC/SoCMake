@@ -8,7 +8,6 @@ set(SoCMake_FOUND TRUE)
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/socmake_graph.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/hwip.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/subdirectory_search.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/add_subdirs.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/get_all_targets.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/print_help.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/graphviz.cmake")
@@ -96,7 +95,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/synth/yosys/yosys_build.cmake")
 # ====================================
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/fw_utils.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/add_tests.cmake")
 
 set(IBEX_TOOLCHAIN "${CMAKE_CURRENT_LIST_DIR}/cmake/firmware/toolchains/riscv_toolchain.cmake"  CACHE INTERNAL "IBEX_TOOLCHAIN")
 
@@ -123,3 +121,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/uvm-systemc/uvm-systemc_b
 # ====== IPXact ======================
 # ====================================
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/ipxact/importer/ipxact_ip_importer.cmake")
+
+# fusesoc importer
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/fusesoc/add_ip_from_fusesoc.cmake")

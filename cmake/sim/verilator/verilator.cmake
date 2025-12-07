@@ -1,5 +1,5 @@
 function(verilator IP_LIB)
-    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN;NO_RUN_TARGET;SED_WOR")
+    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN;TIMING;NO_RUN_TARGET")
     set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY;EXECUTABLE_NAME;RUN_TARGET_NAME")
     set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL;RUN_ARGS;FILE_SETS")
 
@@ -12,6 +12,8 @@ function(verilator IP_LIB)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
+    # Optimization to not do topological sort of linked IPs on get_ip_...() calls
+    flatten_graph_and_disallow_flattening(${IP_LIB})
 
     enable_language(CXX C)      # We need to enable CXX and C for Verilator
 
@@ -21,10 +23,11 @@ function(verilator IP_LIB)
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
 
     if(NOT ARG_DIRECTORY)
-        set(DIRECTORY "${BINARY_DIR}/${IP_LIB}_verilator")
+        set(VERILATE_PRJ_PREFIX_DIR "${BINARY_DIR}/${IP_LIB}_verilator")
     else()
-        set(DIRECTORY ${ARG_DIRECTORY})
+        set(VERILATE_PRJ_PREFIX_DIR "${ARG_DIRECTORY}")
     endif()
+    set(DIRECTORY "${VERILATE_PRJ_PREFIX_DIR}/verilate")
 
     if(ARG_FILE_SETS)
         list(REMOVE_ITEM MULTI_PARAM_ARGS "FILE_SETS")
@@ -35,10 +38,14 @@ function(verilator IP_LIB)
     ## Find verilator installation ###
     ##################################
     if(NOT VERILATOR_HOME)
+        # Ensure CMP0144 is set before find_package to get rid of warning
+        cmake_policy(PUSH)
+        cmake_policy(SET CMP0144 NEW)
         find_package(verilator REQUIRED
             HINTS ${VERISC_HOME}/open/* $ENV{VERISC_HOME}/open/*
             )
         set(VERILATOR_HOME "${verilator_DIR}/../../")
+        cmake_policy(POP)
     endif()
 
     find_file(_VERILATED_H verilated.h REQUIRED
@@ -73,15 +80,7 @@ function(verilator IP_LIB)
         list(APPEND ARG_VERILATOR_ARGS -D${def})
     endforeach()
 
-    get_ip_sources(SOURCES ${IP_LIB} VERILATOR_CFG SYSTEMVERILOG_SIM VERILOG_SIM SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
-
-    if(ARG_SED_WOR)
-        include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/sed_wor/sed_wor.cmake)
-        sed_wor(${IP_LIB} ${BINARY_DIR} "${SOURCES}")
-        set(SOURCES ${SED_WOR_SOURCES})
-        unset(ARG_SED_WOR)
-    endif()
-
+    get_ip_sources(SOURCES ${IP_LIB} VLT VERILATOR_CFG SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
     if(NOT SOURCES)
         message(FATAL_ERROR "Verilate function needs at least one VERILOG or SYSTEMVERILOG source added to the IP")
     endif()
@@ -94,6 +93,20 @@ function(verilator IP_LIB)
         endif()
         set(EXECUTABLE_PATH ${BINARY_DIR}/${ARG_EXECUTABLE_NAME})
         unset(ARG_MAIN)
+    endif()
+
+    # Additional libraries and options that should be forwarded to the executable that links to the verilated library (like libz when TRACE_FST is used, ...)
+    unset(interface_compile_options)
+    unset(interface_link_libraries)
+
+    if(ARG_TIMING)
+        list(APPEND ARG_VERILATOR_ARGS --timing)
+        list(APPEND interface_compile_options -fcoroutines)
+        unset(ARG_TIMING)
+    endif()
+
+    if(ARG_TRACE_FST)
+        list(APPEND interface_link_libraries z)
     endif()
 
     if(ARG_RUN_ARGS)
@@ -151,13 +164,9 @@ function(verilator IP_LIB)
     ##################################
     ## Prepare help message ##########
     ##################################
-    if(EXECUTABLE_PATH)
-        set(OUTPUT_TYPE "EXECUTABLE")
-    else()
-        set(OUTPUT_TYPE "STATIC_LIBRARY")
-    endif()
-    set(DESCRIPTION "Compiling ${IP_LIB} with verilator as ${OUTPUT_TYPE}")
-    ###
+    set(DESCRIPTION "Compiling ${IP_LIB} with verilator as static library")
+
+    set(VLT_STATIC_LIB "${VERILATE_PRJ_PREFIX_DIR}/lib${ARG_TOP_MODULE}.a")
 
     set(VERILATE_TARGET ${IP_LIB}_verilate)
     if(NOT TARGET ${IP_LIB}_verilate)
@@ -165,10 +174,12 @@ function(verilator IP_LIB)
         ExternalProject_Add(${VERILATE_TARGET}
             DOWNLOAD_COMMAND ""
             SOURCE_DIR "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/verilator"
-            PREFIX ${DIRECTORY}
-            BINARY_DIR ${DIRECTORY}
+            PREFIX ${VERILATE_PRJ_PREFIX_DIR}
+            BINARY_DIR ${VERILATE_PRJ_PREFIX_DIR}
             LIST_SEPARATOR |
             BUILD_ALWAYS 1
+            BUILD_BYPRODUCTS ${VLT_STATIC_LIB}
+
 
             CMAKE_ARGS
                 ${ARG_CMAKE_CXX_STANDARD}
@@ -179,7 +190,6 @@ function(verilator IP_LIB)
 
                 -DTARGET=${ARG_TOP_MODULE}
                 -DARGUMENTS_LIST=${ARGUMENTS_LIST}
-                -DEXECUTABLE_NAME=${ARG_EXECUTABLE_NAME}
                 ${EXT_PRJ_ARGS}
                 -DVERILATOR_ROOT=${VERILATOR_ROOT}
                 -DSYSTEMC_ROOT=${SYSTEMC_HOME}
@@ -187,19 +197,23 @@ function(verilator IP_LIB)
             INSTALL_COMMAND ""
             DEPENDS ${IP_LIB}
             EXCLUDE_FROM_ALL 1
+
+            # For Ninja so it prints status live and not delayed
+            USES_TERMINAL_CONFIGURE TRUE
+            USES_TERMINAL_BUILD TRUE
+
             COMMENT ${DESCRIPTION}
             )
-
-        set_property(
-            TARGET ${VERILATE_TARGET}
-            APPEND PROPERTY ADDITIONAL_CLEAN_FILES
-                ${DIRECTORY}
-                ${EXECUTABLE_PATH}
-        )
         set_property(TARGET ${VERILATE_TARGET} PROPERTY DESCRIPTION ${DESCRIPTION})
 
-        set(VLT_STATIC_LIB "${DIRECTORY}/lib${ARG_TOP_MODULE}.a")
-        set(INC_DIR ${DIRECTORY})
+        file(MAKE_DIRECTORY ${DIRECTORY}) # target_include_directories would fail otherwise
+
+        ################################################################
+        ## Create the IMPORTED library from the static verilated library
+        ################################################################
+
+        set(THREADS_PREFER_PTHREAD_FLAG ON)
+        find_package(Threads REQUIRED)
 
         set(VERILATED_LIB ${IP_LIB}__vlt)
         add_library(${VERILATED_LIB} STATIC IMPORTED)
@@ -207,15 +221,17 @@ function(verilator IP_LIB)
         add_dependencies(${VERILATED_LIB} ${VERILATE_TARGET})
         set_target_properties(${VERILATED_LIB} PROPERTIES IMPORTED_LOCATION ${VLT_STATIC_LIB})
 
-        target_include_directories(${VERILATED_LIB} INTERFACE ${INC_DIR})
         target_include_directories(${VERILATED_LIB} INTERFACE
+            "${DIRECTORY}"
             "${VERILATOR_INCLUDE_DIR}"
             "${VERILATOR_INCLUDE_DIR}/vltstd")
-
-        set(THREADS_PREFER_PTHREAD_FLAG ON)
-        find_package(Threads REQUIRED)
-
-        target_link_libraries(${VERILATED_LIB} INTERFACE -pthread)
+        target_compile_options(${VERILATED_LIB} INTERFACE
+            ${interface_compile_options}
+        )
+        target_link_libraries(${VERILATED_LIB} INTERFACE
+            ${interface_link_libraries}
+            -pthread
+        )
 
         # Search for linked libraries that are Shared or Static libraries and link them to the verilated library
         get_ip_links(IPS_LIST ${IP_LIB})
@@ -230,6 +246,27 @@ function(verilator IP_LIB)
         add_library(${ALIAS_NAME} ALIAS ${VERILATED_LIB})
     endif()
 
+    if(EXECUTABLE_PATH AND NOT TARGET ${ARG_EXECUTABLE_NAME})
+        set(GENERATED_MAIN "${DIRECTORY}/${PREFIX}__main.cpp")
+        set_property(SOURCE ${GENERATED_MAIN} PROPERTY GENERATED TRUE)
+        add_executable(${ARG_EXECUTABLE_NAME}
+            ${GENERATED_MAIN}
+            )
+        target_link_libraries(${ARG_EXECUTABLE_NAME} PRIVATE
+            ${VERILATED_LIB}
+            )
+        add_dependencies(${ARG_EXECUTABLE_NAME} ${VERILATE_TARGET})
+    endif()
+
+    ## Files to be deleted on make clean
+    set_property(
+        TARGET ${VERILATE_TARGET}
+        APPEND PROPERTY ADDITIONAL_CLEAN_FILES
+            ${DIRECTORY}
+            ${EXECUTABLE_PATH}
+            ${VLT_STATIC_LIB}
+    )
+
     set(__sim_run_cmd ${EXECUTABLE_PATH} ${__ARG_RUN_ARGS})
     if(EXECUTABLE_PATH AND NOT __ARG_NO_RUN_TARGET)
         if(NOT ARG_RUN_TARGET_NAME)
@@ -242,13 +279,47 @@ function(verilator IP_LIB)
             COMMAND ${__sim_run_cmd}
             DEPENDS ${EXECUTABLE_PATH} ${STAMP_FILE} ${VERILATE_TARGET}
             COMMENT ${DESCRIPTION}
+            USES_TERMINAL
         )
         set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
-    set(SIM_RUN_CMD ${__sim_run_cmd} PARENT_SCOPE)
 
-    # TODO: Remove this if Verilator ever supports "wor"
-    if(TARGET ${IP_LIB}_sed_wor)
-        add_dependencies(${VERILATE_TARGET} ${IP_LIB}_sed_wor)
+    set(SOCMAKE_SIM_RUN_CMD ${__sim_run_cmd} PARENT_SCOPE)
+    set(SOCMAKE_COMPILE_TARGET ${VERILATE_TARGET} PARENT_SCOPE)
+    set(SOCMAKE_ELABORATE_TARGET ${ARG_EXECUTABLE_NAME} PARENT_SCOPE)
+    if(NOT ARG_NO_RUN_TARGET)
+        set(SOCMAKE_RUN_TARGET ${ARG_RUN_TARGET_NAME} PARENT_SCOPE)
+    else()
+        unset(SOCMAKE_RUN_TARGET PARENT_SCOPE)
     endif()
+
+    # Allow again topological sort outside the function
+    socmake_allow_topological_sort(ON)
+endfunction()
+
+macro(verilator_configure_cxx)
+    cmake_parse_arguments(ARG "" "" "LIBRARIES" ${ARGN})
+    if(ARG_LIBRARIES)
+        verilator_add_cxx_libs(${ARGV})
+    endif()
+endmacro()
+
+function(verilator_add_cxx_libs)
+    cmake_parse_arguments(ARG "" "" "LIBRARIES" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    set(allowed_libraries DPI-C)
+    foreach(lib ${ARG_LIBRARIES})
+        if(NOT ${lib} IN_LIST allowed_libraries)
+            message(FATAL_ERROR "Verilator does not support library: ${lib}")
+        endif()
+    endforeach()
+
+    if(DPI-C IN_LIST ARG_LIBRARIES)
+        add_library(verilator_dpi-c INTERFACE)
+        add_library(SoCMake::DPI-C ALIAS verilator_dpi-c)
+    endif()
+
 endfunction()

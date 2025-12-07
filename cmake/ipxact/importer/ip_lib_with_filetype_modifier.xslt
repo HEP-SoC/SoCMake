@@ -45,9 +45,19 @@
     <xsl:text>&#10;</xsl:text>
 
     <xsl:for-each select="$sources">
-        <xsl:text>    ${CMAKE_CURRENT_LIST_DIR}/</xsl:text>
-        <xsl:value-of select="ipxact:name"/>
-        <xsl:text>&#10;</xsl:text>
+        <xsl:choose>
+            <xsl:when test="starts-with(ipxact:name, '$')">
+                <xsl:text>    </xsl:text>
+                <xsl:value-of select="ipxact:name"/>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- Alternative output if '${' is NOT found -->
+                <xsl:text>    ${IP_SOURCE_DIR}/</xsl:text>
+                <xsl:value-of select="ipxact:name"/>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:for-each>
 
     <xsl:text>)&#10;&#10;</xsl:text>
@@ -57,7 +67,13 @@
   <xsl:template match="/">
       <xsl:text>add_ip(</xsl:text>
       <xsl:value-of select="concat(//ipxact:vendor, '::', //ipxact:library, '::', //ipxact:name, '::', //ipxact:version)"/>
-      <xsl:text> NO_ALIAS)&#10;&#10;</xsl:text>
+      <xsl:text>)&#10;&#10;</xsl:text>
+
+      <xsl:text>if(NOT DEFINED ${IP}_IPXACT_SOURCE_DIR)&#10;</xsl:text>
+      <xsl:text>    set(IP_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})&#10;</xsl:text>
+      <xsl:text>else()&#10;</xsl:text>
+      <xsl:text>    set(IP_SOURCE_DIR ${${IP}_IPXACT_SOURCE_DIR})&#10;</xsl:text>
+      <xsl:text>endif()&#10;&#10;</xsl:text>
 
       <xsl:for-each select="//ipxact:fileSets/ipxact:fileSet">
         <xsl:variable name="file_set_name" select="ipxact:name"/>

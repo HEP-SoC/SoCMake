@@ -13,20 +13,17 @@
 
     <!-- Main template -->
     <xsl:template match="/">
-        <xsl:text>ip_link(${IP}</xsl:text>
-        <xsl:text>&#10;</xsl:text>
-
         <!-- Iterate over all elements with VLNV attributes -->
         <xsl:for-each select="//*[@vendor and @library and @name and @version]">
             <!-- Only process the first occurrence of each unique key -->
             <xsl:if test="generate-id() = generate-id(key('uniqueKey', concat(@vendor, '|', @library, '|', @name, '|', @version))[1])">
-                <xsl:text>    </xsl:text>
-                <xsl:value-of select="concat(@vendor, '::', @library, '::', @name, '::', @version)"/>
+                <xsl:text>find_ip(</xsl:text>
+                <xsl:value-of select="concat(@vendor, '::', @library, '::', @name)"/>
+                <xsl:text> REQUIRED)</xsl:text>
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>
-
         </xsl:for-each>
-        <xsl:text>)</xsl:text>
+
         <xsl:text>&#10;</xsl:text>
     </xsl:template>
 

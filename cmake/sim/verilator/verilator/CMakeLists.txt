@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
+cmake_policy(SET CMP0144 NEW)
+
 project(${TARGET})
 
 find_package(verilator HINTS ${VERILATOR_ROOT})
@@ -21,20 +23,6 @@ if(VERILATE_SYSTEMC)
         HINTS ${SYSTEMC_ROOT}/*/*/*
         )
     verilator_link_systemc(${TARGET})
-endif()
-
-if("--main" IN_LIST VERILATE_VERILATOR_ARGS)
-    set(GENERATED_MAIN "${VERILATE_DIRECTORY}/${VERILATE_PREFIX}__main.cpp")
-    add_executable(${EXECUTABLE_NAME}
-        ${GENERATED_MAIN}
-        )
-    target_include_directories(${EXECUTABLE_NAME} PRIVATE
-        ${VERILATOR_ROOT}/include
-        )
-    target_link_libraries(${EXECUTABLE_NAME} PRIVATE
-        ${TARGET}
-        -pthread
-        )
 endif()
 
 ### Avoid warnings
