@@ -13,7 +13,8 @@ jobs:
         # Run on PR open/update, and on merge
         if: ${{ github.event.action != 'closed' || github.event.pull_request.merged == true }}
         run: |
-          curl -s -X POST \
+          set -e
+          curl --fail-with-body -X POST \
             -F token=${{ secrets.GITLAB_TRIGGER_TOKEN }} \
             -F ref=webhook \
             -F variables[PR_NUMBER]=${{ github.event.pull_request.number }} \
