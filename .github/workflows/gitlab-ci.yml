@@ -9,6 +9,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check required secrets
+        run: |
+          set -e
+          test -n "${{ secrets.GITLAB_TRIGGER_TOKEN }}" || {
+            echo "GITLAB_TRIGGER_TOKEN is not set"
+            exit 1
+          }
+
       - name: Trigger GitLab pipeline
         # Run on PR open/update, and on merge
         if: ${{ github.event.action != 'closed' || github.event.pull_request.merged == true }}
