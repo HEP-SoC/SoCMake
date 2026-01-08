@@ -11,9 +11,7 @@ jobs:
     steps:
       - name: Trigger GitLab pipeline
         # Run on PR open/update, and on merge
-        if: |
-          github.event.action != 'closed' ||
-          github.event.pull_request.merged == true
+        if: ${{ github.event.action != 'closed' || github.event.pull_request.merged == true }}
         run: |
           curl -s -X POST \
             -F token=${{ secrets.GITLAB_TRIGGER_TOKEN }} \
