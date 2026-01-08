@@ -328,9 +328,11 @@ endfunction()
 # :type [HEADERS]: bool
 # :keyword [FILE_SETS]: Specify list of File sets to retrieve the files from
 # :type [FILE_SETS]: list[string]
+# :keyword [EXCLUDED_IPS]: Exclude the IPs of the source file search.
+# :type [FILE_SETS]: list[string]
 #]]
 function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS;HEADERS" "" "FILE_SETS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS;HEADERS" "" "FILE_SETS;EXCLUDED_IPS" ${ARGN})
     alias_dereference(_reallib ${IP_LIB})
 
     # Handle NO_DEPS flag
@@ -346,6 +348,15 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     if(ARG_HEADERS)
         set(property_type HEADERS)
         list(REMOVE_ITEM ARGN HEADERS)
+    endif()
+
+    if(ARG_EXCLUDED_IPS)
+        # Clean ARGN from EXCLUDED_IPS and listed IPs
+        foreach(ip ${ARG_EXCLUDED_IPS})
+            list(REMOVE_ITEM ARGN "${ip}")
+        endforeach()
+        list(REMOVE_ITEM ARGN "EXCLUDED_IPS")
+        set(ARG_EXCLUDED_IPS EXCLUDED_IPS ${ARG_EXCLUDED_IPS})
     endif()
     
     # In case FILE_SETS function argument is not passed, return all file sets that were defined in IP or sub IPs
@@ -374,8 +385,10 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     if(_no_deps)
         set(ips ${_reallib})
     else()
-        get_ip_links(ips ${_reallib})
+        get_ip_links(ips ${_reallib} ${ARG_EXCLUDED_IPS})
     endif()
+
+    # message(STATUS "-- ${CMAKE_CURRENT_FUNCTION}: ")
 
     set(asked_languges ${LANGUAGE} ${ARGN})
     unset(SOURCES)
@@ -671,10 +684,9 @@ function(get_ip_property OUTVAR IP_LIB PROPERTY)
             set(OUT_LIST ${prop})
         endif()
     else()
-        # Flatten the target graph to get all the dependencies in the correct order
-        flatten_graph_if_allowed(${_reallib})
-        # Get all the dependencies
-        get_target_property(DEPS ${_reallib} FLAT_GRAPH)
+        # Get all the IP dependencies
+        ip_recursive_get_target_property(_linked_ips ${_reallib} INTERFACE_LINK_LIBRARIES ${ARG_EXCLUDED_IPS})
+        set(DEPS ${_linked_ips} ${_reallib})
 
         # Append the property of all the deps into a single list (e.g., the source files of an IP)
         foreach(d ${DEPS})
@@ -812,7 +824,7 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
 endfunction()
 
 #[[[
-# Get the IP link graph in a flat list
+# Get the IP link graph in a flat list, including the given IP.
 #
 # :param OUTVAR: Variable containing the link list.
 # :type OUTVAR: string
@@ -820,7 +832,7 @@ endfunction()
 # :type [NO_DEPS]: bool
 #]]
 function(get_ip_links OUTVAR IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS" "" "EXCLUDED_IPS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -830,12 +842,14 @@ function(get_ip_links OUTVAR IP_LIB)
     if(ARG_NO_DEPS)
         get_property(__flat_graph TARGET ${_reallib} PROPERTY INTERFACE_LINK_LIBRARIES)
     else()
-        flatten_graph_if_allowed(${_reallib})
+        if(ARG_EXCLUDED_IPS)
+            set(ARG_EXCLUDED_IPS EXCLUDED_IPS ${ARG_EXCLUDED_IPS})
+        endif()
 
-        get_property(__flat_graph TARGET ${_reallib} PROPERTY FLAT_GRAPH)
+        ip_recursive_get_target_property(__linked_ips ${_reallib} INTERFACE_LINK_LIBRARIES ${ARG_EXCLUDED_IPS})
     endif()
 
-    set(${OUTVAR} ${__flat_graph} PARENT_SCOPE)
+    set(${OUTVAR} ${__linked_ips} ${_reallib} PARENT_SCOPE)
 endfunction()
 
 #[[[
@@ -962,4 +976,72 @@ function(flatten_graph_if_allowed IP_LIB)
     if(state)
         flatten_graph(${IP_LIB})
     endif()
+endfunction()
+
+#[[[
+# This function recursively get the property PROPERTY from the target IP_LIB and
+# returns a list stored in OUTVAR respecting the hierarchy order of traversed targets.
+#
+# :param OUT_VAR: Variable containing the requested property.
+# :type OUT_VAR: string
+# :param IP_LIB: The target IP library name.
+# :type IP_LIB: string
+# :param PROPERTY: Property to search recursively.
+# :type PROPERTY: string
+#
+#]]
+function(ip_recursive_get_target_property OUTVAR IP_LIB PROPERTY)
+    cmake_parse_arguments(ARG "" "" "EXCLUDED_IPS" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    if(ARG_EXCLUDED_IPS)
+        set(ARG_EXCLUDED_IPS EXCLUDED_IPS ${ARG_EXCLUDED_IPS})
+    endif()
+
+    set(_seen_values)
+
+    alias_dereference(_reallib ${IP_LIB})
+
+    set(_excluded_ips_reallib_list)
+
+    foreach(excl_ip ${ARG_EXCLUDED_IPS})
+        alias_dereference(_excl_ip_reallib ${excl_ip})
+        set(_excluded_ips_reallib_list ${_excluded_ips_reallib_list} ${_excl_ip_reallib})
+    endforeach()
+
+    # Get the value of the specified property for the current target
+    get_target_property(_current_value ${_reallib} ${PROPERTY})
+
+    if(_current_value AND NOT _current_value STREQUAL "<${PROPERTY}>-NOTFOUND")
+        # Check every entry
+        foreach(_subtarget ${_current_value})
+            # Recursively process sub-targets if they exist
+            if(TARGET ${_subtarget})
+                # Stop the recursive search if the IP is excluded
+                if(NOT ${_subtarget} IN_LIST _excluded_ips_reallib_list)
+                    # Add the current target to the list
+                    list(APPEND _seen_values ${_subtarget})
+                    # Recusrive call to search for the property in the sub-target
+                    ip_recursive_get_target_property(_recursive_values ${_subtarget} ${PROPERTY} ${ARG_EXCLUDED_IPS})
+                    # Add the recursively collected target to the list
+                    list(PREPEND _seen_values ${_recursive_values})
+                    # Remove duplicates keeping the first appearing instance
+                    list(REMOVE_DUPLICATES _seen_values)
+                else()
+                    message(DEBUG "-- ${CMAKE_CURRENT_FUNCTION}: ip target ${_subtarget} is excluded from search")
+                endif()
+            else()
+                message(DEBUG "-- ${CMAKE_CURRENT_FUNCTION}: ${_subtarget} is not a target, not added to seen values")
+            endif()
+        endforeach()
+    else()
+        message(DEBUG "-- ${CMAKE_CURRENT_FUNCTION}: target ${_reallib} has no property ${PROPERTY} or it is not set")
+    endif()
+
+    message(DEBUG "-- ${CMAKE_CURRENT_FUNCTION}: ${_reallib} _seen_values: ${_seen_values}")
+
+    # Return the collected values
+    set(${OUTVAR} ${_seen_values} PARENT_SCOPE)
 endfunction()
