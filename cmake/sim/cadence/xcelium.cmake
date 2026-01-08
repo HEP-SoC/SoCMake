@@ -27,6 +27,8 @@
 # :type LIBRARY: string
 # :keyword COMPILE_ARGS: Extra arguments to be passed to the compilation step (C, C++).
 # :type COMPILE_ARGS: string
+# :keyword XRUN_COMPILE_ARGS: Extra arguments to be passed to the xrun -compile command
+# :type XRUN_COMPILE_ARGS: string
 # :keyword SV_COMPILE_ARGS: Extra arguments to be passed to the System Verilog / Verilog compilation step.
 # :type SV_COMPILE_ARGS: string
 # :keyword VHDL_COMPILE_ARGS: Extra arguments to be passed to the VHDL compilation step.
@@ -42,7 +44,7 @@
 include_guard(GLOBAL)
 
 function(xcelium IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI;32BIT" "OUTDIR;RUN_TARGET_NAME;TOP_MODULE;LIBRARY" "COMPILE_ARGS;SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI;32BIT" "OUTDIR;RUN_TARGET_NAME;TOP_MODULE;LIBRARY" "COMPILE_ARGS;XRUN_COMPILE_ARGS;SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS;FILE_SETS;" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -97,6 +99,10 @@ function(xcelium IP_LIB)
         set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
     endif()
 
+    if(ARG_XRUN_COMPILE_ARGS)
+        set(ARG_XRUN_COMPILE_ARGS XRUN_COMPILE_ARGS ${ARG_XRUN_COMPILE_ARGS})
+    endif()
+
     #######################
     ### Set target names ##
     #######################
@@ -117,6 +123,7 @@ function(xcelium IP_LIB)
             ${ARG_SV_COMPILE_ARGS}
             ${ARG_VHDL_COMPILE_ARGS}
             ${ARG_FILE_SETS}
+            ${ARG_XRUN_COMPILE_ARGS}
             )
     endif()
 
@@ -130,7 +137,7 @@ function(xcelium IP_LIB)
         endif()
     endforeach()
 
-    __get_xcelium_search_lib_args(${IP_LIB} 
+    __get_xcelium_search_lib_args(${IP_LIB}
         ${ARG_LIBRARY}
         OUTDIR ${OUTDIR})
     set(hdl_libs_args ${HDL_LIBS_ARGS})
@@ -222,7 +229,7 @@ function(xcelium IP_LIB)
 endfunction()
 
 function(__xcelium_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR;LIBRARY;TOP_MODULE" "COMPILE_ARGS;SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;FILE_SETS" ${ARGN})
+    cmake_parse_arguments(ARG "" "OUTDIR;LIBRARY;TOP_MODULE" "COMPILE_ARGS;XRUN_COMPILE_ARGS;SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;FILE_SETS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -273,7 +280,7 @@ function(__xcelium_compile_lib IP_LIB)
 
                 if(parent_is_systemc_lib AND child_is_ip_lib)
                     set_property(TARGET ${child} PROPERTY SOCMAKE_HDL_BOUNDARY_LIB TRUE)
-                    xcelium_gen_sc_wrapper(${child} 
+                    xcelium_gen_sc_wrapper(${child}
                         OUTDIR ${OUTDIR}
                         ${ARG_LIBRARY_FORWARD}
                         ${ARG_BITNESS}
@@ -283,7 +290,7 @@ function(__xcelium_compile_lib IP_LIB)
 
                 if(parent_is_ip_lib AND child_is_systemc_lib)
                     set_property(TARGET ${child} PROPERTY SOCMAKE_SC_BOUNDARY_LIB TRUE)
-                    xcelium_gen_hdl_wrapper(${child} 
+                    xcelium_gen_hdl_wrapper(${child}
                         OUTDIR ${OUTDIR}
                         ${ARG_LIBRARY_FORWARD}
                         ${ARG_BITNESS}
@@ -300,6 +307,9 @@ function(__xcelium_compile_lib IP_LIB)
         # VHDL library of the current IP block, get it from SoCMake library if present
         # If neither LIBRARY property is set, or LIBRARY passed as argument, use "worklib" as default
         __xcelium_default_library(__comp_lib_name ${lib})
+
+
+        message(STATUS "Xcelium compile library: ${lib} in library ${__comp_lib_name}")
 
         # Create output directoy for the VHDL library
         set(lib_outdir ${OUTDIR}/xcelium.d/${__comp_lib_name})
@@ -331,6 +341,7 @@ function(__xcelium_compile_lib IP_LIB)
                     -nocopyright
                     -sv
                     -l xmvlog.log
+                    ${ARG_XRUN_COMPILE_ARGS}
                     -makelib ${lib_outdir}
                     ${ARG_COMPILE_ARGS}
                     ${ARG_SV_COMPILE_ARGS}
@@ -351,6 +362,7 @@ function(__xcelium_compile_lib IP_LIB)
                     -q
                     -nocopyright
                     -l xmvhdl.log
+                    ${ARG_XRUN_COMPILE_ARGS}
                     -makelib ${lib_outdir}
                     ${ARG_COMPILE_ARGS}
                     ${ARG_VHDL_COMPILE_ARGS}
@@ -413,6 +425,7 @@ function(__xcelium_compile_lib IP_LIB)
             set(STAMP_FILE "${lib_outdir}/.${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${lib_outdir}
                 COMMAND touch ${STAMP_FILE}
                 DEPENDS ${__xcelium_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
@@ -605,9 +618,9 @@ function(xcelium_gen_hdl_wrapper SC_LIB)
             $<$<NOT:$<BOOL:${ARG_32BIT}>>:-64bit>
             -work ${__comp_lib_name}
             "$<PATH:ABSOLUTE_PATH,NORMALIZE,$<LIST:GET,$<TARGET_PROPERTY:${SC_LIB},SOURCES>,-1>,$<TARGET_PROPERTY:${SC_LIB},SOURCE_DIR>>" # Get Absolute path to the last source file
-            -CFLAGS \" 
-                "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},INCLUDE_DIRECTORIES>,PREPEND,-I>" 
-                "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},COMPILE_DEFINITIONS>,PREPEND,-D>" 
+            -CFLAGS \"
+                "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},INCLUDE_DIRECTORIES>,PREPEND,-I>"
+                "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},COMPILE_DEFINITIONS>,PREPEND,-D>"
             \"
             -scfrontend
         )
@@ -691,7 +704,7 @@ function(xcelium_add_cxx_libs)
         add_library(SoCMake::SystemC ALIAS xcelium_systemc)
         target_link_libraries(xcelium_systemc INTERFACE
             ${xcelium_home}/tools/systemc/${libpath}/libncscCoSim_sh.so
-            ${xcelium_home}/tools/systemc/${libpath}/libncscCoroutines_sh.so 
+            ${xcelium_home}/tools/systemc/${libpath}/libncscCoroutines_sh.so
             ${xcelium_home}/tools/systemc/${libpath}/libsystemc_sh.so
         )
 
