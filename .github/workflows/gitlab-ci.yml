@@ -5,8 +5,8 @@ on:
     types: [opened, synchronize, reopened, closed, labeled]
 
 jobs:
-  trigger-gitlab:
-    if: contains(github.event.pull_request.labels.*.name, 'gitlab-ci-approved')
+  trigger-gitlab-testing:
+    if: contains(github.event.pull_request.labels.*.name, 'gitlab-ci-testing')
 
     runs-on: ubuntu-latest
 
@@ -32,4 +32,6 @@ jobs:
             -F variables[PR_BRANCH]=${{ github.event.pull_request.head.ref }} \
             -F variables[BASE_BRANCH]=${{ github.event.pull_request.base.ref }} \
             -F variables[PR_MERGED]=${{ github.event.pull_request.merged }} \
+            -F variables[CI_JOB]=${{ github.repository }} \
+            -F variables[TRIGGER_JOB]=${{ github.job }} \
             https://gitlab.cern.ch/api/v4/projects/220732/trigger/pipeline
