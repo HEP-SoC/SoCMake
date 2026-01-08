@@ -1,0 +1,36 @@
+name: Trigger GitLab CI
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, closed]
+  branches:
+    - master
+    - develop
+
+jobs:
+  trigger-gitlab:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check required secrets
+        run: |
+          set -e
+          test -n "${{ secrets.GITLAB_TRIGGER_TOKEN }}" || {
+            echo "GITLAB_TRIGGER_TOKEN is not set"
+            exit 1
+          }
+
+      - name: Trigger GitLab pipeline
+        # Run on PR open/update, and on merge
+        if: ${{ github.event.action != 'closed' || github.event.pull_request.merged == true }}
+        run: |
+          set -e
+          curl --fail-with-body -X POST \
+            -F token=${{ secrets.GITLAB_TRIGGER_TOKEN }} \
+            -F ref=webhook \
+            -F variables[PR_NUMBER]=${{ github.event.pull_request.number }} \
+            -F variables[PR_SHA]=${{ github.event.pull_request.head.sha }} \
+            -F variables[PR_BRANCH]=${{ github.event.pull_request.head.ref }} \
+            -F variables[BASE_BRANCH]=${{ github.event.pull_request.base.ref }} \
+            -F variables[PR_MERGED]=${{ github.event.pull_request.merged }} \
+            https://gitlab.cern.ch/api/v4/projects/220732/trigger/pipeline
