@@ -28,7 +28,7 @@ function(uniquify_files_by_basename OUTPUT_LIST INPUT_LIST MESSAGE_MODE)
             # If the basename is not yet seen, mark it and store the full path
             set(_seen_basenames_${basename} ${file})
             list(APPEND _unique_files ${file})
-            message(DEBUG "    └─> First occurence stored in _unique_files")
+            message(DEBUG "    '-> First occurence stored in _unique_files")
         else()
             # If the basename has been seen, compare file contents
             file(READ ${file} CURRENT_CONTENT)
