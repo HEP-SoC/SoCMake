@@ -4,9 +4,21 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened, closed, labeled]
 
+  push:
+    branches:
+      - master
+      - develop
+    branches-ignore:
+      - 'docs/**'
+
 jobs:
   trigger-gitlab-testing:
-    if: contains(github.event.pull_request.labels.*.name, 'gitlab-ci-testing')
+    if: >
+      github.event_name == 'push' ||
+      (
+        github.event_name == 'pull_request_target' &&
+        contains(github.event.pull_request.labels.*.name, 'gitlab-ci-testing')
+      )
 
     runs-on: ubuntu-latest
 
