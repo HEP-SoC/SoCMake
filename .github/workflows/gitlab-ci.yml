@@ -4,6 +4,9 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened, closed, labeled]
 
+  issue_comment:
+    types: [created]
+
   push:
     branches:
       - master
@@ -17,12 +20,31 @@ jobs:
       github.event_name == 'push' ||
       (
         github.event_name == 'pull_request_target' &&
-        contains(github.event.pull_request.labels.*.name, 'gitlab-ci-testing')
+        contains(github.event.pull_request.labels.*.name, 'trigger-gitlab-testing')
+      ) ||
+      (
+        github.event_name == 'issue_comment' &&
+        contains(github.event.comment.body, '/trigger-gitlab-testing')
       )
 
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check commenter permissions
+        if: github.event_name == 'issue_comment'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.comment.user.login,
+            });
+
+            if (!['admin', 'maintain', 'write'].includes(data.permission)) {
+              core.setFailed('User is not a maintainer');
+            }
+
       - name: Check required secrets
         run: |
           set -e
