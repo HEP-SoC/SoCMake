@@ -1,0 +1,23 @@
+
+######################################
+cmake.utils/uniquify_files_by_basename
+######################################
+
+.. module:: cmake.utils/uniquify_files_by_basename
+
+
+.. function:: uniquify_files_by_basename(OUTPUT_LIST INPUT_LIST MESSAGE_MODE)
+
+   This function uniquify a list of files based on the basename (name + extension) of the files.
+   
+   This function take a list of file as input and uniquify it by checking the basenames of the entries. For example,
+   /home/user/file1.sv and /home/user/dir/file1.sv are recognized as a unique file and only the first occurrence is kept.
+   This function also check the files have the same content and throws an error if this is not the case.
+   
+   :param INPUT_LIST: Input ist of files.
+   :type INPUT_LIST: string
+   :param OUTPUT_LIST: Output variable used to store the list of uniquify files.
+   :type OUTPUT_LIST: string
+   
+   
+

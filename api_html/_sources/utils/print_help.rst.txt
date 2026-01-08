@@ -41,6 +41,11 @@ cmake.utils/print_help
    
 
 
+.. function:: help_custom_targets(HELP_NAME **kwargs)
+
+   
+
+
 .. function:: help(**kwargs)
 
    

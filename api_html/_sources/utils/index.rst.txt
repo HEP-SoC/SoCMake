@@ -8,6 +8,7 @@ cmake.utils
 
    copy_rtl_files/index.rst
    graphviz/index.rst
+   sed_wor/index.rst
    add_subdirs
    alias_dereference
    colours
@@ -21,4 +22,5 @@ cmake.utils
    safe_get_target_property
    socmake_graph
    subdirectory_search
+   uniquify_files_by_basename
 

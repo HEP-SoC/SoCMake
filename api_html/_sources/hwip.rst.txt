@@ -219,14 +219,14 @@ cmake.hwip
    
 
 
-.. function:: get_ip_property(OUTVAR TARGET PROPERTY **kwargs)
+.. function:: get_ip_property(OUTVAR IP_LIB PROPERTY **kwargs)
 
    This function retrieves a specific property from a target library and its dependencies.
    
    :param OUTVAR: Variable containing the requested property.
    :type OUTVAR: string
-   :param TARGET: The target IP library name.
-   :type TARGET: string
+   :param IP_LIB: The target IP library name.
+   :type IP_LIB: string
    :param PROPERTY: Property to retrieve from IP_LIB.
    :type PROPERTY: string
    :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
@@ -279,6 +279,21 @@ cmake.hwip
    :type OUTVAR: string
    :keyword [NO_DEPS]: Only return the list off IPs that are immedieate childrean from the current IP
    :type [NO_DEPS]: bool
+   
+
+
+.. function:: recursive_get_target_property(OUTVAR IP_LIB PROPERTY)
+
+   This function recursively get the property PROPERTY from the target IP_LIB and
+   returns a list stored in OUTVAR.
+   
+   :param OUT_VAR: Variable containing the requested property.
+   :type OUT_VAR: string
+   :param IP_LIB: The target IP library name.
+   :type IP_LIB: string
+   :param PROPERTY: Property to search recursively.
+   :type PROPERTY: string
+   
    
 
 

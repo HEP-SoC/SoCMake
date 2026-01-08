@@ -1,0 +1,12 @@
+
+###########################
+cmake.utils/sed_wor/sed_wor
+###########################
+
+.. module:: cmake.utils/sed_wor/sed_wor
+
+
+.. function:: sed_wor(IP_LIB BINARY_DIR SOURCES)
+
+   
+

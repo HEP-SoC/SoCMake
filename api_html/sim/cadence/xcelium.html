@@ -5,10 +5,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>xcelium &#8212; SoCMake 0.1.20 documentation</title>
+    <title>xcelium &#8212; SoCMake 0.2.18 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=12dfc556" />
-    <script src="../../_static/documentation_options.js?v=17aaaefc"></script>
+    <script src="../../_static/documentation_options.js?v=ae23a911"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -41,8 +41,8 @@
 <p class="admonition-title">Warning</p>
 <p>This is a generic command invocation. It is not a function or macro definition.</p>
 </div>
-<p>Create a target for invoking Xcelium simulation on IP_LIB.</p>
-<p>It will create a target <strong>run_&lt;IP_LIB&gt;_xcelium</strong> that will start the xcelium simulation</p>
+<p>Create a target for invoking Xcelium (compilation, elaboration, and simulation) on IP_LIB.</p>
+<p>It will create a target <strong>run_&lt;IP_LIB&gt;_xcelium</strong> that will compile, elaborate, and simulate the IP_LIB design.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>IP_LIB</strong> (<em>INTERFACE_LIBRARY</em>) – RTL interface library, it needs to have SOURCES property set with a list of System Verilog files.</p>
@@ -51,7 +51,20 @@
 <p><strong>Keyword Arguments</strong></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>GUI</strong> (<em>boolean</em>) – launch SimVision gui together with the simulation</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>NO_RUN_TARGET</strong> (<em>bool</em>) – Do not create a run target.</p></li>
+<li><p><strong>GUI</strong> (<em>bool</em>) – Run simulation in GUI mode.</p></li>
+<li><p><strong>32BIT</strong> (<em>bool</em>) – Use 32 bit compilation and simulation.</p></li>
+<li><p><strong>OUTDIR</strong> (<em>string</em>) – Output directory for the Xcelium compilation and simulation.</p></li>
+<li><p><strong>RUN_TARGET_NAME</strong> (<em>string</em>) – Replace the default name of the run target.</p></li>
+<li><p><strong>TOP_MODULE</strong> (<em>string</em>) – Top module name to be used for elaboration and simulation.</p></li>
+<li><p><strong>LIBRARY</strong> (<em>string</em>) – replace the default library name (worklib) to be used for elaboration and simulation.</p></li>
+<li><p><strong>COMPILE_ARGS</strong> (<em>string</em>) – Extra arguments to be passed to the compilation step (C, C++).</p></li>
+<li><p><strong>SV_COMPILE_ARGS</strong> (<em>string</em>) – Extra arguments to be passed to the System Verilog / Verilog compilation step.</p></li>
+<li><p><strong>VHDL_COMPILE_ARGS</strong> (<em>string</em>) – Extra arguments to be passed to the VHDL compilation step.</p></li>
+<li><p><strong>ELABORATE_ARGS</strong> (<em>string</em>) – Extra arguments to be passed to the elaboration step.</p></li>
+<li><p><strong>RUN_ARGS</strong> (<em>string</em>) – Extra arguments to be passed to the simulation step.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -120,7 +133,6 @@
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../../firmware/index.html">cmake.firmware</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../peakrdl/index.html">cmake.peakrdl</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">cmake.sim</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">cmake.sim/cadence</a></li>
@@ -138,7 +150,6 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../synth/index.html">cmake.synth</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../systemrdl/index.html">cmake.systemrdl</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tmake/index.html">cmake.tmake</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../utils/index.html">cmake.utils</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../verible/index.html">cmake.verible</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../hwip.html">cmake.hwip</a></li>

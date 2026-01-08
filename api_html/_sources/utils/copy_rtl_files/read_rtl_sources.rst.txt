@@ -1,0 +1,25 @@
+
+###########################################
+cmake.utils/copy_rtl_files/read_rtl_sources
+###########################################
+
+.. module:: cmake.utils/copy_rtl_files/read_rtl_sources
+
+
+.. function:: read_rtl_sources(RTL_SOURCES_FILE **kwargs)
+
+   This function reads a file listing RTL files and return a list of paths.
+   
+   By default, this function returns 3 lists, one per RTL source file type (i.e., Verilog, SystemVerilog, and VHDL):
+   READ_RTL_SOURCES_V, READ_RTL_SOURCES_SV, READ_RTL_SOURCES_VHDL. IF the CONCAT keyword is passed, only
+   READ_RTL_SOURCES_ALL is returned.
+   
+   :param RTL_SOURCES_FILE: Path to the file to read.
+   :type RTL_SOURCES_FILE: string
+   
+   **Keyword Arguments**
+   
+   :keyword CONCAT: Concatenate the different RTL source files (i.e., Verilog, SystemVerilog, and VHDL) and return a single list.
+   :type CONCAT: string
+   
+

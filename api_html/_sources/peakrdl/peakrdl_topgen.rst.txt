@@ -1,0 +1,12 @@
+
+############################
+cmake.peakrdl/peakrdl_topgen
+############################
+
+.. module:: cmake.peakrdl/peakrdl_topgen
+
+
+.. function:: peakrdl_topgen(IP_LIB **kwargs)
+
+   
+

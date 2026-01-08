@@ -1,7 +1,0 @@
-
-#########################################
-cmake.firmware/toolchains/riscv_toolchain
-#########################################
-
-.. module:: cmake.firmware/toolchains/riscv_toolchain
-

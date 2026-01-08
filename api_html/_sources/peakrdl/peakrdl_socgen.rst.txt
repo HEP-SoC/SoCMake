@@ -1,9 +1,9 @@
 
-###########################################
-cmake.peakrdl/peakrdl_socgen/peakrdl_socgen
-###########################################
+############################
+cmake.peakrdl/peakrdl_socgen
+############################
 
-.. module:: cmake.peakrdl/peakrdl_socgen/peakrdl_socgen
+.. module:: cmake.peakrdl/peakrdl_socgen
 
 
 .. function:: peakrdl_socgen(IP_LIB **kwargs)

@@ -5,15 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cmake.utils/copy_rtl_files/copy_rtl_files &#8212; SoCMake 0.1.20 documentation</title>
+    <title>cmake.utils/copy_rtl_files/copy_rtl_files &#8212; SoCMake 0.2.18 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=12dfc556" />
-    <script src="../../_static/documentation_options.js?v=17aaaefc"></script>
+    <script src="../../_static/documentation_options.js?v=ae23a911"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="cmake.utils/copy_rtl_files/vhier" href="vhier.html" />
+    <link rel="next" title="cmake.utils/copy_rtl_files/read_rtl_sources" href="read_rtl_sources.html" />
     <link rel="prev" title="cmake.utils/copy_rtl_files" href="index.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
@@ -37,7 +37,31 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="cmake.utils-copy_rtl_files-copy_rtl_files.copy_rtl_files">
 <span class="sig-prename descclassname"><span class="pre">cmake.utils/copy_rtl_files/copy_rtl_files.</span></span><span class="sig-name descname"><span class="pre">copy_rtl_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IP_LIB</span> <span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cmake.utils-copy_rtl_files-copy_rtl_files.copy_rtl_files" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This function copies the RTL sources of an IP to a given location.</p>
+<p>This function gets an IP_LIB target and get its RTL source files (exluding SIM/TB/FPGA files) and include directories and copy
+them to a default or given location. The output location contains a file listing all the sources, an include directory containing
+all the include files and the source files with a preserved hierarchy folder. It uses the vhier tool to parse and build the library
+hierachy and copy only the files instantiated in the hierarchy.
+vhier is part of a set of tools:
+<a class="reference external" href="https://github.com/gitpan/Verilog-Perl">https://github.com/gitpan/Verilog-Perl</a>
+<a class="reference external" href="https://metacpan.org/pod/vhier">https://metacpan.org/pod/vhier</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>IP_LIB</strong> (<em>string</em>) – IP library to get RTL sources from.</p>
+</dd>
+</dl>
+<p><strong>Keyword Arguments</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>SYNTHESIS</strong> (<em>string</em>) – Define SYNTHESIS, and ignore text between “ambit”, “pragma”, “synopsys” or “synthesis” translate_off and translate_on meta comments.</p></li>
+<li><p><strong>OUTDIR</strong> (<em>string</em>) – Change the default copy location ${CMAKE_BINARY_DIR}/ip_sources to OUTDIR.</p></li>
+<li><p><strong>TOP_MODULE</strong> (<em>string</em>) – Start the report at the specified module name, ignoring all modules that are not the one specified with –top-module or below, and report an error if the –top-module specified does not exist.</p></li>
+<li><p><strong>SKIPLIST_FILE</strong> (<em>string</em>) – Given file contains a list of regular expressions, one per line. If a module name in the design hierarchy matches one of these expressions, skip showing that module and any sub-hierarchy.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 
@@ -59,15 +83,14 @@
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../../firmware/index.html">cmake.firmware</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../peakrdl/index.html">cmake.peakrdl</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../sim/index.html">cmake.sim</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../synth/index.html">cmake.synth</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../systemrdl/index.html">cmake.systemrdl</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tmake/index.html">cmake.tmake</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">cmake.utils</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">cmake.utils/copy_rtl_files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../graphviz/index.html">cmake.utils/graphviz</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sed_wor/index.html">cmake.utils/sed_wor</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../add_subdirs.html">cmake.utils/add_subdirs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../alias_dereference.html">cmake.utils/alias_dereference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../colours.html">cmake.utils/colours</a></li>
@@ -81,6 +104,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../safe_get_target_property.html">cmake.utils/safe_get_target_property</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../socmake_graph.html">cmake.utils/socmake_graph</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../subdirectory_search.html">cmake.utils/subdirectory_search</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../uniquify_files_by_basename.html">cmake.utils/uniquify_files_by_basename</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../verible/index.html">cmake.verible</a></li>
@@ -94,7 +118,7 @@
   <li><a href="../index.html">cmake.utils</a><ul>
   <li><a href="index.html">cmake.utils/copy_rtl_files</a><ul>
       <li>Previous: <a href="index.html" title="previous chapter">cmake.utils/copy_rtl_files</a></li>
-      <li>Next: <a href="vhier.html" title="next chapter">cmake.utils/copy_rtl_files/vhier</a></li>
+      <li>Next: <a href="read_rtl_sources.html" title="next chapter">cmake.utils/copy_rtl_files/read_rtl_sources</a></li>
   </ul></li>
   </ul></li>
   </ul></li>

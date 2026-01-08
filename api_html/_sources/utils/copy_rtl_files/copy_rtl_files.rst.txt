@@ -8,5 +8,28 @@ cmake.utils/copy_rtl_files/copy_rtl_files
 
 .. function:: copy_rtl_files(IP_LIB **kwargs)
 
+   This function copies the RTL sources of an IP to a given location.
+   
+   This function gets an IP_LIB target and get its RTL source files (exluding SIM/TB/FPGA files) and include directories and copy
+   them to a default or given location. The output location contains a file listing all the sources, an include directory containing
+   all the include files and the source files with a preserved hierarchy folder. It uses the vhier tool to parse and build the library
+   hierachy and copy only the files instantiated in the hierarchy.
+   vhier is part of a set of tools:
+   https://github.com/gitpan/Verilog-Perl
+   https://metacpan.org/pod/vhier
+   
+   :param IP_LIB: IP library to get RTL sources from.
+   :type IP_LIB: string
+   
+   **Keyword Arguments**
+   
+   :keyword SYNTHESIS: Define SYNTHESIS, and ignore text between "ambit", "pragma", "synopsys" or "synthesis" translate_off and translate_on meta comments.
+   :type SYNTHESIS: string
+   :keyword OUTDIR: Change the default copy location ${CMAKE_BINARY_DIR}/ip_sources to OUTDIR.
+   :type OUTDIR: string
+   :keyword TOP_MODULE: Start the report at the specified module name, ignoring all modules that are not the one specified with --top-module or below, and report an error if the --top-module specified does not exist.
+   :type TOP_MODULE: string
+   :keyword SKIPLIST_FILE: Given file contains a list of regular expressions, one per line. If a module name in the design hierarchy matches one of these expressions, skip showing that module and any sub-hierarchy.
+   :type SKIPLIST_FILE: string
    
 

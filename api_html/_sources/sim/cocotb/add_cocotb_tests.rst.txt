@@ -1,0 +1,28 @@
+
+#################################
+cmake.sim/cocotb/add_cocotb_tests
+#################################
+
+.. module:: cmake.sim/cocotb/add_cocotb_tests
+
+
+.. function:: add_cocotb_tests(IP_LIB DIRECTORY)
+
+   
+
+
+.. function:: ${COCOTB_MODULE}(COMMAND ${COCOTB_SIM_RUN_CMD})
+
+
+   .. warning:: This is a CTest test definition, do not call this manually. Use the "ctest" program to execute this test.
+
+   
+
+
+.. function:: ${COCOTB_MODULE}_test_${test_num}(COMMAND ${COCOTB_SIM_RUN_CMD})
+
+
+   .. warning:: This is a CTest test definition, do not call this manually. Use the "ctest" program to execute this test.
+
+   
+

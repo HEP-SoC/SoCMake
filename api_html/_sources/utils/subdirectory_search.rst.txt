@@ -6,7 +6,15 @@ cmake.utils/subdirectory_search
 .. module:: cmake.utils/subdirectory_search
 
 
-.. function:: SUBDIRLIST(result curdir)
+.. function:: SUBDIRLIST(output_var dir)
+
+
+   .. note:: This is a macro, and so does not introduce a new scope.
+
+   
+
+
+.. function:: SUBDIRLIST_EXCLUDE(output_var dir excluded_patterns)
 
 
    .. note:: This is a macro, and so does not introduce a new scope.

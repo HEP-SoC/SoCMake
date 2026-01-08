@@ -1,0 +1,12 @@
+
+#######################
+cmake.sim/cocotb/cocotb
+#######################
+
+.. module:: cmake.sim/cocotb/cocotb
+
+
+.. function:: cocotb(IP_LIB **kwargs)
+
+   
+
