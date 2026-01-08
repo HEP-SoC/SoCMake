@@ -980,7 +980,7 @@ endfunction()
 
 #[[[
 # This function recursively get the property PROPERTY from the target IP_LIB and
-# returns a list stored in OUTVAR.
+# returns a list stored in OUTVAR respecting the hierarchy order of traversed targets.
 #
 # :param OUT_VAR: Variable containing the requested property.
 # :type OUT_VAR: string
