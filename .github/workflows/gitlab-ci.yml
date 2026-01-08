@@ -2,13 +2,12 @@ name: Trigger GitLab CI
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, closed]
-  branches:
-    - master
-    - develop
+    types: [opened, synchronize, reopened, closed, labeled]
 
 jobs:
   trigger-gitlab:
+    if: contains(github.event.pull_request.labels.*.name, 'gitlab-ci-approved')
+
     runs-on: ubuntu-latest
 
     steps:
