@@ -24,7 +24,7 @@ function(add_ip_from_ipxact COMP_XML)
     list(GET vlnv_list 2 ip_name)
     list(GET vlnv_list 3 ip_version)
 
-    set(output_cmake_file ${ip_source_dir}/${ip_vendor}__${ip_library}__${ip_name}Config.cmake)
+    set(output_cmake_file ${ip_source_dir}/${ip_vendor}_${ip_library}_${ip_name}_${ip_version}.cmake)
 
 
     execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/get_find_ips.xslt" ${COMP_XML}
