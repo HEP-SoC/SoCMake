@@ -1004,6 +1004,8 @@ function(ip_recursive_get_target_property OUTVAR IP_LIB PROPERTY)
 
     alias_dereference(_reallib ${IP_LIB})
 
+    set(_excluded_ips_reallib_list)
+
     foreach(excl_ip ${ARG_EXCLUDED_IPS})
         alias_dereference(_excl_ip_reallib ${excl_ip})
         set(_excluded_ips_reallib_list ${_excluded_ips_reallib_list} ${_excl_ip_reallib})
@@ -1018,20 +1020,24 @@ function(ip_recursive_get_target_property OUTVAR IP_LIB PROPERTY)
             # Recursively process sub-targets if they exist
             if(TARGET ${_subtarget})
                 # Stop the recursive search if the IP is excluded
-                if(ARG_EXCLUDED_IPS AND NOT ${_subtarget} IN_LIST _excluded_ips_reallib_list)
+                if(NOT ${_subtarget} IN_LIST _excluded_ips_reallib_list)
                     # Add the current target to the list
                     list(APPEND _seen_values ${_subtarget})
                     # Recusrive call to search for the property in the sub-target
                     ip_recursive_get_target_property(_recursive_values ${_subtarget} ${PROPERTY} ${ARG_EXCLUDED_IPS})
                     # Add the recursively collected target to the list
-                    list(APPEND _seen_values ${_recursive_values})
+                    list(PREPEND _seen_values ${_recursive_values})
                     # Remove duplicates keeping the first appearing instance
                     list(REMOVE_DUPLICATES _seen_values)
                 else()
                     message(DEBUG "-- ${CMAKE_CURRENT_FUNCTION}: ip target ${_subtarget} is excluded from search")
                 endif()
+            else()
+                message(DEBUG "-- ${CMAKE_CURRENT_FUNCTION}: ${_subtarget} is not a target, not added to seen values")
             endif()
         endforeach()
+    else()
+        message(DEBUG "-- ${CMAKE_CURRENT_FUNCTION}: target ${_reallib} has no property ${PROPERTY} or it is not set")
     endif()
 
     message(DEBUG "-- ${CMAKE_CURRENT_FUNCTION}: ${_reallib} _seen_values: ${_seen_values}")
