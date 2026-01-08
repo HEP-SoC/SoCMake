@@ -14,8 +14,8 @@ jobs:
       - name: Check required secrets
         run: |
           set -e
-          test -n "${{ secrets.GITLAB_TRIGGER_TOKEN }}" || {
-            echo "GITLAB_TRIGGER_TOKEN is not set"
+          test -n "${{ secrets.GITLAB_SOCMAKE_CI_TRIGGER_TOKEN }}" || {
+            echo "GITLAB_SOCMAKE_CI_TRIGGER_TOKEN is not set"
             exit 1
           }
 
@@ -25,7 +25,7 @@ jobs:
         run: |
           set -e
           curl --fail-with-body -X POST \
-            -F token=${{ secrets.GITLAB_TRIGGER_TOKEN }} \
+            -F token=${{ secrets.GITLAB_SOCMAKE_CI_TRIGGER_TOKEN }} \
             -F ref=webhook \
             -F variables[PR_NUMBER]=${{ github.event.pull_request.number }} \
             -F variables[PR_SHA]=${{ github.event.pull_request.head.sha }} \
