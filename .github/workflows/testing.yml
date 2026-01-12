@@ -1,14 +1,27 @@
 name: testing_workflow 
 
-# execute this workflow automatically when a we push to master
-on: [push]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+  push:
+    branches:
+      - master
+      - develop
+    branches-ignore:
+      - 'docs/**'
 
 jobs:
 
   testing:
+    if: >
+      github.event_name == 'push' ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.merged != true
+      )
+
     runs-on: ubuntu-latest
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout
@@ -21,7 +34,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get install cmake sudo iverilog make g++ perl cpanminus xsltproc
+          sudo apt-get install cmake sudo iverilog make g++ perl cpanminus
 
           # Install Verilog::Perl from GitHub
           git clone https://github.com/Veripool/Verilog-Perl.git

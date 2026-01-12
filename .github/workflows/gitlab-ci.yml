@@ -2,21 +2,54 @@ name: Trigger GitLab CI
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, closed]
-  branches:
-    - master
-    - develop
+    types: [opened, synchronize, reopened, closed, labeled]
+
+  issue_comment:
+    types: [created]
+
+  push:
+    branches:
+      - master
+      - develop
+    branches-ignore:
+      - 'docs/**'
 
 jobs:
-  trigger-gitlab:
+  trigger-gitlab-testing:
+    if: >
+      github.event_name == 'push' ||
+      (
+        github.event_name == 'pull_request_target' &&
+        contains(github.event.pull_request.labels.*.name, 'trigger-gitlab-testing')
+      ) ||
+      (
+        github.event_name == 'issue_comment' &&
+        contains(github.event.comment.body, '/trigger-gitlab-testing')
+      )
+
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check commenter permissions
+        if: github.event_name == 'issue_comment'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.comment.user.login,
+            });
+
+            if (!['admin', 'maintain', 'write'].includes(data.permission)) {
+              core.setFailed('User is not a maintainer');
+            }
+
       - name: Check required secrets
         run: |
           set -e
-          test -n "${{ secrets.GITLAB_TRIGGER_TOKEN }}" || {
-            echo "GITLAB_TRIGGER_TOKEN is not set"
+          test -n "${{ secrets.GITLAB_SOCMAKE_CI_TRIGGER_TOKEN }}" || {
+            echo "GITLAB_SOCMAKE_CI_TRIGGER_TOKEN is not set"
             exit 1
           }
 
@@ -26,11 +59,13 @@ jobs:
         run: |
           set -e
           curl --fail-with-body -X POST \
-            -F token=${{ secrets.GITLAB_TRIGGER_TOKEN }} \
+            -F token=${{ secrets.GITLAB_SOCMAKE_CI_TRIGGER_TOKEN }} \
             -F ref=webhook \
             -F variables[PR_NUMBER]=${{ github.event.pull_request.number }} \
             -F variables[PR_SHA]=${{ github.event.pull_request.head.sha }} \
             -F variables[PR_BRANCH]=${{ github.event.pull_request.head.ref }} \
             -F variables[BASE_BRANCH]=${{ github.event.pull_request.base.ref }} \
             -F variables[PR_MERGED]=${{ github.event.pull_request.merged }} \
+            -F variables[CI_JOB]=${{ github.repository }} \
+            -F variables[TRIGGER_JOB]=${{ github.job }} \
             https://gitlab.cern.ch/api/v4/projects/220732/trigger/pipeline
