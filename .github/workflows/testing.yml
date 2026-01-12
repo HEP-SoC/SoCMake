@@ -8,7 +8,7 @@ on:
     branches:
       - master
       - develop
-    branches-ignore:
+    paths-ignore:
       - 'docs/**'
 
 jobs:
