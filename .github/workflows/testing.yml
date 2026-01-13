@@ -34,8 +34,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          apt update
-          apt install -y cmake iverilog make g++ perl cpanminus xsltproc
+          sudo apt update
+          sudo apt install -y cmake iverilog make g++ perl cpanminus xsltproc
 
           # Install Verilog::Perl from GitHub
           git clone https://github.com/Veripool/Verilog-Perl.git
