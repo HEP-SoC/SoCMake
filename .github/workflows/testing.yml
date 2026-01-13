@@ -24,8 +24,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -52,4 +53,11 @@ jobs:
           mkdir build
           cd build
           cmake -DSOCMAKE_BUILD_TESTING=TRUE ../
-          make check_cdash
+          
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # PR build -> no CDash update
+            make check
+          else
+            # Push / merge build -> CDash update
+            make check_cdash
+          fi
