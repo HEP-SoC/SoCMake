@@ -53,4 +53,11 @@ jobs:
           mkdir build
           cd build
           cmake -DSOCMAKE_BUILD_TESTING=TRUE ../
-          make check_cdash
+          
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # PR build -> no CDash update
+            make check
+          else
+            # Push / merge build -> CDash update
+            make check_cdash
+          fi
