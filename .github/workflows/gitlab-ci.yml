@@ -60,7 +60,7 @@ jobs:
           set -e
           curl --fail-with-body -X POST \
             -F token=${{ secrets.GITLAB_SOCMAKE_CI_TRIGGER_TOKEN }} \
-            -F ref=webhook \
+            -F ref=main \
             -F variables[PR_NUMBER]=${{ github.event.pull_request.number }} \
             -F variables[PR_SHA]=${{ github.event.pull_request.head.sha }} \
             -F variables[PR_BRANCH]=${{ github.event.pull_request.head.ref }} \
