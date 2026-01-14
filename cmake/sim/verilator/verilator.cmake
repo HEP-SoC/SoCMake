@@ -193,11 +193,6 @@ function(verilator IP_LIB)
                 ${EXT_PRJ_ARGS}
                 -DVERILATOR_ROOT=${VERILATOR_ROOT}
                 -DSYSTEMC_ROOT=${SYSTEMC_HOME}
-            # VERILATOR_ROOT env variable is required for some older versions of verilator
-            # For the configuration phase, this is set in the verilator/CMakeLists.txt file
-            # For the build phase, this is the simplest (only?) solution
-            BUILD_COMMAND ${CMAKE_COMMAND} -E env VERILATOR_ROOT=${VERILATOR_ROOT} make
-            BUILD_JOB_SERVER_AWARE 1
             INSTALL_COMMAND ""
             DEPENDS ${IP_LIB}
             EXCLUDE_FROM_ALL 1
