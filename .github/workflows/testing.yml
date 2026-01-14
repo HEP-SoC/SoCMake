@@ -1,18 +1,32 @@
 name: testing_workflow 
 
-# execute this workflow automatically when a we push to master
-on: [push]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+  push:
+    branches:
+      - master
+      - develop
+    paths-ignore:
+      - 'docs/**'
 
 jobs:
 
   testing:
+    if: >
+      github.event_name == 'push' ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.merged != true
+      )
+
     runs-on: ubuntu-latest
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -21,7 +35,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get install cmake sudo iverilog make g++ perl cpanminus xsltproc
+          sudo apt update
+          sudo apt install -y cmake iverilog make g++ perl cpanminus xsltproc
 
           # Install Verilog::Perl from GitHub
           git clone https://github.com/Veripool/Verilog-Perl.git
@@ -31,11 +46,18 @@ jobs:
           sudo make install
           cd ..
 
-          pip install peakrdl rich
+          pip install jinja2~=3.1.6 peakrdl==1.5.0 rich==14.2.0 
 
       - name: run tests
         run: |
           mkdir build
           cd build
           cmake -DSOCMAKE_BUILD_TESTING=TRUE ../
-          make check_cdash
+          
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # PR build -> no CDash update
+            make check
+          else
+            # Push / merge build -> CDash update
+            make check_cdash
+          fi

@@ -2,3 +2,4 @@
 *build/
 *_deps/
 .venv/
+*__pycache__/

@@ -112,12 +112,12 @@ function(verilator IP_LIB)
     if(ARG_RUN_ARGS)
         set(__ARG_RUN_ARGS ${ARG_RUN_ARGS})
         unset(ARG_RUN_ARGS)
-    endif() 
+    endif()
 
     if(ARG_NO_RUN_TARGET)
         set(__ARG_NO_RUN_TARGET ${ARG_NO_RUN_TARGET})
         unset(ARG_NO_RUN_TARGET)
-    endif() 
+    endif()
 
     set(PASS_ADDITIONAL_MULTIPARAM SOURCES INCLUDE_DIRS) # Additional parameters to pass
     set(PASS_ADDITIONAL_ONEPARAM DIRECTORY PREFIX)
@@ -193,7 +193,6 @@ function(verilator IP_LIB)
                 ${EXT_PRJ_ARGS}
                 -DVERILATOR_ROOT=${VERILATOR_ROOT}
                 -DSYSTEMC_ROOT=${SYSTEMC_HOME}
-
             INSTALL_COMMAND ""
             DEPENDS ${IP_LIB}
             EXCLUDE_FROM_ALL 1
