@@ -26,7 +26,7 @@ include_guard(GLOBAL)
 # ]]]
 function(iverilog IP_LIB)
     # Parse the function arguments
-    cmake_parse_arguments(ARG "NO_RUN_TARGET" "TOP_MODULE;OUTDIR;EXECUTABLE;RUN_TARGET_NAME" "IVERILOG_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET" "TOP_MODULE;OUTDIR;EXECUTABLE;RUN_TARGET_NAME" "SV_COMPILE_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
