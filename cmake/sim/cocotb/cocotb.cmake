@@ -70,9 +70,9 @@ function(cocotb IP_LIB)
         message(FATAL_ERROR "Cocotb not found. Please install it or provide the path to the cocotb-config executable.")
     endif()
     execute_process(
-        OUTPUT_VARIABLE COCOTB_PY_DIR
+        OUTPUT_VARIABLE COCOTB_SHARE_DIR
         ERROR_VARIABLE ERROR_MSG
-        COMMAND ${COCOTB_CONFIG_EXECUTABLE} --prefix
+        COMMAND ${COCOTB_CONFIG_EXECUTABLE} --share
     )
     execute_process(
         OUTPUT_VARIABLE COCOTB_LIB_DIR
@@ -80,11 +80,10 @@ function(cocotb IP_LIB)
         COMMAND ${COCOTB_CONFIG_EXECUTABLE} --lib-dir
     )
     # Remove the line feed of the variable
-    string(STRIP ${COCOTB_PY_DIR} COCOTB_PY_DIR)
+    string(STRIP ${COCOTB_SHARE_DIR} COCOTB_SHARE_DIR)
     string(STRIP ${COCOTB_LIB_DIR} COCOTB_LIB_DIR)
-    set(COCOTB_SHARE_DIR ${COCOTB_PY_DIR}/cocotb/share)
     # First get all Python files from cocotb
-    file(GLOB_RECURSE COCOTB_PY_DEPS ${COCOTB_PY_DIR}/*.py)
+    file(GLOB_RECURSE COCOTB_PY_DEPS ${COCOTB_SHARE_DIR}/../*.py)
     # Get all files in the cocotb library directory
     file(GLOB COCOTB_LIB_DEPS ${COCOTB_LIB_DIR}/*.so)
 
