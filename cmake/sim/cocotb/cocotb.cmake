@@ -197,7 +197,7 @@ function(cocotb IP_LIB)
             ELABORATE_ARGS -access +rwc -timescale ${ARG_TIMESCALE} -loadvpi ${COCOTB_VPI_PATH}:vlog_startup_routines_bootstrap -loadvhpi ${COCOTB_VHPI_PATH}:cocotbvhpi_entry_point
             SV_COMPILE_ARGS -DCOCOTB_SIM=1
         )
-        set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
+        set(sim_run_cmd ${SOCMAKE_SIM_RUN_CMD} ${ARG_RUN_ARGS})
         set(sim_build_dep ${IP_LIB}_xcelium)
         message(DEBUG "COCOTB: Xcelium run command: ${sim_run_cmd}")
     elseif(${ARG_SIM} STREQUAL modelsim OR ${ARG_SIM} STREQUAL questa)
@@ -249,12 +249,23 @@ function(cocotb IP_LIB)
         # Default parameters based on cocotb Makefile.inc
         set(COCOTB_RESULTS_FILE ${OUTDIR}/results.xml)
 
-        set(__sim_run_cmd
-            PYTHONPATH=${PYTHONPATH}
-            MODULE=${ARG_COCOTB_MODULE}
-            COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
-            ${sim_run_cmd}
-        )
+        set(__sim_run_cmd ${sim_run_cmd})
+        list(FIND __sim_run_cmd "&&" _and_index)
+        if(_and_index GREATER -1)
+            math(EXPR _insert_index "${_and_index} + 1")
+            list(INSERT __sim_run_cmd ${_insert_index}
+                PYTHONPATH=${PYTHONPATH}
+                MODULE=${ARG_COCOTB_MODULE}
+                COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
+            )
+        else()
+            set(__sim_run_cmd
+                PYTHONPATH=${PYTHONPATH}
+                MODULE=${ARG_COCOTB_MODULE}
+                COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
+                ${sim_run_cmd}
+            )
+        endif()
 
         if(NOT ARG_NO_RUN_TARGET)
             if(ARG_RUN_TARGET_NAME)
@@ -293,12 +304,25 @@ function(cocotb IP_LIB)
             # Default parameters based on cocotb Makefile.inc
             set(COCOTB_RESULTS_FILE ${OUTDIR}/results.xml)
 
-            set(__sim_run_cmd
-                PYTHONPATH=${PYTHONPATH}
-                MODULE=${ARG_COCOTB_MODULE}
-                COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
-                ${sim_run_cmd}
-            )
+            set(__sim_run_cmd ${sim_run_cmd})
+            list(FIND __sim_run_cmd "&&" _and_index)
+            if(_and_index GREATER -1)
+                math(EXPR _insert_index "${_and_index} + 1")
+                list(INSERT __sim_run_cmd ${_insert_index}
+                    PYTHONPATH=${PYTHONPATH}
+                    MODULE=${ARG_COCOTB_MODULE}
+                    COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
+                    TESTCASE=${ARG_COCOTB_MODULE}_test_${test_num}
+                )
+            else()
+                set(__sim_run_cmd
+                    PYTHONPATH=${PYTHONPATH}
+                    MODULE=${ARG_COCOTB_MODULE}
+                    COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
+                    TESTCASE=${ARG_COCOTB_MODULE}_test_${test_num}
+                    ${sim_run_cmd}
+                )
+            endif()
 
             if(NOT ARG_NO_RUN_TARGET)
                 if(ARG_RUN_TARGET_NAME)
@@ -311,7 +335,7 @@ function(cocotb IP_LIB)
                 # Add a custom target that depends on the executable and stamp file
                 add_custom_target(${CUSTOM_TARGET_NAME}
                     COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
-                    COMMAND TESTCASE=${ARG_COCOTB_MODULE}_test_${test_num} ${__sim_run_cmd}
+                    COMMAND ${__sim_run_cmd}
                     BYPRODUCTS ${COCOTB_RESULTS_FILE}
                     DEPENDS ${sim_build_dep} ${cocotb_custom_sim_deps}
                     COMMENT ${DESCRIPTION}
@@ -325,3 +349,4 @@ function(cocotb IP_LIB)
     set(SIM_BUILD_DEP ${sim_build_dep} PARENT_SCOPE)
 
 endfunction()
+
