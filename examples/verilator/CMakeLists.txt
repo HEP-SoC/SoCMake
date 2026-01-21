@@ -13,4 +13,7 @@ add_executable(testbench main.cpp)
 
 target_link_libraries(testbench adder::vlt)
 
+add_custom_target(run_tb_verilator
+    COMMAND testbench)
+
 help()

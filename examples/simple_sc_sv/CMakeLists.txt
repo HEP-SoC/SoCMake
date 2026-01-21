@@ -34,5 +34,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     VERBOSE
     )
 
+add_custom_target(run_simple_sc_sv_example
+    COMMAND simple_sc_sv_example)
+
 help()
 
