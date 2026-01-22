@@ -16,4 +16,3 @@ target_link_libraries(systemc_example PUBLIC
 
 add_custom_target(run_systemc_example
     COMMAND systemc_example)
-    
