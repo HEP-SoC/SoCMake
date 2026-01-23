@@ -18,3 +18,6 @@ target_include_directories(systemc_example PUBLIC
 target_link_libraries(systemc_example PUBLIC
     SystemC::systemc
     UVM-SystemC::shared)
+
+add_custom_target(run_systemc_example
+    COMMAND systemc_example)
