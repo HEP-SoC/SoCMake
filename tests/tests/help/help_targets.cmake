@@ -2,7 +2,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../../SoCMakeConfig.cmake")
 
 set(CDIR ${CMAKE_CURRENT_LIST_DIR})
 
-set(TEST_NAME ip_link1)
+set(TEST_NAME help_targets)
 
 ct_add_test(NAME ${TEST_NAME})
 function(${${TEST_NAME}})
