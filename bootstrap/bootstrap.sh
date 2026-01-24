@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
 
-SOCMAKE_VERSION="${SOCMAKE_VERSION:-develop}"
+# TODO We should fix this to a tag that we know contains these scripts
+# These scripts should not change in the future, as there is no version information
+SOCMAKE_VERSION="${SOCMAKE_VERSION:-bootstrap}"
 INSTALL_DIR="${HOME}/.local/lib/cmake/socmake"
 # TODO change this once merged to main repo
 REPO_URL="${SOCMAKE_REPO_URL:-https://raw.githubusercontent.com/risto97/socmake}"
