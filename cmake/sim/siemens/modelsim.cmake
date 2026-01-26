@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
 function(modelsim IP_LIB)
-    message(DEPRECATION "modelsim function is deprecated, you might want to use questasim instead")
+    message(DEPRECATION "${Red}modelsim function is deprecated, you might want to use questasim instead${ColourReset}")
     cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER;32BIT" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
