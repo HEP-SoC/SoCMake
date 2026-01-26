@@ -5,15 +5,13 @@ set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/_deps)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 set(SOCMAKE_ADDITIONAL_LANGUAGES SYSTEMC)
 
-option_enum(SIMULATOR "Which Simulator to use" "modelsim;questa;osci;xcelium;vcs" "vcs")
+option_enum(SIMULATOR "Which Simulator to use" "questa;osci;xcelium;vcs" "vcs")
 option_enum(TEST_LANG "Language for test module" "verilog;systemc" "verilog")
 option_enum(DUT_LANG "Language for DUT modules" "verilog;systemc" "verilog")
 option_boolean(QUESTA_GUI "Use GUI for questasim" OFF)
 
 if(SIMULATOR STREQUAL "xcelium")
     xcelium_configure_cxx(LIBRARIES SystemC)
-elseif(SIMULATOR STREQUAL "modelsim")
-    modelsim_configure_cxx(LIBRARIES SystemC)
 elseif(SIMULATOR STREQUAL "questa")
     questasim_configure_cxx(LIBRARIES SystemC)
 elseif(SIMULATOR STREQUAL "vcs")
@@ -51,21 +49,6 @@ if(SIMULATOR STREQUAL "vcs")
         # 32BIT
         )
 
-endif()
-
-# ################################################
-# ################ MODELSIM ######################
-# ################################################
-
-if(SIMULATOR STREQUAL "modelsim")
-    if(QUESTA_GUI)
-        set(modelsim_gui_args GUI)
-        set(modelsim_gui_run_args -vopt -voptargs=+acc=pn)
-    endif()
-    modelsim(test_counters QUIET
-        ${modelsim_gui_args}
-        RUN_ARGS -t 1ps ${modelsim_gui_run_args}
-        )
 endif()
 
 # ################################################

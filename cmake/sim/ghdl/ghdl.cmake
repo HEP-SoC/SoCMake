@@ -204,7 +204,7 @@ function(__ghdl_compile_lib IP_LIB)
         endforeach()
         list(APPEND cf_files "${lib_outdir}/${__comp_lib_name}-obj${STANDARD}.cf")
 
-        # Modelsim/Questasim custom command of current IP block should depend on stamp files of immediate linked IPs
+        # Questasim custom command of current IP block should depend on stamp files of immediate linked IPs
         # Extract the list from __ghdl_<LIB>_stamp_files
         get_ip_links(ip_subdeps ${lib} NO_DEPS)
         unset(__ghdl_subdep_stamp_files)

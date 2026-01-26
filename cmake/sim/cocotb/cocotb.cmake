@@ -24,7 +24,7 @@ include_guard(GLOBAL)
 # :type COCOTB_MODULE: string
 # :keyword COCOTB_TESTCASE: Cocotb number of test cases to run (from 1 to N). All test cases are run sequentially if not provided.
 # :type COCOTB_TESTCASE: integer
-# :keyword SIM: Simulator to use. Supported simulators is: icarus (cocotb also support verilator, xcelium, vcs and modelsim/questasim, not yet supported by SoCMake).
+# :keyword SIM: Simulator to use. Supported simulators is: icarus (cocotb also support verilator, xcelium, vcs and questasim, not yet supported by SoCMake).
 # :type SIM: string
 # :keyword TIMESCALE: Simulation timscale. Default is 1ns/1ps.
 # :type TIMESCALE: string
@@ -200,8 +200,8 @@ function(cocotb IP_LIB)
         set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
         set(sim_build_dep ${IP_LIB}_xcelium)
         message(DEBUG "COCOTB: Xcelium run command: ${sim_run_cmd}")
-    elseif(${ARG_SIM} STREQUAL modelsim OR ${ARG_SIM} STREQUAL questa)
-        message(FATAL_ERROR "Using ModelSim/QuestaSim simulator is not supported by SoCMake yet")
+    elseif(${ARG_SIM} STREQUAL questa)
+        message(FATAL_ERROR "Using QuestaSim simulator is not supported by SoCMake yet")
         # TODO: Add support for QuestaSim
     elseif(${ARG_SIM} STREQUAL vcs)
         message(DEBUG "COCOTB: Using VCS simulator")
@@ -237,7 +237,7 @@ function(cocotb IP_LIB)
         set(sim_build_dep ${IP_LIB}_vcs)
         message(DEBUG "COCOTB: VCS run command: ${sim_run_cmd}")
     else()
-        message(FATAL_ERROR "Unsupported cocotb simulator: ${ARG_SIM}\nSupported simulators are: icarus/iverilog, verilator, xcelium, questa/modelsim (supported by cocotb but not by SoCMake yet), vcs (supported by cocotb but not by SoCMake yet).")
+        message(FATAL_ERROR "Unsupported cocotb simulator: ${ARG_SIM}\nSupported simulators are: icarus/iverilog, verilator, xcelium, questasim (supported by cocotb but not by SoCMake yet), vcs (supported by cocotb but not by SoCMake yet).")
     endif()
 
     # If no test cases are provided, all test cases are run sequentially

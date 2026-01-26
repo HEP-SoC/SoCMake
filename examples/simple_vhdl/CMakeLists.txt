@@ -3,7 +3,7 @@ project(simple_mixed_language NONE)
 
 include("../../SoCMakeConfig.cmake")
 
-option_enum(SIMULATOR "Which simulator to use" "ghdl;questa;vivado_sim;modelsim;xcelium;vcs;all" "ghdl")
+option_enum(SIMULATOR "Which simulator to use" "ghdl;questa;vivado_sim;xcelium;vcs;all" "ghdl")
 if(SIMULATOR STREQUAL "all")
     set(ALL_SIMS TRUE)
 endif()
@@ -19,10 +19,6 @@ ip_link(${IP} adder)
 
 if(SIMULATOR STREQUAL "questa" OR ALL_SIMS)
     questasim(${IP})
-endif()
-
-if(SIMULATOR STREQUAL "modelsim" OR ALL_SIMS)
-    modelsim(${IP})
 endif()
 
 if(SIMULATOR STREQUAL "vivado_sim" OR ALL_SIMS)
