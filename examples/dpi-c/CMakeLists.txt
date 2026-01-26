@@ -55,6 +55,8 @@ if(SIMULATOR STREQUAL "verilator")
     verilator(${IP})
     add_executable(verilator_tb EXCLUDE_FROM_ALL Vtb__main.cpp )
     target_link_libraries(verilator_tb tb__vlt)
+    add_custom_target(run_tb_verilator
+        COMMAND verilator_tb)
 endif()
 
 help()
