@@ -21,7 +21,11 @@ if(SIMULATOR STREQUAL "iverilog" OR ALL_SIMS)
     iverilog(${IP})
 endif()
 
-if(SIMULATOR STREQUAL "questa" OR SIMULATOR STREQUAL "modelsim" OR ALL_SIMS)
+if(SIMULATOR STREQUAL "questa" OR ALL_SIMS)
+    questasim(${IP})
+endif()
+
+if(SIMULATOR STREQUAL "modelsim" OR ALL_SIMS)
     modelsim(${IP})
 endif()
 

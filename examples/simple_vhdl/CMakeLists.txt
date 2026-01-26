@@ -17,7 +17,11 @@ ip_sources(${IP} VHDL
 add_subdirectory(adder)
 ip_link(${IP} adder)
 
-if(SIMULATOR STREQUAL "questa" OR SIMULATOR STREQUAL "modelsim" OR ALL_SIMS)
+if(SIMULATOR STREQUAL "questa" OR ALL_SIMS)
+    questasim(${IP})
+endif()
+
+if(SIMULATOR STREQUAL "modelsim" OR ALL_SIMS)
     modelsim(${IP})
 endif()
 

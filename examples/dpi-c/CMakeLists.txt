@@ -1,9 +1,11 @@
 include("../../SoCMakeConfig.cmake")
 
-option_enum(SIMULATOR "Which simulator to use" "questa;vivado_sim;modelsim;xcelium;vcs;verilator;verilator_sv_tb;all" "modelsim")
+option_enum(SIMULATOR "Which simulator to use" "questa;vivado_sim;modelsim;xcelium;vcs;verilator;verilator_sv_tb;all" "questasim")
 
-if(SIMULATOR STREQUAL "questa" OR SIMULATOR STREQUAL "modelsim")
+if(SIMULATOR STREQUAL "modelsim")
     modelsim_configure_cxx(LIBRARIES DPI-C)
+elseif(SIMULATOR STREQUAL "questa")
+    questasim_configure_cxx(LIBRARIES DPI-C)
 elseif(SIMULATOR STREQUAL "xcelium")
     xcelium_configure_cxx(LIBRARIES DPI-C)
 elseif(SIMULATOR STREQUAL "vcs")
@@ -29,7 +31,11 @@ add_subdirectory(hello)
 
 ip_link(${IP} hello_dpi)
 
-if(SIMULATOR STREQUAL "questa" OR SIMULATOR STREQUAL "modelsim")
+if(SIMULATOR STREQUAL "questa")
+    questasim(${IP})
+endif()
+
+if(SIMULATOR STREQUAL "modelsim")
     modelsim(${IP})
 endif()
 
