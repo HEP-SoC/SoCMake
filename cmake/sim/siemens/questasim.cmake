@@ -742,3 +742,7 @@ function(questasim_add_cxx_libs)
 
 endfunction()
 
+macro(modelsim)
+    message(DEPRECATION "${Red}modelsim function is deprecated, questasim() is called instead${ColourReset}")
+    questasim(${ARGV})
+endmacro()
