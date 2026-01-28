@@ -46,18 +46,32 @@ jobs:
           sudo make install
           cd ..
 
-          pip install jinja2~=3.1.6 peakrdl==1.5.0 rich==14.2.0 
+          pip install jinja2~=3.1.6 peakrdl==1.5.0 rich==14.2.0 ninja==1.13.1
 
-      - name: run tests
+      - name: run tests make
         run: |
-          mkdir build
-          cd build
+          mkdir build_make
+          cd build_make
           cmake -DSOCMAKE_BUILD_TESTING=TRUE ../
           
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             # PR build -> no CDash update
-            make check
+            ctest --output-on-failure
           else
             # Push / merge build -> CDash update
-            make check_cdash
+            ctest -D Nightly --output-on-failure
+          fi
+
+      - name: run tests ninja
+        run: |
+          mkdir build_ninja
+          cd build_ninja
+          cmake -GNinja -DSOCMAKE_BUILD_TESTING=TRUE ../
+          
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # PR build -> no CDash update
+            ctest --output-on-failure
+          else
+            # Push / merge build -> CDash update
+            ctest -D Nightly --output-on-failure
           fi
