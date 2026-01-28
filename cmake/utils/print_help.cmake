@@ -292,7 +292,7 @@ endfunction()
 # :type TARGET_LIST: list
 # ]]]
 function(help_custom_targets_list HELP_NAME)
-    cmake_parse_arguments(ARG "PRINT_ON_CONF;EXCLUDE_FROM_HELP_ALL" "" "TARGET_LIST" ${ARGN})
+    cmake_parse_arguments(ARG "PRINT_ON_CONF;EXCLUDE_FROM_HELP_ALL" "DESCRIPTION" "TARGET_LIST" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -324,6 +324,9 @@ function(help_custom_targets_list HELP_NAME)
         get_target_property(TYPE ${target} TYPE)
         if(TYPE STREQUAL UTILITY)
             get_target_property(DESCRIPTION ${target} DESCRIPTION)
+            if(NOT DESCRIPTION)
+                set(DESCRIPTION "DESCRIPTION-NOTFOUND")
+            endif()
             __get_target_help(HELP_ROW ${target} ${DESCRIPTION} ${MAX_LEN})
             string(APPEND OUT_STRING ${HELP_ROW})
         endif()
@@ -341,7 +344,7 @@ function(help_custom_targets_list HELP_NAME)
         COMMAND cat ${PROJECT_BINARY_DIR}/help_${HELP_NAME}.txt
         COMMENT "Print targets help"
         )
-
+    set_property(TARGET help_${HELP_NAME} PROPERTY DESCRIPTION "${ARG_DESCRIPTION}")
     if(NOT ARG_EXCLUDE_FROM_HELP_ALL)
         set_property(GLOBAL APPEND PROPERTY SOCMAKE_HELP_TARGETS help_${HELP_NAME})
     endif()
@@ -371,7 +374,7 @@ function(help_targets)
     endif()
 
     get_all_targets(ALL_TARGETS)
-    help_custom_targets("targets" TARGET_LIST ${ALL_TARGETS})
+    help_custom_targets("targets" TARGET_LIST ${ALL_TARGETS} DESCRIPTION "List all targets")
 endfunction()
 
 
@@ -397,11 +400,13 @@ endfunction()
 # :type EXCLUDE_FROM_HELP_ALL: boolean
 # :keyword PATTERN: Regular expression to match the targets to include in the menu
 # :type PATTERN: string
+# :keyword DESCRIPTION: Description of the test menu
+# :type DESCRIPTION: string
 # :keyword TARGET_LIST: List of targets to include in the help message
 # :type TARGET_LIST: list
 # ]]]
 function(help_custom_targets HELP_NAME)
-    cmake_parse_arguments(ARG "PRINT_ON_CONF;EXCLUDE_FROM_HELP_ALL" "PATTERN" "TARGET_LIST" ${ARGN})
+    cmake_parse_arguments(ARG "PRINT_ON_CONF;EXCLUDE_FROM_HELP_ALL" "PATTERN;DESCRIPTION" "TARGET_LIST" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -420,8 +425,13 @@ function(help_custom_targets HELP_NAME)
         message(FATAL_ERROR "Specify either PATTERN or TARGET_LIST arguments")
     endif()
 
+    unset(description_arg)
+    if(ARG_DESCRIPTION)
+        set(description_arg DESCRIPTION "${ARG_DESCRIPTION}")
+    endif()
+
     if(targets)
-        help_custom_targets_list(${HELP_NAME} TARGET_LIST ${targets})
+        help_custom_targets_list(${HELP_NAME} TARGET_LIST ${targets} ${description_arg})
     else()
         message(WARNING "No targets found for PATTERN: ${ARG_PATTERN} or TARGET_LIST: ${ARG_TARGET_LIST}")
     endif()

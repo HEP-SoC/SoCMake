@@ -82,19 +82,23 @@ function(${${TEST_NAME}})
         build_bootloader 
         build_firmware 
         build_fpga_bitstream 
-        build_documentation)
+        build_documentation
+        DESCRIPTION "Build targets"
+        )
 
     help_custom_targets("simulation" TARGET_LIST 
         sim_core_unit_tests 
         sim_peripheral_tests 
-        sim_integration)
+        sim_integration
+        DESCRIPTION "Simulation targets"
+        )
 
     help_custom_targets("flash" TARGET_LIST 
         flash_bootloader 
         flash_firmware 
         flash_fpga)
 
-    help_custom_targets("uart_tests" PATTERN "run_test_uart[0-9]_*")
+    help_custom_targets("uart_tests" PATTERN "run_test_uart[0-9]_*" DESCRIPTION "UART tests")
     help_custom_targets("spi_tests" PATTERN "run_test_spi[0-9]_*")
     help_custom_targets("i2c_tests" PATTERN "run_test_i2c[0-9]_*")
     help_custom_targets("memory_tests" PATTERN "run_test_ddr_*|run_test_cache_*")
