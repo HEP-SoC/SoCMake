@@ -2,9 +2,10 @@
 set -e
 
 # Configuration
-SOCMAKE_VERSION="${SOCMAKE_VERSION:-bootstrap}"
+# TODO change develop to a fixed TAG
+SOCMAKE_VERSION="${SOCMAKE_VERSION:-develop}"
 INSTALL_DIR="${HOME}/.local/lib/cmake/socmake"
-REPO_URL="${SOCMAKE_REPO_URL:-https://raw.githubusercontent.com/risto97/socmake}"
+REPO_URL="${SOCMAKE_REPO_URL:-https://raw.githubusercontent.com/HEP-SoC/SoCMake}"
 
 echo "Installing SoCMake bootstrap files..."
 echo "  Git tag: ${SOCMAKE_VERSION}"
