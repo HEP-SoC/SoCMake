@@ -280,8 +280,6 @@ endfunction()
 # It can be called multiple times the build flow to create custom help messages
 # for a given list of targets.
 #
-#```
-#
 # **Keyword Arguments**
 #
 # :keyword PRINT_ON_CONF: Print the help message during configure phase
@@ -390,8 +388,6 @@ endfunction()
 #help_custom_targets("fpga" TARGET_LIST fpga_build fpga_flash") 
 #```
 #
-#```
-#
 # **Keyword Arguments**
 #
 # :keyword PRINT_ON_CONF: Print the help message during configure phase
@@ -441,9 +437,7 @@ endfunction()
 # This function creates a help target for printing target and IPs information.
 #
 # The build subdirectories will be recursively searched for targets.
-#
 # It should be called only once in the build flow.
-#
 # Preferably at the end of the CMakeLists.txt
 #
 # In order to run it only once at the top level, following trick can be used.
