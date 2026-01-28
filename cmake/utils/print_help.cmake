@@ -286,6 +286,8 @@ endfunction()
 #
 # :keyword PRINT_ON_CONF: Print the help message during configure phase
 # :type PRINT_ON_CONF: boolean
+# :keyword EXCLUDE_FROM_HELP_ALL: Exclude this help menu from the help_all target
+# :type EXCLUDE_FROM_HELP_ALL: boolean
 # :keyword TARGET_LIST: List of targets to include in the help message
 # :type TARGET_LIST: list
 # ]]]
@@ -347,13 +349,9 @@ endfunction()
 
 # [[[
 # This function creates a help target for printing target information.
-#
 # The build subdirectories will be recursively searched for targets.
-#
 # It should be called only once in the build flow.
-#
 # Preferably at the end of the CMakeLists.txt
-#
 # In order to run it only once at the top level, following trick can be used.
 #```
 # if(PROJECT_IS_TOP_LEVEL)
@@ -383,12 +381,20 @@ endfunction()
 # It can be called multiple times the build flow to create custom help messages
 # for a given list of targets.
 #
+# Example usage:
+#```
+#help_custom_targets("uart_tests" PATTERN "run_test_uart[0-9]_*)") 
+#help_custom_targets("fpga" TARGET_LIST fpga_build fpga_flash") 
+#```
+#
 #```
 #
 # **Keyword Arguments**
 #
 # :keyword PRINT_ON_CONF: Print the help message during configure phase
 # :type PRINT_ON_CONF: boolean
+# :keyword EXCLUDE_FROM_HELP_ALL: Exclude this help menu from the help_all target
+# :type EXCLUDE_FROM_HELP_ALL: boolean
 # :keyword PATTERN: Regular expression to match the targets to include in the menu
 # :type PATTERN: string
 # :keyword TARGET_LIST: List of targets to include in the help message
