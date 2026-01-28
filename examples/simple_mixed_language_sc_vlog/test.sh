@@ -1,17 +1,19 @@
-cmake -DSIMULATOR=mgc -DTEST_LANG=systemc -DDUT_LANG=systemc  -S $(pwd) -B $(pwd)/build
-cmake --build $(pwd)/build --target run_test_counters_modelsim
+# Questasim
+
+cmake -DSIMULATOR=questa -DTEST_LANG=systemc -DDUT_LANG=systemc  -S $(pwd) -B $(pwd)/build
+cmake --build $(pwd)/build --target run_test_counters_questasim
 rm -rf build
 
-cmake -DSIMULATOR=mgc -DTEST_LANG=systemc -DDUT_LANG=verilog  -S $(pwd) -B $(pwd)/build
-cmake --build $(pwd)/build --target run_test_counters_modelsim
+cmake -DSIMULATOR=questa -DTEST_LANG=systemc -DDUT_LANG=verilog  -S $(pwd) -B $(pwd)/build
+cmake --build $(pwd)/build --target run_test_counters_questasim
 rm -rf build
 
-cmake -DSIMULATOR=mgc -DTEST_LANG=verilog -DDUT_LANG=verilog  -S $(pwd) -B $(pwd)/build
-cmake --build $(pwd)/build --target run_test_counters_modelsim
+cmake -DSIMULATOR=questa -DTEST_LANG=verilog -DDUT_LANG=verilog  -S $(pwd) -B $(pwd)/build
+cmake --build $(pwd)/build --target run_test_counters_questasim
 rm -rf build
 
-cmake -DSIMULATOR=mgc -DTEST_LANG=verilog -DDUT_LANG=systemc  -S $(pwd) -B $(pwd)/build
-cmake --build $(pwd)/build --target run_test_counters_modelsim
+cmake -DSIMULATOR=questa -DTEST_LANG=verilog -DDUT_LANG=systemc  -S $(pwd) -B $(pwd)/build
+cmake --build $(pwd)/build --target run_test_counters_questasim
 rm -rf build
 
 # Xcelium

@@ -40,7 +40,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/cadence/xcelium.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/synopsys/vcs.cmake")
 
 # ----- siemens ------
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/siemens/modelsim.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/siemens/questasim.cmake")
 
 # ----- ghdl ------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/ghdl/ghdl.cmake")

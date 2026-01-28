@@ -1,6 +1,6 @@
 include_guard(GLOBAL)
 
-function(modelsim IP_LIB)
+function(questasim IP_LIB)
     cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER;32BIT" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -63,22 +63,22 @@ function(modelsim IP_LIB)
         set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
     endif()
 
-    __find_modelsim_home(modelsim_home)
+    __find_questasim_home(questasim_home)
 
     #######################
     ### Set target names ##
     #######################
 
-    set(compile_target ${IP_LIB}_modelsim_complib)
+    set(compile_target ${IP_LIB}_questasim_complib)
     set(run_target ${ARG_RUN_TARGET_NAME})
     if(NOT ARG_RUN_TARGET_NAME)
-        set(run_target run_${IP_LIB}_modelsim)
+        set(run_target run_${IP_LIB}_questasim)
     endif()
     set(elaborate_target ${run_target})
 
     ### Compile with vcom and vlog
     if(NOT TARGET ${compile_target})
-        __modelsim_compile_lib(${IP_LIB}
+        __questasim_compile_lib(${IP_LIB}
             OUTDIR ${OUTDIR}
             ${ARG_BITNESS}
             ${ARG_QUIET}
@@ -99,7 +99,7 @@ function(modelsim IP_LIB)
         endif()
     endforeach()
 
-    __get_modelsim_search_lib_args(${IP_LIB} 
+    __get_questasim_search_lib_args(${IP_LIB} 
         ${ARG_LIBRARY}
         OUTDIR ${OUTDIR})
     set(hdl_libs_args ${HDL_LIBS_ARGS})
@@ -118,7 +118,7 @@ function(modelsim IP_LIB)
         set(__sccom_link_cmd sccom -link
                 -${bitness}
                 -nologo
-                -Wl,-rpath,${modelsim_home}/${libpath}
+                -Wl,-rpath,${questasim_home}/${libpath}
             )
 
         ### Clean files
@@ -191,7 +191,7 @@ function(modelsim IP_LIB)
 endfunction()
 
 
-function(__modelsim_compile_lib IP_LIB)
+function(__questasim_compile_lib IP_LIB)
     cmake_parse_arguments(ARG "QUIET;32BIT" "OUTDIR;LIBRARY" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;FILE_SETS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
@@ -206,7 +206,7 @@ function(__modelsim_compile_lib IP_LIB)
 
 
     if(NOT ARG_OUTDIR)
-        set(OUTDIR ${BINARY_DIR}/${IP_LIB}_modelsim)
+        set(OUTDIR ${BINARY_DIR}/${IP_LIB}_questasim)
     else()
         set(OUTDIR ${ARG_OUTDIR})
     endif()
@@ -240,13 +240,13 @@ function(__modelsim_compile_lib IP_LIB)
                 __is_socmake_ip_lib(child_is_ip_lib ${child})
 
                 if(parent_is_systemc_lib AND child_is_ip_lib)
-                    modelsim_gen_sc_wrapper(${child} 
+                    questasim_gen_sc_wrapper(${child} 
                         OUTDIR ${OUTDIR}
                         LIBRARY ${LIBRARY}
                         ${ARG_BITNESS}
                         ${ARG_FILE_SETS}
                     )
-                    add_dependencies(${parent} ${child}_modelsim_gen_sc_wrapper)
+                    add_dependencies(${parent} ${child}_questasim_gen_sc_wrapper)
                 endif()
 
                 if(parent_is_ip_lib AND child_is_systemc_lib)
@@ -273,7 +273,7 @@ function(__modelsim_compile_lib IP_LIB)
         # Create output directoy for the VHDL library
         set(lib_outdir ${OUTDIR}/${__comp_lib_name})
 
-        __get_modelsim_search_lib_args(${lib} LIBRARY ${__comp_lib_name})
+        __get_questasim_search_lib_args(${lib} LIBRARY ${__comp_lib_name})
         set(hdl_libs_args ${HDL_LIBS_ARGS})
 
         # SystemVerilog and Verilog files and arguments
@@ -294,7 +294,7 @@ function(__modelsim_compile_lib IP_LIB)
                 list(APPEND SV_CMP_DEFS_ARG +define+${def})
             endforeach()
 
-            set(DESCRIPTION "${Green}Compile Verilog and SV files of ${lib} with modelsim vlog${ColourReset}")
+            set(DESCRIPTION "${Green}Compile Verilog and SV files of ${lib} with questasim vlog${ColourReset}")
             set(sv_compile_cmd vlog
                     -${bitness}
                     -nologo
@@ -337,17 +337,17 @@ function(__modelsim_compile_lib IP_LIB)
                 )
         endif()
 
-        # Modelsim custom command of current IP block should depend on stamp files of immediate linked IPs
-        # Extract the list from __modelsim_<LIB>_stamp_files
+        # Questasim custom command of current IP block should depend on stamp files of immediate linked IPs
+        # Extract the list from __questasim_<LIB>_stamp_files
         get_ip_links(ip_subdeps ${lib} NO_DEPS)
-        unset(__modelsim_subdep_stamp_files)
+        unset(__questasim_subdep_stamp_files)
         foreach(ip_dep ${ip_subdeps})
-            list(APPEND __modelsim_subdep_stamp_files ${__modelsim_${ip_dep}_stamp_files})
+            list(APPEND __questasim_subdep_stamp_files ${__questasim_${ip_dep}_stamp_files})
         endforeach()
 
-        unset(__modelsim_${lib}_stamp_files)
+        unset(__questasim_${lib}_stamp_files)
         if(SV_SOURCES)
-            set(DESCRIPTION "${Green}Compile SV, and Verilog sources of ${lib} with modelsim vlog in library ${__comp_lib_name}${ColourReset}")
+            set(DESCRIPTION "${Green}Compile SV, and Verilog sources of ${lib} with questasim vlog in library ${__comp_lib_name}${ColourReset}")
             set(STAMP_FILE "${OUTDIR}/.${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
@@ -355,15 +355,15 @@ function(__modelsim_compile_lib IP_LIB)
                 COMMAND ${sv_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
                 WORKING_DIRECTORY ${OUTDIR}
-                DEPENDS ${SV_SOURCES} ${SV_HEADERS} ${__modelsim_subdep_stamp_files}
+                DEPENDS ${SV_SOURCES} ${SV_HEADERS} ${__questasim_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
-            list(APPEND __modelsim_${lib}_stamp_files ${STAMP_FILE})
+            list(APPEND __questasim_${lib}_stamp_files ${STAMP_FILE})
         endif()
 
         if(VHDL_SOURCES)
-            set(DESCRIPTION "Compile VHDL sources for ${lib} with modelsim vlog in library ${__comp_lib_name}")
+            set(DESCRIPTION "Compile VHDL sources for ${lib} with questasim vlog in library ${__comp_lib_name}")
             set(STAMP_FILE "${OUTDIR}/.${lib}_vcom_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
@@ -371,11 +371,11 @@ function(__modelsim_compile_lib IP_LIB)
                 COMMAND ${vhdl_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
                 WORKING_DIRECTORY ${OUTDIR}
-                DEPENDS ${VHDL_SOURCES} ${__modelsim_subdep_stamp_files}
+                DEPENDS ${VHDL_SOURCES} ${__questasim_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
-            list(APPEND __modelsim_${lib}_stamp_files ${STAMP_FILE})
+            list(APPEND __questasim_${lib}_stamp_files ${STAMP_FILE})
         endif()
 
         if(is_sc_boundary_lib)
@@ -392,40 +392,40 @@ function(__modelsim_compile_lib IP_LIB)
                 # VERBATIM
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
-            list(APPEND __modelsim_${lib}_stamp_files ${STAMP_FILE})
+            list(APPEND __questasim_${lib}_stamp_files ${STAMP_FILE})
         endif()
 
         if(NOT SV_SOURCES AND NOT VHDL_SOURCES AND NOT is_sc_boundary_lib)
-            set(DESCRIPTION "Generate library ${__comp_lib_name} for ${lib} for modelsim")
+            set(DESCRIPTION "Generate library ${__comp_lib_name} for ${lib} for questasim")
             set(STAMP_FILE "${OUTDIR}/.${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND vlib "${lib_outdir}" > /dev/null 2>&1 || true
                 COMMAND touch ${STAMP_FILE}
-                DEPENDS ${__modelsim_subdep_stamp_files}
+                DEPENDS ${__questasim_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
-            list(APPEND __modelsim_${lib}_stamp_files ${STAMP_FILE})
+            list(APPEND __questasim_${lib}_stamp_files ${STAMP_FILE})
         endif()
 
     endforeach()
 
-    if(NOT TARGET ${IP_LIB}_modelsim_complib)
+    if(NOT TARGET ${IP_LIB}_questasim_complib)
         add_custom_target(
-            ${IP_LIB}_modelsim_complib
+            ${IP_LIB}_questasim_complib
             DEPENDS ${all_stamp_files} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_modelsim_complib PROPERTY 
-            DESCRIPTION "Compile VHDL, SV, and Verilog files for ${IP_LIB} with modelsim in library ${LIBRARY}")
+        set_property(TARGET ${IP_LIB}_questasim_complib PROPERTY 
+            DESCRIPTION "Compile VHDL, SV, and Verilog files for ${IP_LIB} with questasim in library ${LIBRARY}")
 
-        set_property(TARGET ${IP_LIB}_modelsim_complib APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${lib_outdir})
+        set_property(TARGET ${IP_LIB}_questasim_complib APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${lib_outdir})
     endif()
 
 endfunction()
 
 
-function(__get_modelsim_search_lib_args IP_LIB)
+function(__get_questasim_search_lib_args IP_LIB)
     cmake_parse_arguments(ARG "" "OUTDIR;LIBRARY" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -472,15 +472,15 @@ function(__get_modelsim_search_lib_args IP_LIB)
     set(DPI_LIBS_ARGS ${dpi_libs_args} PARENT_SCOPE)
 endfunction()
 
-function(__find_modelsim_home OUTVAR)
+function(__find_questasim_home OUTVAR)
     find_program(exec_path vsim REQUIRED)
     get_filename_component(bin_path "${exec_path}" DIRECTORY)
-    cmake_path(SET modelsim_home NORMALIZE "${bin_path}/..")
+    cmake_path(SET questasim_home NORMALIZE "${bin_path}/..")
 
-    set(${OUTVAR} ${modelsim_home} PARENT_SCOPE)
+    set(${OUTVAR} ${questasim_home} PARENT_SCOPE)
 endfunction()
 
-function(modelsim_gen_sc_wrapper IP_LIB)
+function(questasim_gen_sc_wrapper IP_LIB)
     cmake_parse_arguments(ARG "32BIT;QUIET" "OUTDIR;LIBRARY;TOP_MODULE" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;FILE_SETS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
@@ -497,7 +497,7 @@ function(modelsim_gen_sc_wrapper IP_LIB)
     endif()
 
     if(NOT ARG_OUTDIR)
-        set(OUTDIR ${BINARY_DIR}/${IP_LIB}_modelsim)
+        set(OUTDIR ${BINARY_DIR}/${IP_LIB}_questasim)
     else()
         set(OUTDIR ${ARG_OUTDIR})
     endif()
@@ -564,7 +564,7 @@ function(modelsim_gen_sc_wrapper IP_LIB)
             )
 
         set(generated_header ${OUTDIR}/${ARG_TOP_MODULE}.h)
-        set(DESCRIPTION "Generate a SC wrapper file for ${IP_LIB} with Modelsim scgenmod")
+        set(DESCRIPTION "Generate a SC wrapper file for ${IP_LIB} with Questasim scgenmod")
         set(STAMP_FILE "${OUTDIR}/${lib}_${CMAKE_CURRENT_FUNCTION}.stamp")
         add_custom_command(
             OUTPUT ${STAMP_FILE} ${generated_header}
@@ -589,7 +589,7 @@ function(modelsim_gen_sc_wrapper IP_LIB)
 
 endfunction()
 
-function(modelsim_compile_sc_lib SC_LIB)
+function(questasim_compile_sc_lib SC_LIB)
     cmake_parse_arguments(ARG "32BIT" "OUTDIR;LIBRARY;TOP_MODULE" "" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
@@ -605,7 +605,7 @@ function(modelsim_compile_sc_lib SC_LIB)
     endif()
 
     if(NOT ARG_OUTDIR)
-        set(OUTDIR ${BINARY_DIR}/${SC_LIB}_modelsim)
+        set(OUTDIR ${BINARY_DIR}/${SC_LIB}_questasim)
     else()
         set(OUTDIR ${ARG_OUTDIR})
     endif()
@@ -661,10 +661,10 @@ function(modelsim_compile_sc_lib SC_LIB)
 endfunction()
 
 
-macro(modelsim_configure_cxx)
+macro(questasim_configure_cxx)
     cmake_parse_arguments(ARG "32BIT" "" "LIBRARIES" ${ARGN})
 
-    __find_modelsim_home(modelsim_home)
+    __find_questasim_home(questasim_home)
 
     if(ARG_32BIT)
         set(bitness 32)
@@ -672,15 +672,15 @@ macro(modelsim_configure_cxx)
         set(bitness 64)
     endif()
 
-    set(CMAKE_CXX_COMPILER "${modelsim_home}/gcc${bitness}/bin/g++")
-    set(CMAKE_C_COMPILER "${modelsim_home}/gcc${bitness}/bin/gcc")
+    set(CMAKE_CXX_COMPILER "${questasim_home}/gcc${bitness}/bin/g++")
+    set(CMAKE_C_COMPILER "${questasim_home}/gcc${bitness}/bin/gcc")
 
     if(ARG_LIBRARIES)
-        modelsim_add_cxx_libs(${ARGV})
+        questasim_add_cxx_libs(${ARGV})
     endif()
 endmacro()
 
-function(modelsim_add_cxx_libs)
+function(questasim_add_cxx_libs)
     cmake_parse_arguments(ARG "32BIT" "" "LIBRARIES" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
@@ -690,55 +690,59 @@ function(modelsim_add_cxx_libs)
     set(allowed_libraries SystemC DPI-C VHPI)
     foreach(lib ${ARG_LIBRARIES})
         if(NOT ${lib} IN_LIST allowed_libraries)
-            message(FATAL_ERROR "Modelsim does not support library: ${lib}")
+            message(FATAL_ERROR "Questasim does not support library: ${lib}")
         endif()
     endforeach()
 
-    __find_modelsim_home(modelsim_home)
+    __find_questasim_home(questasim_home)
 
     if(SystemC IN_LIST ARG_LIBRARIES)
 
-        add_library(modelsim_systemc INTERFACE)
-        add_library(SoCMake::SystemC ALIAS modelsim_systemc)
+        add_library(questasim_systemc INTERFACE)
+        add_library(SoCMake::SystemC ALIAS questasim_systemc)
 
         if(ARG_32BIT)
-            target_compile_options(modelsim_systemc INTERFACE -m32)
-            target_link_options   (modelsim_systemc INTERFACE -m32)
+            target_compile_options(questasim_systemc INTERFACE -m32)
+            target_link_options   (questasim_systemc INTERFACE -m32)
         endif()
-        # set_property(TARGET modelsim_systemc PROPERTY POSITION_INDEPENDENT_CODE ON)
-        target_compile_definitions(modelsim_systemc INTERFACE MTI_SYSTEMC)
-        target_include_directories(modelsim_systemc INTERFACE
-            ${modelsim_home}/include/systemc
-            ${modelsim_home}/include
-            ${modelsim_home}/include/ac_types
+        # set_property(TARGET questasim_systemc PROPERTY POSITION_INDEPENDENT_CODE ON)
+        target_compile_definitions(questasim_systemc INTERFACE MTI_SYSTEMC)
+        target_include_directories(questasim_systemc INTERFACE
+            ${questasim_home}/include/systemc
+            ${questasim_home}/include
+            ${questasim_home}/include/ac_types
             )
     endif()
 
     if(DPI-C IN_LIST ARG_LIBRARIES)
-        add_library(modelsim_dpi-c INTERFACE)
-        add_library(SoCMake::DPI-C ALIAS modelsim_dpi-c)
+        add_library(questasim_dpi-c INTERFACE)
+        add_library(SoCMake::DPI-C ALIAS questasim_dpi-c)
 
         if(ARG_32BIT)
-            target_compile_options(modelsim_dpi-c INTERFACE -m32)
-            target_link_options   (modelsim_dpi-c INTERFACE -m32)
+            target_compile_options(questasim_dpi-c INTERFACE -m32)
+            target_link_options   (questasim_dpi-c INTERFACE -m32)
         endif()
-        target_include_directories(modelsim_dpi-c INTERFACE ${modelsim_home}/include)
-        target_compile_definitions(modelsim_dpi-c INTERFACE QUESTA)
+        target_include_directories(questasim_dpi-c INTERFACE ${questasim_home}/include)
+        target_compile_definitions(questasim_dpi-c INTERFACE QUESTA)
     endif()
 
     if(VHPI IN_LIST ARG_LIBRARIES)
-        add_library(modelsim_vhpi INTERFACE)
-        add_library(SoCMake::VHPI ALIAS modelsim_vhpi)
+        add_library(questasim_vhpi INTERFACE)
+        add_library(SoCMake::VHPI ALIAS questasim_vhpi)
 
         if(ARG_32BIT)
-            target_compile_options(modelsim_vhpi INTERFACE -m32)
-            target_link_options   (modelsim_vhpi INTERFACE -m32)
+            target_compile_options(questasim_vhpi INTERFACE -m32)
+            target_link_options   (questasim_vhpi INTERFACE -m32)
         endif()
-        target_compile_definitions(modelsim_vhpi INTERFACE QUESTA)
+        target_compile_definitions(questasim_vhpi INTERFACE QUESTA)
 
-        target_include_directories(modelsim_vhpi INTERFACE ${modelsim_home}/include)
-        target_compile_definitions(modelsim_vhpi INTERFACE QUESTA)
+        target_include_directories(questasim_vhpi INTERFACE ${questasim_home}/include)
+        target_compile_definitions(questasim_vhpi INTERFACE QUESTA)
     endif()
 
 endfunction()
 
+macro(modelsim)
+    message(DEPRECATION "${Red}modelsim function is deprecated, questasim() is called instead${ColourReset}")
+    questasim(${ARGV})
+endmacro()

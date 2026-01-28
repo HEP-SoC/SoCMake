@@ -1,5 +1,0 @@
-module printer_@NUM_TO_ADD@;
-    initial begin
-        $display("NUM IS: %d", @NUM_TO_ADD@);
-    end
-endmodule
