@@ -4,13 +4,15 @@ project(SoCMake_testing)
 include(CTest)
 
 add_custom_target(check
-    COMMAND ctest $(JOBS) --output-on-failure
+    COMMAND ctest --output-on-failure
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../../
+    USES_TERMINAL
     )
 
 add_custom_target(check_cdash
-    COMMAND ctest -D Nightly $(JOBS) --output-on-failure
+    COMMAND ctest -D Nightly --output-on-failure
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../../
+    USES_TERMINAL
     )
 
 add_subdirectory(iverilog)
