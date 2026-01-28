@@ -41,9 +41,8 @@ The only mandatory dependencies are `CMake>=3.25.0` and `make` ([Install Depende
 ### One-Time Bootstrap Installation (Recommended)
 
 Install the SoCMake bootstrap files once on your system:
-**TODO Change the repo and branch name after merging**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/risto97/socmake/bootstrap/bootstrap/bootstrap.sh | sh
+curl -fsSL https://raw.githubusercontent.com/HEP-SoC/SoCMake/develop/bootstrap/bootstrap.sh | sh
 ```
 
 This installs lightweight bootstrap files to `~/.local/lib/cmake/socmake` that automatically fetch the correct SoCMake version for each project.
