@@ -28,92 +28,10 @@ function(__find_longest_string OUTVAR)
     set(${OUTVAR} ${__max_length} PARENT_SCOPE)
 endfunction()
 
-function(__get_target_help OUTVAR TARGET DESCRIPTION COL_WIDTH)
 
-    # Get the length of the target string
-    string(LENGTH ${TARGET} target_length)
-
-    # Calculate the number of spaces needed to align the description
-    math(EXPR padding_length "${COL_WIDTH} + 20 - ${target_length}")
-
-    # Generate the padding spaces
-    string(REPEAT " " ${padding_length} padding)
-
-    if(DESCRIPTION STREQUAL DESCRIPTION-NOTFOUND)
-        set(DESCRIPTION "${Red}DESCRIPTION-NOTFOUND${ColourReset}")
-    endif()
-    # Print the target with description aligned
-    set(${OUTVAR} "${Cyan}${TARGET}${ColourReset}${padding}${DESCRIPTION}\n" PARENT_SCOPE)
-endfunction()
-
-# [[[
-# This function creates a help target for printing target information.
-#
-# The build subdirectories will be recursively searched for targets.
-#
-# It should be called only once in the build flow.
-#
-# Preferably at the end of the CMakeLists.txt
-#
-# In order to run it only once at the top level, following trick can be used.
-#```
-# if(PROJECT_IS_TOP_LEVEL)
-#   help_targets()
-# endif()
-#```
-#
-# **Keyword Arguments**
-#
-# :keyword PRINT_ON_CONF: Print the help message during configure phase
-# :type PRINT_ON_CONF: boolean
-# ]]]
-function(help_targets)
-    cmake_parse_arguments(ARG "PRINT_ON_CONF" "" "" ${ARGN})
-    if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    endif()
-    include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/colours.cmake)
-
-    unset(OUT_STRING)
-    string(APPEND OUT_STRING "${Yellow}Available Targets:${ColourReset}\n")
-    string(APPEND OUT_STRING "------------------\n")
-    string(APPEND OUT_STRING "\n")
-
-    get_all_targets(ALL_TARGETS)
-    __find_longest_target_name(UTILITY MAX_LEN ${ALL_TARGETS})
-
-    math(EXPR padding_length "${MAX_LEN} + 14")
-    string(REPEAT " " ${padding_length} padding)
-    string(APPEND OUT_STRING "${Yellow}Target${padding}Description${ColourReset}\n")
-    math(EXPR line_length "${MAX_LEN} + 50")
-    string(REPEAT "-" ${line_length} line)
-    string(APPEND OUT_STRING "${line}\n")
-
-    foreach(target ${ALL_TARGETS})
-        get_target_property(TYPE ${target} TYPE)
-        if(TYPE STREQUAL UTILITY)
-            get_target_property(DESCRIPTION ${target} DESCRIPTION)
-            __get_target_help(HELP_ROW "${target}" "${DESCRIPTION}" "${MAX_LEN}")
-            string(APPEND OUT_STRING ${HELP_ROW}) 
-        endif()
-    endforeach()
-    __get_target_help(HELP_ROW help_targets "Print targets help" "${MAX_LEN}")
-    string(APPEND OUT_STRING ${HELP_ROW}) 
-    __get_target_help(HELP_ROW help "CMake native help" "${MAX_LEN}")
-    string(APPEND OUT_STRING ${HELP_ROW}) 
-    string(APPEND OUT_STRING "${line}\n")
-
-    if(ARG_PRINT_ON_CONF)
-        message("${OUT_STRING}")
-    endif()
-
-    file(WRITE ${PROJECT_BINARY_DIR}/help_targets.txt ${OUT_STRING})
-    add_custom_target(help_targets
-        COMMAND cat ${PROJECT_BINARY_DIR}/help_targets.txt
-        COMMENT "Print targets help"
-        )
-
-endfunction()
+##################################################
+############### IPs help menu ####################
+##################################################
 
 # [[[
 # This function creates a help target for printing IPs information.
@@ -148,8 +66,8 @@ function(help_ips)
     string(APPEND OUT_STRING "------------------\n")
     string(APPEND OUT_STRING "\n")
 
-    get_all_targets(ALL_TARGETS)
-    __find_longest_target_name(INTERFACE_LIBRARY MAX_LEN ${ALL_TARGETS})
+    get_all_ips(ALL_IPS)
+    __find_longest_target_name(INTERFACE_LIBRARY MAX_LEN ${ALL_IPS})
 
     math(EXPR padding_length "${MAX_LEN} + 18")
     string(REPEAT " " ${padding_length} padding)
@@ -158,14 +76,11 @@ function(help_ips)
     string(REPEAT "-" ${line_length} line)
     string(APPEND OUT_STRING "${line}\n")
 
-    foreach(target ${ALL_TARGETS})
-        get_target_property(ip_name ${target} IP_NAME)
-        if(ip_name) # IP_NAME property is always set for SoCMakes IP library, to differentiate from INTERFACE_LIBRARIES
-            get_target_property(DESCRIPTION ${target} DESCRIPTION)
-            __get_target_help(HELP_ROW ${target} ${DESCRIPTION} ${MAX_LEN})
-            string(REPLACE "__" "::" HELP_ROW ${HELP_ROW})
-            string(APPEND OUT_STRING ${HELP_ROW})
-        endif()
+    foreach(ip ${ALL_IPS})
+        get_target_property(DESCRIPTION ${ip} DESCRIPTION)
+        __get_target_help(HELP_ROW ${ip} ${DESCRIPTION} ${MAX_LEN})
+        string(REPLACE "__" "::" HELP_ROW ${HELP_ROW})
+        string(APPEND OUT_STRING ${HELP_ROW})
     endforeach()
     string(APPEND OUT_STRING "${line}\n")
 
@@ -176,11 +91,17 @@ function(help_ips)
     set(DESCRIPTION "Print IPs help")
     file(WRITE ${PROJECT_BINARY_DIR}/help_ips.txt ${OUT_STRING})
     add_custom_target(help_ips
-        COMMAND cat ${PROJECT_BINARY_DIR}/help_ips.txt
+        COMMAND ${CMAKE_COMMAND} -E cat ${PROJECT_BINARY_DIR}/help_ips.txt
         COMMENT ${DESCRIPTION}
         )
     set_property(TARGET help_ips PROPERTY DESCRIPTION ${DESCRIPTION})
+    set_property(GLOBAL APPEND PROPERTY SOCMAKE_HELP_TARGETS help_ips)
 endfunction()
+
+
+##################################################
+############# Options help menu ##################
+##################################################
 
 function(__get_help_option_string OUTSTR VALUE MAX_STR_LEN)
     cmake_parse_arguments(ARG "" "COLOUR" "" ${ARGN})
@@ -230,6 +151,10 @@ function(help_options)
     string(APPEND OUT_STRING "\n")
 
     get_property(ALL_OPTIONS GLOBAL PROPERTY SOCMAKE_OPTIONS)
+    if(NOT ALL_OPTIONS)
+        return()
+    endif()
+
     # get_all_targets(ALL_TARGETS)
     __find_longest_string(MAX_OPTIONS_LEN "Option;${ALL_OPTIONS}")
 
@@ -323,6 +248,30 @@ function(help_options)
         COMMENT ${DESCRIPTION}
         )
     set_property(TARGET help_options PROPERTY DESCRIPTION ${DESCRIPTION})
+    set_property(GLOBAL APPEND PROPERTY SOCMAKE_HELP_TARGETS help_options)
+endfunction()
+
+
+##################################################
+############# Target help menu ###################
+##################################################
+
+function(__get_target_help OUTVAR TARGET DESCRIPTION COL_WIDTH)
+
+    # Get the length of the target string
+    string(LENGTH ${TARGET} target_length)
+
+    # Calculate the number of spaces needed to align the description
+    math(EXPR padding_length "${COL_WIDTH} + 20 - ${target_length}")
+
+    # Generate the padding spaces
+    string(REPEAT " " ${padding_length} padding)
+
+    if(NOT DESCRIPTION)
+        set(DESCRIPTION "(no description)")
+    endif()
+    # Print the target with description aligned
+    set(${OUTVAR} "${Cyan}${TARGET}${ColourReset}${padding}${DESCRIPTION}\n" PARENT_SCOPE)
 endfunction()
 
 # [[[
@@ -331,17 +280,17 @@ endfunction()
 # It can be called multiple times the build flow to create custom help messages
 # for a given list of targets.
 #
-#```
-#
 # **Keyword Arguments**
 #
 # :keyword PRINT_ON_CONF: Print the help message during configure phase
 # :type PRINT_ON_CONF: boolean
+# :keyword EXCLUDE_FROM_HELP_ALL: Exclude this help menu from the help_all target
+# :type EXCLUDE_FROM_HELP_ALL: boolean
 # :keyword TARGET_LIST: List of targets to include in the help message
 # :type TARGET_LIST: list
 # ]]]
-function(help_custom_targets HELP_NAME)
-    cmake_parse_arguments(ARG "PRINT_ON_CONF" "" "TARGET_LIST" ${ARGN})
+function(help_custom_targets_list HELP_NAME)
+    cmake_parse_arguments(ARG "PRINT_ON_CONF;EXCLUDE_FROM_HELP_ALL" "DESCRIPTION" "TARGET_LIST" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -356,7 +305,7 @@ function(help_custom_targets HELP_NAME)
     endif()
 
     unset(OUT_STRING)
-    string(APPEND OUT_STRING "${Yellow}Available ${HELP_NAME} Targets:${ColourReset}\n")
+    string(APPEND OUT_STRING "${Yellow}Available Targets (${HELP_NAME}):${ColourReset}\n")
     string(APPEND OUT_STRING "------------------\n")
     string(APPEND OUT_STRING "\n")
 
@@ -364,7 +313,7 @@ function(help_custom_targets HELP_NAME)
 
     math(EXPR padding_length "${MAX_LEN} + 14")
     string(REPEAT " " ${padding_length} padding)
-    string(APPEND OUT_STRING "${Yellow}${HELP_NAME} Target${padding}Description${ColourReset}\n")
+    string(APPEND OUT_STRING "${Yellow}Target${padding}Description${ColourReset}\n")
     math(EXPR line_length "${MAX_LEN} + 50")
     string(REPEAT "-" ${line_length} line)
     string(APPEND OUT_STRING "${line}\n")
@@ -373,6 +322,9 @@ function(help_custom_targets HELP_NAME)
         get_target_property(TYPE ${target} TYPE)
         if(TYPE STREQUAL UTILITY)
             get_target_property(DESCRIPTION ${target} DESCRIPTION)
+            if(NOT DESCRIPTION)
+                set(DESCRIPTION "DESCRIPTION-NOTFOUND")
+            endif()
             __get_target_help(HELP_ROW ${target} ${DESCRIPTION} ${MAX_LEN})
             string(APPEND OUT_STRING ${HELP_ROW})
         endif()
@@ -390,16 +342,102 @@ function(help_custom_targets HELP_NAME)
         COMMAND cat ${PROJECT_BINARY_DIR}/help_${HELP_NAME}.txt
         COMMENT "Print targets help"
         )
+    set_property(TARGET help_${HELP_NAME} PROPERTY DESCRIPTION "${ARG_DESCRIPTION}")
+    if(NOT ARG_EXCLUDE_FROM_HELP_ALL)
+        set_property(GLOBAL APPEND PROPERTY SOCMAKE_HELP_TARGETS help_${HELP_NAME})
+    endif()
+endfunction()
 
+# [[[
+# This function creates a help target for printing target information.
+# The build subdirectories will be recursively searched for targets.
+# It should be called only once in the build flow.
+# Preferably at the end of the CMakeLists.txt
+# In order to run it only once at the top level, following trick can be used.
+#```
+# if(PROJECT_IS_TOP_LEVEL)
+#   help_targets()
+# endif()
+#```
+#
+# **Keyword Arguments**
+#
+# :keyword PRINT_ON_CONF: Print the help message during configure phase
+# :type PRINT_ON_CONF: boolean
+# ]]]
+function(help_targets)
+    cmake_parse_arguments(ARG "PRINT_ON_CONF" "" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    get_all_targets(ALL_TARGETS)
+    help_custom_targets("targets" TARGET_LIST ${ALL_TARGETS} DESCRIPTION "List all targets")
+endfunction()
+
+
+# [[[
+# This function creates a custom help target called help_<HELP_NAME>.
+#
+# It can be called multiple times the build flow to create custom help messages
+# for a given list of targets.
+#
+# Example usage:
+#```
+#help_custom_targets("uart_tests" PATTERN "run_test_uart[0-9]_*)") 
+#help_custom_targets("fpga" TARGET_LIST fpga_build fpga_flash") 
+#```
+#
+# **Keyword Arguments**
+#
+# :keyword PRINT_ON_CONF: Print the help message during configure phase
+# :type PRINT_ON_CONF: boolean
+# :keyword EXCLUDE_FROM_HELP_ALL: Exclude this help menu from the help_all target
+# :type EXCLUDE_FROM_HELP_ALL: boolean
+# :keyword PATTERN: Regular expression to match the targets to include in the menu
+# :type PATTERN: string
+# :keyword DESCRIPTION: Description of the test menu
+# :type DESCRIPTION: string
+# :keyword TARGET_LIST: List of targets to include in the help message
+# :type TARGET_LIST: list
+# ]]]
+function(help_custom_targets HELP_NAME)
+    cmake_parse_arguments(ARG "PRINT_ON_CONF;EXCLUDE_FROM_HELP_ALL" "PATTERN;DESCRIPTION" "TARGET_LIST" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    if(ARG_PATTERN AND ARG_TARGET_LIST)
+        message(FATAL_ERROR "Arguments PATTERN and TARGET_LIST cannot be used at the same time")
+    endif()
+
+    if(ARG_PATTERN)
+        get_all_targets(all_targets)
+        list(FILTER all_targets INCLUDE REGEX "${ARG_PATTERN}")
+        set(targets ${all_targets})
+    elseif(ARG_TARGET_LIST)
+        set(targets ${ARG_TARGET_LIST})
+    else()
+        message(FATAL_ERROR "Specify either PATTERN or TARGET_LIST arguments")
+    endif()
+
+    unset(description_arg)
+    if(ARG_DESCRIPTION)
+        set(description_arg DESCRIPTION "${ARG_DESCRIPTION}")
+    endif()
+
+    if(targets)
+        help_custom_targets_list(${HELP_NAME} TARGET_LIST ${targets} ${description_arg})
+    else()
+        message(WARNING "No targets found for PATTERN: ${ARG_PATTERN} or TARGET_LIST: ${ARG_TARGET_LIST}")
+    endif()
 endfunction()
 
 # [[[
 # This function creates a help target for printing target and IPs information.
 #
 # The build subdirectories will be recursively searched for targets.
-#
 # It should be called only once in the build flow.
-#
 # Preferably at the end of the CMakeLists.txt
 #
 # In order to run it only once at the top level, following trick can be used.
@@ -425,16 +463,15 @@ function(help)
 
     get_property(ALL_OPTIONS GLOBAL PROPERTY SOCMAKE_OPTIONS)
 
+
     help_ips(${ARG_PRINT_ON_CONF})
     help_targets(${ARG_PRINT_ON_CONF})
+    help_options(${ARG_PRINT_ON_CONF})
 
+    get_property(HELP_TARGETS GLOBAL PROPERTY SOCMAKE_HELP_TARGETS)
+    
     add_custom_target(help_all
-        DEPENDS help_targets help_ips
+        DEPENDS ${HELP_TARGETS}
         )
-
-    if(ALL_OPTIONS)
-        help_options(${ARG_PRINT_ON_CONF})
-        add_dependencies(help_all help_options)
-    endif()
 
 endfunction()
