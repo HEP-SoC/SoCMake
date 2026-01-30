@@ -3,8 +3,6 @@ project(systemc_example CXX)
 
 include("../../SoCMakeConfig.cmake")
 
-set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/_deps)
-
 systemc_build(VERSION 3.0.0 EXACT_VERSION)
 
 add_executable(systemc_example
