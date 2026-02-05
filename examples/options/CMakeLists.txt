@@ -3,7 +3,7 @@
 ## To print help message for options run `make help_options`
 ## To see options in gui run `cmake-gui ../`
 
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.28)
 project(options_example NONE)
 
 include("../../SoCMakeConfig.cmake")

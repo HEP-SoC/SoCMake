@@ -1,7 +1,7 @@
 include("../../../../SoCMakeConfig.cmake")
 include("../../../utils/test_utils.cmake")
 
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.28)
 project(test NONE)
 
 ### A simple test with default arguments

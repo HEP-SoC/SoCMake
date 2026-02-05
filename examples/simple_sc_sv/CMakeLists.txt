@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.28)
 project(simple_sc_sv_example C CXX)
 
 # Verilator with SystemC requires C++17

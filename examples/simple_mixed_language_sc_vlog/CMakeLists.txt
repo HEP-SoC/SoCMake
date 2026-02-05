@@ -25,7 +25,7 @@ else()
     set(CMAKE_CXX_STANDARD 11)
 endif()
 
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.28)
 project(simple_mixed_language_sc_vlog CXX)
 
 add_subdirectory(tests)

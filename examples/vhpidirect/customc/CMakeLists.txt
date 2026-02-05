@@ -1,5 +1,5 @@
 include("../../../SoCMakeConfig.cmake")
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.28)
 project(vhpidirect_customc C)
 
 add_ip(tb)

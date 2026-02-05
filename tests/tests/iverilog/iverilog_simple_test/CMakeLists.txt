@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.28)
 project(iverilog_simple_test NONE)
 
 add_ip(iverilog_simple_test

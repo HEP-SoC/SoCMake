@@ -1,7 +1,7 @@
 # Test relative include directories paths, the behaviour is matching the CMake behaviour of target_include_directories():
 # Changed in version 3.13: Relative source file paths are interpreted as being relative to the current source directory (i.e. CMAKE_CURRENT_SOURCE_DIR). See policy CMP0076.
 
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.28)
 project(ip_include_directories_rel_path NONE)
 
 include("../../../../../SoCMakeConfig.cmake")
