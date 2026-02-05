@@ -14,7 +14,7 @@ elseif(SIMULATOR MATCHES "verilator")
     verilator_configure_cxx(LIBRARIES DPI-C)
 endif()
 
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.28)
 project(dpi_example NONE)
 
 add_ip(tb

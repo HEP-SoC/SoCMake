@@ -36,7 +36,7 @@ Getting started
 ---------------
 
 SoCMake is lightweight and has minimal dependencies.
-The only mandatory dependencies are `CMake>=3.25.0` and `make` ([Install Dependencies](https://hep-soc.github.io/SoCMake/docs/getting_started))
+The only mandatory dependencies are `CMake>=3.28.0` and `make` ([Install Dependencies](https://hep-soc.github.io/SoCMake/docs/getting_started))
 
 ### One-Time Bootstrap Installation (Recommended)
 
@@ -49,7 +49,7 @@ This installs lightweight bootstrap files to `~/.local/lib/cmake/socmake` that a
 In order to use it create a file called `CMakeLists.txt`
 
 ```CMake
-cmake_minimum_required(VERSION 3.25) # CMake minimum required version
+cmake_minimum_required(VERSION 3.28) # CMake minimum required version
 project(adder NONE)                  # Name of CMake project
 
 find_package(socmake REQUIRED)

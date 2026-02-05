@@ -1,5 +1,5 @@
 
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.28)
 
 # This adds the top CMakeLists.txt file to retrieve information
 # like the version of SoCMake.
