@@ -59,7 +59,7 @@ function(help_options)
         COMMENT ${DESCRIPTION}
         )
     set_property(TARGET ${target} PROPERTY DESCRIPTION ${DESCRIPTION})
-    set_property(GLOBAL APPEND PROPERTY SOCMAKE_HELP_TARGETS ${target})
+    set_property(TARGET ${target} APPEND PROPERTY SOCMAKE_GROUPS help)
 endfunction()
 
 
@@ -103,14 +103,26 @@ function(help_ips)
         COMMENT ${DESCRIPTION}
         )
     set_property(TARGET ${target} PROPERTY DESCRIPTION ${DESCRIPTION})
-    set_property(GLOBAL APPEND PROPERTY SOCMAKE_HELP_TARGETS ${target})
+    set_property(TARGET ${target} APPEND PROPERTY SOCMAKE_GROUPS help)
 endfunction()
 
 function(help_targets)
+
+    # Create the target first, so it can be discovered by get_all_targets() function
+    set(target help_targets)
+    set(outfile ${PROJECT_BINARY_DIR}/help/${target}.json)
+
+    set(cmd jq -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/target.jq ${outfile})
+    set(DESCRIPTION "Help for targets")
+    add_custom_target(${target}
+        COMMAND ${cmd}
+        COMMENT ${DESCRIPTION}
+        )
+    set_property(TARGET ${target} PROPERTY DESCRIPTION ${DESCRIPTION})
+    set_property(TARGET ${target} APPEND PROPERTY SOCMAKE_GROUPS help)
+
+    # Now get all the targets and write to JSON
     get_all_targets(ALL_TARGETS)
-    # if(NOT ALL_IPS)
-    #     return()
-    # endif()
 
     set(targets_array "[]")
     set(index 0)
@@ -140,19 +152,8 @@ function(help_targets)
 
     set(json_output "{}")
     string(JSON json_output SET "${json_output}" "targets" "${targets_array}")
-
-    set(target help_targets)
-    set(outfile ${PROJECT_BINARY_DIR}/help/${target}.json)
     file(WRITE ${outfile} ${json_output})
 
-    set(cmd jq -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/target.jq ${outfile})
-    set(DESCRIPTION "Help for targets")
-    add_custom_target(${target}
-        COMMAND ${cmd}
-        COMMENT ${DESCRIPTION}
-        )
-    set_property(TARGET ${target} PROPERTY DESCRIPTION ${DESCRIPTION})
-    set_property(GLOBAL APPEND PROPERTY SOCMAKE_HELP_TARGETS ${target})
 endfunction()
 
 
@@ -281,10 +282,11 @@ function(help)
 
 
     help_ips(${ARG_PRINT_ON_CONF})
-    help_targets(${ARG_PRINT_ON_CONF})
     help_options(${ARG_PRINT_ON_CONF})
 
     help_custom_targets("help" PATTERN "help_*" DONT_MAKE_GROUP HELP_TARGET_NAME "list")
+
+    help_targets(${ARG_PRINT_ON_CONF})
 
     # get_property(HELP_TARGETS GLOBAL PROPERTY SOCMAKE_HELP_TARGETS)
     get_all_targets_of_group(help_targets "help")
