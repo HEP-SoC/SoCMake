@@ -129,5 +129,7 @@ option_boolean(LOW_POWER_MODE "Optimize for low power consumption" OFF)
 option_directory(SOME_DIR "Directory to some random location on the file system" "/tools/work/go/ipxact/ipxact_schema_files/1685-2009-VE-1.0/AMS/wire.xsd" )
 option_enum(SIMULATORS "Which simulator" "verilator;modelsim;questasim;xcelium"  "verilator")
 
+help_custom_options("enable" PATTERN "ENABLE")
+
 
 help()

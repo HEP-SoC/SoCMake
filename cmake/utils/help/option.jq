@@ -1,5 +1,9 @@
 include "utils";
 
+# Get group from named args with default
+($ARGS.named.group // "*") as $group |
+.group = $group |
+
 colors as $c |
 
 # Define column widths
@@ -12,7 +16,7 @@ colors as $c |
 ("-" * 150),
 
 # Print options
-(.options[] | select(.advanced == "FALSE") |
+(.options[] | select(.advanced == "FALSE") | select($group == "*" or (.groups | index($group))) |
     "\($c.cyan)\(.name | pad($w_name))\($c.reset) " +
     "\(.type | pad($w_type)) " +
     "\(.current | pad($w_curr)) " +
