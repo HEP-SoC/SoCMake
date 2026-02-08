@@ -10,7 +10,7 @@ colors as $c |
 80 as $w_name | 60 as $w_desc |
 
 # Print Header
-"\($c.bold)\($c.yellow)\("IP" | pad($w_name)) \("Description" | pad($w_desc))\($c.reset)",
+"\($c.bold)\($c.yellow)\("Target" | pad($w_name)) \("Description" | pad($w_desc))\($c.reset)",
   
 # Print separator
 ("-" * 150),

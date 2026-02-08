@@ -76,31 +76,31 @@ add_custom_target(run_test_pm_voltage_scaling)
 set_target_properties(run_test_pm_voltage_scaling PROPERTIES SOCMAKE_GROUPS voltage)
 
 # Organize help menus
-group_custom_targets("build" TARGET_LIST 
+help_custom_targets("build" TARGET_LIST 
     build_bootloader 
     build_firmware 
     build_fpga_bitstream 
     build_documentation)
 
-group_custom_targets("simulation" TARGET_LIST 
+help_custom_targets("simulation" TARGET_LIST 
     sim_core_unit_tests 
     sim_peripheral_tests 
     sim_integration)
 
-group_custom_targets("flash" TARGET_LIST 
+help_custom_targets("flash" TARGET_LIST 
     flash_bootloader 
     flash_firmware 
     flash_fpga)
 
 
-group_custom_targets("uart_tests" PATTERN "run_test_uart[0-9]_*" DESCRIPTION "Uart tests")
-group_custom_targets("spi_tests" PATTERN "run_test_spi[0-9]_*" DESCRIPTION "SPI test cases")
-group_custom_targets("i2c_tests" PATTERN "run_test_i2c[0-9]_*")
-group_custom_targets("memory_tests" PATTERN "run_test_ddr_*|run_test_cache_*")
-group_custom_targets("power_tests" PATTERN "run_test_pm_*")
+help_custom_targets("uart_tests" PATTERN "run_test_uart[0-9]_*" DESCRIPTION "Uart tests")
+help_custom_targets("spi_tests" PATTERN "run_test_spi[0-9]_*" DESCRIPTION "SPI test cases")
+help_custom_targets("i2c_tests" PATTERN "run_test_i2c[0-9]_*")
+help_custom_targets("memory_tests" PATTERN "run_test_ddr_*|run_test_cache_*")
+help_custom_targets("power_tests" PATTERN "run_test_pm_*")
 
-group_custom_targets("uart0_specific" PATTERN ".*_uart0_.*")
-group_custom_targets("all_peripheral_tests" PATTERN "run_test_(uart|spi|i2c)[0-9]_.*")
+help_custom_targets("uart0_specific" PATTERN ".*_uart0_.*")
+help_custom_targets("all_peripheral_tests" PATTERN "run_test_(uart|spi|i2c)[0-9]_.*")
 
 # IP blocks
 add_ip(riscv_core_cv32e40p DESCRIPTION "This is a riscv core")
@@ -111,6 +111,8 @@ add_ip(i2c_master_wb)
 add_ip(ddr3_controller)
 add_ip(plic_interrupt_controller)
 add_ip(timer_subsystem)
+
+help_custom_ips("master" PATTERN "master")
 
 set_target_properties(riscv_core_cv32e40p PROPERTIES SOCMAKE_GROUPS core)
 
@@ -129,7 +131,3 @@ option_enum(SIMULATORS "Which simulator" "verilator;modelsim;questasim;xcelium" 
 
 
 help()
-
-help_options_json()
-help_ips_json()
-help_targets_json()
