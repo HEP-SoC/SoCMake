@@ -78,7 +78,7 @@ function(${${TEST_NAME}})
     add_custom_target(run_test_pm_voltage_scaling)
 
 # Organize help menus
-    help_custom_targets("build" TARGET_LIST 
+    help_custom_targets("build" LIST 
         build_bootloader 
         build_firmware 
         build_fpga_bitstream 
@@ -86,14 +86,14 @@ function(${${TEST_NAME}})
         DESCRIPTION "Build targets"
         )
 
-    help_custom_targets("simulation" TARGET_LIST 
+    help_custom_targets("simulation" LIST 
         sim_core_unit_tests 
         sim_peripheral_tests 
         sim_integration
         DESCRIPTION "Simulation targets"
         )
 
-    help_custom_targets("flash" TARGET_LIST 
+    help_custom_targets("flash" LIST 
         flash_bootloader 
         flash_firmware 
         flash_fpga)

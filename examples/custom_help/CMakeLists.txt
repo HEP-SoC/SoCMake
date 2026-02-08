@@ -76,18 +76,18 @@ add_custom_target(run_test_pm_voltage_scaling)
 set_target_properties(run_test_pm_voltage_scaling PROPERTIES SOCMAKE_GROUPS voltage)
 
 # Organize help menus
-help_custom_targets("build" TARGET_LIST 
+help_custom_targets("build" LIST 
     build_bootloader 
     build_firmware 
     build_fpga_bitstream 
     build_documentation)
 
-help_custom_targets("simulation" TARGET_LIST 
+help_custom_targets("simulation" LIST 
     sim_core_unit_tests 
     sim_peripheral_tests 
     sim_integration)
 
-help_custom_targets("flash" TARGET_LIST 
+help_custom_targets("flash" LIST 
     flash_bootloader 
     flash_firmware 
     flash_fpga)
