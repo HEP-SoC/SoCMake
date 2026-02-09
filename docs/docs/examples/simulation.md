@@ -132,3 +132,14 @@ The executables will be present in `${PROJECT_BINARY_DIR}` in this case `build` 
 *   `cern__ip__tb__0.0.1_iv`
 *   `cern__ip__tb__0.0.1_verilator_tb`
 
+### Running with other tools
+
+As you can see in the `CMakeLists.txt`, it's possible to use options to also try with other EDA tools that are compatible with SoCMake and that you would have on your machine.
+
+The steps are similar except that when generating Makefiles, you should do the following (example for xcelium) :
+
+```bash
+cmake -DSIMULATOR="xcelium" ../
+```
+
+Keep in mind that as we are using the function `help()`, you can take a look at the following generated files, `help_target.txt` and `help_options.txt`, they contains information that are useful to know which argument to give when calling make or which options you want to choose if you have to regenerate Makefiles.
