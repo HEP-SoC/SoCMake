@@ -12,7 +12,7 @@ sidebar_position: 1
 </div>
 
 `SoCMake` is a hardware build system based on CMake.
-SoCMake can help you automatize yout build process for hardware designs, either running simulation, code generation, FPGA implementation, synthesis etc...
+SoCMake can help you automatize your build process for hardware designs, either running simulation, code generation, FPGA implementation, synthesis etc...
 
 `SoCMake` project does not try to create a new build system, instead it is an extension of `CMake` build system generator.
 Since `CMake` is a mature and widely used build system, it can easily cover the requirements needed for hardware design.
@@ -35,7 +35,7 @@ Key Features
 Supported Languages and Tools
 =============================
 
-Currently `SoCMake` supports a number of EDA tools that were used within the SoC project the tool was originaly deveoped for.
+Currently `SoCMake` supports a number of EDA tools that were used within the SoC project the tool was originaly developed for.
 The list is always growing and soon many more tools will be added.
 
 | Type                  | Supported                    |
