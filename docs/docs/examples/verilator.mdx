@@ -3,6 +3,9 @@ sidebar_position: 3
 ---
 
 # Verilator C++ testbench
+:::info
+The source code for this example can be found in [examples/verilator](https://github.com/HEP-SoC/SoCMake/tree/master/examples/verilator)
+:::
 
 import CodeBlock from '@theme/CodeBlock';
 export const adder_v = require('!!raw-loader!../../../examples/verilator/adder/adder.v')?.default;
@@ -79,7 +82,7 @@ Finally we use [`target_link_libraries()`](https://cmake.org/cmake/help/latest/c
 
 
 :::tip
-Notice in the line 11, we are linking to the static library created with Verilator.
+Notice in the line 14, we are linking to the static library created with Verilator.
 It is a bit annoying to have to change the version number manually, in order to avoid it it is a better idea to set a variable in `adder/CMakeLists.txt` that will hold the full name of the IP.
 ```cmake title="adder/CMakeLists.txt"
 ...
@@ -92,7 +95,10 @@ And then in `CMakeLists.txt`:
 ...
 target_link_libraries(testbench ${ADDER_LIB_NAME}__vlt)
 ```
-
+:::
+:::tip
+Notice in line 16, we are using the `add_custom_target()` function.
+This allows to add a custom target when generating the makefiles. CMake can compile executable but will not automatically make a target that would run it.
 :::
 
 ### Build graph

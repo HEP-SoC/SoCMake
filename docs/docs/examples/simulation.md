@@ -3,7 +3,9 @@ sidebar_position: 1
 ---
 
 # Simulation
-
+:::info
+The source code for this example can be found in [examples/simple_verilog](https://github.com/HEP-SoC/SoCMake/tree/master/examples/simple_verilog)
+:::
 
 In the previous section [Getting Started](../getting_started.mdx), we saw how to download SoCMake inside our project.
 
@@ -12,6 +14,10 @@ Let's try to run a simple Verilog testbench now with [Icarus Verilog](https://gi
 For this step make sure you have Iverilog and/or Verilator installed on your system.
 
 Lets create a simple verilog testbench file:
+
+:::info
+The same example is also available with VHDL, you can find the source code [here](https://github.com/HEP-SoC/SoCMake/tree/master/examples/simple_vhdl), you can follow the same instructions than in this tutorial if you choose to do it with vhdl.
+:::
 
 import CodeBlock from '@theme/CodeBlock';
 export const tb_v = require('!!raw-loader!../../../examples/simple_verilog/tb.v')?.default;
