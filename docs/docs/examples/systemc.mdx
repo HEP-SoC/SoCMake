@@ -1,0 +1,14 @@
+---
+sidebar_position: 6
+---
+
+# SystemC testbench
+:::info
+The source code for this example can be found in [examples/systemc](https://github.com/HEP-SoC/SoCMake/tree/master/examples/systemc)
+:::
+
+import CodeBlock from '@theme/CodeBlock';
+export const cmakelists = require('!!raw-loader!../../../examples/systemc/CMakeLists.txt')?.default;
+export const testbench = require('!!raw-loader!../../../examples/systemc/sc_main.cpp')?.default;
+
+Simple test using SystemC.

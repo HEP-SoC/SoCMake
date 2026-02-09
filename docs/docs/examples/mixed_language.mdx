@@ -1,0 +1,16 @@
+---
+sidebar_position: 9
+---
+
+# Mixed languages testbench
+:::info
+The source code for this example can be found in [examples/simple_mixed_language](https://github.com/HEP-SoC/SoCMake/tree/master/examples/simple_mixed_language)
+:::
+
+import CodeBlock from '@theme/CodeBlock';
+export const adder = require('!!raw-loader!../../../examples/simple_mixed_language/adder/adder.vhdl')?.default;
+export const cmakelist_adder = require('!!raw-loader!../../../examples/simple_mixed_language/adder/CMakeLists.txt')?.default;
+export const cmakelists = require('!!raw-loader!../../../examples/simple_mixed_language/CMakeLists.txt')?.default;
+export const testbench = require('!!raw-loader!../../../examples/simple_mixed_language/tb.v')?.default;
+
+VHDL adder and simple verilog testbench, using whatever EDA you want.

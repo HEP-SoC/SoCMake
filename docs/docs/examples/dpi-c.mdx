@@ -1,0 +1,17 @@
+---
+sidebar_position: 8
+---
+
+# DPI-C testbench
+:::info
+The source code for this example can be found in [examples/dpi-c](https://github.com/HEP-SoC/SoCMake/tree/master/examples/dpi-c)
+:::
+
+import CodeBlock from '@theme/CodeBlock';
+export const dpi_c = require('!!raw-loader!../../../examples/dpi-c/hello/hello.cpp')?.default;
+export const cmakelist_dpi_c = require('!!raw-loader!../../../examples/dpi-c/hello/CMakeLists.txt')?.default;
+export const cmakelists = require('!!raw-loader!../../../examples/dpi-c/CMakeLists.txt')?.default;
+export const testbench = require('!!raw-loader!../../../examples/dpi-c/tb.sv')?.default;
+export const vtb_main = require('!!raw-loader!../../../examples/dpi-c/Vtb__main.cpp')?.default;
+
+Simple System-Verilog testbench using a DPI-C to make an addition and printing the result, using Verilator.

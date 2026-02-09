@@ -1,0 +1,18 @@
+---
+sidebar_position: 7
+---
+
+# SystemC and UVM-SystemC testbench
+:::info
+The source code for this example can be found in [examples/uvm-systemc](https://github.com/HEP-SoC/SoCMake/tree/master/examples/uvm-systemc)
+:::
+
+import CodeBlock from '@theme/CodeBlock';
+export const cmakelists = require('!!raw-loader!../../../examples/uvm-systemc/CMakeLists.txt')?.default;
+export const testbench = require('!!raw-loader!../../../examples/uvm-systemc/hello_world.cpp')?.default;
+export const consumer = require('!!raw-loader!../../../examples/uvm-systemc/consumer.h')?.default;
+export const packet = require('!!raw-loader!../../../examples/uvm-systemc/packet.h')?.default;
+export const producer = require('!!raw-loader!../../../examples/uvm-systemc/producer.h')?.default;
+export const top = require('!!raw-loader!../../../examples/uvm-systemc/top.h')?.default;
+
+Simple test using UVM and SystemC.

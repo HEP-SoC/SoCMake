@@ -1,0 +1,16 @@
+---
+sidebar_position: 5
+---
+
+# Cocotb testbench
+:::info
+The source code for this example can be found in [examples/simple_cocotb](https://github.com/HEP-SoC/SoCMake/tree/master/examples/simple_cocotb)
+:::
+
+import CodeBlock from '@theme/CodeBlock';
+export const adder = require('!!raw-loader!../../../examples/simple_cocotb/adder/adder.v')?.default;
+export const cmakelist_adder = require('!!raw-loader!../../../examples/simple_cocotb/adder/CMakeLists.txt')?.default;
+export const cmakelists = require('!!raw-loader!../../../examples/simple_cocotb/CMakeLists.txt')?.default;
+export const cocotb_testbench = require('!!raw-loader!../../../examples/simple_cocotb/simple_cocotb_example.py')?.default;
+
+Simple python testbench with cocotb, for an adder written in verilog.
