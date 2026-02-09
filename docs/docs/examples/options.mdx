@@ -1,0 +1,53 @@
+---
+sidebar_position: 1
+---
+
+# Options
+:::info
+The source code for this example can be found in [examples/options](https://github.com/HEP-SoC/SoCMake/tree/master/examples/options)
+:::
+import CodeBlock from '@theme/CodeBlock';
+export const cmakelists = require('!!raw-loader!../../../examples/options/CMakeLists.txt')?.default;
+
+SoCMake allow to use options, a script can easily be adapted to fit in a different environnement or to test different tools or features depending on your needs. 
+This allows to make generic and configurable script if you would like to share your work with others.
+
+Let's try to create an example with several options, to demonstrate how to use them.
+
+## CMakeLists.txt
+
+We can for example create a file like the following `CMakeLists.txt` to try the different possibilities:
+
+<CodeBlock language="verilog" title="CMakeLists.txt" showLineNumbers>{cmakelists}</CodeBlock>
+
+:::warning
+Not all the options are taken in account in the files, it's to show how to implement them and the different types available
+:::
+
+SoCMake API add 4 new functions for options, that can be of the following type **boolean**, **integer**, **enum** or **string**.
+
+They are generally composed of the following arguments : 
+ - **VARIABLE** name of the variable
+ - **DESCRIPTION** short description for the variable
+ - **DEFAULT** default value of the variable
+ 
+If using `option_enum()`, an other argument, a list of strings is needed, between the description and the default value to give the possible values.
+
+### Instructions
+
+To run the example we need to create a build directory as always:
+
+```bash
+mkdir build
+cd build
+```
+
+Then when generating the Makefile, we can choose to precise our options, like it's generally done with cmake scripts:
+
+```bash
+cmake -DSIM_TYPE=GENERIC -DSIM_TRACE=ON ../
+```
+
+:::tip
+the `help()` function, if used, will create a file called `help_options.txt` after the configuration. It can be useful if you want to look at the different option and their values without looking in the CMakeLists.txt file
+:::
