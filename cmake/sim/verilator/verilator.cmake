@@ -38,14 +38,10 @@ function(verilator IP_LIB)
     ## Find verilator installation ###
     ##################################
     if(NOT VERILATOR_HOME)
-        # Ensure CMP0144 is set before find_package to get rid of warning
-        cmake_policy(PUSH)
-        cmake_policy(SET CMP0144 NEW)
         find_package(verilator REQUIRED
             HINTS ${VERISC_HOME}/open/* $ENV{VERISC_HOME}/open/*
             )
         set(VERILATOR_HOME "${verilator_DIR}/../../")
-        cmake_policy(POP)
     endif()
 
     find_file(_VERILATED_H verilated.h REQUIRED
