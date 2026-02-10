@@ -1,29 +1,29 @@
 include "utils";
 
-# Get group from named args with default
 ($ARGS.named.group // "*") as $group |
-.group = $group |
+($ARGS.named.termwidth // 150 | tonumber) as $termwidth |
 
 colors as $c |
 
-# Define column widths
-30 as $w_name | 10 as $w_type | 15 as $w_curr | 15 as $w_def | 40 as $w_vals | 50 as $w_desc |
+# Calculate column widths as percentages of terminal width
+($termwidth * 0.20 | floor) as $w_name |      # 20%
+($termwidth * 0.08 | floor) as $w_type |      # 8%
+($termwidth * 0.12 | floor) as $w_curr |      # 12%
+($termwidth * 0.25 | floor) as $w_vals |      # 25%
+($termwidth * 0.34 | floor) as $w_desc |      # 34%
+($termwidth * 0.8 | floor) as $w_sep |      # 80%
 
 # Print Header
-"\($c.bold)\($c.yellow)\("Option" | pad($w_name)) \("Type" | pad($w_type)) \("Value" | pad($w_curr)) \("Default" | pad($w_def)) \("Values" | pad($w_vals)) \("Description" | pad($w_desc))\($c.reset)",
-  
-# Print separator
-("-" * 150),
+"\($c.bold)\($c.yellow)\("Option" | pad($w_name)) \("Type" | pad($w_type)) \("Value" | pad($w_curr)) \("Values" | pad($w_vals)) \("Description" | pad($w_desc))\($c.reset)",
 
-# Print options
+("-" * $w_sep),
+
 (.options[] | select(.advanced == "FALSE") | select($group == "*" or (.groups | index($group))) |
     "\($c.cyan)\(.name | pad($w_name))\($c.reset) " +
     "\(.type | pad($w_type)) " +
     "\(.current | pad($w_curr)) " +
-    "\(.default | pad($w_def)) " +
     "\((if .values | length > 0 then "[" + (.values | join(",")) + "]" else "" end) | pad($w_vals)) " +
     "\(.description | pad($w_desc))"
 ),
 
-# Print separator
-("-" * 150)
+("-" * $w_sep)

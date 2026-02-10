@@ -52,7 +52,9 @@ function(help_options)
     set(outfile ${PROJECT_BINARY_DIR}/help/${target}.json)
     file(WRITE ${outfile} ${json_output})
 
-    set(cmd jq -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/option.jq ${outfile})
+    set(cmd jq -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r
+               --argjson termwidth \"$$\(tput cols\)\"
+               -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/option.jq ${outfile})
     set(DESCRIPTION "Help for Options")
     add_custom_target(${target}
         COMMAND ${cmd}
@@ -96,7 +98,9 @@ function(help_ips)
     set(outfile ${PROJECT_BINARY_DIR}/help/${target}.json)
     file(WRITE ${outfile} ${json_output})
 
-    set(cmd jq -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ip.jq ${outfile})
+    set(cmd jq -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r 
+               --argjson termwidth \"$$\(tput cols\)\"
+               -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ip.jq ${outfile})
     set(DESCRIPTION "Help for IPs")
     add_custom_target(${target}
         COMMAND ${cmd}
@@ -112,7 +116,9 @@ function(help_targets)
     set(target help_targets)
     set(outfile ${PROJECT_BINARY_DIR}/help/${target}.json)
 
-    set(cmd jq -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/target.jq ${outfile})
+    set(cmd jq -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r 
+               --argjson termwidth \"$$\(tput cols\)\"
+               -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/target.jq ${outfile})
     set(DESCRIPTION "Help for targets")
     add_custom_target(${target}
         COMMAND ${cmd}
@@ -188,6 +194,7 @@ function(help_custom_targets GROUP_NAME)
 
     set(cmd jq -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r
                --arg group \"${GROUP_NAME}\"
+               --argjson termwidth \"$$\(tput cols\)\"
                -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/target.jq ${outfile})
     add_custom_target(${target}
         COMMAND ${cmd}
@@ -223,6 +230,7 @@ function(help_custom_ips GROUP_NAME)
 
     set(cmd jq -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r
                --arg group \"${GROUP_NAME}\"
+               --argjson termwidth \"$$\(tput cols\)\"
                -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ip.jq ${outfile})
     add_custom_target(${target}
         COMMAND ${cmd}
@@ -258,6 +266,7 @@ function(help_custom_options GROUP_NAME)
 
     set(cmd jq -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r
                --arg group \"${GROUP_NAME}\"
+               --argjson termwidth \"$$\(tput cols\)\"
                -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/option.jq ${outfile})
     add_custom_target(${target}
         COMMAND ${cmd}

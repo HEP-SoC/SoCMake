@@ -1,19 +1,19 @@
 include "utils";
-
 # Get group from named args with default
 ($ARGS.named.group // "*") as $group |
-.group = $group |
+($ARGS.named.termwidth // 150 | tonumber) as $termwidth |
 
 colors as $c |
 
-# Define column widths
-60 as $w_name | 60 as $w_desc |
+# Calculate column widths as percentages of terminal width
+($termwidth * 0.40 | floor) as $w_name |      # 40%
+($termwidth * 0.59 | floor) as $w_desc |      # 59%
 
 # Print Header
 "\($c.bold)\($c.yellow)\("IP" | pad($w_name)) \("Description" | pad($w_desc))\($c.reset)",
   
 # Print separator
-("-" * 150),
+("-" * $termwidth),
 
 # Print options
 (.ips[] | select($group == "*" or (.groups | index($group))) |
@@ -22,5 +22,4 @@ colors as $c |
 ),
 
 # Print separator
-("-" * 150)
-
+("-" * $termwidth)
