@@ -6,8 +6,8 @@ include "utils";
 colors as $c |
 
 # Calculate column widths as percentages of terminal width
-($termwidth * 0.30 | floor) as $w_name |
-($termwidth * 0.69 | floor) as $w_desc |
+($termwidth * 0.27 | floor) as $w_name |
+($termwidth * 0.72 | floor) as $w_desc |
 
 # Print Header
 "\($c.bold)\($c.yellow)\("Target" | pad($w_name)) \("Description" | pad($w_desc))\($c.reset)",

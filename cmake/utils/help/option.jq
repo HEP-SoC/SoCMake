@@ -6,11 +6,11 @@ include "utils";
 colors as $c |
 
 # Calculate column widths as percentages of terminal width
-($termwidth * 0.30 | floor) as $w_name |
+($termwidth * 0.27 | floor) as $w_name |
 ($termwidth * 0.07 | floor) as $w_type |
 ($termwidth * 0.11 | floor) as $w_curr |
-($termwidth * 0.20 | floor) as $w_vals |
-($termwidth * 0.30 | floor) as $w_desc |
+($termwidth * 0.25 | floor) as $w_vals |
+($termwidth * 0.28 | floor) as $w_desc |
 ($termwidth * 0.8 | floor) as $w_sep |
 
 # Print Header
