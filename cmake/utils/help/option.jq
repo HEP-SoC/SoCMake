@@ -6,12 +6,12 @@ include "utils";
 colors as $c |
 
 # Calculate column widths as percentages of terminal width
-($termwidth * 0.20 | floor) as $w_name |      # 20%
-($termwidth * 0.08 | floor) as $w_type |      # 8%
-($termwidth * 0.12 | floor) as $w_curr |      # 12%
-($termwidth * 0.25 | floor) as $w_vals |      # 25%
-($termwidth * 0.33 | floor) as $w_desc |      # 33%
-($termwidth * 0.8 | floor) as $w_sep |      # 80%
+($termwidth * 0.30 | floor) as $w_name |
+($termwidth * 0.07 | floor) as $w_type |
+($termwidth * 0.11 | floor) as $w_curr |
+($termwidth * 0.20 | floor) as $w_vals |
+($termwidth * 0.30 | floor) as $w_desc |
+($termwidth * 0.8 | floor) as $w_sep |
 
 # Print Header
 "\($c.bold)\($c.yellow)\("Option" | pad($w_name)) \("Type" | pad($w_type)) \("Value" | pad($w_curr)) \("Values" | pad($w_vals)) \("Description" | pad($w_desc))\($c.reset)",
