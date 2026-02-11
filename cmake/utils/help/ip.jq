@@ -6,8 +6,8 @@ include "utils";
 colors as $c |
 
 # Calculate column widths as percentages of terminal width
-($termwidth * 0.40 | floor) as $w_name |      # 40%
-($termwidth * 0.59 | floor) as $w_desc |      # 59%
+($termwidth * 0.57 | floor) as $w_name |      # 57%
+($termwidth * 0.42 | floor) as $w_desc |      # 42%
 
 # Print Header
 "\($c.bold)\($c.yellow)\("IP" | pad($w_name)) \("Description" | pad($w_desc))\($c.reset)",

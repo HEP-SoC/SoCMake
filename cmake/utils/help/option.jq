@@ -10,13 +10,13 @@ colors as $c |
 ($termwidth * 0.08 | floor) as $w_type |      # 8%
 ($termwidth * 0.12 | floor) as $w_curr |      # 12%
 ($termwidth * 0.25 | floor) as $w_vals |      # 25%
-($termwidth * 0.34 | floor) as $w_desc |      # 34%
+($termwidth * 0.33 | floor) as $w_desc |      # 33%
 ($termwidth * 0.8 | floor) as $w_sep |      # 80%
 
 # Print Header
 "\($c.bold)\($c.yellow)\("Option" | pad($w_name)) \("Type" | pad($w_type)) \("Value" | pad($w_curr)) \("Values" | pad($w_vals)) \("Description" | pad($w_desc))\($c.reset)",
 
-("-" * $w_sep),
+("-" * $termwidth),
 
 (.options[] | select(.advanced == "FALSE") | select($group == "*" or (.groups | index($group))) |
     "\($c.cyan)\(.name | pad($w_name))\($c.reset) " +
@@ -26,4 +26,4 @@ colors as $c |
     "\(.description | pad($w_desc))"
 ),
 
-("-" * $w_sep)
+("-" * $termwidth)
