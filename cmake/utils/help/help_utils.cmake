@@ -37,6 +37,7 @@ function(_create_help_target HELP_NAME JQ_FILE OUTFILE GROUP_NAME)
     add_custom_target(${target}
         COMMAND ${cmd} --argjson termwidth \"$$\(tput cols\)\" --arg group \"${GROUP_NAME}\"
         COMMENT ${DESCRIPTION}
+        USES_TERMINAL
         )
     set_property(TARGET ${target} PROPERTY DESCRIPTION ${DESCRIPTION})
     set_property(TARGET ${target} APPEND PROPERTY SOCMAKE_GROUPS help)
