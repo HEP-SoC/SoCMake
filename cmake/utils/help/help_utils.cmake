@@ -1,3 +1,11 @@
+include_guard(GLOBAL)
+
+find_program(JQ_EXECUTABLE jq)
+
+if(NOT JQ_EXECUTABLE)
+    message(WARNING "Could not find \"jq\" executable, help menu's will not be available, please install jq")
+endif()
+
 function(__cmake_to_json_array OUTVAR)
     set(values_array "[]")
     if(ARGN)
@@ -19,7 +27,11 @@ function(_create_help_target HELP_NAME JQ_FILE OUTFILE GROUP_NAME)
 
     set(target help_${HELP_NAME})
 
-    set(cmd jq -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r
+    if(NOT JQ_EXECUTABLE)
+        return()
+    endif()
+
+    set(cmd ${JQ_EXECUTABLE} -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r
                -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${JQ_FILE} ${outfile})
     set(DESCRIPTION "Help for ${HELP_NAME}")
     add_custom_target(${target}
@@ -299,6 +311,11 @@ function(help)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
+
+    if(NOT JQ_EXECUTABLE)
+        return()
+    endif()
+
     if(ARG_PRINT_ON_CONF)
         set(ARG_PRINT_ON_CONF PRINT_ON_CONF)
     endif()
