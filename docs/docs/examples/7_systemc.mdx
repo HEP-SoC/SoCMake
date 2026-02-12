@@ -2,7 +2,7 @@
 sidebar_position: 7
 ---
 
-# SystemC simulation
+# SystemC
 :::info
 The source code for this example can be found in [examples/systemc](https://github.com/HEP-SoC/SoCMake/tree/master/examples/systemc)
 :::
@@ -12,3 +12,54 @@ export const cmakelists = require('!!raw-loader!../../../examples/systemc/CMakeL
 export const testbench = require('!!raw-loader!../../../examples/systemc/sc_main.cpp')?.default;
 
 Simple test using SystemC.
+
+### Description
+
+ToDo: Update description
+
+This example shows how to do simulation using DPI with SoCMake, using a C function and a System-Verilog testbench that calls this function using DPI-C.
+
+## Example
+
+### Directory structure
+
+Lets take a look at the directory structure of the example first.
+
+```raw
+.
+├── CMakeLists.txt
+└── sc_main.cpp
+```
+
+### sc_main.cpp
+
+ToDo: Update
+
+This is a standard System-Verilator testbench.
+
+<CodeBlock language="cpp" title="sc_main.cpp" showLineNumbers>{testbench}</CodeBlock>
+
+
+### CMakeLists.txt
+
+ToDo: Update
+
+And finally we need a top `CMakeLists.txt` that will assemble the full project and create simulation targets.
+
+<CodeBlock language="cmake" title="CMakeLists.txt" showLineNumbers>{cmakelists}</CodeBlock>
+
+We can add the `adder` IP as a subdirectory with [`add_subdirectory()`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) CMake function.
+
+Then, we can just use the SoCMake function corresponding to the simulator we want to use, in our case `questasim()`, which will take care of the remaining part.
+
+## Running the simulation
+
+Simulation can be run the same way as always:
+
+```bash
+mkdir build
+cd build
+cmake ../ -DSIMULATOR=questa     # Configure project
+make run_tb_questasim -j$(nproc) # Build and run testbench
+```
+

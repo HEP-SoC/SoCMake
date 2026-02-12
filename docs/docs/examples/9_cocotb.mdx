@@ -2,7 +2,7 @@
 sidebar_position: 9
 ---
 
-# Simulation with cocotb
+# Cocotb
 :::info
 The source code for this example can be found in [examples/simple_cocotb](https://github.com/HEP-SoC/SoCMake/tree/master/examples/simple_cocotb)
 :::
@@ -11,6 +11,83 @@ import CodeBlock from '@theme/CodeBlock';
 export const adder = require('!!raw-loader!../../../examples/simple_cocotb/adder/adder.v')?.default;
 export const cmakelist_adder = require('!!raw-loader!../../../examples/simple_cocotb/adder/CMakeLists.txt')?.default;
 export const cmakelists = require('!!raw-loader!../../../examples/simple_cocotb/CMakeLists.txt')?.default;
-export const cocotb_testbench = require('!!raw-loader!../../../examples/simple_cocotb/simple_cocotb_example.py')?.default;
+export const testbench = require('!!raw-loader!../../../examples/simple_cocotb/simple_cocotb_example.py')?.default;
+export const python_requirements = require('!!raw-loader!../../../examples/simple_cocotb/python_requirements.txt')?.default;
 
 Simple python testbench with cocotb, for an adder written in verilog.
+
+### Description
+
+ToDo: Update this description
+
+This example shows how to do simulation using DPI with SoCMake, using a C function and a System-Verilog testbench that calls this function using DPI-C.
+
+## Example
+
+### Directory structure
+
+Lets take a look at the directory structure of the example first.
+
+```raw
+.
+├── adder
+│   ├── adder.v
+│   └── CMakeLists.txt
+├── CMakeLists.txt
+├── python_requirement.txt
+└── simple_cocotb_example.py
+```
+ToDO: Update this 
+
+We have a directory `hello/` that contains the `hello` c++ function, it as its own `CMakeLists.txt` to make it easier to reuse in a larger project.
+:::tip
+For a design this simple it is not really necessary to have a separate `CMakeLists.txt`, but it is a good practice anyways.
+:::
+
+### adder/adder.v
+
+Simple function that takes an integer and return the integer + 10.
+
+<CodeBlock language="verilog" title="adder/adder.v" showLineNumbers>{adder}</CodeBlock>
+
+### adder/CMakeLists.txt
+
+ToDO: Write Description about specificities
+
+<CodeBlock language="cmake" title="hello/CMakeLists.txt" showLineNumbers>{cmakelist_adder}</CodeBlock>
+
+### python_requirements.txt
+
+ToDO: Write Description about specificities
+
+<CodeBlock language="cmake" title="python_requirements.txt" showLineNumbers>{python_requirements}</CodeBlock>
+
+### simple_cocotb_example.py
+
+ToDO: UPDATE THIS
+This is a standard System-Verilator testbench. The DPI-C is imported and called.
+
+<CodeBlock language="python" title="simple_cocotb_example.py" showLineNumbers>{testbench}</CodeBlock>
+
+
+### CMakeLists.txt
+
+And finally we need a top `CMakeLists.txt` that will assemble the full project and create simulation targets.
+
+<CodeBlock language="cmake" title="CMakeLists.txt" showLineNumbers>{cmakelists}</CodeBlock>
+
+We can add the `adder` IP as a subdirectory with [`add_subdirectory()`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) CMake function.
+
+Then, we can just use the SoCMake function corresponding to the simulator we want to use, in our case `questasim()`, which will take care of the remaining part.
+
+## Running the simulation
+
+Simulation can be run the same way as always:
+
+```bash
+mkdir build
+cd build
+cmake ../ -DSIMULATOR=questa     # Configure project
+make run_tb_questasim -j$(nproc) # Build and run testbench
+```
+

@@ -2,7 +2,7 @@
 sidebar_position: 8
 ---
 
-# UVM-SystemC simulation
+# UVM-SystemC
 :::info
 The source code for this example can be found in [examples/uvm-systemc](https://github.com/HEP-SoC/SoCMake/tree/master/examples/uvm-systemc)
 :::
@@ -16,3 +16,90 @@ export const producer = require('!!raw-loader!../../../examples/uvm-systemc/prod
 export const top = require('!!raw-loader!../../../examples/uvm-systemc/top.h')?.default;
 
 Simple test using UVM and SystemC.
+
+### Description
+
+ToDo: Update description
+
+This example shows how to do simulation using DPI with SoCMake, using a C function and a System-Verilog testbench that calls this function using DPI-C.
+
+## Example
+
+### Directory structure
+
+Lets take a look at the directory structure of the example first.
+
+```raw
+.
+├── CMakeLists.txt
+├── consumer.h
+├── hello_world.cpp
+├── packet.h
+├── producer.h
+└── top.h
+```
+
+### consumer.h
+
+ToDo: description
+
+This is a standard System-Verilator testbench.
+
+<CodeBlock language="cpp" title="consumer.h" showLineNumbers>{consumer}</CodeBlock>### hello_world.cpp
+
+### packet.h
+
+ToDo: description
+
+This is a standard System-Verilator testbench.
+
+<CodeBlock language="cpp" title="packet.h" showLineNumbers>{packet}</CodeBlock>### hello_world.cpp
+
+### producer.h
+
+ToDo: description
+
+This is a standard System-Verilator testbench.
+
+<CodeBlock language="cpp" title="producer.h" showLineNumbers>{producer}</CodeBlock>
+
+### top.h
+
+ToDo: description
+
+This is a standard System-Verilator testbench.
+
+<CodeBlock language="cpp" title="top.h" showLineNumbers>{top}</CodeBlock>
+
+### hello_world.cpp
+
+ToDo: description
+
+This is a standard System-Verilator testbench.
+
+<CodeBlock language="cpp" title="sc_main.cpp" showLineNumbers>{testbench}</CodeBlock>
+
+
+### CMakeLists.txt
+
+ToDo: Update
+
+And finally we need a top `CMakeLists.txt` that will assemble the full project and create simulation targets.
+
+<CodeBlock language="cmake" title="CMakeLists.txt" showLineNumbers>{cmakelists}</CodeBlock>
+
+We can add the `adder` IP as a subdirectory with [`add_subdirectory()`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) CMake function.
+
+Then, we can just use the SoCMake function corresponding to the simulator we want to use, in our case `questasim()`, which will take care of the remaining part.
+
+## Running the simulation
+
+Simulation can be run the same way as always:
+
+```bash
+mkdir build
+cd build
+cmake ../ -DSIMULATOR=questa     # Configure project
+make run_tb_questasim -j$(nproc) # Build and run testbench
+```
+
