@@ -1,6 +1,6 @@
 include("../../SoCMakeConfig.cmake")
 
-option_enum(SIMULATOR "Which simulator to use" "questa;vivado_sim;xcelium;vcs;verilator;verilator_sv_tb;all" "questasim")
+option_enum(SIMULATOR "Which simulator to use" "questa;vivado_sim;xcelium;vcs;verilator;all" "questasim")
 
 if(SIMULATOR STREQUAL "questa")
     questasim_configure_cxx(LIBRARIES DPI-C)
@@ -45,18 +45,9 @@ if(SIMULATOR STREQUAL "vcs")
     vcs(${IP})
 endif()
 
-if(SIMULATOR STREQUAL "verilator_sv_tb")
-    enable_language(CXX)
-    verilator(${IP} MAIN VERILATOR_ARGS --timing)
-endif()
-
 if(SIMULATOR STREQUAL "verilator")
     enable_language(CXX)
-    verilator(${IP})
-    add_executable(verilator_tb EXCLUDE_FROM_ALL Vtb__main.cpp )
-    target_link_libraries(verilator_tb tb__vlt)
-    add_custom_target(run_tb_verilator
-        COMMAND verilator_tb)
+    verilator(${IP} MAIN VERILATOR_ARGS --timing)
 endif()
 
 help()
