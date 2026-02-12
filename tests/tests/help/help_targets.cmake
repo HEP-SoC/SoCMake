@@ -78,7 +78,7 @@ function(${${TEST_NAME}})
     add_custom_target(run_test_pm_voltage_scaling)
 
 # Organize help menus
-    help_custom_targets("build" TARGET_LIST 
+    help_custom_targets("build" LIST 
         build_bootloader 
         build_firmware 
         build_fpga_bitstream 
@@ -86,14 +86,14 @@ function(${${TEST_NAME}})
         DESCRIPTION "Build targets"
         )
 
-    help_custom_targets("simulation" TARGET_LIST 
+    help_custom_targets("simulation" LIST 
         sim_core_unit_tests 
         sim_peripheral_tests 
         sim_integration
         DESCRIPTION "Simulation targets"
         )
 
-    help_custom_targets("flash" TARGET_LIST 
+    help_custom_targets("flash" LIST 
         flash_bootloader 
         flash_firmware 
         flash_fpga)
@@ -127,7 +127,6 @@ function(${${TEST_NAME}})
     option_boolean(ENABLE_DMA "Include direct memory access controller" ON)
     option_boolean(LOW_POWER_MODE "Optimize for low power consumption" OFF)
 
-
     help()
 
 # Assert that help targets exist
@@ -146,135 +145,294 @@ function(${${TEST_NAME}})
     ct_assert_target_exists(help_uart0_specific)
     ct_assert_target_exists(help_all_peripheral_tests)
 
-    # Helper function to check if target is in help file
-    function(ct_assert_target_in_help_file HELP_FILE TARGET_NAME)
-        if(NOT EXISTS "${HELP_FILE}")
-            message(FATAL_ERROR "Help file does not exist: ${HELP_FILE}")
+    # Helper function to read JSON and find item by name
+    function(ct_json_find_item JSON_FILE ARRAY_NAME ITEM_NAME OUT_INDEX)
+        if(NOT EXISTS "${JSON_FILE}")
+            message(FATAL_ERROR "JSON file does not exist: ${JSON_FILE}")
         endif()
         
-        file(READ "${HELP_FILE}" content)
-        string(FIND "${content}" "${TARGET_NAME}" pos)
-        if(pos EQUAL -1)
-            message(FATAL_ERROR "Target '${TARGET_NAME}' not found in ${HELP_FILE}")
+        file(READ "${JSON_FILE}" json_content)
+        
+        # Get array length
+        string(JSON array_length ERROR_VARIABLE err LENGTH "${json_content}" "${ARRAY_NAME}")
+        if(err)
+            message(FATAL_ERROR "Failed to read array '${ARRAY_NAME}' from ${JSON_FILE}: ${err}")
+        endif()
+        
+        # Search for item
+        set(found_index -1)
+        if(array_length GREATER 0)
+            math(EXPR max_index "${array_length} - 1")
+            foreach(i RANGE 0 ${max_index})
+                string(JSON item_name ERROR_VARIABLE err GET "${json_content}" "${ARRAY_NAME}" ${i} "name")
+                if(NOT err AND item_name STREQUAL ITEM_NAME)
+                    set(found_index ${i})
+                    break()
+                endif()
+            endforeach()
+        endif()
+        
+        set(${OUT_INDEX} ${found_index} PARENT_SCOPE)
+    endfunction()
+
+    # Helper function to check if item exists in JSON array
+    function(ct_assert_item_in_json JSON_FILE ARRAY_NAME ITEM_NAME)
+        ct_json_find_item("${JSON_FILE}" "${ARRAY_NAME}" "${ITEM_NAME}" index)
+        
+        if(index EQUAL -1)
+            message(FATAL_ERROR "Item '${ITEM_NAME}' not found in ${ARRAY_NAME} of ${JSON_FILE}")
         else()
-            message(STATUS "✓ Target '${TARGET_NAME}' found in ${HELP_FILE}")
+            message(STATUS "✓ Item '${ITEM_NAME}' found in ${JSON_FILE}")
         endif()
     endfunction()
 
-    # Test help_build.txt
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_build.txt" "build_bootloader")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_build.txt" "build_firmware")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_build.txt" "build_fpga_bitstream")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_build.txt" "build_documentation")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_build.txt" "help_build")
+    # Helper function to check if item is NOT in JSON array
+    function(ct_assert_item_not_in_json JSON_FILE ARRAY_NAME ITEM_NAME)
+        ct_json_find_item("${JSON_FILE}" "${ARRAY_NAME}" "${ITEM_NAME}" index)
+        
+        if(NOT index EQUAL -1)
+            message(FATAL_ERROR "Item '${ITEM_NAME}' should NOT be in ${ARRAY_NAME} of ${JSON_FILE}")
+        else()
+            message(STATUS "✓ Item '${ITEM_NAME}' correctly excluded from ${JSON_FILE}")
+        endif()
+    endfunction()
 
-    # Test help_simulation.txt
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_simulation.txt" "sim_core_unit_tests")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_simulation.txt" "sim_peripheral_tests")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_simulation.txt" "sim_integration")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_simulation.txt" "help_simulation")
+    # Helper function to check if item has specific group
+    function(ct_assert_item_has_group JSON_FILE ARRAY_NAME ITEM_NAME GROUP_NAME)
+        ct_json_find_item("${JSON_FILE}" "${ARRAY_NAME}" "${ITEM_NAME}" index)
+        
+        if(index EQUAL -1)
+            message(FATAL_ERROR "Item '${ITEM_NAME}' not found in ${JSON_FILE}")
+        endif()
+        
+        file(READ "${JSON_FILE}" json_content)
+        string(JSON groups_array ERROR_VARIABLE err GET "${json_content}" "${ARRAY_NAME}" ${index} "groups")
+        if(err)
+            message(FATAL_ERROR "Failed to read groups for '${ITEM_NAME}': ${err}")
+        endif()
+        
+        # Check if GROUP_NAME is in groups array
+        string(JSON groups_length LENGTH "${groups_array}")
+        set(found FALSE)
+        if(groups_length GREATER 0)
+            math(EXPR max_index "${groups_length} - 1")
+            foreach(i RANGE 0 ${max_index})
+                string(JSON group_value GET "${groups_array}" ${i})
+                if(group_value STREQUAL GROUP_NAME)
+                    set(found TRUE)
+                    break()
+                endif()
+            endforeach()
+        endif()
+        
+        if(NOT found)
+            message(FATAL_ERROR "Item '${ITEM_NAME}' does not have group '${GROUP_NAME}'")
+        else()
+            message(STATUS "✓ Item '${ITEM_NAME}' has group '${GROUP_NAME}'")
+        endif()
+    endfunction()
 
-    # Test help_flash.txt
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_flash.txt" "flash_bootloader")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_flash.txt" "flash_firmware")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_flash.txt" "flash_fpga")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_flash.txt" "help_flash")
+    # Helper function to verify description exists
+    function(ct_assert_item_has_description JSON_FILE ARRAY_NAME ITEM_NAME EXPECTED_DESC)
+        ct_json_find_item("${JSON_FILE}" "${ARRAY_NAME}" "${ITEM_NAME}" index)
+        
+        if(index EQUAL -1)
+            message(FATAL_ERROR "Item '${ITEM_NAME}' not found in ${JSON_FILE}")
+        endif()
+        
+        file(READ "${JSON_FILE}" json_content)
+        string(JSON description ERROR_VARIABLE err GET "${json_content}" "${ARRAY_NAME}" ${index} "description")
+        if(err)
+            message(FATAL_ERROR "Failed to read description for '${ITEM_NAME}': ${err}")
+        endif()
+        
+        string(FIND "${description}" "${EXPECTED_DESC}" pos)
+        if(pos EQUAL -1)
+            message(FATAL_ERROR "Description '${EXPECTED_DESC}' not found in item '${ITEM_NAME}'. Got: ${description}")
+        else()
+            message(STATUS "✓ Item '${ITEM_NAME}' has correct description")
+        endif()
+    endfunction()
 
-    # Test help_uart_tests.txt
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_uart_tests.txt" "run_test_uart0_loopback")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_uart_tests.txt" "run_test_uart0_baud_rates")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_uart_tests.txt" "run_test_uart0_interrupts")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_uart_tests.txt" "run_test_uart1_loopback")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_uart_tests.txt" "run_test_uart1_dma")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_uart_tests.txt" "help_uart_tests")
+    set(TARGETS_JSON "${CMAKE_BINARY_DIR}/help/help_targets.json")
+    set(IPS_JSON "${CMAKE_BINARY_DIR}/help/help_ips.json")
+    set(OPTIONS_JSON "${CMAKE_BINARY_DIR}/help/help_options.json")
 
-    # Test help_spi_tests.txt
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_spi_tests.txt" "run_test_spi0_master_mode")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_spi_tests.txt" "run_test_spi0_slave_mode")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_spi_tests.txt" "run_test_spi1_flash_access")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_spi_tests.txt" "run_test_spi1_dual_quad_mode")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_spi_tests.txt" "help_spi_tests")
-
-    # Test help_i2c_tests.txt
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_i2c_tests.txt" "run_test_i2c0_master")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_i2c_tests.txt" "run_test_i2c0_multi_master")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_i2c_tests.txt" "run_test_i2c1_sensor_read")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_i2c_tests.txt" "help_i2c_tests")
-
-    # Test help_memory_tests.txt
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_memory_tests.txt" "run_test_ddr_calibration")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_memory_tests.txt" "run_test_ddr_bandwidth")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_memory_tests.txt" "run_test_cache_coherency")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_memory_tests.txt" "help_memory_tests")
-
-    # Test help_power_tests.txt
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_power_tests.txt" "run_test_pm_sleep_modes")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_power_tests.txt" "run_test_pm_clock_gating")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_power_tests.txt" "run_test_pm_voltage_scaling")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_power_tests.txt" "help_power_tests")
-
-    # Test help_uart0_specific.txt
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_uart0_specific.txt" "run_test_uart0_loopback")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_uart0_specific.txt" "run_test_uart0_baud_rates")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_uart0_specific.txt" "run_test_uart0_interrupts")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_uart0_specific.txt" "help_uart0_specific")
-    
-    # UART1 targets should NOT be in uart0_specific
-    file(READ "${CMAKE_BINARY_DIR}/help_uart0_specific.txt" uart0_content)
-    string(FIND "${uart0_content}" "run_test_uart1_loopback" pos)
-    if(NOT pos EQUAL -1)
-        message(FATAL_ERROR "Target 'run_test_uart1_loopback' should NOT be in help_uart0_specific.txt")
-    else()
-        message(STATUS "✓ Target 'run_test_uart1_loopback' correctly excluded from help_uart0_specific.txt")
+    # Test that JSON files exist
+    if(NOT EXISTS "${TARGETS_JSON}")
+        message(FATAL_ERROR "Targets JSON file does not exist: ${TARGETS_JSON}")
+    endif()
+    if(NOT EXISTS "${IPS_JSON}")
+        message(FATAL_ERROR "IPs JSON file does not exist: ${IPS_JSON}")
+    endif()
+    if(NOT EXISTS "${OPTIONS_JSON}")
+        message(FATAL_ERROR "Options JSON file does not exist: ${OPTIONS_JSON}")
     endif()
 
-    # Test help_all_peripheral_tests.txt
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_all_peripheral_tests.txt" "run_test_uart0_loopback")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_all_peripheral_tests.txt" "run_test_uart1_dma")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_all_peripheral_tests.txt" "run_test_spi0_master_mode")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_all_peripheral_tests.txt" "run_test_spi1_dual_quad_mode")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_all_peripheral_tests.txt" "run_test_i2c0_master")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_all_peripheral_tests.txt" "run_test_i2c1_sensor_read")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_all_peripheral_tests.txt" "help_all_peripheral_tests")
+    # Test help targets JSON - build group
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "build_bootloader")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "build_firmware")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "build_fpga_bitstream")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "build_documentation")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "help_build")
     
-    # DDR/cache targets should NOT be in all_peripheral_tests
-    file(READ "${CMAKE_BINARY_DIR}/help_all_peripheral_tests.txt" peripheral_content)
-    string(FIND "${peripheral_content}" "run_test_ddr_calibration" pos)
-    if(NOT pos EQUAL -1)
-        message(FATAL_ERROR "Target 'run_test_ddr_calibration' should NOT be in help_all_peripheral_tests.txt")
-    else()
-        message(STATUS "✓ Target 'run_test_ddr_calibration' correctly excluded from help_all_peripheral_tests.txt")
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "build_bootloader" "build")
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "build_firmware" "build")
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "help_build" "help")
+
+    # Test help targets JSON - simulation group
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "sim_core_unit_tests")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "sim_peripheral_tests")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "sim_integration")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "help_simulation")
+    
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "sim_core_unit_tests" "simulation")
+
+    # Test help targets JSON - flash group
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "flash_bootloader")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "flash_firmware")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "flash_fpga")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "help_flash")
+    
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "flash_bootloader" "flash")
+
+    # Test help targets JSON - uart_tests group
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_uart0_loopback")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_uart0_baud_rates")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_uart0_interrupts")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_uart1_loopback")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_uart1_dma")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "help_uart_tests")
+    
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "run_test_uart0_loopback" "uart_tests")
+
+    # Test help targets JSON - spi_tests group
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_spi0_master_mode")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_spi0_slave_mode")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_spi1_flash_access")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_spi1_dual_quad_mode")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "help_spi_tests")
+    
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "run_test_spi0_master_mode" "spi_tests")
+
+    # Test help targets JSON - i2c_tests group
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_i2c0_master")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_i2c0_multi_master")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_i2c1_sensor_read")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "help_i2c_tests")
+    
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "run_test_i2c0_master" "i2c_tests")
+
+    # Test help targets JSON - memory_tests group
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_ddr_calibration")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_ddr_bandwidth")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_cache_coherency")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "help_memory_tests")
+    
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "run_test_ddr_calibration" "memory_tests")
+
+    # Test help targets JSON - power_tests group
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_pm_sleep_modes")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_pm_clock_gating")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_pm_voltage_scaling")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "help_power_tests")
+    
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "run_test_pm_sleep_modes" "power_tests")
+
+    # Test help targets JSON - uart0_specific group
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_uart0_loopback")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_uart0_baud_rates")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_uart0_interrupts")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "help_uart0_specific")
+    
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "run_test_uart0_loopback" "uart0_specific")
+    
+    # UART1 targets should still exist but also be in uart_tests group
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "run_test_uart1_loopback" "uart_tests")
+
+    # Test help targets JSON - all_peripheral_tests group
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_uart0_loopback")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_uart1_dma")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_spi0_master_mode")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_spi1_dual_quad_mode")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_i2c0_master")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "run_test_i2c1_sensor_read")
+    ct_assert_item_in_json("${TARGETS_JSON}" "targets" "help_all_peripheral_tests")
+    
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "run_test_uart0_loopback" "all_peripheral_tests")
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "run_test_spi0_master_mode" "all_peripheral_tests")
+    ct_assert_item_has_group("${TARGETS_JSON}" "targets" "run_test_i2c0_master" "all_peripheral_tests")
+    
+    # DDR/cache targets should NOT be in all_peripheral_tests group (they're in memory_tests)
+    ct_json_find_item("${TARGETS_JSON}" "targets" "run_test_ddr_calibration" ddr_index)
+    if(NOT ddr_index EQUAL -1)
+        file(READ "${TARGETS_JSON}" json_content)
+        string(JSON groups_array GET "${json_content}" "targets" ${ddr_index} "groups")
+        string(JSON groups_length LENGTH "${groups_array}")
+        set(found_peripheral_group FALSE)
+        if(groups_length GREATER 0)
+            math(EXPR max_index "${groups_length} - 1")
+            foreach(i RANGE 0 ${max_index})
+                string(JSON group_value GET "${groups_array}" ${i})
+                if(group_value STREQUAL "all_peripheral_tests")
+                    set(found_peripheral_group TRUE)
+                    break()
+                endif()
+            endforeach()
+        endif()
+        
+        if(found_peripheral_group)
+            message(FATAL_ERROR "Target 'run_test_ddr_calibration' should NOT have group 'all_peripheral_tests'")
+        else()
+            message(STATUS "✓ Target 'run_test_ddr_calibration' correctly excluded from 'all_peripheral_tests' group")
+        endif()
     endif()
 
-    # Test help_ips.txt
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_ips.txt" "riscv_core_cv32e40p")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_ips.txt" "axi_interconnect")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_ips.txt" "uart_16550")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_ips.txt" "spi_master_apb")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_ips.txt" "i2c_master_wb")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_ips.txt" "ddr3_controller")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_ips.txt" "plic_interrupt_controller")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_ips.txt" "timer_subsystem")
+    # Test help IPs JSON
+    ct_assert_item_in_json("${IPS_JSON}" "ips" "riscv_core_cv32e40p")
+    ct_assert_item_in_json("${IPS_JSON}" "ips" "axi_interconnect")
+    ct_assert_item_in_json("${IPS_JSON}" "ips" "uart_16550")
+    ct_assert_item_in_json("${IPS_JSON}" "ips" "spi_master_apb")
+    ct_assert_item_in_json("${IPS_JSON}" "ips" "i2c_master_wb")
+    ct_assert_item_in_json("${IPS_JSON}" "ips" "ddr3_controller")
+    ct_assert_item_in_json("${IPS_JSON}" "ips" "plic_interrupt_controller")
+    ct_assert_item_in_json("${IPS_JSON}" "ips" "timer_subsystem")
 
-    # Test help_options.txt
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_options.txt" "ENABLE_FPU")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_options.txt" "ENABLE_COMPRESSED")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_options.txt" "ENABLE_DEBUG_MODULE")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_options.txt" "ENABLE_TRACE_PORT")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_options.txt" "USE_EXTERNAL_DDR")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_options.txt" "ENABLE_CRYPTO_ENGINE")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_options.txt" "ENABLE_DMA")
-    ct_assert_target_in_help_file("${CMAKE_BINARY_DIR}/help_options.txt" "LOW_POWER_MODE")
+    # Test help options JSON
+    ct_assert_item_in_json("${OPTIONS_JSON}" "options" "ENABLE_FPU")
+    ct_assert_item_in_json("${OPTIONS_JSON}" "options" "ENABLE_COMPRESSED")
+    ct_assert_item_in_json("${OPTIONS_JSON}" "options" "ENABLE_DEBUG_MODULE")
+    ct_assert_item_in_json("${OPTIONS_JSON}" "options" "ENABLE_TRACE_PORT")
+    ct_assert_item_in_json("${OPTIONS_JSON}" "options" "USE_EXTERNAL_DDR")
+    ct_assert_item_in_json("${OPTIONS_JSON}" "options" "ENABLE_CRYPTO_ENGINE")
+    ct_assert_item_in_json("${OPTIONS_JSON}" "options" "ENABLE_DMA")
+    ct_assert_item_in_json("${OPTIONS_JSON}" "options" "LOW_POWER_MODE")
 
     # Test that descriptions are present
-    file(READ "${CMAKE_BINARY_DIR}/help_build.txt" build_content)
-    string(FIND "${build_content}" "Build first-stage bootloader" pos)
-    if(pos EQUAL -1)
-        message(FATAL_ERROR "Description 'Build first-stage bootloader' not found in help_build.txt")
-    else()
-        message(STATUS "✓ Description found in help_build.txt")
+    ct_assert_item_has_description("${TARGETS_JSON}" "targets" "build_bootloader" "Build first-stage bootloader")
+    ct_assert_item_has_description("${TARGETS_JSON}" "targets" "sim_core_unit_tests" "Run CPU core unit tests")
+    ct_assert_item_has_description("${OPTIONS_JSON}" "options" "ENABLE_FPU" "Enable hardware floating-point unit")
+    
+    # Test option values and types
+    ct_json_find_item("${OPTIONS_JSON}" "options" "ENABLE_FPU" fpu_index)
+    if(NOT fpu_index EQUAL -1)
+        file(READ "${OPTIONS_JSON}" json_content)
+        string(JSON opt_type GET "${json_content}" "options" ${fpu_index} "type")
+        string(JSON opt_current GET "${json_content}" "options" ${fpu_index} "current")
+        string(JSON opt_default GET "${json_content}" "options" ${fpu_index} "default")
+        
+        if(NOT opt_type STREQUAL "Boolean")
+            message(FATAL_ERROR "ENABLE_FPU should have type 'Boolean', got '${opt_type}'")
+        endif()
+        if(NOT opt_current STREQUAL "ON")
+            message(FATAL_ERROR "ENABLE_FPU current value should be 'ON', got '${opt_current}'")
+        endif()
+        if(NOT opt_default STREQUAL "ON")
+            message(FATAL_ERROR "ENABLE_FPU default value should be 'ON', got '${opt_default}'")
+        endif()
+        message(STATUS "✓ ENABLE_FPU option has correct type and values")
     endif()
 
-    message(STATUS "All help menu tests passed! ✓")
+    message(STATUS "All help menu JSON tests passed! ✓")
 
 endfunction()
