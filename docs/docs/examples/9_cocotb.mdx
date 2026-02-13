@@ -17,13 +17,12 @@ export const cmakelists = require('!!raw-loader!../../../examples/simple_cocotb/
 export const testbench = require('!!raw-loader!../../../examples/simple_cocotb/simple_cocotb_example.py')?.default;
 export const python_requirements = require('!!raw-loader!../../../examples/simple_cocotb/python_requirements.txt')?.default;
 
-Simple python testbench with cocotb, for an adder written in verilog.
-
 ### Description
 
-ToDo: Update this description
+This example shows how to do simulation using DPI with SoCMake.
 
-This example shows how to do simulation using DPI with SoCMake, using a C function and a System-Verilog testbench that calls this function using DPI-C.
+In this case, we will have an IP library called `adder`, that is just a simple combinatorial adder with only 1 file, `adder.v`.
+We will also have a python cocotb testbench `simple_cocotb_example.py`
 
 ## Example
 
@@ -40,7 +39,6 @@ Lets take a look at the directory structure of the example first.
 ├── python_requirement.txt
 └── simple_cocotb_example.py
 ```
-ToDO: Update this 
 
 We have a directory `adder/` that contains the `adder` IP block, it as its own `CMakeLists.txt` to make it easier to reuse in a larger project.
 :::tip

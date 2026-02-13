@@ -18,7 +18,8 @@ export const top = require('!!raw-loader!../../../examples/uvm-systemc/top.h')?.
 ### Description
 
 This example shows how to do simulation using UVM-SystemC with SoCMake.
-It's reusing the [uvm-systemc hello world example](https://github.com/accellera-official/uvm-systemc/tree/main/examples/uvmsc/simple/hello_world) and implement it with SoCMake.
+
+In this case, it's reusing the [uvm-systemc hello world example](https://github.com/accellera-official/uvm-systemc/tree/main/examples/uvmsc/simple/hello_world) and implement it with SoCMake.
 
 ## Example
 
@@ -97,7 +98,7 @@ And finally we need a top `CMakeLists.txt` that will assemble the full project a
 
 This one is very similar to the one in the systemc example.
 The current directory is included to the target, using `target_include_directories()`, to give path to the different headers.
-We also link the UVM-SystemC library.
+We also link the UVM-SystemC library as usual.
 
 ## Running the simulation
 
