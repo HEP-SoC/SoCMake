@@ -6,6 +6,9 @@ sidebar_position: 9
 :::info
 The source code for this example can be found in [examples/simple_cocotb](https://github.com/HEP-SoC/SoCMake/tree/master/examples/simple_cocotb)
 :::
+:::warning
+Verilator is the less supported tool by cocotb, we recommand using [Icarus Verilog](https://github.com/steveicarus/iverilog).
+:::
 
 import CodeBlock from '@theme/CodeBlock';
 export const adder = require('!!raw-loader!../../../examples/simple_cocotb/adder/adder.v')?.default;
@@ -39,33 +42,32 @@ Lets take a look at the directory structure of the example first.
 ```
 ToDO: Update this 
 
-We have a directory `hello/` that contains the `hello` c++ function, it as its own `CMakeLists.txt` to make it easier to reuse in a larger project.
+We have a directory `adder/` that contains the `adder` IP block, it as its own `CMakeLists.txt` to make it easier to reuse in a larger project.
 :::tip
 For a design this simple it is not really necessary to have a separate `CMakeLists.txt`, but it is a good practice anyways.
 :::
 
 ### adder/adder.v
 
-Simple function that takes an integer and return the integer + 10.
+Adder verilog file is just a simple two 5bit inputs, and a 5bit output module.
 
 <CodeBlock language="verilog" title="adder/adder.v" showLineNumbers>{adder}</CodeBlock>
 
 ### adder/CMakeLists.txt
 
-ToDO: Write Description about specificities
+There is nothing new in this file from previous examples.
 
 <CodeBlock language="cmake" title="hello/CMakeLists.txt" showLineNumbers>{cmakelist_adder}</CodeBlock>
 
 ### python_requirements.txt
 
-ToDO: Write Description about specificities
+Python requirement file, used to install the recommanded cocotb version in a virtual environment
 
 <CodeBlock language="cmake" title="python_requirements.txt" showLineNumbers>{python_requirements}</CodeBlock>
 
 ### simple_cocotb_example.py
 
-ToDO: UPDATE THIS
-This is a standard System-Verilator testbench. The DPI-C is imported and called.
+This is a simple python file using cocotb to create a testbench. 
 
 <CodeBlock language="python" title="simple_cocotb_example.py" showLineNumbers>{testbench}</CodeBlock>
 
@@ -76,18 +78,32 @@ And finally we need a top `CMakeLists.txt` that will assemble the full project a
 
 <CodeBlock language="cmake" title="CMakeLists.txt" showLineNumbers>{cmakelists}</CodeBlock>
 
+:::info
+If you want to use verilator, it will be built using `verilator_build` function in the version 5.012, it takes around 5min to build.
+Doing so, we can be sure that it will be working as this environment, composed of verilator 5.012 and cocotb 1.8.1 is working well with SoCMake.
+:::
+
 We can add the `adder` IP as a subdirectory with [`add_subdirectory()`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) CMake function.
 
-Then, we can just use the SoCMake function corresponding to the simulator we want to use, in our case `questasim()`, which will take care of the remaining part.
+The SoCMake `cocotb()` function is used with the argument `TOP_MODULE` to give the RTL top level to simulate, `COCOTB_MODULE` to give the python file to be used as the testbench.
+More information about it can be found in the API documentation.
+
 
 ## Running the simulation
 
-Simulation can be run the same way as always:
+To run the simulation, we first need to create a python environment, then activate it to install the recommanded cocotb version:
 
 ```bash
-mkdir build
-cd build
-cmake ../ -DSIMULATOR=questa     # Configure project
-make run_tb_questasim -j$(nproc) # Build and run testbench
+python3 -m venv .venv                  # Create python virtual environment
+source .venv/bin/activate              # Activate python virtual environment
+pip install -r python_requirements.txt # Install recommanded cocotb version
+```
+
+Now, we can run the simulation the same way as usual:
+
+```bash
+mkdir build && cd build
+cmake ../ -DSIMULATOR=iverilog              # Configure project
+make run_adder_cocotb_simple_cocotb_example # Build and run testbench
 ```
 
