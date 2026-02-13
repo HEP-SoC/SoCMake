@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.27)
 project(iverilog_multi_top NONE)
 
 add_ip(iverilog_multi_top

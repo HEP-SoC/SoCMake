@@ -1,6 +1,6 @@
 include("../../../SoCMakeConfig.cmake")
 
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.27)
 project(vhier_test)
 
 add_subdirectory("ips/mod1")
