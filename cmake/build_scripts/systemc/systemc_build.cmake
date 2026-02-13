@@ -24,8 +24,16 @@ function(systemc_build)
         endif()
     endif()
 
+    if(ARG_INSTALL_DIR)
+        set(BUILD_DIR ${ARG_INSTALL_DIR}/../systemc-build)
+    elseif(FETCHCONTENT_BASE_DIR)
+        set(BUILD_DIR ${FETCHCONTENT_BASE_DIR}/systemc-build)
+    else()
+        set(BUILD_DIR ${PROJECT_BINARY_DIR}/systemc-build)
+    endif()
+
     find_package(SystemCLanguage ${ARG_VERSION} CONFIG
-        HINTS ${SYSTEMC_HOME} $ENV{SYSTEMC_HOME} ${ARG_INSTALL_DIR} 
+        HINTS ${SYSTEMC_HOME} $ENV{SYSTEMC_HOME} ${ARG_INSTALL_DIR} ${BUILD_DIR}
         )
 
     if(ARG_EXACT_VERSION)
@@ -39,7 +47,7 @@ function(systemc_build)
         message(STATUS "${Magenta}[Building SystemC]${ColourReset}")
         execute_process(COMMAND ${CMAKE_COMMAND}
             -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
-            -B ${CMAKE_BINARY_DIR}/systemc-build 
+            -B ${BUILD_DIR} 
             ${CMAKE_ARG_VERSION}
             ${CMAKE_CXX_STANDARD_ARG}
             -DCMAKE_INSTALL_PREFIX=${ARG_INSTALL_DIR}
@@ -48,7 +56,7 @@ function(systemc_build)
             )
 
         execute_process(COMMAND ${CMAKE_COMMAND}
-                --build ${CMAKE_BINARY_DIR}/systemc-build
+                --build ${BUILD_DIR}
                 --parallel
             )
     endif()
