@@ -4,11 +4,11 @@ sidebar_position: 2
 
 # Getting Started
 
-The SoCMake source code is available on the following [link](https://gitlab.cern.ch/socmake/SoCMake).
+The SoCMake source code is available on [GitHub](https://github.com/HEP-SoC/SoCMake).
 
 ## Dependencies
 
-Only mandatory SoCMake dependencies are `CMake>=3.25.0` and `make`.
+SoCMake requires `CMake >= 3.27.0` and either `make` or `ninja`.
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -18,7 +18,8 @@ import TabItem from '@theme/TabItem';
 <TabItem value="PIP">
 ```
 ```bash
-pip install cmake==3.26.3
+pip install cmake
+pip install ninja
 ```
 
 ```mdx-code-block
@@ -26,73 +27,113 @@ pip install cmake==3.26.3
 <TabItem value="WGET">
 ```
 ```bash
-wget https://github.com/Kitware/CMake/releases/download/v3.26.3/cmake-3.26.3-linux-x86_64.sh
-chmod +x cmake-3.26.3-linux-x86_64.sh
-./cmake-3.26.3-linux-x86_64.sh --skip-license --prefix=$(pwd)/cmake
+wget https://github.com/Kitware/CMake/releases/download/v4.2.3/cmake-4.2.3-linux-x86_64.sh
+chmod +x cmake-4.2.3-linux-x86_64.sh
+./cmake-4.2.3-linux-x86_64.sh --skip-license --prefix=$(pwd)/cmake
 export PATH=$(pwd)/cmake/bin:$PATH
 ```
-
-```mdx-code-block
-</TabItem>
-<TabItem value="APT">
-```
-````bash
-apt-get install cmake
-````
 
 ```mdx-code-block
 </TabItem>
 </Tabs>
 ```
 
-## Usage
+## Quick Start (Recommended)
 
-Since `SoCMake` runs on CMake scripting language, no installation is required. <br />
-It is recommended to fetch the SoCMake locally within your `CMake` project. <br />
-There are multiple ways to add SoCMake within project, 2 of them are with `CPM` or inbuilt `FetchContent`.
-In both cases SoCMake will be downloaded during configuration phase of the project, only the first time.
+The fastest way to get started is using the one-time bootstrap installation.
 
-It is recommended to create a file `deps/deps.cmake` with the content from one of the 2 options:
+### Step 1: Install Bootstrap
 
-### deps/deps.cmake
+Run this command once on your system:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/HEP-SoC/SoCMake/develop/bootstrap/bootstrap.sh | sh
+```
+Follow the instructions of the bootstrap script
+
+This installs bootstrap files to `~/.local/lib/cmake/socmake` that automatically fetch the correct SoCMake version for each project.
+
+### Step 2: Create Your Project
+
+Create a `CMakeLists.txt` file in your project root:
+
+```cmake title="CMakeLists.txt"
+cmake_minimum_required(VERSION 3.27)
+project(test NONE)
+
+find_package(socmake REQUIRED)
+# Here SoCMake functions are available
+```
+
+### Step 3: Configure the Project
+
+Create a build directory and run CMake:
+
+```bash
+mkdir build && cd build
+cmake ..
+```
+
+You should see output similar to:
+
+```bash
+-- Configuring done (1.7s)
+-- Generating done (0.0s)
+-- Build files have been written to: ../build
+```
+
+**That's it!** You're ready to use SoCMake. Continue to the [Examples](./examples) page to start building hardware.
+
+---
+
+## Alternative Setup Methods
+
+<details>
+<summary><b>Using FetchContent or CPM.cmake (per-project installation)</b></summary>
+
+If you prefer not to use the bootstrap installation, you can fetch SoCMake directly within each project using CMake's built-in `FetchContent` or the `CPM.cmake` package manager.
+
+:::info
+These methods download SoCMake during the configuration phase of each project. The bootstrap method shares a single installation across all projects and is generally more convenient.
+:::
+
+### Directory Structure
+
+Create the following project structure:
+
+```
+my_project/
+├── CMakeLists.txt
+└── deps/
+    ├── deps.cmake
+    └── CPM.cmake      # Only needed for CPM method
+```
+
+### Step 1: deps/deps.cmake
+
+Choose one of the following approaches:
 
 ```mdx-code-block
-<Tabs>
-<TabItem value="FetchContent">
+<Tabs groupId="dependency-manager">
+<TabItem value="CPM" label="CPM.cmake (Recommended)">
 ```
+
+CPM.cmake provides better caching and version management than FetchContent.
+
 ```cmake title="deps/deps.cmake" showLineNumbers
-include(FetchContent)
+set(CPM_DOWNLOAD_VERSION 0.38.1)
+include(${CMAKE_CURRENT_LIST_DIR}/CPM.cmake)
 
-FetchContent_Declare(SoCMake
-    GIT_REPOSITORY "https://github.com/HEP-SoC/SoCMake.git"
-    GIT_TAG master # You can define GIT_TAG or GIT_COMMIT for specific versions
-)
-
-FetchContent_MakeAvailable(SoCMake)
-```
-
-FetchContent is a built in CMake function for handling dependencies.
-
-```mdx-code-block
-</TabItem>
-<TabItem value="CPM.cmake">
-```
-```cmake title="deps/deps.cmake" showLineNumbers
-set(CPM_DOWNLOAD_VERSION 0.38.1)             # Define CPM version to be downloaded
-include(${CMAKE_CURRENT_LIST_DIR}/CPM.cmake) # Include the CPM.cmake downloader
-
-CPMAddPackage(              # Add SoCMake as a package
+CPMAddPackage(
     NAME SoCMake
-    GIT_TAG master          # You can define GIT_TAG or VERSION for versioning
-    GIT_REPOSITORY "https://github.com/HEP-SoC/SoCMake.git"  # GIT_REPOSITORY or URL
-    )
+    GIT_TAG master  # or specify VERSION for versioning
+    GIT_REPOSITORY "https://github.com/HEP-SoC/SoCMake.git"
+)
 ```
 
-This is the recomended way of adding SoCMake.
+You'll also need to create `deps/CPM.cmake`:
 
-In the line 2 we are including `deps/CPM.cmake` installation script, which needs to be placed in the repository.
-
-```cmake title="deps/CPM.cmake"
+```cmake title="deps/CPM.cmake" showLineNumbers
 if(CPM_SOURCE_CACHE)
   set(CPM_DOWNLOAD_LOCATION "${CPM_SOURCE_CACHE}/cpm/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
 elseif(DEFINED ENV{CPM_SOURCE_CACHE})
@@ -128,62 +169,74 @@ include(${CPM_DOWNLOAD_LOCATION})
 
 ```mdx-code-block
 </TabItem>
+<TabItem value="FetchContent" label="FetchContent (Built-in)">
+```
+
+FetchContent is a built-in CMake module for dependency management.
+
+```cmake title="deps/deps.cmake" showLineNumbers
+include(FetchContent)
+
+FetchContent_Declare(SoCMake
+    GIT_REPOSITORY "https://github.com/HEP-SoC/SoCMake.git"
+    GIT_TAG master  # You can define GIT_TAG or GIT_COMMIT for specific versions
+)
+
+FetchContent_MakeAvailable(SoCMake)
+```
+
+```mdx-code-block
+</TabItem>
 </Tabs>
 ```
 
-### CMakeLists.txt
+### Step 2: CMakeLists.txt
 
-In the main `CMakeLists.txt` include `deps/deps.cmake`.
-It should look like this:
+Create your main `CMakeLists.txt` file:
 
-```cmake
-cmake_minimum_required(VERSION 3.25)
-project(example NONE)
+```cmake title="CMakeLists.txt"
+cmake_minimum_required(VERSION 3.27)
+project(my_project NONE)
 
 include("deps/deps.cmake")
+
+# All SoCMake functions are now available
 ```
 
-After the previous code block, all of the SoCMake functions are available.
+### Step 3: Configure the Project
 
-### Directory structure
-
-The directory tree of the project should look like this
-
-```cmake
-├── CMakeLists.txt
-└── deps
-    ├── CPM.cmake
-    └── deps.cmake
-```
-
-### Running CMake
-
-Since CMake is endorsing out-of-source builds, meaning that the source files and build artifacts are in separate directories.
-We are creating a `build` directory.
+CMake uses out-of-source builds, keeping source files and build artifacts in separate directories:
 
 ```bash
 mkdir build
 cd build
-cmake ../
+cmake ..
 ```
 
-After executing CMake we should get the following messages:
+Expected output:
 
 ```bash
 -- Downloading CPM.cmake to .../build/cmake/CPM_0.38.1.cmake
--- CPM: Adding package SoCMake@ (master)
+-- CPM: Adding package SoCMake@master
 -- Configuring done
 -- Generating done
 -- Build files have been written to: .../build
 ```
 
-By default the packages will be downloaded in `${CMAKE_BINARY_DIR}/_deps/`.
-This is possible to change by setting [`FETCHCONTENT_BASE_DIR`](https://cmake.org/cmake/help/latest/module/FetchContent.html#variable:FETCHCONTENT_BASE_DIR) before the first `CPMAddPackage` command.
 
-:::tip
-For larger projects it is recommended to set `set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_LIST_DIR}/_deps)` in `deps/deps.cmake`, this will download all the dependencies git repository wide, so they will be available from different subdirectories like `verification`, `documentation` etc...
+</details>
+
+### Dependency Location
+
+By default, packages are downloaded to `${CMAKE_BINARY_DIR}/_deps/`. You can change this by setting [`FETCHCONTENT_BASE_DIR`](https://cmake.org/cmake/help/latest/module/FetchContent.html#variable:FETCHCONTENT_BASE_DIR) before the first package fetch.
+
+:::tip Shared Dependencies for Larger Projects
+For projects with multiple subdirectories (like `verification/`, `documentation/`, etc.), add this to the top of `deps/deps.cmake`:
+
+```cmake
+set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_LIST_DIR}/_deps)
+```
+
+This downloads dependencies once at the repository root, making them available across all subdirectories.
 :::
 
-
-The previous example only set up the project, but we didnt add any design files or added any targets.
-Jump to the Examples page next.
