@@ -107,7 +107,7 @@ function(help_options)
     string(JSON json_output SET "${json_output}" "options" "${options_array}")
 
     set(target help_options)
-    set(outfile ${PROJECT_BINARY_DIR}/help/${target}.json)
+    set(outfile ${CMAKE_BINARY_DIR}/help/${target}.json)
     file(WRITE ${outfile} ${json_output})
 
     _create_help_target("options" "option.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
@@ -154,7 +154,7 @@ function(help_ips)
     string(JSON json_output SET "${json_output}" "ips" "${ips_array}")
 
     set(target help_ips)
-    set(outfile ${PROJECT_BINARY_DIR}/help/${target}.json)
+    set(outfile ${CMAKE_BINARY_DIR}/help/${target}.json)
     file(WRITE ${outfile} ${json_output})
 
     _create_help_target("ips" "ip.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
@@ -172,7 +172,7 @@ function(help_targets)
 
     # Create the target first, so it can be discovered by get_all_targets() function
     set(target help_targets)
-    set(outfile ${PROJECT_BINARY_DIR}/help/${target}.json)
+    set(outfile ${CMAKE_BINARY_DIR}/help/${target}.json)
 
     _create_help_target("targets" "target.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
 
@@ -243,7 +243,7 @@ function(help_custom_targets GROUP_NAME)
         set(help_name ${GROUP_NAME})
     endif()
 
-    set(outfile ${PROJECT_BINARY_DIR}/help/help_targets.json)
+    set(outfile ${CMAKE_BINARY_DIR}/help/help_targets.json)
 
     _create_help_target("${help_name}" "target.jq" ${outfile} "${GROUP_NAME}" ${ARG_PRINT_ON_CONF})
 endfunction()
@@ -271,7 +271,7 @@ function(help_custom_ips GROUP_NAME)
 
     group_custom_ips("${GROUP_NAME}" ${ARG_PATTERN} ${ARG_LIST})
 
-    set(outfile ${PROJECT_BINARY_DIR}/help/help_ips.json)
+    set(outfile ${CMAKE_BINARY_DIR}/help/help_ips.json)
 
     _create_help_target("${GROUP_NAME}" "ip.jq" ${outfile} "${GROUP_NAME}" ${ARG_PRINT_ON_CONF})
 
@@ -300,7 +300,7 @@ function(help_custom_options GROUP_NAME)
 
     group_custom_options("${GROUP_NAME}" ${ARG_PATTERN} ${ARG_LIST})
 
-    set(outfile ${PROJECT_BINARY_DIR}/help/help_options.json)
+    set(outfile ${CMAKE_BINARY_DIR}/help/help_options.json)
 
     _create_help_target("${GROUP_NAME}" "option.jq" ${outfile} "${GROUP_NAME}" ${ARG_PRINT_ON_CONF})
 
