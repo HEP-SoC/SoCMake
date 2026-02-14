@@ -11,38 +11,43 @@ sidebar_position: 1
 />
 </div>
 
-`SoCMake` is a hardware build system based on CMake.
-SoCMake can help you automatize your build process for hardware designs, either running simulation, code generation, FPGA implementation, synthesis etc...
+**SoCMake** is a hardware build system built on top of CMake, designed to automate hardware and SoC design workflows including RTL simulation, code generation, FPGA implementation, and synthesis.
 
-`SoCMake` project does not try to create a new build system, instead it is an extension of `CMake` build system generator.
-Since `CMake` is a mature and widely used build system, it can easily cover the requirements needed for hardware design.
+Rather than creating a new build system from scratch, SoCMake extends the mature and widely-used CMake ecosystem to meet the specific needs of hardware design.
 
 
 Key Features
 ============
 
-*   **Native Support for `C++` and `C` testbenches:** <br />
-    This makes `SoCMake` a natural choice of build system for `C++` and `SystemC` testbenches.
-    However it can be also used for `Verilog`, `SV` or `VHDL` only testbenches.
+*   **Native Support for `C++` testbenches:** <br />
+      - Ideal for C++ and SystemC testbenches, while also supporting Verilog, SystemVerilog, VHDL, or mixed-language testbenches.
 *   **Cross compilation of target CPU application code:** <br />
-    CMake's support for cross-compilation makes `SoCMake` a natural choice for System on Chips design, where a test application needs to be cross compiled for the target CPU.
-*   **CMake maturity and familiar flow:**
-    Since CMake is used as a base build system, `SoCMake` benefits from the stability and the documentation of the project. Configuring the project and running Make targets is also familiar to most `Linux` users.
-*   **IP block packaging and management:**
-    `SoCMake` provides a way to package IP blocks into independent and self contained `git` repositories. Which can later be fetched with [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) package manager.
+      - Seamlessly compile target CPU applications for SoC designs, leveraging CMake's cross-compilation capabilities.
+*  **Familiar CMake Workflow** <br />
+      - Benefits from CMake's stability, extensive documentation, and familiar build process that most Linux users already know.
+*   **IP block package management** <br />
+      - Package IP blocks into self-contained repositories and manage dependencies using the [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) package manager.
 
+
+Getting started
+=============================
+
+Jump to [Getting started](../docs/getting_started) page to learn how to set-up `SoCMake` in your project.
 
 Supported Languages and Tools
 =============================
 
-Currently `SoCMake` supports a number of EDA tools that were used within the SoC project the tool was originaly developed for.
-The list is always growing and soon many more tools will be added.
+`SoCMake` supports all of the major RTL simulators and number of other EDA tools.
+
+It is very simple to add support for new EDA tools through the SoCMake's `IP` block API and CMake's custom targets.
 
 | Type                  | Supported                    |
 |-----------------------|------------------------------|
-| **Languages**       | C, C++, ASM, Verilog, SystemVerilog, VHDL, SystemRDL |
-| **RTL Simulation**  | Verilator, Icarus, GHDL, Xcelium, VCS |
-| **RTL Linting**     | Verible |
+| **Languages**       | C, C++, SystemC, ASM, Verilog, SystemVerilog, VHDL, SystemRDL, IPXact |
+| **RTL Simulation**  | Verilator, IcarusVerilog, GHDL, Xcelium, VCS, Questasim, Vivado Simulator, cocotb |
+| **RTL Linting**     | Verible, vhdl_linter |
 | **RTL conversion**  | SV2V, tmrg, tmrv |
 | **Synthesis**       | Yosys, Vivado |
 | **PeakRDL**         | regblock, halcpp, html, docusaurus, ipblocksvg, socgen, ldsgen |
+
+
