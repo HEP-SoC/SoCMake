@@ -1,5 +1,5 @@
 
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.27)
 
 # Version is set first to reuse it across the SoCMake project
 # For example, docs/CMakeLists.txt includes this file to retrieve the version

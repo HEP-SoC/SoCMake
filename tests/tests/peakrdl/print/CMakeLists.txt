@@ -1,5 +1,5 @@
 include("../../../../SoCMakeConfig.cmake")
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.27)
 project(peakrdl_print_test NONE)
 
 #########
