@@ -1,8 +1,11 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 ---
 
 # Verilator C++ testbench
+:::info
+The source code for this example can be found in [examples/verilator](https://github.com/HEP-SoC/SoCMake/tree/master/examples/verilator)
+:::
 
 import CodeBlock from '@theme/CodeBlock';
 export const adder_v = require('!!raw-loader!../../../examples/verilator/adder/adder.v')?.default;
@@ -49,7 +52,6 @@ Adder verilog file is just a simple two 8bit inputs, and a 9bit output module.
 ### adder/CMakeLists.txt
 
 There is nothing new in this file from previous examples.
-We are making a library under the full name `cern::ip::adder::0.0.1`.
 
 <CodeBlock language="cmake" title="adder/CMakeLists.txt" showLineNumbers>{adder_cmakelists}</CodeBlock>
 
@@ -69,17 +71,17 @@ And finally we need a top `CMakeLists.txt` that will assemble the full design an
 We can add the `adder` IP as a subdirectory with [`add_subdirectory()`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) CMake function.
 
 Then we are creating the target to Verilate the IP.
-Executing the `cern__ip__adder__0.0.1_verilate` target will compile a [static library](https://en.wikipedia.org/wiki/Static_library) of the IP block.<br/>
+Executing the `adder` target will compile a [static library](https://en.wikipedia.org/wiki/Static_library) of the IP block.<br/>
 This time we are not asking Verilator to create a `main.cpp` file as we will write it ourselves.<br/>
-We are also passing `TRACE` argument to `verilate()`, indicating that we want to enable [`VCD`](https://en.wikipedia.org/wiki/Value_change_dump) generation in Verilated model.
+We are also passing `TRACE` argument to `verilator()`, indicating that we want to enable [`VCD`](https://en.wikipedia.org/wiki/Value_change_dump) generation in Verilated model.
 
 After that we create an `executable` with [`add_executable()`](https://cmake.org/cmake/help/latest/command/add_executable.html) CMake function. The first argument is the name of the compiled executable, and then we pass a list of sources, in this case only `main.cpp`
 
 Finally we use [`target_link_libraries()`](https://cmake.org/cmake/help/latest/command/target_link_libraries.html), to link the Verilated static library into our testbench executable, and also add the include paths for headers of the Verilated model, and Verilator headers.
-
+It's important to not forget to add the `::vlt` after the name of the Verilated static library, it will allows a proper linking. `__vlt` works as well they are alias of each others.
 
 :::tip
-Notice in the line 11, we are linking to the static library created with Verilator.
+Notice in the line 14, we are linking to the static library created with Verilator.
 It is a bit annoying to have to change the version number manually, in order to avoid it it is a better idea to set a variable in `adder/CMakeLists.txt` that will hold the full name of the IP.
 ```cmake title="adder/CMakeLists.txt"
 ...
@@ -92,7 +94,10 @@ And then in `CMakeLists.txt`:
 ...
 target_link_libraries(testbench ${ADDER_LIB_NAME}__vlt)
 ```
-
+:::
+:::tip
+Notice in line 16, we are using the `add_custom_target()` function.
+This allows to add a custom target when generating the makefiles. CMake can compile executable but will not automatically make a target that would run it.
 :::
 
 ### Build graph
@@ -124,9 +129,8 @@ Simulation can be run the same way as always:
 ```bash
 mkdir build
 cd build
-cmake ../                  # Configure project
-make testbench -j$(nproc)  # Build testbench
-./testbench                # Execute testbench
+cmake ../                         # Configure project
+make run_tb_verilator -j$(nproc)  # Build and run testbench
 ```
 
 :::tip

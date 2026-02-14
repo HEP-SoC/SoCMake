@@ -1,0 +1,81 @@
+---
+sidebar_position: 6
+---
+
+# DPI-C
+:::info
+The source code for this example can be found in [examples/dpi-c](https://github.com/HEP-SoC/SoCMake/tree/master/examples/dpi-c)
+:::
+
+import CodeBlock from '@theme/CodeBlock';
+export const dpi_c = require('!!raw-loader!../../../examples/dpi-c/hello/hello.cpp')?.default;
+export const cmakelist_dpi_c = require('!!raw-loader!../../../examples/dpi-c/hello/CMakeLists.txt')?.default;
+export const cmakelists = require('!!raw-loader!../../../examples/dpi-c/CMakeLists.txt')?.default;
+export const testbench = require('!!raw-loader!../../../examples/dpi-c/tb.sv')?.default;
+
+### Description
+
+This example shows how to do simulation using DPI with SoCMake. In this case, we will have a C++ function called in a System-Verilog testbench, using DPI-C.
+
+## Example
+
+### Directory structure
+
+Lets take a look at the directory structure of the example first.
+
+```raw
+.
+├── hello
+│   ├── CMakeLists.txt
+│   └── hello.cpp
+├── CMakeLists.txt
+└── tb.sv
+```
+
+We have a directory `hello/` that contains the `hello` c++ function, it as its own `CMakeLists.txt` to make it easier to reuse in a larger project.
+:::tip
+For a design this simple it is not really necessary to have a separate `CMakeLists.txt`, but it is a good practice anyways.
+:::
+
+### hello/hello.cpp
+
+Simple function that takes an integer and return the integer + 10.
+
+<CodeBlock language="cpp" title="hello/hello.cpp" showLineNumbers>{dpi_c}</CodeBlock>
+
+### hello/CMakeLists.txt
+
+The following `CMakeLists.txt` will create a library called `hello_dpi` and use the `target_link_libraries` function to declare it as a library with DPI.
+
+<CodeBlock language="cmake" title="hello/CMakeLists.txt" showLineNumbers>{cmakelist_dpi_c}</CodeBlock>
+
+### tb.sv
+
+This is a standard System-Verilator testbench. The DPI-C is imported and called.
+
+<CodeBlock language="verilog" title="tb.sv" showLineNumbers>{testbench}</CodeBlock>
+
+
+### CMakeLists.txt
+
+And finally we need a top `CMakeLists.txt` that will assemble the full project and create simulation targets.
+
+<CodeBlock language="cmake" title="CMakeLists.txt" showLineNumbers>{cmakelists}</CodeBlock>
+
+To give the right flags to use the DPI-C with the simulator used, the `${simulator}_configure_cxx()` function can be used, in our case, we will use `verilator_configure_cxx(LIBRAIRES DPI-C)`.
+
+We can add the `adder` IP as a subdirectory with [`add_subdirectory()`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) CMake function.
+
+Then, we can just use the SoCMake function corresponding to the simulator we want to use, in our case `verilator()`, with the `MAIN` argument, which will take care of generating the different needed files to run the simulation.
+
+## Running the simulation
+
+Simulation can be run the same way as always:
+
+```bash
+mkdir build
+cd build
+cmake ../ -DSIMULATOR=questa     # Configure project
+make run_tb_verilator -j$(nproc) # Build and run testbench
+```
+

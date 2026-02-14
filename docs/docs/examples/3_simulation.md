@@ -1,9 +1,11 @@
 ---
-sidebar_position: 1
+sidebar_position: 3
 ---
 
 # Simulation
-
+:::info
+The source code for this example can be found in [examples/simple_verilog](https://github.com/HEP-SoC/SoCMake/tree/master/examples/simple_verilog)
+:::
 
 In the previous section [Getting Started](../getting_started.mdx), we saw how to download SoCMake inside our project.
 
@@ -12,6 +14,10 @@ Let's try to run a simple Verilog testbench now with [Icarus Verilog](https://gi
 For this step make sure you have Iverilog and/or Verilator installed on your system.
 
 Lets create a simple verilog testbench file:
+
+:::info
+The same example is also available with VHDL, you can find the source code [here](https://github.com/HEP-SoC/SoCMake/tree/master/examples/simple_vhdl), you can follow the same instructions than in this tutorial if you choose to do it with vhdl.
+:::
 
 import CodeBlock from '@theme/CodeBlock';
 export const tb_v = require('!!raw-loader!../../../examples/simple_verilog/tb.v')?.default;
@@ -126,3 +132,14 @@ The executables will be present in `${PROJECT_BINARY_DIR}` in this case `build` 
 *   `cern__ip__tb__0.0.1_iv`
 *   `cern__ip__tb__0.0.1_verilator_tb`
 
+### Running with other tools
+
+As you can see in the `CMakeLists.txt`, it's possible to use options to also try with other EDA tools that are compatible with SoCMake and that you would have on your machine.
+
+The steps are similar except that when generating Makefiles, you should use the `SIMULATOR` argument when generating Makefiles (example for xcelium) :
+
+```bash
+cmake -DSIMULATOR="xcelium" ../
+```
+
+Keep in mind that as we are using the function `help()`, you can take a look at the following generated target, `help_target` and `help_options`, they contains information that are useful to know which argument to give when calling make or which options you want to choose if you have to regenerate Makefiles.

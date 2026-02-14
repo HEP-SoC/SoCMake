@@ -1,0 +1,85 @@
+---
+sidebar_position: 5
+---
+
+# Mixed language
+:::info
+The source code for this example can be found in [examples/simple_mixed_language](https://github.com/HEP-SoC/SoCMake/tree/master/examples/simple_mixed_language)
+:::
+:::warning
+No open-source solution support mixed language simulation for now. A free alternative is Questa Starter Edition that does support it.
+:::
+
+import CodeBlock from '@theme/CodeBlock';
+export const adder = require('!!raw-loader!../../../examples/simple_mixed_language/adder/adder.vhdl')?.default;
+export const cmakelist_adder = require('!!raw-loader!../../../examples/simple_mixed_language/adder/CMakeLists.txt')?.default;
+export const cmakelists = require('!!raw-loader!../../../examples/simple_mixed_language/CMakeLists.txt')?.default;
+export const testbench = require('!!raw-loader!../../../examples/simple_mixed_language/tb.v')?.default;
+
+### Description
+
+This example shows how to do mixed language simulation using SoCMake, using a VHDL IP and a Verilog testbench.
+
+In this case we will have an IP library called `adder`, that is just a simple combinatorial adder with only 1 file `adder.vhdl`.<br/>
+We will also have a Verilog testbench `tb.v`
+
+## Example
+
+### Directory structure
+
+Lets take a look at the directory structure of the example first.
+
+```raw
+.
+├── adder
+│   ├── adder.vhdl
+│   └── CMakeLists.txt
+├── CMakeLists.txt
+└── tb.v
+```
+
+We have a directory `adder/` that contains the `adder` IP block, it as its own `CMakeLists.txt` to make it easier to reuse in a larger project.
+:::tip
+For a design this simple it is not really necessary to have a separate `CMakeLists.txt`, but it is a good practice anyways.
+:::
+
+### adder/adder.v
+
+Adder verilog file is just a simple two 5bit inputs, and a 5bit output module.
+
+<CodeBlock language="vhdl" title="adder/adder.vhdl" showLineNumbers>{adder}</CodeBlock>
+
+### adder/CMakeLists.txt
+
+There is nothing new in this file from previous examples.
+
+<CodeBlock language="cmake" title="adder/CMakeLists.txt" showLineNumbers>{cmakelist_adder}</CodeBlock>
+
+### tb.v
+
+This is a standard Verilator testbench.
+
+<CodeBlock language="verilog" title="tb.v" showLineNumbers>{testbench}</CodeBlock>
+
+
+### CMakeLists.txt
+
+And finally we need a top `CMakeLists.txt` that will assemble the full design and create simulation targets.
+
+<CodeBlock language="cmake" title="CMakeLists.txt" showLineNumbers>{cmakelists}</CodeBlock>
+
+We can add the `adder` IP as a subdirectory with [`add_subdirectory()`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) CMake function.
+
+Then, we can just use the SoCMake function corresponding to the simulator we want to use, in our case `questasim()`, which will take care of the remaining part.
+
+## Running the simulation
+
+Simulation can be run the same way as always:
+
+```bash
+mkdir build
+cd build
+cmake ../ -DSIMULATOR=questa     # Configure project
+make run_tb_questasim -j$(nproc) # Build and run testbench
+```
+

@@ -1,0 +1,113 @@
+---
+sidebar_position: 8
+---
+
+# UVM-SystemC
+:::info
+The source code for this example can be found in [examples/uvm-systemc](https://github.com/HEP-SoC/SoCMake/tree/master/examples/uvm-systemc)
+:::
+
+import CodeBlock from '@theme/CodeBlock';
+export const cmakelists = require('!!raw-loader!../../../examples/uvm-systemc/CMakeLists.txt')?.default;
+export const testbench = require('!!raw-loader!../../../examples/uvm-systemc/hello_world.cpp')?.default;
+export const consumer = require('!!raw-loader!../../../examples/uvm-systemc/consumer.h')?.default;
+export const packet = require('!!raw-loader!../../../examples/uvm-systemc/packet.h')?.default;
+export const producer = require('!!raw-loader!../../../examples/uvm-systemc/producer.h')?.default;
+export const top = require('!!raw-loader!../../../examples/uvm-systemc/top.h')?.default;
+
+### Description
+
+This example shows how to do simulation using UVM-SystemC with SoCMake.
+
+In this case, it's reusing the [uvm-systemc hello world example](https://github.com/accellera-official/uvm-systemc/tree/main/examples/uvmsc/simple/hello_world) and implement it with SoCMake.
+
+## Example
+
+### Directory structure
+
+Lets take a look at the directory structure of the example first.
+
+```raw
+.
+├── CMakeLists.txt
+├── consumer.h
+├── hello_world.cpp
+├── packet.h
+├── producer.h
+└── top.h
+```
+
+### packet.h
+
+C++ header to describe the packet used in the UVM transaction.
+
+<details>
+<summary><strong>Show packet.h</strong></summary>
+
+<CodeBlock language="cpp" title="packet.h" showLineNumbers>{packet}</CodeBlock>
+
+</details>
+
+---
+
+### consumer.h
+
+C++ header to describe the consumer, an UVM component
+
+<details>
+<summary><strong>Show consumer.h</strong></summary>
+
+<CodeBlock language="cpp" title="consumer.h" showLineNumbers>{consumer}</CodeBlock>
+
+</details>
+
+---
+
+### producer.h
+
+C++ header to describe the producer, an UVM component
+
+<details>
+<summary><strong>Show producer.h</strong></summary>
+
+<CodeBlock language="cpp" title="producer.h" showLineNumbers>{producer}</CodeBlock>
+
+</details>
+
+---
+
+### top.h
+
+C++ header to describe the top module used in the UVM environment
+
+<CodeBlock language="cpp" title="top.h" showLineNumbers>{top}</CodeBlock>
+
+
+### hello_world.cpp
+
+This is a standard SystemC file. It will create the UVM environment by instantiating it different modules.
+
+<CodeBlock language="cpp" title="sc_main.cpp" showLineNumbers>{testbench}</CodeBlock>
+
+
+### CMakeLists.txt
+
+And finally we need a top `CMakeLists.txt` that will assemble the full project and create simulation targets.
+
+<CodeBlock language="cmake" title="CMakeLists.txt" showLineNumbers>{cmakelists}</CodeBlock>
+
+This one is very similar to the one in the systemc example.
+The current directory is included to the target, using `target_include_directories()`, to give path to the different headers.
+We also link the UVM-SystemC library as usual.
+
+## Running the simulation
+
+Simulation can be run the same way as always:
+
+```bash
+mkdir build
+cd build
+cmake ../                # Configure project
+make run_systemc_example # Build and run testbench
+```
+
