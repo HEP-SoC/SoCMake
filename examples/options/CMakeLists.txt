@@ -12,6 +12,8 @@ option_enum("SIM_TYPE" "Type of simulation to run" "SYNTH;GENERIC" "GENERIC")
 option_boolean("SIM_TRACE" "Enable tracing vcd file" OFF)
 option_string("SIM_TRACE_PATH" "Output of VCD file in case SIM_TRACE is on" "trace.vcd")
 option_integer("SIM_NUM_TESTS" "Number of tests in regression" 1)
+option_file("SIM_LOG_FILE" "File path of the output log file" "/tmp/sim_log.txt")
+option_directory("SIM_OUTDIR" "Directory path to the simulation artifacts" "/tmp/sim/")
 
 if(SIM_TYPE STREQUAL SYNTH)
     # Add Synthesis only files

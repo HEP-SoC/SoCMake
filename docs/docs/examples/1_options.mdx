@@ -24,7 +24,7 @@ We can for example create a file like the following `CMakeLists.txt` to try the 
 Not all the options are taken in account in the files, it's to show how to implement them and the different types available
 :::
 
-SoCMake API add 4 new functions for options, that can be of the following type **boolean**, **integer**, **enum** or **string**.
+SoCMake API add 6 new functions for options, that can be of the following type **Boolean**, **Integer**, **Enum**, **String**, **File** and **Directory**.
 
 They are generally composed of the following arguments : 
  - **VARIABLE** name of the variable
@@ -32,6 +32,8 @@ They are generally composed of the following arguments :
  - **DEFAULT** default value of the variable
  
 If using `option_enum()`, an other argument, a list of strings is needed, between the description and the default value to give the possible values.
+
+`SoCMake` performs a check to verify that the value passed is an allowed value for Enum, Boolean, Integer types.
 
 ### Instructions
 
@@ -50,4 +52,8 @@ cmake -DSIM_TYPE=GENERIC -DSIM_TRACE=ON ../
 
 :::tip
 the `help()` function, if used, will create a target called `help_options.txt` after the configuration. It can be useful if you want to look at the different option and their values without looking in the CMakeLists.txt file
+:::
+
+:::tip
+Use `cmake-gui` or `ccmake` to modify the configuration options in a visual way.
 :::
