@@ -351,12 +351,18 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     endif()
 
     if(ARG_EXCLUDED_IPS)
+        set(EXCLUDED_REAL_IPS "")
         # Clean ARGN from EXCLUDED_IPS and listed IPs
         foreach(ip ${ARG_EXCLUDED_IPS})
             list(REMOVE_ITEM ARGN "${ip}")
+            alias_dereference(_excluded_ip ${ip})
+            list(APPEND EXCLUDED_REAL_IPS ${_excluded_ip})
+            message(STATUS "-- ${CMAKE_CURRENT_FUNCTION}: Excluding IP ${ip} (real name: ${_excluded_ip}) from the list of IPs to search for sources")
         endforeach()
+        # Remove the EXCLUDED_IPS keyword from ARGN
         list(REMOVE_ITEM ARGN "EXCLUDED_IPS")
-        set(ARG_EXCLUDED_IPS EXCLUDED_IPS ${ARG_EXCLUDED_IPS})
+        # Get the real IP names (not the aliases)
+        set(ARG_EXCLUDED_IPS EXCLUDED_IPS ${EXCLUDED_REAL_IPS})
     endif()
     
     # In case FILE_SETS function argument is not passed, return all file sets that were defined in IP or sub IPs
