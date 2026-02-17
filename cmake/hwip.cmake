@@ -845,15 +845,15 @@ function(get_ip_links OUTVAR IP_LIB)
 
     alias_dereference(_reallib ${IP_LIB})
 
-    if(ARG_NO_DEPS)
-        get_property(__flat_graph TARGET ${_reallib} PROPERTY INTERFACE_LINK_LIBRARIES)
-    else()
-        if(ARG_EXCLUDED_IPS)
-            set(ARG_EXCLUDED_IPS EXCLUDED_IPS ${ARG_EXCLUDED_IPS})
-        endif()
-
-        ip_recursive_get_target_property(__linked_ips ${_reallib} INTERFACE_LINK_LIBRARIES ${ARG_EXCLUDED_IPS})
+    if(ARG_EXCLUDED_IPS)
+        set(ARG_EXCLUDED_IPS EXCLUDED_IPS ${ARG_EXCLUDED_IPS})
     endif()
+
+    if(ARG_NO_DEPS)
+        set(ARG_NO_DEPS NO_DEPS)
+    endif()
+
+    ip_recursive_get_target_property(__linked_ips ${_reallib} INTERFACE_LINK_LIBRARIES ${ARG_EXCLUDED_IPS} ${ARG_NO_DEPS})
 
     set(${OUTVAR} ${__linked_ips} ${_reallib} PARENT_SCOPE)
 endfunction()
@@ -997,7 +997,7 @@ endfunction()
 #
 #]]
 function(ip_recursive_get_target_property OUTVAR IP_LIB PROPERTY)
-    cmake_parse_arguments(ARG "" "" "EXCLUDED_IPS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_DEPS" "" "EXCLUDED_IPS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -1029,10 +1029,12 @@ function(ip_recursive_get_target_property OUTVAR IP_LIB PROPERTY)
                 if(NOT ${_subtarget} IN_LIST _excluded_ips_reallib_list)
                     # Add the current target to the list
                     list(APPEND _seen_values ${_subtarget})
-                    # Recusrive call to search for the property in the sub-target
-                    ip_recursive_get_target_property(_recursive_values ${_subtarget} ${PROPERTY} ${ARG_EXCLUDED_IPS})
-                    # Add the recursively collected target to the list
-                    list(PREPEND _seen_values ${_recursive_values})
+                    if(NOT ARG_NO_DEPS)
+                        # Recursive call to search for the property in the sub-target only if NO_DEPS is not set
+                        ip_recursive_get_target_property(_recursive_values ${_subtarget} ${PROPERTY} ${ARG_EXCLUDED_IPS})
+                        # Add the recursively collected target to the list
+                        list(PREPEND _seen_values ${_recursive_values})
+                    endif()
                     # Remove duplicates keeping the first appearing instance
                     list(REMOVE_DUPLICATES _seen_values)
                 else()
