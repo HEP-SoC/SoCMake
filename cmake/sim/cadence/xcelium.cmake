@@ -327,10 +327,12 @@ function(__xcelium_compile_lib IP_LIB)
             get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
             get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
 
+            unset(SV_ARG_INCDIRS)
             foreach(dir ${SV_INC_DIRS})
                 list(APPEND SV_ARG_INCDIRS -INCDIR ${dir})
             endforeach()
 
+            unset(SV_CMP_DEFS_ARG)
             foreach(def ${SV_COMP_DEFS})
                 list(APPEND SV_CMP_DEFS_ARG -DEFINE ${def})
             endforeach()
