@@ -176,6 +176,8 @@ function(__vivado_sim_compile_lib IP_LIB)
         # SystemVerilog and Verilog files and arguments
         get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
         unset(__xvlog_cmd)
+        unset(SV_ARG_INCDIRS)
+        unset(SV_CMP_DEFS_ARG)
         if(SV_SOURCES)
             get_ip_include_directories(SV_INC_DIRS ${lib}  SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
             get_ip_compile_definitions(SV_COMP_DEFS ${lib} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
