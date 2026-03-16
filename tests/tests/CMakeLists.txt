@@ -14,7 +14,6 @@ add_custom_target(check_cdash
     )
 
 add_subdirectory(iverilog)
-add_subdirectory(vhier)
 add_subdirectory(peakrdl)
 
 include("getcmaketest.cmake")
