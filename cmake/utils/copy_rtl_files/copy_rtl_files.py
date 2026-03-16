@@ -48,7 +48,7 @@ def main():
 
     # Get the used files list from vhier
     try:
-        cells_output = subprocess.run([*vhier_base_args, '--cells'], capture_output=True, check=True)
+        cells_output = subprocess.run([*vhier_base_args, '--module-files'], capture_output=True, check=True)
     except subprocess.CalledProcessError as e:
         print(f"Fatal: error({e.returncode}): {e.stderr.decode('ascii')}", file=sys.stderr)
         raise
@@ -94,13 +94,29 @@ def main():
         print(f"Fatal: error({e.returncode}): {e.stderr.decode('ascii')}", file=sys.stderr)
         raise
 
-    output_inc = sorted(set([f.decode() for f in includes_output.stdout.split()]))
+    output_inc = sorted(set([
+        line.strip()
+        for line in includes_output.stdout.decode().splitlines()
+        if line.strip() and not line.strip().startswith('/')
+    ]))
 
-    # Copy the include files in a include folder
+    # Resolve each include filename to a full path by searching inc_dirs
     dest_dir = os.path.join(args.outdir, 'include')
     os.makedirs(dest_dir, exist_ok=True)
-    for i in output_inc:
-        shutil.copy2(i, dest_dir)
+
+    for inc_file in output_inc:
+        matches = [
+            os.path.join(inc_dir, inc_file)
+            for inc_dir in args.inc_dirs
+            if os.path.isfile(os.path.join(inc_dir, inc_file))
+        ]
+        if len(matches) == 0:
+            print(f"Fatal: include file '{inc_file}' not found in any include directory", file=sys.stderr)
+            raise FileNotFoundError(f"Include file not found: {inc_file}")
+        if len(matches) > 1:
+            print(f"Fatal: include file '{inc_file}' found in multiple include directories: {matches}", file=sys.stderr)
+            raise FileExistsError(f"Ambiguous include file: {inc_file}")
+        shutil.copy2(matches[0], dest_dir)
 
 if __name__ == "__main__":
     main()
