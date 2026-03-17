@@ -12,22 +12,22 @@
   outputs = { self, nixpkgs, flake-utils, peakrdl-socgen } :
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
-        python = pkgs.python3;
+        overlays = [
+          (self: super: {
+            sv-lang = super.sv-lang.overrideAttrs (old: {
+              version = "10.0";
+              src = super.fetchFromGitHub {
+                owner = "MikePopoloski";
+                repo = "slang";
+                tag = "v10.0";
+                hash = "sha256-rw+DztENuY+DiAhQR2oNN/dQJzrcP5neF3LoWnqri+c=";
+              };
+            });
+          })
+        ];
 
-        # For 'vhier' tool used by the copy_rtl_files
-        verilogPerl = pkgs.perlPackages.buildPerlPackage (rec {
-          pname = "Verilog-Perl";
-          version = "3.482";
-          src = pkgs.fetchFromGitHub {
-            owner = "veripool";
-            repo = "verilog-perl";
-            rev = "v${version}";
-            hash = "sha256-vpgxzb3DpoIhOZKiw3d6HRwJkpor4dOJBxCY26LKqLA=";
-          };
-          
-          nativeBuildInputs = [pkgs.flex pkgs.bison];
-        });
+        pkgs = import nixpkgs { inherit system overlays; };
+        python = pkgs.python3;
 
         pythonDeps = ps: [
           peakrdl-socgen.packages.${system}.default
@@ -37,9 +37,9 @@
         deps = with pkgs; [
           cmake
           gnumake
+          sv-lang
           verible
           verilator
-          verilogPerl
         ];
 
       in {
