@@ -34,11 +34,12 @@ def main():
 
     # Create the output directory
     os.makedirs(args.outdir, exist_ok=True)
-    output_file = os.path.join(args.outdir, 'rtl_sources.f')
+    rtl_file = os.path.join(args.outdir, 'rtl_sources.f')
+    include_file = os.path.join(args.outdir, 'include_sources.f')
     
     slang_base_args = [
         slang,
-        '--depfile-trim', '--Mall', output_file,
+        '--depfile-trim', '--Mmodule', rtl_file, '--Minclude', include_file,
         *top_module,
         *synthesis,
         *['-I' + ','.join(args.inc_dirs)],        
