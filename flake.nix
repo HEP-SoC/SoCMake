@@ -3,13 +3,14 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/02263f46911178e286242786fd6ea1d229583fbb";
+    nixpkgs_cmake_3_25.url = "github:NixOS/nixpkgs/nixos-23.05";
     flake-utils.url = "github:numtide/flake-utils";
 
     peakrdl-socgen.url = "github:HEP-SoC/PeakRDL-socgen?ref=refs/tags/v0.1.6";
     peakrdl-socgen.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, flake-utils, peakrdl-socgen } :
+  outputs = { self, nixpkgs, nixpkgs_cmake_3_25, flake-utils, peakrdl-socgen } :
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [
@@ -27,6 +28,7 @@
         ];
 
         pkgs = import nixpkgs { inherit system overlays; };
+        pkgs_cmake_3_25 = nixpkgs_cmake_3_25.legacyPackages.${system};
         python = pkgs.python3;
 
         pythonDeps = ps: [
@@ -35,7 +37,7 @@
         ];
 
         deps = with pkgs; [
-          cmake
+          pkgs_cmake_3_25.cmake
           gnumake
           sv-lang
           verible
