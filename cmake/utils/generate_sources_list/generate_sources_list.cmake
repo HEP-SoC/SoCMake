@@ -22,63 +22,77 @@
 # :type TOP_MODULE: string
 #]]
 function(generate_sources_list IP_LIB)
-    cmake_parse_arguments(ARG "SYNTHESIS" "OUTDIR;TOP_MODULE" "" ${ARGN})
-    if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    endif()
+  cmake_parse_arguments(ARG "SYNTHESIS" "OUTDIR;TOP_MODULE" "" ${ARGN})
+  if(ARG_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+  endif()
 
-    # Initialize variables
-    set(INCDIR_ARG "")
-    set(TOP_MODULE_ARG "")
-    set(SYNTHESIS_ARG "")
+  # Find slang executable
+  find_program(SLANG_EXECUTABLE slang)
+  if(NOT SLANG_EXECUTABLE)
+    message(FATAL_ERROR "slang executable not found! Please install slang or set SLANG_EXECUTABLE.")
+  endif()
 
-    # Check if the Python script exists
-    if(NOT EXISTS "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/generate_sources_list.py")
-      message(FATAL_ERROR "generate_sources_list.py not found!")
-    endif()
+  # Initialize variables
+  set(INCDIR_ARG "")
+  set(TOP_MODULE_ARG "")
+  set(SYNTHESIS_ARG "")
 
-    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+  alias_dereference(IP_LIB ${IP_LIB})
 
-    alias_dereference(IP_LIB ${IP_LIB})
+  if(NOT ARG_OUTDIR)
+    set(OUTDIR ${CMAKE_BINARY_DIR}/ip_sources)
+  else()
+    set(OUTDIR ${ARG_OUTDIR})
+  endif()
 
-    if(NOT ARG_OUTDIR)
-        set(OUTDIR ${CMAKE_BINARY_DIR}/ip_sources)
-    else()
-        set(OUTDIR ${ARG_OUTDIR})
-    endif()
+  # If a top module is provided, only modules in its hierarchy are included.
+  if(ARG_TOP_MODULE)
+    list(APPEND TOP_MODULE_ARG --top ${ARG_TOP_MODULE})
+  endif()
 
-    # If a top module is provided, only modules in its hierarchy are included.
-    if(ARG_TOP_MODULE)
-        set(TOP_MODULE_ARG --top-module ${ARG_TOP_MODULE})
-    endif()
+  # Get the list of RTL sources
+  get_ip_sources(RTL_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
+  get_ip_include_directories(RTL_INCDIRS ${IP_LIB} SYSTEMVERILOG)
+  foreach(_i ${RTL_INCDIRS})
+    list(APPEND INCDIR_ARG -I${_i})
+  endforeach()
 
-    # Get the list of RTL sources
-    get_ip_sources(RTL_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
-    get_ip_include_directories(RTL_INCDIRS ${IP_LIB} SYSTEMVERILOG)
-    foreach(_i ${RTL_INCDIRS})
-        set(INCDIR_ARG ${INCDIR_ARG} --include ${_i})
-    endforeach()
+  if(ARG_SYNTHESIS)
+    list(APPEND SYNTHESIS_ARGS -DSYNTHESIS)
+  endif()
 
-    if(ARG_SYNTHESIS)
-        set(SYNTHESIS_ARG --synthesis)
-    endif()
+  set(RTL_FILE ${OUTDIR}/rtl_sources.f)
+  set(INCLUDE_FILE ${OUTDIR}/include_sources.f)
+  file(MAKE_DIRECTORY ${OUTDIR})
 
-    find_python3()
-    set(__CMD ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/generate_sources_list.py
-        ${TOP_MODULE_ARG} ${SYNTHESIS_ARG}
-        ${INCDIR_ARG}
-        --outdir ${OUTDIR}
-        ${RTL_SOURCES}
-    )
+  set(SLANG_CMD
+    ${SLANG_EXECUTABLE}
+    --depfile-trim --Mmodule ${RTL_FILE} --Minclude ${INCLUDE_FILE}
+    ${TOP_MODULE_ARG}
+    ${SYNTHESIS_ARG}
+    ${INCDIR_ARG}
+    ${RTL_SOURCES}
+  )
 
-    # Create a target to run the custom command
-    add_custom_target(
-        ${IP_LIB}_source_list
-        ALL # This forces the target to be run every time as outputs are not known in advance
-        COMMAND ${__CMD}
-        COMMENT "Generating list of the RTL source files in ${OUTDIR}"
-        DEPENDS ${IP_LIB}
-        VERBATIM
-    )
+  get_ip_links(DEPENDENT_TARGETS ${IP_LIB})
+
+  add_custom_command(
+    OUTPUT ${RTL_FILE} ${INCLUDE_FILE}
+    COMMAND ${SLANG_CMD}
+    DEPENDS ${DEPENDENT_TARGETS} ${RTL_SOURCES}
+    COMMENT "Generating list of the RTL source files in ${OUTDIR}"
+    VERBATIM
+  )
+
+  add_custom_target(
+    ${IP_LIB}_source_list
+    DEPENDS ${RTL_FILE} ${INCLUDE_FILE}
+    COMMENT "Target for generating filtered RTL source list for ${IP_LIB}"
+    VERBATIM
+  )
+
+  message(STATUS "To generate RTL source list for ${IP_LIB}, build the target: ${IP_LIB}_source_list")
 
 endfunction()
