@@ -14,15 +14,15 @@
 # :type IP_LIB: string
 #
 # **Keyword Arguments**
-# :keyword SYNTHESIS: (Optional) If specified, defines SYNTHESIS macro while parsing the HDL sources.
-# :type SYNTHESIS: boolean
 # :keyword OUTDIR: (Optional) Output directory for the generated file lists. Defaults to ${CMAKE_BINARY_DIR}/ip_sources
 # :type OUTDIR: string
 # :keyword TOP_MODULE: (Optional) Name of the top module to use as the root of the hierarchy. Only modules below this point are included. An error is reported if the specified module does not exist.
 # :type TOP_MODULE: string
+# :keyword SLANG_ARGS: (Optional) Extra arguments to pass directly to slang.
+# :type SLANG_ARGS: list
 #]]
 function(generate_sources_list IP_LIB)
-  cmake_parse_arguments(ARG "SYNTHESIS" "OUTDIR;TOP_MODULE" "" ${ARGN})
+  cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE;SLANG_ARGS" "" ${ARGN})
   if(ARG_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
   endif()
@@ -34,9 +34,9 @@ function(generate_sources_list IP_LIB)
   endif()
 
   # Initialize variables
-  set(INCDIR_ARG "")
-  set(TOP_MODULE_ARG "")
-  set(SYNTHESIS_ARG "")
+  set(INCDIR_ARG)
+  set(TOP_MODULE_ARG)
+  set(USER_SLANG_ARGS)
 
   include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
   alias_dereference(IP_LIB ${IP_LIB})
@@ -59,8 +59,8 @@ function(generate_sources_list IP_LIB)
     list(APPEND INCDIR_ARG -I${_i})
   endforeach()
 
-  if(ARG_SYNTHESIS)
-    list(APPEND SYNTHESIS_ARGS -DSYNTHESIS)
+  if(ARG_SLANG_ARGS)
+    list(APPEND USER_SLANG_ARGS ${ARG_SLANG_ARGS})
   endif()
 
   set(RTL_FILE ${OUTDIR}/rtl_sources.f)
@@ -71,8 +71,8 @@ function(generate_sources_list IP_LIB)
     ${SLANG_EXECUTABLE}
     --depfile-trim --Mmodule ${RTL_FILE} --Minclude ${INCLUDE_FILE}
     ${TOP_MODULE_ARG}
-    ${SYNTHESIS_ARG}
     ${INCDIR_ARG}
+    ${USER_SLANG_ARGS}
     ${RTL_SOURCES}
   )
 
