@@ -16,7 +16,7 @@
 # **Keyword Arguments**
 # :keyword SYNTHESIS: (Optional) If specified, defines SYNTHESIS macro while parsing the HDL sources.
 # :type SYNTHESIS: boolean
-# :keyword OUTDIR: (Optional) Output directory for the copied RTL sources. Defaults to ${CMAKE_BINARY_DIR}/ip_sources
+# :keyword OUTDIR: (Optional) Output directory for the generated file lists. Defaults to ${CMAKE_BINARY_DIR}/ip_sources
 # :type OUTDIR: string
 # :keyword TOP_MODULE: (Optional) Name of the top module to use as the root of the hierarchy. Only modules below this point are included. An error is reported if the specified module does not exist.
 # :type TOP_MODULE: string
