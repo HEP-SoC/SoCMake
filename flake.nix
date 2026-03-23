@@ -6,7 +6,7 @@
     nixpkgs_cmake_3_25.url = "github:NixOS/nixpkgs/nixos-23.05";
     flake-utils.url = "github:numtide/flake-utils";
 
-    peakrdl-socgen.url = "github:HEP-SoC/PeakRDL-socgen?ref=refs/tags/v0.1.6";
+    peakrdl-socgen.url = "github:HEP-SoC/PeakRDL-socgen?ref=refs/tags/v0.1.7";
     peakrdl-socgen.inputs.nixpkgs.follows = "nixpkgs";
   };
 

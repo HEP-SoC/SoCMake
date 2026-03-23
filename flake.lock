@@ -76,16 +76,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1773846014,
-        "narHash": "sha256-ZU+UKFGm4tWh0GNKAIcLr+nGg0pf4NHgrtPB7Z4wRBQ=",
+        "lastModified": 1774031463,
+        "narHash": "sha256-nQssNua8JzPRs3cZHX8DVHSO+nQTmf+QtOShZuyl7ss=",
         "owner": "HEP-SoC",
         "repo": "PeakRDL-socgen",
-        "rev": "a1a13b379a280b3adfb206d5ebfbf3ffdcf21b7d",
+        "rev": "9baa6ac91ae72415a98e9ed9e3a3a076d9276a54",
         "type": "github"
       },
       "original": {
         "owner": "HEP-SoC",
-        "ref": "refs/tags/v0.1.6",
+        "ref": "refs/tags/v0.1.7",
         "repo": "PeakRDL-socgen",
         "type": "github"
       }
