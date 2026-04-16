@@ -177,8 +177,7 @@ function(vcs IP_LIB)
             )
         set_property(TARGET ${run_target} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
-    set(SIM_RUN_CMD ${run_sim_cmd} PARENT_SCOPE)
-
+    
     set(SOCMAKE_SIM_RUN_CMD cd ${OUTDIR} && ${run_sim_cmd} PARENT_SCOPE)
     set(SOCMAKE_COMPILE_TARGET ${compile_target} PARENT_SCOPE)
     set(SOCMAKE_ELABORATE_TARGET ${elaborate_target} PARENT_SCOPE)

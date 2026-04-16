@@ -128,7 +128,7 @@ function(vivado_sim IP_LIB)
             )
         set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
-    set(SIM_RUN_CMD ${__xsim_cmd} PARENT_SCOPE)
+    set(SOCMAKE_SIM_RUN_CMD ${__xsim_cmd} PARENT_SCOPE)
 
 endfunction()
 
