@@ -37,9 +37,11 @@ include_guard(GLOBAL)
 # :type RUN_ARGS: string
 # :keyword FILE_SETS: Specify list of File sets to retrieve the sources from
 # :type FILE_SETS: list[string]
+# :keyword DO_FILES: Specify list of do files to run with the run command
+# :type DO_FILES: list[string]
 #]]
 function(questasim IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER;32BIT" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER;32BIT" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS;FILE_SETS;DO_FILES" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -193,11 +195,23 @@ function(questasim IP_LIB)
         ${LIBRARY}.${ARG_TOP_MODULE}
         )
 
+    # If GUI is not used, pass the -do files to CLI argument
     if(NOT ARG_GUI AND NOT ARG_GUI_VISUALIZER)
-        list(APPEND run_sim_cmd
-            -c 
-            -do "run -all"
-        )
+        list(APPEND run_sim_cmd -c -onfinish stop)
+        # Use the default run.do, if not provided
+        # This script makes sure the exit code from testbench is passed to the shell
+        # Otherwise $fatal(), $error() exit codes are ignored by questasim
+        if(NOT DEFINED ARG_DO_FILES)
+            list(APPEND run_sim_cmd
+                -do ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/run.do
+            )
+        else()
+            # Optionally use custom DO_FILES
+            convert_paths_to_absolute(ARG_DO_FILES ${ARG_DO_FILES})
+            foreach(do_file ${ARG_DO_FILES})
+                list(APPEND run_sim_cmd -do ${do_file})
+            endforeach()
+        endif()
 
     endif()
 
