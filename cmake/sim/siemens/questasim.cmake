@@ -30,18 +30,20 @@ include_guard(GLOBAL)
 # :keyword RUN_TARGET_NAME: Replace the default name of the run target.
 # :type RUN_TARGET_NAME: string
 # :keyword VHDL_COMPILE_ARGS: Extra arguments to be passed to the VHDL compilation step.
-# :type VHDL_COMPILE_ARGS: string
+# :type VHDL_COMPILE_ARGS: list[string]
 # :keyword SV_COMPILE_ARGS: Extra arguments to be passed to the SystemVerilog / Verilog compilation step.
-# :type SV_COMPILE_ARGS: string
+# :type SV_COMPILE_ARGS: list[string]
 # :keyword RUN_ARGS: Extra arguments to be passed to the simulation step.
-# :type RUN_ARGS: string
+# :keyword ELABORATE_ARGS: Extra arguments to be passed to the elaboration (vopt) step.
+# :type ELABORATE_ARGS: list[string]
+# :type RUN_ARGS: list[string]
 # :keyword FILE_SETS: Specify list of File sets to retrieve the sources from
 # :type FILE_SETS: list[string]
 # :keyword DO_FILES: Specify list of do files to run with the run command
 # :type DO_FILES: list[string]
 #]]
 function(questasim IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER;32BIT" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;RUN_ARGS;FILE_SETS;DO_FILES" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER;32BIT" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS;FILE_SETS;DO_FILES" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -110,11 +112,11 @@ function(questasim IP_LIB)
     #######################
 
     set(compile_target ${IP_LIB}_questasim_complib)
+    set(elaborate_target ${IP_LIB}_questasim)
     set(run_target ${ARG_RUN_TARGET_NAME})
     if(NOT ARG_RUN_TARGET_NAME)
         set(run_target run_${IP_LIB}_questasim)
     endif()
-    set(elaborate_target ${run_target})
 
     ### Compile with vcom and vlog
     if(NOT TARGET ${compile_target})
@@ -184,6 +186,45 @@ function(questasim IP_LIB)
         set(sccom_link_tgt ${IP_LIB}_sccom_link)
     endif()
 
+    if(NOT TARGET ${elaborate_target})
+        get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL ${ARG_FILE_SETS})
+        get_ip_sources(HEADERS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL HEADERS ${ARG_FILE_SETS})
+        set(elaborate_cmd vopt
+            -${bitness}
+            $<$<BOOL:${ARG_QUIET}>:-quiet>
+            ${ARG_ELABORATE_ARGS}
+            -Ldir ${OUTDIR} ${hdl_libs_args} ${dpi_libs_args}
+            -o opt_top
+            ${LIBRARY}.${ARG_TOP_MODULE}
+            )
+
+        ### Clean files:
+        #       *
+        set(__clean_files
+            # ${OUTDIR}/xmelab.log
+            # ${OUTDIR}/xmelab.history
+            # ${OUTDIR}/xcelium.d
+        )
+
+        set(DESCRIPTION "Elaborate ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
+        set(STAMP_FILE "${OUTDIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+        add_custom_command(
+            OUTPUT ${STAMP_FILE}
+            COMMAND ${elaborate_cmd}
+            COMMAND touch ${STAMP_FILE}
+            COMMENT ${DESCRIPTION}
+            WORKING_DIRECTORY ${OUTDIR}
+            DEPENDS ${compile_target} ${sccom_link_tgt} ${SOURCES} ${HEADERS}
+            COMMAND_EXPAND_LISTS
+            )
+
+        add_custom_target(${elaborate_target}
+            DEPENDS ${STAMP_FILE} ${IP_LIB}
+        )
+        set_property(TARGET ${elaborate_target} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(TARGET ${elaborate_target} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${__clean_files})
+    endif()
+
 
     set(run_sim_cmd vsim
         -${bitness}
@@ -192,12 +233,11 @@ function(questasim IP_LIB)
         $<$<BOOL:${ARG_GUI_VISUALIZER}>:-visualizer>
         ${ARG_RUN_ARGS}
         -Ldir ${OUTDIR} ${hdl_libs_args} ${dpi_libs_args}
-        ${LIBRARY}.${ARG_TOP_MODULE}
         )
 
     # If GUI is not used, pass the -do files to CLI argument
     if(NOT ARG_GUI AND NOT ARG_GUI_VISUALIZER)
-        list(APPEND run_sim_cmd -c -onfinish stop)
+        list(APPEND run_sim_cmd -c opt_top -onfinish stop)
         # Use the default run.do, if not provided
         # This script makes sure the exit code from testbench is passed to the shell
         # Otherwise $fatal(), $error() exit codes are ignored by questasim
@@ -220,7 +260,7 @@ function(questasim IP_LIB)
         add_custom_target(
             ${run_target}
             COMMAND  ${run_sim_cmd} -noautoldlibpath
-            DEPENDS ${compile_target} ${sccom_link_tgt}
+            DEPENDS ${elaborate_target}
             WORKING_DIRECTORY ${OUTDIR}
             COMMENT ${DESCRIPTION}
             USES_TERMINAL
