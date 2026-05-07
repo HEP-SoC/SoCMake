@@ -30,7 +30,12 @@ function(generate_sources_list IP_LIB)
   # Find slang executable
   find_program(SLANG_EXECUTABLE slang)
   if(NOT SLANG_EXECUTABLE)
-    message(FATAL_ERROR "slang executable not found! Please install slang or set SLANG_EXECUTABLE.")
+    if(NOT DEFINED ENV{SLANG_EXECUTABLE})
+        message(WARNING "slang executable not found! Please install slang or set SLANG_EXECUTABLE.")
+      else()
+        message(SATUS "slang executable found using SLANG_EXECUTABLE env variable: $ENV{SLANG_EXECUTABLE}")
+        set(SLANG_EXECUTABLE $ENV{SLANG_EXECUTABLE})
+    endif()
   endif()
 
   # Initialize variables
