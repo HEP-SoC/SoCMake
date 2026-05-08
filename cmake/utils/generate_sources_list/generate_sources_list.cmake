@@ -91,13 +91,15 @@ function(generate_sources_list IP_LIB)
     VERBATIM
   )
 
+  set(DESCRIPTION "Generate filtered RTL source list for ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
+
   add_custom_target(
     ${IP_LIB}_source_list
     DEPENDS ${RTL_FILE} ${INCLUDE_FILE}
-    COMMENT "Target for generating filtered RTL source list for ${IP_LIB}"
+    COMMENT ${DESCRIPTION}
     VERBATIM
   )
 
-  message(STATUS "To generate RTL source list for ${IP_LIB}, build the target: ${IP_LIB}_source_list")
+  set_property(TARGET ${IP_LIB}_source_list PROPERTY DESCRIPTION ${DESCRIPTION})
 
 endfunction()
