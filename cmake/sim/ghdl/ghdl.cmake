@@ -127,7 +127,7 @@ function(ghdl IP_LIB)
             )
         set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
-    set(SOCMAKE_SIM_RUN_CMD ${__ghdl_run_cmd} PARENT_SCOPE)
+    set(SIM_RUN_CMD ${__ghdl_run_cmd} PARENT_SCOPE)
 
 endfunction()
 

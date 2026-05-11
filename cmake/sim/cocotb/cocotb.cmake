@@ -141,7 +141,7 @@ function(cocotb IP_LIB)
             RUN_ARGS -M${COCOTB_LIB_DIR} -m${COCOTB_LIB_NAME}
         )
 
-        set(sim_run_cmd ${SOCMAKE_SIM_RUN_CMD} ${ARG_RUN_ARGS})
+        set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
         set(sim_build_dep ${IP_LIB}_iverilog)
         message(DEBUG "COCOTB: Icarus verilog run command: ${sim_run_cmd}")
     elseif(${ARG_SIM} STREQUAL verilator)
@@ -233,7 +233,7 @@ function(cocotb IP_LIB)
             SV_COMPILE_ARGS +define+COCOTB_SIM=1
             RUN_ARGS +define+COCOTB_SIM=1
         )
-        set(sim_run_cmd ${SOCMAKE_SIM_RUN_CMD} ${ARG_RUN_ARGS})
+        set(sim_run_cmd ${SIM_RUN_CMD} ${ARG_RUN_ARGS})
         set(sim_build_dep ${IP_LIB}_vcs)
         message(DEBUG "COCOTB: VCS run command: ${sim_run_cmd}")
     else()
@@ -345,7 +345,7 @@ function(cocotb IP_LIB)
         endforeach()
     endif() # ARG_COCOTB_TESTCASE
 
-    set(SOCMAKE_SIM_RUN_CMD ${sim_run_cmd} PARENT_SCOPE)
+    set(SIM_RUN_CMD ${sim_run_cmd} PARENT_SCOPE)
     set(SIM_BUILD_DEP ${sim_build_dep} PARENT_SCOPE)
 
 endfunction()
