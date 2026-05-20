@@ -28,4 +28,6 @@ ct_add_dir(ip_sources             USE_REL_PATH_NAMES LABEL)
 ct_add_dir(ip_link                USE_REL_PATH_NAMES LABEL)
 ct_add_dir(ipxact                 USE_REL_PATH_NAMES LABEL)
 ct_add_dir(help                   USE_REL_PATH_NAMES LABEL)
-ct_add_dir(generate_sources_list  USE_REL_PATH_NAMES LABEL)
+# TODO: add this test once merging into master (CI workflow uses only master branch for testing)
+# TODO: add slang v10.0.0 to support it
+# ct_add_dir(generate_sources_list  USE_REL_PATH_NAMES LABEL)
