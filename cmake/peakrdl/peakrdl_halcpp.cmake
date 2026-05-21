@@ -78,11 +78,11 @@ function(peakrdl_halcpp IP_LIB)
     endif()
 
     if(ARG_SKIP_BUSES)
-        set(SKIB_BUSES_ARG --skip-buses)
+        set(SKIP_BUSES_ARG --skip-buses)
     endif()
 
     if(ARG_GENERATE_TESTS)
-        set(ARG_GENERATE_TESTS --generate-tests)
+        set(GENERATE_TESTS_ARG --generate-tests)
     endif()
 
     if(NOT RDL_FILES)
@@ -106,8 +106,8 @@ function(peakrdl_halcpp IP_LIB)
             ${EXT_ARG}
             ${INCDIRS_ARG}
             ${COMPDEFS_ARG}
-            ${ARG_GENERATE_TESTS}
-            ${SKIB_BUSES_ARG} -o ${OUTDIR}
+            ${GENERATE_TESTS_ARG}
+            ${SKIP_BUSES_ARG} -o ${OUTDIR}
             ${OVERWRITTEN_PARAMETERS}
     )
 
