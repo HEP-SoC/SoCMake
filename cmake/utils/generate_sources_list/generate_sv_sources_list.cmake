@@ -1,11 +1,10 @@
 #[[[
-# Generates a filtered and organized list of RTL (Register Transfer Level) source files for a specified IP library target.
+# Generate a dependency-ordered Verilog/SystemVerilog source list for an IP target, including only instantiated modules.
 #
-# This function collects all relevant RTL source files (excluding simulation, testbench, and FPGA-specific files) associated
-# with the given ~IP_LIB~ target. It produces a file containing:
-#  * All source files required for synthesis, preserving their directory hierarchy.
-#  * All include directories and files needed for compilation.
-#  * Only the files instantiated in the design hierarchy, as determined by the `slang` tool.
+# This function collects all Verilog/SystemVerilog source files associated with the given ~IP_LIB~ target.
+# It produces two files containing:
+#  * A dependency-ordered list of all Verilog/SystemVerilog source files (rtl_sources.f)
+#  * A list of all include files (include_sources.f)
 #
 # The hierarchy is parsed using `slang` (https://github.com/MikePopoloski/slang), ensuring that only the necessary
 # files for the specified top module (if provided) and its dependencies are included.
@@ -21,7 +20,7 @@
 # :keyword SLANG_ARGS: (Optional) Extra arguments to pass directly to slang.
 # :type SLANG_ARGS: list
 #]]
-function(generate_sources_list IP_LIB)
+function(generate_sv_sources_list IP_LIB)
   cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE;SLANG_ARGS" "" ${ARGN})
   if(ARG_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -91,7 +90,7 @@ function(generate_sources_list IP_LIB)
     VERBATIM
   )
 
-  set(DESCRIPTION "Generate filtered RTL source list for ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
+  set(DESCRIPTION "Generate dependency-ordered Verilog/SystemVerilog source list for ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
 
   add_custom_target(
     ${IP_LIB}_source_list

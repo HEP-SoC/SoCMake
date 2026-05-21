@@ -20,7 +20,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/uniquify_files_by_basename.cmake"
 # ====================================
 # ======== Additional utilities ======
 # ====================================
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/generate_sources_list/generate_sources_list.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/generate_sources_list/generate_sv_sources_list.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/generate_sources_list/read_rtl_sources.cmake")
 
 # ====================================

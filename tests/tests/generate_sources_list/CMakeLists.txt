@@ -21,7 +21,7 @@ ip_include_directories(${IP} SYSTEMVERILOG
 
 ip_link(${IP} test::ip::mod1)
 
-generate_sources_list(${IP}
+generate_sv_sources_list(${IP}
     TOP_MODULE ${IP_NAME}
     OUTDIR ${CMAKE_CURRENT_BINARY_DIR}/${IP_NAME}_sources
 )
@@ -49,7 +49,7 @@ ip_include_directories(${IP} SYSTEMVERILOG
 
 ip_link(${IP} test::ip::mod1)
 
-generate_sources_list(${IP}
+generate_sv_sources_list(${IP}
     TOP_MODULE ${IP_NAME}
     OUTDIR ${CMAKE_CURRENT_BINARY_DIR}/${IP_NAME}_sources
     SLANG_ARGS -DSYNTHESIS
