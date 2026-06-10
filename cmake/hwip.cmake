@@ -164,8 +164,8 @@ endfunction()
 #
 # It splits the input string on ``::`` separators. Two forms are accepted:
 #
-# * Full VLNV (4 tokens): ``vendor::lib::ip::0.0.1`` — sets all four output variables.
-# * Name-only (1 token): ``ip`` — sets only IP_NAME; VENDOR, LIBRARY, VERSION are unset.
+# * Full VLNV (4 tokens): ``vendor::lib::ip::0.0.1`` - sets all four output variables.
+# * Name-only (1 token): ``ip`` - sets only IP_NAME; VENDOR, LIBRARY, VERSION are unset.
 #
 # Any other number of tokens causes a FATAL_ERROR.
 #
