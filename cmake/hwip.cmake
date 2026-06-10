@@ -15,25 +15,25 @@ include("${CMAKE_CURRENT_LIST_DIR}//utils/file_paths.cmake")
 # * <vendor>::<library>::<name>::<version> ('__' replaced by '::')
 # * <vendor>::<library>::<name> (short name without the version)
 #
-# This function can be used in FULL and SHORT form:
-# Full form:
-# ::
+# This function can be used in FULL and SHORT form.
+#
+# Full form::
+#
 #   add_ip(ip
 #      VENDOR vendor
 #      LIBRARY lib
 #      VERSION 1.2.3
 #      DESCRIPTION "This is a sample IP"
 #      )
-# 
+#
 # In full form it is possible to omit VENDOR, LIBRARY, VERSION, and DESCRIPTION, although it is not recommended.
 #
-# Omitting them all would have following signature:
-# ::
-#   add_ip(ip2)
-# 
+# Omitting them all would have following signature::
 #
-# Short form:
-# ::
+#   add_ip(ip2)
+#
+# Short form::
+#
 #   add_ip(vendor2::lib2::ip2::1.2.2)
 # 
 # In short form only the full VLNV format is accepted
