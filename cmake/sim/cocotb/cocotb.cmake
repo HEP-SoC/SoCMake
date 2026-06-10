@@ -17,7 +17,7 @@ include_guard(GLOBAL)
 # :type NO_RUN_TARGET: bool
 # :keyword GUI: Run simulation in GUI mode.
 # :type GUI: bool
-# :keyword OUTDIR: Output directory for the Icarus verilog compilation and simulation.
+# :keyword OUTDIR: Output directory for the cocotb simulation build files.
 # :type OUTDIR: string
 # :keyword RUN_TARGET_NAME: Replace the default name of the run target.
 # :type RUN_TARGET_NAME: string
@@ -29,7 +29,7 @@ include_guard(GLOBAL)
 # :type COCOTB_TESTCASE: integer
 # :keyword SIM: Simulator to use. Supported simulators is: icarus (cocotb also support verilator, xcelium, vcs and questasim, not yet supported by SoCMake).
 # :type SIM: string
-# :keyword TIMESCALE: Simulation timscale. Default is 1ns/1ps.
+# :keyword TIMESCALE: Simulation timescale. Default is 1ns/1ps.
 # :type TIMESCALE: string
 # :keyword PYTHONPATH: List of paths to be added to the PYTHONPATH environment variable to include python modules needed for the simulation.
 # :type PYTHONPATH: string
@@ -57,7 +57,7 @@ function(cocotb IP_LIB)
     endif()
 
     if(ARG_PYTHONPATH)
-        # Column separated paths to python files/modules are needed
+        # Colon-separated paths to python files/modules are needed
         string(REPLACE ";" ":" PYTHONPATH "${ARG_PYTHONPATH}")
     endif()
 

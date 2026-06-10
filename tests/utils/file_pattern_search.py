@@ -5,7 +5,15 @@ from rich.panel import Panel
 from rich.text import Text
 
 def check_search(file_content, search_term):
-    """Check if a search term exists in the file content and return matching lines with their line numbers."""
+    """Check if a search term exists in the file content and return matching lines with their line numbers.
+
+    Args:
+        file_content: The full text content of the file to search.
+        search_term: The string to search for in each line.
+
+    Returns:
+        List of ``(line_number, line)`` tuples for each matching line.
+    """
     matched_lines = []
     for line_number, line in enumerate(file_content.splitlines(), start=1):
         if search_term in line:
@@ -13,7 +21,15 @@ def check_search(file_content, search_term):
     return matched_lines
 
 def generate_report(results):
-    """Generate a detailed report from the search results with colored output."""
+    """Generate a detailed report from the search results with colored output.
+
+    Args:
+        results: Dictionary mapping each pattern string to a ``(found, matched_lines)`` tuple.
+
+    Returns:
+        Tuple of ``(report_string, return_status)`` where ``return_status`` is ``0``
+        if all patterns were found, or ``-1`` if any pattern was missing.
+    """
     report = []
     report.append("Search Report")
     report.append("=" * 40)
@@ -37,7 +53,18 @@ def generate_report(results):
     return "\n".join(str(line) for line in report), return_status
 
 def highlight_patterns(line, patterns):
-    """Highlight matched and unmatched patterns in the given line."""
+    """Highlight matched and unmatched patterns in the given line.
+
+    Wraps the entire line in red Rich markup, then re-wraps each matched
+    pattern in green.
+
+    Args:
+        line: The text line to highlight.
+        patterns: List of pattern strings to highlight in green if found.
+
+    Returns:
+        The line string with Rich markup applied.
+    """
     line = f"[red]{line}[/red]"
     for pattern in patterns:
         if pattern in line:
@@ -45,6 +72,7 @@ def highlight_patterns(line, patterns):
     return line
 
 def main():
+    """Entry point: search a file for one or more patterns and print a formatted report."""
     parser = argparse.ArgumentParser(description="Search for multiple patterns in a file and report results.")
     parser.add_argument('file', type=Path, help="Path to the file to search")
     parser.add_argument('patterns', nargs='+', help="Patterns to search for")

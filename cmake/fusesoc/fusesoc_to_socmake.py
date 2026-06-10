@@ -14,12 +14,31 @@ def removesuffix(s: str, suffix: str) -> str:
 
 
 def convert_language(lang: str) -> str:
+    """Convert a FuseSoC file type string to a SoCMake language name.
+
+    Strips the trailing ``Source`` suffix and uppercases the result.
+    For example, ``systemVerilogSource`` becomes ``SYSTEMVERILOG``.
+
+    Args:
+        lang: FuseSoC file type string (e.g. ``systemVerilogSource``).
+
+    Returns:
+        SoCMake language name (e.g. ``SYSTEMVERILOG``).
+    """
     lang = removesuffix(lang, "Source")
     lang = lang.upper()
     return lang
 
 
 def convert_fusesoc_vlnv_to_socmake_add_ip_args(vlnv: str) -> str:
+    """Convert a FuseSoC VLNV string to SoCMake ``add_ip()`` named argument string.
+
+    Args:
+        vlnv: FuseSoC VLNV string in ``vendor:library:name:version`` form.
+
+    Returns:
+        String of named CMake keyword arguments (e.g. ``name VENDOR v LIBRARY l VERSION ver``).
+    """
     parts: list[str] = vlnv.split(":")
 
     vendor: str = f"VENDOR {parts[0]}" if parts[0] else ""
@@ -34,6 +53,14 @@ def convert_fusesoc_vlnv_to_socmake_add_ip_args(vlnv: str) -> str:
 
 
 def convert_fusesoc_vlnv_to_socmake_ip(vlnv: str) -> str:
+    """Convert a FuseSoC VLNV string to a SoCMake IP reference argument string.
+
+    Args:
+        vlnv: FuseSoC VLNV string in ``vendor:library:name:version`` form.
+
+    Returns:
+        String of named CMake keyword arguments (e.g. ``name VENDOR v LIBRARY l VERSION ver``).
+    """
     parts: list[str] = vlnv.split(":")
 
     vendor: str = f"VENDOR {parts[0]}" if parts[0] else ""
@@ -48,6 +75,17 @@ def convert_fusesoc_vlnv_to_socmake_ip(vlnv: str) -> str:
 
 
 def move_prefix_to_end(s: str) -> str:
+    """Strip a version constraint operator prefix from a VLNV string.
+
+    Recognizes operators ``>=``, ``<=``, ``>``, ``<``, ``~``, ``^`` at the
+    start of the string and removes them.
+
+    Args:
+        s: VLNV string optionally prefixed with a version constraint operator.
+
+    Returns:
+        The VLNV string with the leading operator removed.
+    """
     # Match any of the operators at the start
     match = re.match(r'^(>=|<=|>|<|~|\^)(.*)$', s)
     if match:
@@ -58,12 +96,32 @@ def move_prefix_to_end(s: str) -> str:
 
 
 def convert_depend_vlnv(vlnv: str) -> str:
+    """Convert a FuseSoC dependency VLNV string to SoCMake ``::``-separated format.
+
+    Strips any leading version constraint operator and joins non-empty VLNV
+    components with ``::``.
+
+    Args:
+        vlnv: FuseSoC dependency VLNV string (e.g. ``>=vendor:library:name:1.0``).
+
+    Returns:
+        SoCMake-style VLNV string (e.g. ``vendor::library::name::1.0``).
+    """
     dep: str = move_prefix_to_end(vlnv)
     dep = "::".join([x for x in dep.split(":") if x])
     return dep
 
 
 def append_and_create(dict_ref: Dict[Any, List[Any]], key: Any, val: Any) -> None:
+    """Append a value to a list in a dictionary, creating the list if the key is absent.
+
+    Does nothing if ``val`` is already present in ``dict_ref[key]``.
+
+    Args:
+        dict_ref: The dictionary to update in place.
+        key: The key under which to append ``val``.
+        val: The value to append.
+    """
     if key not in dict_ref:
         dict_ref[key] = [val]
     else:
@@ -72,6 +130,15 @@ def append_and_create(dict_ref: Dict[Any, List[Any]], key: Any, val: Any) -> Non
 
 
 def fusesoc_to_socmake(input_file: Path):
+    """Parse a FuseSoC ``.core`` YAML file and print equivalent SoCMake CMake commands to stdout.
+
+    Reads the FuseSoC core description and emits the corresponding
+    ``add_ip``, ``ip_sources``, ``ip_include_directories``, and ``ip_link``
+    CMake calls.
+
+    Args:
+        input_file: Path to the FuseSoC ``.core`` YAML file.
+    """
     with open(input_file, "r") as f:
         core_data = yaml.safe_load(f)
 
@@ -141,6 +208,7 @@ def fusesoc_to_socmake(input_file: Path):
 
 
 def main():
+    """Entry point: parse command-line arguments and run the FuseSoC-to-SoCMake conversion."""
     parser = argparse.ArgumentParser(
         description="Convert FuseSoC .core (YAML) files to SoCMake CMakeLists.txt"
     )

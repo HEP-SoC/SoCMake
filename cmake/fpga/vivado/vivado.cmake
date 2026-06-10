@@ -14,13 +14,13 @@
 #
 # :keyword TOP: Top-level module name used for elaboration. The default is the IP_LIB ``IP_NAME`` property.
 # :type TOP: string
-# :keyword VERILOG_DEFINES: Additional SV/Verilog compilation flags to be passed to vivado project
-# :type VERILOG_DEFINES: 
-# :keyword OUTDIR: output directory in which the files will be generated. The default is ${BINARY_DIR}/vivado.
-# :type OUTDIR: string path
+# :keyword VERILOG_DEFINES: Additional SV/Verilog define flags to be passed to the Vivado project.
+# :type VERILOG_DEFINES: list[string]
+# :keyword OUTDIR: Output directory for generated files. Defaults to ``${BINARY_DIR}/vivado``.
+# :type OUTDIR: string
 #]]
 function(vivado IP_LIB)
-    cmake_parse_arguments(ARG "" "TOP" "VERILOG_DEFINES" ${ARGN})
+    cmake_parse_arguments(ARG "" "TOP;OUTDIR" "VERILOG_DEFINES" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()

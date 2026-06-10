@@ -15,6 +15,8 @@ include_guard(GLOBAL)
 #
 # :keyword NO_RUN_TARGET: Do not create a run target.
 # :type NO_RUN_TARGET: bool
+# :keyword QUIET: Suppress informative messages from vlog/vcom during compilation.
+# :type QUIET: bool
 # :keyword GUI: Run simulation in GUI mode.
 # :type GUI: bool
 # :keyword GUI_VISUALIZER: Run simulation in GUI, with Visualizer.
@@ -286,9 +288,9 @@ endfunction()
 
 # This function is called by ``questasim``, it shouldn't be used directly in a cmake file.
 #
-# It will create an intermediary target to compile VDHL and SystemVerilog/Verilog file, using vcom and vlog. It will also compile using sccom if SystemC is a boundary library.
+# It will create an intermediary target to compile VHDL and SystemVerilog/Verilog files, using vcom and vlog. It will also compile using sccom if SystemC is a boundary library.
 #
-# :param IP_LIB: The target IP library, it needs to have SOURCES property set with a list of SystemVerilog or VDHL files.
+# :param IP_LIB: The target IP library, it needs to have SOURCES property set with a list of SystemVerilog or VHDL files.
 # :type IP_LIB: string
 #
 # **Keyword Arguments**
@@ -386,7 +388,7 @@ function(__questasim_compile_lib IP_LIB)
             set(__comp_lib_name ${ARG_LIBRARY})
         endif()
 
-        # Create output directoy for the VHDL library
+        # Create output directory for the VHDL library
         set(lib_outdir ${OUTDIR}/${__comp_lib_name})
 
         __get_questasim_search_lib_args(${lib} LIBRARY ${__comp_lib_name})
@@ -671,7 +673,7 @@ function(questasim_gen_sc_wrapper IP_LIB)
     if(ARG_LIBRARY)
         set(__comp_lib_name ${ARG_LIBRARY})
     endif()
-    # Create output directoy for the VHDL library
+    # Create output directory for the VHDL library
     set(lib_outdir ${OUTDIR}/${__comp_lib_name})
 
     if(ARG_32BIT)
@@ -749,9 +751,8 @@ endfunction()
 #[[[
 # This function create a target to compile SystemC boundary library with sccom
 #
-# :param SC_LIB: IP library, it needs to have SOURCES property set with a list of SystemC files as **cxx_sources**.
-# :type IP_LIB: string
-# :type SC_LIB:
+# :param SC_LIB: CMake target representing the SystemC library; must have SOURCES set to a list of **cxx_sources** (SystemC C++ files).
+# :type SC_LIB: string
 #
 # **Keyword Arguments**
 #
@@ -790,7 +791,7 @@ function(questasim_compile_sc_lib SC_LIB)
     if(ARG_LIBRARY)
         set(__comp_lib_name ${ARG_LIBRARY})
     endif()
-    # Create output directoy for the VHDL library
+    # Create output directory for the VHDL library
     set(lib_outdir ${OUTDIR}/${__comp_lib_name})
 
     if(ARG_32BIT)

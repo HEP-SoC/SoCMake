@@ -14,6 +14,18 @@ def main(
         top: str,
         outdir : str,
         ):
+    """Configure, build, and run a Vivado synthesis flow using Edalize.
+
+    Args:
+        rtl_files: List of RTL source file paths.
+        inc_dirs: List of include directory paths.
+        verilog_defs: List of Verilog defines in ``NAME`` or ``NAME=VALUE`` form.
+        constraint_files: List of XDC constraint file paths.
+        part: FPGA part number (e.g. ``xc7a35tcpg236-1``).
+        name: Project name.
+        top: Top-level module name.
+        outdir: Output directory for the Vivado project.
+    """
 
     ###################################################################################
     # Set up logging

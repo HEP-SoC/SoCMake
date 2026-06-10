@@ -16,7 +16,7 @@
 # :type OUTDIR: string
 # :keyword INTF: Interface to be used for the generated registers. By default, it's set to "ibus", "axi4l" (axi4-lite) is also supported.
 # :type INTF: string
-# :keyword TOP_ADDRMAP: 
+# :keyword TOP_ADDRMAP: Override the top address map name used for generated file names. If omitted, the ``IP_NAME`` property of ``IP_LIB`` is used.
 # :type TOP_ADDRMAP: string
 # :keyword ARGS: Arguments to be given to desyrdl tool.
 # :type ARGS: string
@@ -84,7 +84,7 @@ function(desyrdl IP_LIB)
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     set(DESCRIPTION "Generate register file for \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}")
     add_custom_command(
-        # The output files are automtically marked as GENERATED (deleted by make clean among other things)
+        # The output files are automatically marked as GENERATED (deleted by make clean among other things)
         OUTPUT ${VHDL_GEN} ${STAMP_FILE}
         COMMAND ${__CMD}
         COMMAND touch ${STAMP_FILE}

@@ -4,10 +4,22 @@ import os
 import re
 
 def print_usage():
+    """Print command-line usage information."""
     print('shorten_path.py -f <dot_file> -o <out_file> -l (remove legend)')
     print('shorten_path.py -h')
 
 def main(in_file, out_file, remove_legend=False):
+    """Process a Graphviz DOT file, replacing absolute paths with their basenames.
+
+    Rewrites label values and comment-style edge annotations that contain
+    absolute file paths, replacing each path with just its basename.
+    Optionally removes the legend subgraph.
+
+    Args:
+        in_file: Path to the input DOT file.
+        out_file: Path to the output DOT file.
+        remove_legend: If True, remove the ``clusterLegend`` subgraph from the output.
+    """
     f_in = open(in_file, "r")
     f_out = open(out_file, "w")
 
@@ -74,7 +86,7 @@ if __name__ == "__main__":
         elif opt in ("-f"):
             in_file = arg
             in_file = os.path.abspath(in_file)
-            assert os.path.isfile(in_file), "File doesnt exist or is not a file"
+            assert os.path.isfile(in_file), "File doesn't exist or is not a file"
 
         elif opt in ("-o"):
             out_file = arg

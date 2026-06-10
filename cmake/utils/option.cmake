@@ -1,7 +1,7 @@
 #[[[ @module option
 #]]
 
-# This function is used to easierly create new option, and is used in the new options function. 
+# This function is used to easily create new options, and is used in the new options function.
 #
 # :param NAME: name of the variable.
 # :type NAME: string
@@ -70,7 +70,7 @@ function(option_enum VARIABLE DESCRIPTION ENUM_VALUES DEFAULT)
 endfunction()
 
 #[[[
-# Create a CMake integer option that can be modified through CLI.
+# Create a CMake string option that can be modified through CLI.
 # Option defined this way will be visible in `cmake-gui` interface as well as SoCMake `help_options()` help menu.
 # To override the variable use `cmake -D<VARIABLE>=<VALUE>`
 #
@@ -79,9 +79,9 @@ endfunction()
 # :param DESCRIPTION: short description string for the variable
 # :type DESCRIPTION: string
 # :param DEFAULT: default value of the variable
-# :type DEFAULT: string 
+# :type DEFAULT: string
 # :param ADVANCED: optional, mark options as advanced, it will not show in help menu
-# :type ADVANCED: string
+# :type ADVANCED: bool
 #]]
 function(option_string VARIABLE DESCRIPTION DEFAULT)
     cmake_parse_arguments(ARG "ADVANCED" "" "" ${ARGN})
@@ -103,11 +103,11 @@ endfunction()
 # :param DESCRIPTION: short description string for the variable
 # :type DESCRIPTION: string
 # :param DEFAULT: default value of the variable
-# :type DEFAULT: string 
+# :type DEFAULT: string
 # :param ADVANCED: optional, mark options as advanced, it will not show in help menu
-# :type ADVANCED: string
+# :type ADVANCED: bool
 # :param CHECK_EXISTS: optional, check if the file path exists at the time of configuring the project, default FALSE
-# :type CHECK_EXISTS: boolean
+# :type CHECK_EXISTS: bool
 #]]
 function(option_file VARIABLE DESCRIPTION DEFAULT)
     cmake_parse_arguments(ARG "ADVANCED;CHECK_EXISTS" "" "" ${ARGN})
@@ -135,11 +135,11 @@ endfunction()
 # :param DESCRIPTION: short description string for the variable
 # :type DESCRIPTION: string
 # :param DEFAULT: default value of the variable
-# :type DEFAULT: string 
+# :type DEFAULT: string
 # :param ADVANCED: optional, mark options as advanced, it will not show in help menu
-# :type ADVANCED: string
+# :type ADVANCED: bool
 # :param CHECK_EXISTS: optional, check if the directory path exists at the time of configuring the project, default FALSE
-# :type CHECK_EXISTS: boolean
+# :type CHECK_EXISTS: bool
 #]]
 function(option_directory VARIABLE DESCRIPTION DEFAULT)
     cmake_parse_arguments(ARG "ADVANCED;CHECK_EXISTS" "" "" ${ARGN})

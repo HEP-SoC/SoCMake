@@ -50,7 +50,7 @@ function(vhdl_linter IP_LIB)
 
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-        DEPENDS ${ARG_EXECUTABLE} ${IP_LIB} ${STAMP_FILE}
+        DEPENDS ${IP_LIB} ${STAMP_FILE}
         )
     # add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
 

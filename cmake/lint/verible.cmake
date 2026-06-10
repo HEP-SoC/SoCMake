@@ -16,8 +16,8 @@
 # **Keyword Arguments**
 #
 # :keyword REQUIRED: if option REQUIRED is passed, the **IP_LIB** will depend on linting target, meaning that the linting will be done as soon as all the Verilog files are generated. By default only a new target <IP_LIB>_verible_lint is created and can be run optionally.
-# :type REQUIRED: boolean
-# :keyword OUTDIR: output directory in which the files will be generated, if ommited ${BINARY_DIR}/verible will be used.
+# :type REQUIRED: bool
+# :keyword OUTDIR: output directory in which the files will be generated, if omitted ${BINARY_DIR}/verible will be used.
 # :type OUTDIR: string path
 # :keyword AUTOFIX: autofix the linting errors
 # :type AUTOFIX: [no|patch-interactive|patch|inplace-interactive|inplace|generate-waiver]
@@ -25,8 +25,12 @@
 # :type RULES: List[string]
 # :keyword RULES_FILE: Additionally, the RULES_FILE flag can be used to read configuration stored in a file. The syntax is the same as RULES, except the rules can be also separated with the newline character
 # :type RULES_FILE: path string
-# :keyword WAIVER_FILES: (Path to waiver config files (comma-separated). Please refer to the README file for information about its format.)
-# :type WAIVER_FILES: List[path string]
+# :keyword WAIVER_FILES: Path to waiver config files (comma-separated). Please refer to the README file for information about its format.
+# :type WAIVER_FILES: list[string]
+# :keyword ONLY_TOP: If set, only lint the source files belonging directly to IP_LIB, without traversing its dependencies.
+# :type ONLY_TOP: bool
+# :keyword SKIP_GENERATED: If set, exclude files marked with the CMake ``GENERATED`` source property from linting.
+# :type SKIP_GENERATED: bool
 #]]
 
 function(verible_lint IP_LIB)

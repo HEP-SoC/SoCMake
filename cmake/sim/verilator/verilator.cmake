@@ -21,8 +21,8 @@
 # :type SYSTEMC: bool
 # :keyword TRACE_STRUCTS: Enable tracing of SystemVerilog structs.
 # :type TRACE_STRUCTS: bool
-# :keyword MAIN: Specify a custom C++ main file.
-# :type MAIN: string
+# :keyword MAIN: Generate a top-level C++ ``main()`` that parses arguments but drives no inputs. Sufficient for top-level SystemVerilog designs with no inputs. Also creates a runnable executable target.
+# :type MAIN: bool
 # :keyword TIMING: Enable timing support in simulation.
 # :type TIMING: bool
 # :keyword NO_RUN_TARGET: Do not create a run target.
@@ -33,8 +33,6 @@
 # :type TOP_MODULE: string
 # :keyword THREADS: Number of threads to be used during compilation or simulation.
 # :type THREADS: int
-# :keyword TRACE_THREADS: Enable waveform tracing per thread.
-# :type TRACE_THREADS: bool
 # :keyword DIRECTORY: Output directory for generated build and simulation files.
 # :type DIRECTORY: string
 # :keyword EXECUTABLE_NAME: Replace the default name of the generated executable target.
@@ -56,7 +54,7 @@
 #]]
 function(verilator IP_LIB)
     set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN;TIMING;NO_RUN_TARGET")
-    set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;TRACE_THREADS;DIRECTORY;EXECUTABLE_NAME;RUN_TARGET_NAME")
+    set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;DIRECTORY;EXECUTABLE_NAME;RUN_TARGET_NAME")
     set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL;RUN_ARGS;FILE_SETS")
 
     cmake_parse_arguments(ARG
@@ -354,7 +352,7 @@ endfunction()
 
 #[[[
 # This macro is used to configure the C and CXX compiler to the one used by the tool.
-# In this specific case, it won't change anything for the compiler use but will add some useful informations to IP_LIB.
+# In this specific case, it won't change anything for the compiler use but will add some useful information to IP_LIB.
 #
 # The only supported library by this function is DPI-C, it can be used as done in the following example :
 # 

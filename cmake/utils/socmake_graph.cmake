@@ -4,10 +4,10 @@
 include_guard(GLOBAL)
 
 #[[[
-# this function is the internal graph flattening functions
+# Flatten the dependency graph of NODE into a topologically-sorted flat list stored in the ``FLAT_GRAPH`` target property.
 #
-# :param NODE: node to be flattened
-# :type NODE: node
+# :param NODE: The root IP target whose dependency graph should be flattened.
+# :type NODE: string
 #]]
 function(flatten_graph NODE)
     alias_dereference(NODE ${NODE})

@@ -35,6 +35,8 @@ endfunction()
 # :type NO_RUN_TARGET: bool
 # :keyword OUTDIR: Output directory for the GHDL compilation and simulation.
 # :type OUTDIR: string
+# :keyword RUN_TARGET_NAME: Override the default run target name (default: ``run_<IP_LIB>_ghdl``).
+# :type RUN_TARGET_NAME: string
 # :keyword TOP_MODULE: Top module name to be used for elaboration and simulation.
 # :type TOP_MODULE: string
 # :keyword EXECUTABLE_NAME: Replace the default name of the generated executable target.
@@ -51,7 +53,7 @@ endfunction()
 # :type FILE_SETS: list[string]
 #]]
 function(ghdl IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;" "OUTDIR;TOP_MODULE;EXECUTABLE_NAME;STANDARD" "VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET" "OUTDIR;RUN_TARGET_NAME;TOP_MODULE;EXECUTABLE_NAME;STANDARD" "VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -171,9 +173,9 @@ endfunction()
 
 # This function is called by ``ghdl``, it shouldn't be used directly in a cmake file.
 #
-# It will create an intermediary target to compile VDHL file, using ghdl analyze.
+# It will create an intermediary target to compile VHDL files, using ghdl analyze.
 #
-# :param IP_LIB: The target IP library, it needs to have SOURCES property set with a list of VDHL files.
+# :param IP_LIB: The target IP library, it needs to have SOURCES property set with a list of VHDL files.
 # :type IP_LIB: string
 #
 # **Keyword Arguments**
@@ -182,7 +184,7 @@ endfunction()
 # :type OUTDIR: string
 # :keyword LIBRARY: replace the default library name (worklib) to be used for elaboration and simulation.
 # :type LIBRARY: string
-# :keyword STANDARD: Specify the C++ version to be used.
+# :keyword STANDARD: VHDL standard to use for compilation; same values as in the public ``ghdl()`` function.
 # :type STANDARD: string
 # :keyword VHDL_COMPILE_ARGS: Extra arguments to be passed to the VHDL compilation step.
 # :type VHDL_COMPILE_ARGS: string
@@ -230,7 +232,7 @@ function(__ghdl_compile_lib IP_LIB)
             set(__comp_lib_name ${ARG_LIBRARY})
         endif()
 
-        # Create output directoy for the VHDL library
+        # Create output directory for the VHDL library
         set(lib_outdir ${OUTDIR}/${__comp_lib_name})
         file(MAKE_DIRECTORY ${lib_outdir})
 
@@ -350,7 +352,7 @@ function(__get_ghdl_search_lib_args IP_LIB)
     set(DPI_LIBS_ARGS ${dpi_libs_args} PARENT_SCOPE)
 endfunction()
 
-# This function add the GHDL tools/include directory to the include directories of the VPI/DPI libraries, to be correctly compiled later.
+# This function adds the GHDL tools/include directory to the include directories of the VPI/DPI libraries, to be correctly compiled later.
 #
 # :param IP_LIB: The target IP library.
 # :type IP_LIB: string

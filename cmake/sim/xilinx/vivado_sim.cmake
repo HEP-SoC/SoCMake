@@ -31,11 +31,13 @@ include_guard(GLOBAL)
 # :type XSIM_ARGS: string
 # :keyword RUN_ARGS: Extra arguments to be passed to the simulation step.
 # :type RUN_ARGS: string
+# :keyword OUTDIR: Output directory for the simulation build files. If omitted, ``${BINARY_DIR}/${IP_LIB}_vivado_sim`` is used.
+# :type OUTDIR: string
 # :keyword FILE_SETS: Specify list of File sets to retrieve the sources from
 # :type FILE_SETS: list[string]
 #]]
 function(vivado_sim IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI" "RUN_TARGET_NAME;TOP_MODULE" "XVLOG_ARGS;XVHDL_ARGS;XELAB_ARGS;XSIM_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
+    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI" "RUN_TARGET_NAME;TOP_MODULE;OUTDIR" "XVLOG_ARGS;XVHDL_ARGS;XELAB_ARGS;XSIM_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -168,7 +170,7 @@ endfunction()
 
 # This function is called by ``vivado_sim``, it shouldn't be used directly in a cmake file.
 #
-# It will create an intermediary target to compile VDHL and SystemVerilog/Verilog file, using xvhdl and xvlog.
+# It will create an intermediary target to compile VHDL and SystemVerilog/Verilog files, using xvhdl and xvlog.
 #
 # :param IP_LIB: The target IP library, it needs to have SOURCES property set with a list of System Verilog or VHDL files.
 # :type IP_LIB: string
@@ -317,7 +319,7 @@ endfunction()
 
 #[[[
 # This macro is used to configure the C and CXX compiler to the one used by the tool.
-# In this specific case, it won't change anything for the compiler use but will add some useful informations to IP_LIB.
+# In this specific case, it won't change anything for the compiler use but will add some useful information to IP_LIB.
 #
 # The only supported library by this function is DPI-C, it can be used as done in the following example :
 # 

@@ -2,6 +2,8 @@ import cocotb
 from cocotb.triggers import Timer
 
 class Colors:
+    """ANSI escape codes for terminal color output."""
+
     RESET = "\033[0m"
     RED = "\033[31m"
     GREEN = "\033[32m"
@@ -14,6 +16,7 @@ class Colors:
 
 @cocotb.test()
 async def simple_cocotb_example(dut):
+  """Test a simple adder: drives NUM1 and NUM2 with equal values and checks SUM."""
   dut._log.info("Running simple cocotb example test...")
 
   for i in range(10):

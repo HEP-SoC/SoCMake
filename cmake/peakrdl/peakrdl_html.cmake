@@ -4,7 +4,7 @@
 #[[[
 # Create a target for invoking PeakRDL-html on IP_LIB.
 #
-# `PeakRDL-html <https://github.com/SystemRDL/PeakRDL-html>` generates HTML documentation out of the SystemRDL inputs.
+# `PeakRDL-html <https://github.com/SystemRDL/PeakRDL-html>`_ generates HTML documentation out of the SystemRDL inputs.
 # 
 # An example of generated documentation can be found `here <https://systemrdl.github.io/PeakRDL-html/?p=>`_
 #
@@ -21,11 +21,10 @@
 #
 # **Keyword Arguments**
 #
-# :keyword OUTDIR: output directory in which the files will be generated.
-# If ommited ${BINARY_DIR}/html will be used.
+# :keyword OUTDIR: Output directory for the generated HTML files. If omitted, ``${BINARY_DIR}/html`` will be used.
 # :type OUTDIR: string
-# :keyword SERVER_TARGET: option argument if passed it will also launch the local server on `https://0.0.0.0:8000 <https://0.0.0.0:8000>`_
-# :type SERVER_TARGET: option
+# :keyword SERVER_TARGET: If set, also creates a target that launches a local HTTP server at ``0.0.0.0:8000`` to browse the generated documentation.
+# :type SERVER_TARGET: bool
 # :keyword ARGS: any additional arguments to pass to peakrdl cli
 # :type ARGS: list
 #]]
