@@ -5,13 +5,15 @@ This website is built using [Docusaurus 2](https://docusaurus.io/), a modern sta
 ### Local development
 
 To develop in local, you might need to have :
- - sphinx (can be installed with `pip install sphinx-build`)
  - npm (check in a shell if you have it, if not, it should suggest to install it automatically)
  - Node.js with a version greater than 18.0.0, [help to upgrade node version with nvm](https://davidwalsh.name/nvm) (easier with nvm than npm)
 
 From within the docs folder (same level as this README):
 
 ```
+$ python -m venv .venv
+$ source .venv/bin/activate
+$ pip install -r python_requirements.txt
 $ mkdir build && cd build
 $ cmake ../
 $ make docusaurus_start
