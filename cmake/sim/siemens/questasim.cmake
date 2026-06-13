@@ -193,8 +193,8 @@ function(questasim IP_LIB)
             -${bitness}
             $<$<BOOL:${ARG_QUIET}>:-quiet>
             ${ARG_ELABORATE_ARGS}
-            -Ldir ${OUTDIR} ${hdl_libs_args} ${dpi_libs_args}
-            -o opt_top
+            -Ldir ${OUTDIR} ${hdl_libs_args}
+            -o ${ARG_TOP_MODULE}_opt
             ${LIBRARY}.${ARG_TOP_MODULE}
             )
 
@@ -233,11 +233,12 @@ function(questasim IP_LIB)
         $<$<BOOL:${ARG_GUI_VISUALIZER}>:-visualizer>
         ${ARG_RUN_ARGS}
         -Ldir ${OUTDIR} ${hdl_libs_args} ${dpi_libs_args}
+        ${ARG_TOP_MODULE}_opt
         )
 
     # If GUI is not used, pass the -do files to CLI argument
     if(NOT ARG_GUI AND NOT ARG_GUI_VISUALIZER)
-        list(APPEND run_sim_cmd -c opt_top -onfinish stop)
+        list(APPEND run_sim_cmd -c -onfinish stop)
         # Use the default run.do, if not provided
         # This script makes sure the exit code from testbench is passed to the shell
         # Otherwise $fatal(), $error() exit codes are ignored by questasim
@@ -271,7 +272,7 @@ function(questasim IP_LIB)
     set(SOCMAKE_SIM_RUN_CMD cd ${OUTDIR} && ${run_sim_cmd} PARENT_SCOPE)
     set(SOCMAKE_COMPILE_TARGET ${compile_target} PARENT_SCOPE)
     if(NOT ARG_NO_RUN_TARGET)
-        set(SOCMAKE_ELABORATE_TARGET ${run_target} PARENT_SCOPE)
+        set(SOCMAKE_ELABORATE_TARGET ${elaborate_target} PARENT_SCOPE)
         set(SOCMAKE_RUN_TARGET ${run_target} PARENT_SCOPE)
     else()
         unset(SOCMAKE_ELABORATE_TARGET PARENT_SCOPE)
