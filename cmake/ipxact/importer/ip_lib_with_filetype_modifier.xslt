@@ -7,14 +7,9 @@
   <xsl:output method="text" indent="no"/>
 
   <!-- Keys for matching sources and headers and group by file set name and fileType -->
-  <xsl:key name="sources-by-set-and-language" 
-           match="ipxact:file[not(ipxact:isIncludeFile='true')]" 
-           use="concat(../ipxact:name, '|', ipxact:fileType)"/>
-
-  <!-- Key for header files -->
-  <xsl:key name="headers-by-set-and-language" 
-           match="ipxact:file[ipxact:isIncludeFile='true']" 
-           use="concat(../ipxact:name, '|', ipxact:fileType)"/>
+  <xsl:key name="files-by-set-language-header"
+           match="ipxact:file"
+           use="concat(../ipxact:name, '|', ipxact:fileType, '|', ipxact:isIncludeFile='true')"/>
 
 
   <!-- Template to write a single ip_sources(${IP} <LANGUAGE> [HEADERS] ...files... ) call -->
@@ -77,31 +72,17 @@
 
       <xsl:for-each select="//ipxact:fileSets/ipxact:fileSet">
         <xsl:variable name="file_set_name" select="ipxact:name"/>
-        
-        <!-- Write ip_sources for source files -->
-        <xsl:for-each select="ipxact:file[not(ipxact:isIncludeFile='true')]
-                              [count(. | key('sources-by-set-and-language', 
-                                   concat($file_set_name, '|', ipxact:fileType))[1]) = 1]">
+
+        <xsl:for-each select="ipxact:file
+            [count(. | key('files-by-set-language-header',
+                concat($file_set_name, '|', ipxact:fileType, '|', ipxact:isIncludeFile='true'))[1]) = 1]">
           <xsl:call-template name="write-ip-sources">
-            <xsl:with-param name="sources" 
-                            select="key('sources-by-set-and-language', 
-                                   concat($file_set_name, '|', ipxact:fileType))"/>
+            <xsl:with-param name="sources"
+                            select="key('files-by-set-language-header',
+                                concat($file_set_name, '|', ipxact:fileType, '|', ipxact:isIncludeFile='true'))"/>
             <xsl:with-param name="language" select="ipxact:fileType"/>
             <xsl:with-param name="file_set" select="$file_set_name"/>
-          </xsl:call-template>
-        </xsl:for-each>
-        
-        <!-- Write ip_sources for header files -->
-        <xsl:for-each select="ipxact:file[ipxact:isIncludeFile='true']
-                              [count(. | key('headers-by-set-and-language', 
-                                   concat($file_set_name, '|', ipxact:fileType))[1]) = 1]">
-          <xsl:call-template name="write-ip-sources">
-            <xsl:with-param name="sources" 
-                            select="key('headers-by-set-and-language', 
-                                   concat($file_set_name, '|', ipxact:fileType))"/>
-            <xsl:with-param name="language" select="ipxact:fileType"/>
-            <xsl:with-param name="file_set" select="$file_set_name"/>
-            <xsl:with-param name="is_header" select="true()"/>
+            <xsl:with-param name="is_header" select="ipxact:isIncludeFile='true'"/>
           </xsl:call-template>
         </xsl:for-each>
       </xsl:for-each>

@@ -49,19 +49,16 @@ function(add_ip_from_ipxact COMP_XML)
     set(output_cmake_file ${ip_source_dir}/${ip_vendor}__${ip_library}__${ip_name}Config.cmake)
 
 
-    execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/get_find_ips.xslt" ${COMP_XML}
-                    OUTPUT_VARIABLE find_ips
+    execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/get_ip_deps.xslt" ${COMP_XML}
+                    OUTPUT_VARIABLE ip_find_and_link
                 )
+
     execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ip_lib_with_filetype_modifier.xslt" ${COMP_XML}
                     OUTPUT_VARIABLE file_lists
                 )
 
-    execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/get_ip_links.xslt" ${COMP_XML}
-                    OUTPUT_VARIABLE ip_links
-                )
-
     set(file_lists "${file_lists}\nip_sources(\${IP} IPXACT\n    \${CMAKE_CURRENT_LIST_DIR}/${file_name})\n\n")
-    write_file(${output_cmake_file} ${find_ips} ${file_lists} ${ip_links})
+    write_file(${output_cmake_file} ${file_lists} ${ip_find_and_link})
 
     if(DEFINED ARG_IPXACT_SOURCE_DIR)
         set(${ip_vendor}__${ip_library}__${ip_name}__${ip_version}_IPXACT_SOURCE_DIR ${ARG_IPXACT_SOURCE_DIR})

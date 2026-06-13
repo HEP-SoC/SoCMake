@@ -6,25 +6,21 @@
 
     <xsl:output method="text" encoding="UTF-8"/>
 
-    <!-- Define a key based on vendor::library::name::version -->
-    <xsl:key name="uniqueKey"
+    <xsl:key name="deps"
              match="*[@vendor and @library and @name and @version]"
-             use="concat(@vendor, '|', @library, '|', @name, '|', @version)"/>
+             use="concat(@vendor, '|', @library, '|', @name)"/>
 
-    <!-- Main template -->
     <xsl:template match="/">
-        <!-- Iterate over all elements with VLNV attributes -->
+        <xsl:text>ip_find_and_link(${IP}</xsl:text>
+        <xsl:text>&#10;</xsl:text>
         <xsl:for-each select="//*[@vendor and @library and @name and @version]">
-            <!-- Only process the first occurrence of each unique key -->
-            <xsl:if test="generate-id() = generate-id(key('uniqueKey', concat(@vendor, '|', @library, '|', @name, '|', @version))[1])">
-                <xsl:text>find_ip(</xsl:text>
+            <xsl:if test="generate-id() = generate-id(key('deps', concat(@vendor, '|', @library, '|', @name))[1])">
+                <xsl:text>    </xsl:text>
                 <xsl:value-of select="concat(@vendor, '::', @library, '::', @name)"/>
-                <xsl:text> REQUIRED)</xsl:text>
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>
         </xsl:for-each>
-
-        <xsl:text>&#10;</xsl:text>
+        <xsl:text>)&#10;</xsl:text>
     </xsl:template>
 
 </xsl:stylesheet>
