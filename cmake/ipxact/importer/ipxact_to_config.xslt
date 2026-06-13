@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet 
+<xsl:stylesheet
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:ipxact="http://www.accellera.org/XMLSchema/IPXACT/1685-2022"
     version="1.0">
 
   <xsl:output method="text" indent="no"/>
 
-  <!-- Keys for matching sources and headers and group by file set name and fileType -->
   <xsl:key name="files-by-set-language-header"
            match="ipxact:file"
            use="concat(../ipxact:name, '|', ipxact:fileType, '|', ipxact:isIncludeFile='true')"/>
 
+  <xsl:key name="deps"
+           match="*[@vendor and @library and @name and @version]"
+           use="concat(@vendor, '|', @library, '|', @name)"/>
 
-  <!-- Template to write a single ip_sources(${IP} <LANGUAGE> [HEADERS] ...files... ) call -->
   <xsl:template name="write-ip-sources">
     <xsl:param name="sources"/>
     <xsl:param name="language"/>
@@ -47,7 +48,6 @@
                 <xsl:text>&#10;</xsl:text>
             </xsl:when>
             <xsl:otherwise>
-                <!-- Alternative output if '${' is NOT found -->
                 <xsl:text>    ${IP_SOURCE_DIR}/</xsl:text>
                 <xsl:value-of select="ipxact:name"/>
                 <xsl:text>&#10;</xsl:text>
@@ -58,7 +58,6 @@
     <xsl:text>)&#10;&#10;</xsl:text>
   </xsl:template>
 
-  <!-- Template to match root document and create an IP block with sources -->
   <xsl:template match="/">
       <xsl:text>add_ip(</xsl:text>
       <xsl:value-of select="concat(//ipxact:vendor, '::', //ipxact:library, '::', //ipxact:name, '::', //ipxact:version)"/>
@@ -86,6 +85,17 @@
           </xsl:call-template>
         </xsl:for-each>
       </xsl:for-each>
+
+      <xsl:text>ip_find_and_link(${IP}</xsl:text>
+      <xsl:text>&#10;</xsl:text>
+      <xsl:for-each select="//*[@vendor and @library and @name and @version]">
+          <xsl:if test="generate-id() = generate-id(key('deps', concat(@vendor, '|', @library, '|', @name))[1])">
+              <xsl:text>    </xsl:text>
+              <xsl:value-of select="concat(@vendor, '::', @library, '::', @name)"/>
+              <xsl:text>&#10;</xsl:text>
+          </xsl:if>
+      </xsl:for-each>
+      <xsl:text>)&#10;</xsl:text>
   </xsl:template>
 
 </xsl:stylesheet>

@@ -2,32 +2,30 @@
 #]]
 
 #[[[
-# This function import an IP-XACT .xml file and convert it to an SoCMake HWIP.
+# This function imports an IP-XACT .xml file and converts it to a SoCMake HWIP.
 #
-# ``xmlstarlet`` or ``xsltproc`` will be used, depending on the one found on your system,
-# to extract the data coming from the .xml file.
-#
-# It will find the differents IPs, find the corresponding file and do the corresponding linking,
-# everything will be stored in a Config.cmake file.
+# Config.cmake files are only regenerated when the source XML is newer than
+# the existing output. A .vlnv file caches the extracted VLNV to
+# avoid process spawns on repeated runs.
 #
 # :param COMP_XML: Path to the ipxact .xml file.
 # :type COMP_XML: string
 #
 # **Keyword Arguments**
 #
-# :keyword GENERATE_ONLY: If set, no Config.cmake file is generated, but the HWIP is still created and can be referenced in a parent scope (similar to a call to add_ip(), the IP variable is set to the parent scope).
+# :keyword GENERATE_ONLY: Config.cmake file is written but not include()d.
 # :type GENERATE_ONLY: bool
-# :keyword IPXACT_SOURCE_DIR: path to be set has ${ip_vendor}__${ip_library}__${ip_name}__${ip_version}_IPXACT_SOURCE_DIR, if this argument is used.
-# :type IPXACT_SOURCE_DIR: string
 #]]
 function(add_ip_from_ipxact COMP_XML)
-    cmake_parse_arguments(ARG "GENERATE_ONLY" "IPXACT_SOURCE_DIR" "" ${ARGN})
+    cmake_parse_arguments(ARG "GENERATE_ONLY" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     convert_paths_to_absolute(COMP_XML ${COMP_XML})
-    
+    cmake_path(GET COMP_XML PARENT_PATH xml_dir)
+    cmake_path(GET COMP_XML FILENAME xml_name)
+
     find_program(xmlstarlet_EXECUTABLE xmlstarlet)
     if(xmlstarlet_EXECUTABLE)
         set(xml_command ${xmlstarlet_EXECUTABLE} tr)
@@ -36,38 +34,69 @@ function(add_ip_from_ipxact COMP_XML)
         set(xml_command ${xsltproc_EXECUTABLE})
     endif()
 
-    cmake_path(GET COMP_XML PARENT_PATH ip_source_dir)
-    cmake_path(GET COMP_XML FILENAME file_name)
+    set(_vlnv_file "${xml_dir}/.${xml_name}.vlnv")
 
-    execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/get_vlnv.xslt" ${COMP_XML}
-                    OUTPUT_VARIABLE vlnv_list)
-    list(GET vlnv_list 0 ip_vendor)
-    list(GET vlnv_list 1 ip_library)
-    list(GET vlnv_list 2 ip_name)
-    list(GET vlnv_list 3 ip_version)
-
-    set(output_cmake_file ${ip_source_dir}/${ip_vendor}__${ip_library}__${ip_name}Config.cmake)
-
-
-    execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/get_ip_deps.xslt" ${COMP_XML}
-                    OUTPUT_VARIABLE ip_find_and_link
-                )
-
-    execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ip_lib_with_filetype_modifier.xslt" ${COMP_XML}
-                    OUTPUT_VARIABLE file_lists
-                )
-
-    set(file_lists "${file_lists}\nip_sources(\${IP} IPXACT\n    \${CMAKE_CURRENT_LIST_DIR}/${file_name})\n\n")
-    write_file(${output_cmake_file} ${file_lists} ${ip_find_and_link})
-
-    if(DEFINED ARG_IPXACT_SOURCE_DIR)
-        set(${ip_vendor}__${ip_library}__${ip_name}__${ip_version}_IPXACT_SOURCE_DIR ${ARG_IPXACT_SOURCE_DIR})
+    # Keep .vlnv file as a cache that stores only the VLNV.
+    # This is important as it lets us guess the name of 
+    # <vendor>__<lib>__<name>Config.cmake file.
+    set(_have_vlnv FALSE)
+    if(EXISTS "${_vlnv_file}")
+        file(TIMESTAMP "${_vlnv_file}" _vlnv_ts "%s")
+        file(TIMESTAMP "${COMP_XML}" _xml_ts "%s")
+        # If VLNV file timestamp is newer than XML file timestamp
+        # We don't need to regenerate the .vlnv file as its up to date
+        if(_vlnv_ts GREATER_EQUAL _xml_ts)
+            file(READ "${_vlnv_file}" _vlnv_list)
+            parse_ip_vlnv("${_vlnv_list}" VENDOR LIBRARY IP_NAME VERSION)
+            set(_have_vlnv TRUE)
+        endif()
     endif()
+
+    # If there is .vlnv file we can know what the Config.cmake file is called
+    if(_have_vlnv)
+        set(cmake_file ${xml_dir}/${VENDOR}__${LIBRARY}__${IP_NAME}Config.cmake)
+        set(_dirty TRUE)
+        if(EXISTS "${cmake_file}")
+            file(TIMESTAMP "${cmake_file}" _cmake_ts "%s")
+            # If the Config file exists and its newer than xml, its up to date
+            if(_cmake_ts GREATER_EQUAL _xml_ts)
+                set(_dirty FALSE)
+            endif()
+        endif()
+    else()
+        # If there is no .vlnv file we regenerate the Config.cmake also
+        set(_dirty TRUE)
+    endif()
+
+    if(_dirty)
+        # Parse the XML file to get the VLNV, so we can predict Config file name
+        execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/get_vlnv.xslt" ${COMP_XML}
+                        OUTPUT_VARIABLE _vlnv_list)
+        parse_ip_vlnv("${_vlnv_list}" VENDOR LIBRARY IP_NAME VERSION)
+        set(cmake_file ${xml_dir}/${VENDOR}__${LIBRARY}__${IP_NAME}Config.cmake)
+
+        # Parse XML file again, to generate the Config.cmake file
+        execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ipxact_to_config.xslt" ${COMP_XML}
+                        OUTPUT_VARIABLE _config_body)
+        # Add the IPXact file we parsed to ip_sources()
+        set(_config_body "${_config_body}\nip_sources(\${IP} IPXACT\n    \${CMAKE_CURRENT_LIST_DIR}/${xml_name})\n\n")
+        write_file(${cmake_file} ${_config_body})
+
+        # Write out also the VLNV file
+        if(NOT _have_vlnv)
+            file(WRITE "${_vlnv_file}" "${VENDOR}::${LIBRARY}::${IP_NAME}::${VERSION}")
+        endif()
+    endif()
+
+    # Set the _DIR variable in cache, as this variable will be used when
+    # find_package() is called to locate the Config.cmake file
+    if(NOT DEFINED ${VENDOR}__${LIBRARY}__${IP_NAME}_DIR)
+        set(${VENDOR}__${LIBRARY}__${IP_NAME}_DIR "${xml_dir}" CACHE INTERNAL "" FORCE)
+    endif()
+
     if(NOT ARG_GENERATE_ONLY)
-        include("${output_cmake_file}")
+        include("${cmake_file}")
     endif()
-    
-    set(IP ${IP} PARENT_SCOPE)
 
-    set(${ip_vendor}__${ip_library}__${ip_name}_DIR "${ip_source_dir}" CACHE INTERNAL "" FORCE)
+    set(IP ${IP} PARENT_SCOPE)
 endfunction()

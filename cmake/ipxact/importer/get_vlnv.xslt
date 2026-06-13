@@ -6,11 +6,11 @@
   <xsl:output omit-xml-declaration="yes" indent="no"/>
   <xsl:template match="/">
     <xsl:value-of select="/*/ipxact:vendor"/>
-    <xsl:text>;</xsl:text>
+    <xsl:text>::</xsl:text>
     <xsl:value-of select="/*/ipxact:library"/>
-    <xsl:text>;</xsl:text>
+    <xsl:text>::</xsl:text>
     <xsl:value-of select="/*/ipxact:name"/>
-    <xsl:text>;</xsl:text>
+    <xsl:text>::</xsl:text>
     <xsl:value-of select="/*/ipxact:version"/>
   </xsl:template>
 </xsl:stylesheet>
