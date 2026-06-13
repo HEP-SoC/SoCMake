@@ -5,8 +5,8 @@
 # This function imports an IP-XACT .xml file and converts it to a SoCMake HWIP.
 #
 # Config.cmake files are only regenerated when the source XML is newer than
-# the existing output. A .vlnv file caches the extracted VLNV to
-# avoid process spawns on repeated runs.
+# the existing output. A VLNV cache in the build directory avoids process
+# spawns on repeated runs.
 #
 # :param COMP_XML: Path to the ipxact .xml file.
 # :type COMP_XML: string
@@ -34,7 +34,8 @@ function(add_ip_from_ipxact COMP_XML)
         set(xml_command ${xsltproc_EXECUTABLE})
     endif()
 
-    set(_vlnv_file "${xml_dir}/.${xml_name}.vlnv")
+    string(SHA1 _vlnv_key "${COMP_XML}")
+    set(_vlnv_file "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/ipxact_vlnv/${_vlnv_key}")
 
     # Keep .vlnv file as a cache that stores only the VLNV.
     # This is important as it lets us guess the name of 
