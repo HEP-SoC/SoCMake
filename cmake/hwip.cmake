@@ -188,36 +188,34 @@ function(parse_ip_vlnv IP_VLNV VENDOR LIBRARY IP_NAME VERSION)
     endif()
 
     # Convert IP_VLNV into a list of tokens by replacing :: with ;
-    string(REPLACE "::" ";" IP_TOKENS ${IP_VLNV})
+    string(REPLACE "::" ";" _ip_tokens ${IP_VLNV})
     # Remove empty list elements in case something like vendor::::ip::1.2.3 is passed
-    list(REMOVE_ITEM IP_TOKENS "")
+    list(REMOVE_ITEM _ip_tokens "")
 
     # Raise an error if there are different than 4 tokens provided (`add_ip(vendor::lib::ip::0.0.1)`), unless its only 1 (`add_ip(ip)`) 
-    list(LENGTH IP_TOKENS TOKEN_CNT)
+    list(LENGTH _ip_tokens _token_cnt)
 
     # Its alowed for IP_VLNV to have 4 tokens (FULL) `add_ip(vendor::lib::ip::0.0.1)`
-    if(TOKEN_CNT EQUAL 4)
+    if(_token_cnt EQUAL 4)
         # Get elements of the list
-        list(GET IP_TOKENS 0 VENDOR)
-        list(GET IP_TOKENS 1 LIBRARY)
-        list(GET IP_TOKENS 2 IP_NAME)
-        list(GET IP_TOKENS 3 VERSION)
+        list(GET _ip_tokens 0 _v_val)
+        list(GET _ip_tokens 1 _l_val)
+        list(GET _ip_tokens 2 _n_val)
+        list(GET _ip_tokens 3 _r_val)
+        set(${VENDOR} ${_v_val} PARENT_SCOPE)
+        set(${LIBRARY} ${_l_val} PARENT_SCOPE)
+        set(${IP_NAME} ${_n_val} PARENT_SCOPE)
+        set(${VERSION} ${_r_val} PARENT_SCOPE)
     # Its alowed for IP_VLNV to have 1 token (SHORT) `add_ip(ip)`
-    elseif(TOKEN_CNT EQUAL 1)
-        set(IP_NAME ${IP_VLNV})
-        unset(VENDOR)
-        unset(LIBRARY)
-        unset(VERSION)
+    elseif(_token_cnt EQUAL 1)
+        set(${IP_NAME} ${IP_VLNV} PARENT_SCOPE)
+        unset(${VENDOR} PARENT_SCOPE)
+        unset(${LIBRARY} PARENT_SCOPE)
+        unset(${VERSION} PARENT_SCOPE)
     # Anything else is not allowed and will throw an error
     else()
         message(FATAL_ERROR "Please specify full VLNV format for IP: ${IP_VLNV}")
     endif()
-
-    # Set output variables
-    set(VENDOR ${VENDOR} PARENT_SCOPE)
-    set(LIBRARY ${LIBRARY} PARENT_SCOPE)
-    set(IP_NAME ${IP_NAME} PARENT_SCOPE)
-    set(VERSION ${VERSION} PARENT_SCOPE)
 endfunction()
 
 #[[[

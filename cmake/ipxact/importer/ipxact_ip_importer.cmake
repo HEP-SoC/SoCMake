@@ -53,14 +53,14 @@ function(add_ip_from_ipxact COMP_XML)
         # We don't need to regenerate the .vlnv file as its up to date
         if(_vlnv_ts GREATER_EQUAL _xml_ts)
             file(READ "${_vlnv_file}" _vlnv_list)
-            parse_ip_vlnv("${_vlnv_list}" VENDOR LIBRARY IP_NAME VERSION)
+            parse_ip_vlnv("${_vlnv_list}" vendor library name version)
             set(_have_vlnv TRUE)
         endif()
     endif()
 
     # If there is .vlnv file we can know what the Config.cmake file is called
     if(_have_vlnv)
-        set(cmake_file ${xml_dir}/${VENDOR}__${LIBRARY}__${IP_NAME}Config.cmake)
+        set(cmake_file ${xml_dir}/${vendor}__${library}__${name}Config.cmake)
         set(_dirty TRUE)
         if(EXISTS "${cmake_file}")
             file(TIMESTAMP "${cmake_file}" _cmake_ts "%s")
@@ -81,22 +81,22 @@ function(add_ip_from_ipxact COMP_XML)
         # Parse the VLNV from the add_ip() line in the generated Config
         string(REGEX REPLACE "\n.*" "" _add_ip_line "${_config_body}")
         string(REGEX REPLACE "^add_ip\\(([^)]+)\\).*" "\\1" _vlnv "${_add_ip_line}")
-        parse_ip_vlnv("${_vlnv}" VENDOR LIBRARY IP_NAME VERSION)
-        set(cmake_file ${xml_dir}/${VENDOR}__${LIBRARY}__${IP_NAME}Config.cmake)
+        parse_ip_vlnv("${_vlnv}" vendor library name version)
+        set(cmake_file ${xml_dir}/${vendor}__${library}__${name}Config.cmake)
         # Add the IPXact file we parsed to ip_sources()
         set(_config_body "${_config_body}\nip_sources(\${IP} IPXACT\n    \${CMAKE_CURRENT_LIST_DIR}/${xml_name})\n\n")
         write_file(${cmake_file} ${_config_body})
 
         # Write out also the VLNV file
         if(NOT _have_vlnv)
-            file(WRITE "${_vlnv_file}" "${VENDOR}::${LIBRARY}::${IP_NAME}::${VERSION}")
+            file(WRITE "${_vlnv_file}" "${vendor}::${library}::${name}::${version}")
         endif()
     endif()
 
     # Set the _DIR variable in cache, as this variable will be used when
     # find_package() is called to locate the Config.cmake file
-    if(NOT DEFINED ${VENDOR}__${LIBRARY}__${IP_NAME}_DIR)
-        set(${VENDOR}__${LIBRARY}__${IP_NAME}_DIR "${xml_dir}" CACHE INTERNAL "" FORCE)
+    if(NOT DEFINED ${vendor}__${library}__${name}_DIR)
+        set(${vendor}__${library}__${name}_DIR "${xml_dir}" CACHE INTERNAL "" FORCE)
     endif()
 
     if(NOT ARG_GENERATE_ONLY)
