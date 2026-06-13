@@ -70,15 +70,14 @@ function(add_ip_from_ipxact COMP_XML)
     endif()
 
     if(_dirty)
-        # Parse the XML file to get the VLNV, so we can predict Config file name
-        execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/get_vlnv.xslt" ${COMP_XML}
-                        OUTPUT_VARIABLE _vlnv_list)
-        parse_ip_vlnv("${_vlnv_list}" VENDOR LIBRARY IP_NAME VERSION)
-        set(cmake_file ${xml_dir}/${VENDOR}__${LIBRARY}__${IP_NAME}Config.cmake)
-
         # Parse XML file again, to generate the Config.cmake file
         execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ipxact_to_config.xslt" ${COMP_XML}
                         OUTPUT_VARIABLE _config_body)
+        # Parse the VLNV from the add_ip() line in the generated Config
+        string(REGEX REPLACE "\n.*" "" _add_ip_line "${_config_body}")
+        string(REGEX REPLACE "^add_ip\\(([^)]+)\\).*" "\\1" _vlnv "${_add_ip_line}")
+        parse_ip_vlnv("${_vlnv}" VENDOR LIBRARY IP_NAME VERSION)
+        set(cmake_file ${xml_dir}/${VENDOR}__${LIBRARY}__${IP_NAME}Config.cmake)
         # Add the IPXact file we parsed to ip_sources()
         set(_config_body "${_config_body}\nip_sources(\${IP} IPXACT\n    \${CMAKE_CURRENT_LIST_DIR}/${xml_name})\n\n")
         write_file(${cmake_file} ${_config_body})
