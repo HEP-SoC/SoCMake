@@ -100,3 +100,31 @@ function(add_ip_from_ipxact COMP_XML)
 
     set(IP ${IP} PARENT_SCOPE)
 endfunction()
+
+#[[[
+# Convenience wrapper: imports all IP-XACT .xml files found under a directory.
+#
+#   add_ipxact_library("/path/to/ipxact" GENERATE_ONLY)
+#
+# :param DIR: Root directory to search for .xml files recursively.
+# :type DIR: string
+#
+# **Keyword Arguments**
+#
+# :keyword GENERATE_ONLY: Config.cmake files are written but not include()d.
+# :type GENERATE_ONLY: bool
+#]]
+function(add_ipxact_library DIR)
+    cmake_parse_arguments(ARG "GENERATE_ONLY" "" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+    file(GLOB_RECURSE _xml_files "${DIR}/**/*.xml")
+    foreach(_f ${_xml_files})
+        if(ARG_GENERATE_ONLY)
+            add_ip_from_ipxact(${_f} GENERATE_ONLY)
+        else()
+            add_ip_from_ipxact(${_f})
+        endif()
+    endforeach()
+endfunction()
