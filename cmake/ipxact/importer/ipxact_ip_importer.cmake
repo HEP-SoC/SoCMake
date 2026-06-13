@@ -23,6 +23,11 @@ function(add_ip_from_ipxact COMP_XML)
     endif()
 
     convert_paths_to_absolute(COMP_XML ${COMP_XML})
+
+    if(NOT EXISTS "${COMP_XML}" OR IS_DIRECTORY "${COMP_XML}")
+        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION}: ${COMP_XML} is not a file")
+    endif()
+
     cmake_path(GET COMP_XML PARENT_PATH xml_dir)
     cmake_path(GET COMP_XML FILENAME xml_name)
 
@@ -119,7 +124,7 @@ function(add_ipxact_library DIR)
     if(ARG_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
-    file(GLOB_RECURSE _xml_files "${DIR}/**/*.xml")
+    file(GLOB_RECURSE _xml_files LIST_DIRECTORIES FALSE "${DIR}/**/*.xml")
     foreach(_f ${_xml_files})
         if(ARG_GENERATE_ONLY)
             add_ip_from_ipxact(${_f} GENERATE_ONLY)
