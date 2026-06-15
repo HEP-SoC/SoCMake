@@ -2,7 +2,6 @@
 // Note: type annotations allow type checking and IDEs autocompletion
 
 const {themes} = require('prism-react-renderer');
-const lightTheme = themes.github;
 const darkTheme = themes.dracula;
 const oceanicTheme = themes.oceanicNext;
 
@@ -55,6 +54,10 @@ const config = {
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+        },
+        blog: {
+          path: './docs/blog',
+          routeBasePath: 'blog',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
