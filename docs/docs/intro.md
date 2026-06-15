@@ -46,7 +46,7 @@ It is very simple to add support for new EDA tools through the SoCMake's `IP` bl
 | **Languages**       | C, C++, SystemC, ASM, Verilog, SystemVerilog, VHDL, SystemRDL, IPXact |
 | **RTL Simulation**  | Verilator, IcarusVerilog, GHDL, Xcelium, VCS, Questasim, Vivado Simulator, cocotb |
 | **RTL Linting**     | Verible, vhdl_linter |
-| **RTL conversion**  | SV2V, tmrg, tmrv |
+| **RTL conversion**  | SV2V |
 | **Synthesis**       | Yosys, Vivado |
 | **PeakRDL**         | regblock, halcpp, html, docusaurus, ipblocksvg, socgen, ldsgen |
 
