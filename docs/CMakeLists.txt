@@ -30,7 +30,7 @@ set(EXCLUDE_FROM_RST
     -e "*sim_utils.cmake"
 )
 # cminx converts SoCMake cmake docstrings into RST files.
-set(VENV_CMD $ENV{VIRTUAL_ENV}/bin/cminx -o ${DOC_RST_DIR} -s ${PROJECT_SOURCE_DIR}/api/api_config.yaml ${EXCLUDE_FROM_RST} -r ${DOC_INPUT_DIR})
+set(CMINX_CMD $ENV{VIRTUAL_ENV}/bin/cminx -o ${DOC_RST_DIR} -s ${PROJECT_SOURCE_DIR}/api/api_config.yaml ${EXCLUDE_FROM_RST} -r ${DOC_INPUT_DIR})
 # rst_to_md.py converts the cminx RST output to Docusaurus-compatible Markdown
 # so the API reference is rendered as native Docusaurus pages.
 set(RST_TO_MD_CMD $ENV{VIRTUAL_ENV}/bin/python3 ${PROJECT_SOURCE_DIR}/rst_to_md.py ${DOC_RST_DIR} ${DOC_MD_DIR})
@@ -42,9 +42,9 @@ set(INDEX_MD_FILE "${DOC_MD_DIR}/hwip.md")
 add_custom_command(
         OUTPUT ${INDEX_RST_FILE} ${INDEX_MD_FILE}
         COMMAND touch ${INDEX_RST_FILE}
-        COMMAND ${VENV_CMD}
+        COMMAND ${CMINX_CMD}
         COMMAND ${RST_TO_MD_CMD}
-        COMMENT "Generating the SoCMake API documentation (RST → Markdown)."
+        COMMENT "Generating the SoCMake API documentation (RST to Markdown)."
 )
 # This will trigger the above command through the dependency
 add_custom_target(
