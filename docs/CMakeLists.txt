@@ -9,14 +9,12 @@ project(SoCMake-Documentation
         VERSION ${SOCMAKE_VERSION}
 )
 
-# This is needed to create the python venv for CMinx
-include("deps/deps.cmake")
-
 # Create the API documentation target
 find_python3()
 set(DOC_INPUT_DIR "${PROJECT_SOURCE_DIR}/../cmake/")
-set(DOC_OUTPUT_DIR "${PROJECT_BINARY_DIR}/api_source")
-set(HTML_SPHINX_OUTPUT_DIR "${PROJECT_BINARY_DIR}/api_html")
+set(DOC_RST_DIR "${PROJECT_BINARY_DIR}/api_source")
+# Markdown output goes into the Docusaurus docs tree so pages are native routes.
+set(DOC_MD_DIR "${PROJECT_SOURCE_DIR}/docs/api")
 # List of file or directory to be excluded from the recursive search.
 # By forcing recursive search in our cminx config file, we are able to search into the full cmake/
 # to find all the .cmake, but we don't want to have some .cmake file that doesn't have functions
@@ -31,22 +29,22 @@ set(EXCLUDE_FROM_RST
     -e "*graphviz*"
     -e "*sim_utils.cmake"
 )
-# Cminx is used to convert SoCMake function comments into rST format later transformed to a
-# static html documentation using sphinx
-set(VENV_CMD $ENV{VIRTUAL_ENV}/bin/cminx -o ${DOC_OUTPUT_DIR} -s ${PROJECT_SOURCE_DIR}/api/api_config.yaml ${EXCLUDE_FROM_RST} -r ${DOC_INPUT_DIR})
-# This command trigger the rST to html conversion and copy into the docusaurus static folder for
-# integration with the latter
-set(DOC_API_MAKE_CMD make -C ${PROJECT_BINARY_DIR}/api_source/ html)
-# This files tries to create an automatic triggering for the documentation update
-set(INDEX_RST_FILE "${DOC_OUTPUT_DIR}/index.rst")
-set(INDEX_HTML_FILE "${HTML_SPHINX_OUTPUT_DIR}/html/index.html")
+# cminx converts SoCMake cmake docstrings into RST files.
+set(VENV_CMD $ENV{VIRTUAL_ENV}/bin/cminx -o ${DOC_RST_DIR} -s ${PROJECT_SOURCE_DIR}/api/api_config.yaml ${EXCLUDE_FROM_RST} -r ${DOC_INPUT_DIR})
+# rst_to_md.py converts the cminx RST output to Docusaurus-compatible Markdown
+# so the API reference is rendered as native Docusaurus pages.
+set(RST_TO_MD_CMD $ENV{VIRTUAL_ENV}/bin/python3 ${PROJECT_SOURCE_DIR}/rst_to_md.py ${DOC_RST_DIR} ${DOC_MD_DIR})
+
+set(INDEX_RST_FILE "${DOC_RST_DIR}/index.rst")
+# Use the Markdown index as the build output sentinel
+set(INDEX_MD_FILE "${DOC_MD_DIR}/hwip.md")
 
 add_custom_command(
-        OUTPUT ${INDEX_RST_FILE} ${INDEX_HTML_FILE}
+        OUTPUT ${INDEX_RST_FILE} ${INDEX_MD_FILE}
         COMMAND touch ${INDEX_RST_FILE}
         COMMAND ${VENV_CMD}
-        COMMAND ${DOC_API_MAKE_CMD}
-        COMMENT "Generating the SoCMake API rST documentation."
+        COMMAND ${RST_TO_MD_CMD}
+        COMMENT "Generating the SoCMake API documentation (RST → Markdown)."
 )
 # This will trigger the above command through the dependency
 add_custom_target(
@@ -70,10 +68,8 @@ add_custom_command(
         OUTPUT ${DOCUSAURUS_STAMP_FILE}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMAND touch ${DOCUSAURUS_STAMP_FILE}
-        COMMAND ${NPM_EXECUTABLE} install docusaurus
+        COMMAND ${NPM_EXECUTABLE} install
         COMMAND ${NPM_EXECUTABLE} run build ${PROJECT_SOURCE_DIR} -- --out-dir ${DOCUSAURUS_OUT_DIR}
-        # API static html is copied and added as a simple link (didn't find a nicer solution yet)
-        COMMAND cp -r ${HTML_SPHINX_OUTPUT_DIR}/html ${DOCUSAURUS_OUT_DIR}/api_html
         DEPENDS api_doc
         COMMENT "Installing and Building Docusaurus"
 )
