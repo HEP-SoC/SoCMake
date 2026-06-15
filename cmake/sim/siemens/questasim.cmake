@@ -193,6 +193,7 @@ function(questasim IP_LIB)
             -${bitness}
             $<$<BOOL:${ARG_QUIET}>:-quiet>
             ${ARG_ELABORATE_ARGS}
+            -work ${LIBRARY}
             -Ldir ${OUTDIR} ${hdl_libs_args}
             -o ${ARG_TOP_MODULE}_opt
             ${LIBRARY}.${ARG_TOP_MODULE}
@@ -271,11 +272,10 @@ function(questasim IP_LIB)
 
     set(SOCMAKE_SIM_RUN_CMD cd ${OUTDIR} && ${run_sim_cmd} PARENT_SCOPE)
     set(SOCMAKE_COMPILE_TARGET ${compile_target} PARENT_SCOPE)
+    set(SOCMAKE_ELABORATE_TARGET ${elaborate_target} PARENT_SCOPE)
     if(NOT ARG_NO_RUN_TARGET)
-        set(SOCMAKE_ELABORATE_TARGET ${elaborate_target} PARENT_SCOPE)
         set(SOCMAKE_RUN_TARGET ${run_target} PARENT_SCOPE)
     else()
-        unset(SOCMAKE_ELABORATE_TARGET PARENT_SCOPE)
         unset(SOCMAKE_RUN_TARGET PARENT_SCOPE)
     endif()
 
