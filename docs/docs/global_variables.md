@@ -1,7 +1,7 @@
 ---
 title: Global Variables
 sidebar_label: Global Variables
-sidebar_position: 3
+sidebar_position: 1
 ---
 
 # Global Variables
