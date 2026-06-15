@@ -8,6 +8,16 @@ const oceanicTheme = themes.oceanicNext;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
+  themes: [
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      {
+        hashed: true,
+        docsRouteBasePath: '/docs',
+        indexPages: true,
+      },
+    ],
+  ],
   title: 'SoCMake',
   tagline: 'Build System for Hardware',
   favicon: 'img/SoCMakeLogo3.svg',
@@ -24,7 +34,7 @@ const config = {
   projectName: 'socmake', // Usually your repo name.
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenMarkdownLinks: 'throw',
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
@@ -72,9 +82,10 @@ const config = {
             label: 'Documentation',
           },
           {
-            label: 'API Documentation',
-            to: 'https://hep-soc.github.io/SoCMake/api_html/index.html',
+            type: 'docSidebar',
+            sidebarId: 'apiSidebar',
             position: 'left',
+            label: 'API Reference',
           },
           {
             href: 'https://github.com/HEP-SoC/SoCMake',
@@ -94,8 +105,8 @@ const config = {
                 to: '/docs/intro',
               },
               {
-                label: 'API Documentation',
-                to: 'https://hep-soc.github.io/SoCMake/api_html/index.html',
+                label: 'API Reference',
+                to: '/docs/api',
               },
             ],
           },
