@@ -13,6 +13,7 @@ const config = {
       {
         hashed: true,
         docsRouteBasePath: '/docs',
+        blogDir: 'blog',
         indexPages: true,
       },
     ],
@@ -56,7 +57,7 @@ const config = {
             'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
         blog: {
-          path: './docs/blog',
+          path: './blog',
           routeBasePath: 'blog',
         },
         theme: {
@@ -90,6 +91,7 @@ const config = {
             position: 'left',
             label: 'API Reference',
           },
+          {to: 'blog', label: 'Blog', position: 'left'},
           {
             href: 'https://github.com/HEP-SoC/SoCMake',
             label: 'Github',
