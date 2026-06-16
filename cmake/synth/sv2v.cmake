@@ -2,6 +2,7 @@
 #]]
 
 include_guard(GLOBAL)
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 
 #[[[
 # This function convert SystemVerilog files to Verilog files.
@@ -22,7 +23,7 @@ include_guard(GLOBAL)
 function(sv2v IP_LIB)
     cmake_parse_arguments(ARG "REPLACE" "OUTDIR" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")

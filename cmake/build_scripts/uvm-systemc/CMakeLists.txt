@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.27)
 project(uvm-systemc_build)
 
 include("../../utils/option.cmake")
+include("../../utils/socmake_message.cmake")
 
 set(UVM-SYSTEMC_VERSIONS 1.0-beta6 1.0-beta5 1.0-beta3 1.0-beta1 1.0-alpha1)
 option_enum(VERSION "Version of UVM-SystemC to build" "${UVM-SYSTEMC_VERSIONS}" "1.0-beta6")
@@ -9,7 +10,7 @@ option_enum(CMAKE_CXX_STANDARD "C++ Standard" "98;11;14;17;20;23;26" "17")
 option_string(SYSTEMC_HOME "SystemC install directory" " ")
 
 if(SYSTEMC_HOME STREQUAL " ")
-    message(FATAL_ERROR "Please specify SYSTEMC_HOME variable")
+    socmake_message(FATAL_ERROR "Please specify SYSTEMC_HOME variable")
 endif()
 
 
@@ -21,7 +22,7 @@ include(ExternalProject)
 # lib or lib64 according to GNUInstallDirs
 set(SYSTEMC_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
 if(NOT SYSTEMC_INSTALL_LIBDIR MATCHES "^lib")
-    message(FATAL_ERROR "SYSTEMC_INSTALL_LIBDIR (${SYSTEMC_INSTALL_LIBDIR}) does not start with 'lib'")
+    socmake_message(FATAL_ERROR "SYSTEMC_INSTALL_LIBDIR (${SYSTEMC_INSTALL_LIBDIR}) does not start with 'lib'")
 endif()
 string(REGEX REPLACE "^lib" "" LIB_ARCH_SUFFIX "${SYSTEMC_INSTALL_LIBDIR}")
 

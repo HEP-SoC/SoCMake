@@ -1,5 +1,6 @@
 #[[[ @module read_rtl_sources
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../socmake_message.cmake")
 
 #[[[
 # This function reads a file listing RTL files and return a list of paths.
@@ -19,14 +20,14 @@
 function(read_rtl_sources RTL_SOURCES_FILE)
     # Check the file exists
     if(NOT EXISTS ${RTL_SOURCES_FILE})
-        message(FATAL_ERROR "${RTL_SOURCES_FILE} file does not exists.")
+        socmake_message(FATAL_ERROR "${RTL_SOURCES_FILE} file does not exists.")
     endif()
 
     cmake_parse_arguments(ARG "CONCAT" "" "" ${ARGN})
 
     # Check for any unexpected arguments
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
                             "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
@@ -59,7 +60,7 @@ function(read_rtl_sources RTL_SOURCES_FILE)
         elseif(RTL_FILE_ABS MATCHES "\\.vhdl$|\\.vhd$")
             list(APPEND VHDL_FILES ${RTL_FILE_ABS})
         else()
-            message(WARNING "Unrecognized file extension: ${RTL_FILE_ABS}")
+            socmake_message(WARNING "Unrecognized file extension: ${RTL_FILE_ABS}")
         endif()
     endforeach()
 

@@ -1,5 +1,6 @@
 #[[[ @module groups
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
 
 # This functions can be used to create a a custom group of selected items, with a selected types. It will mainy be called by other function in this file, to create groups.
 #
@@ -20,11 +21,11 @@ function(_group_custom_items GROUP_NAME TYPE)
     cmake_parse_arguments(ARG "" "PATTERN" "LIST" ${ARGN})
     
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument ${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument ${ARG_UNPARSED_ARGUMENTS}")
     endif()
     
     if(ARG_PATTERN AND ARG_LIST)
-        message(FATAL_ERROR "Arguments PATTERN and LIST cannot be used at the same time")
+        socmake_message(FATAL_ERROR "Arguments PATTERN and LIST cannot be used at the same time")
     endif()
     
     # Filter items based on PATTERN or LIST
@@ -41,11 +42,11 @@ function(_group_custom_items GROUP_NAME TYPE)
     elseif(ARG_LIST)
         set(items ${ARG_LIST})
     else()
-        message(FATAL_ERROR "Specify either PATTERN or LIST arguments")
+        socmake_message(FATAL_ERROR "Specify either PATTERN or LIST arguments")
     endif()
     
     if(NOT items)
-        message(WARNING "No items found for PATTERN: ${ARG_PATTERN} or LIST: ${ARG_LIST}")
+        socmake_message(WARNING "No items found for PATTERN: ${ARG_PATTERN} or LIST: ${ARG_LIST}")
         return()
     endif()
     

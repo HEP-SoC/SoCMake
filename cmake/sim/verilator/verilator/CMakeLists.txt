@@ -3,9 +3,11 @@ cmake_policy(SET CMP0144 NEW)
 
 project(${TARGET})
 
+include("${CMAKE_CURRENT_LIST_DIR}/../../../utils/socmake_message.cmake")
+
 find_package(verilator HINTS $ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
 if (NOT verilator_FOUND)
-  message(FATAL_ERROR "Verilator was not found. Either install it, or set the VERILATOR_ROOT environment variable")
+  socmake_message(FATAL_ERROR "Verilator was not found. Either install it, or set the VERILATOR_ROOT environment variable")
 endif()
 
 # Certain versions of verilator require VERILATOR_ROOT as an environment variable

@@ -1,5 +1,6 @@
 #[[[ @module build_scripts
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 
 #[[[
 # Build and install the Verilator binary.
@@ -16,7 +17,7 @@
 function(verilator_build)
     cmake_parse_arguments(ARG "EXACT_VERSION" "VERSION;INSTALL_DIR" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/colours.cmake")
@@ -44,14 +45,14 @@ function(verilator_build)
 
     if(ARG_EXACT_VERSION)
         if(NOT "${verilator_VERSION_MAJOR}.${verilator_VERSION_MINOR}" VERSION_EQUAL "${ARG_VERSION}")
-            message(STATUS "${Magenta}[Verilator Not Found]${ColourReset}: requested version is ${ARG_VERSION} but found ${verilator_VERSION_MAJOR}.${verilator_VERSION_MINOR}")
+            socmake_message(STATUS "${Magenta}[Verilator Not Found]${ColourReset}: requested version is ${ARG_VERSION} but found ${verilator_VERSION_MAJOR}.${verilator_VERSION_MINOR}")
             set(verilator_FOUND FALSE)
         endif()
     endif()
 
     if(NOT verilator_FOUND)
-        message(STATUS "${Magenta}[Verilator Not Found]${ColourReset}")
-        message(STATUS "${Magenta}[Building Verilator]${ColourReset}")
+        socmake_message(STATUS "${Magenta}[Verilator Not Found]${ColourReset}")
+        socmake_message(STATUS "${Magenta}[Building Verilator]${ColourReset}")
         execute_process(COMMAND ${CMAKE_COMMAND}
             -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
             -B ${CMAKE_BINARY_DIR}/verilator-build/v${ARG_VERSION}
@@ -70,18 +71,18 @@ function(verilator_build)
         find_package(verilator ${ARG_VERSION} EXACT REQUIRED HINTS ${ARG_INSTALL_DIR})
 
         if(NOT verilator_FOUND)
-            message(FATAL_ERROR "Verilator was not found after building. Please check the build logs for errors.")
+            socmake_message(FATAL_ERROR "Verilator was not found after building. Please check the build logs for errors.")
         endif()
 
         # Update cached variable if a new version is required
         if(NOT ${VERILATOR_ROOT} STREQUAL ${ARG_INSTALL_DIR})
-            message(STATUS "${Magenta}[Verilator version updated]${ColourReset}")
+            socmake_message(STATUS "${Magenta}[Verilator version updated]${ColourReset}")
             set(VERILATOR_ROOT ${ARG_INSTALL_DIR} CACHE PATH "VERILATOR_ROOT" FORCE)
             set(VERILATOR_BIN ${ARG_INSTALL_DIR}/bin/verilator_bin CACHE PATH "Path to a program." FORCE)
         endif()
     endif()
     
 
-    message(STATUS "${Green}[Found Verilator]${ColourReset}: ${verilator_VERSION} in ${verilator_DIR}")
+    socmake_message(STATUS "${Green}[Found Verilator]${ColourReset}: ${verilator_VERSION} in ${verilator_DIR}")
 
 endfunction()

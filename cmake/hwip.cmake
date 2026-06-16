@@ -3,6 +3,7 @@
 include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_graph.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils/alias_dereference.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}//utils/file_paths.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_message.cmake")
 
 #[[[
 # This function creates an INTERFACE library for a given IP.
@@ -57,7 +58,7 @@ function(add_ip IP_NAME)
 
     # Vendor and library arguments are expected at the minimum
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
                             "${ARG_UNPARSED_ARGUMENTS}")
     endif()
     
@@ -142,7 +143,7 @@ endfunction()
 function(create_ip_vlnv OUTVAR IP_NAME)
     cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     if(DEFINED ARG_VENDOR)
@@ -184,7 +185,7 @@ endfunction()
 function(parse_ip_vlnv IP_VLNV VENDOR LIBRARY IP_NAME VERSION)
     cmake_parse_arguments(ARG "" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     # Convert IP_VLNV into a list of tokens by replacing :: with ;
@@ -214,7 +215,7 @@ function(parse_ip_vlnv IP_VLNV VENDOR LIBRARY IP_NAME VERSION)
         unset(${VERSION} PARENT_SCOPE)
     # Anything else is not allowed and will throw an error
     else()
-        message(FATAL_ERROR "Please specify full VLNV format for IP: ${IP_VLNV}")
+        socmake_message(FATAL_ERROR "Please specify full VLNV format for IP: ${IP_VLNV}")
     endif()
 endfunction()
 
@@ -568,13 +569,13 @@ function(__ip_link_check_version OUT_IP_WO_VERSION IP_LIB)
         string(REGEX MATCH "^(!=|>=|<=|==|<|>)([0-9]+\.?[0-9]*\.?[0-9]*)$" version_ranges "${version_range}")
 
         if(NOT CMAKE_MATCH_1 AND NOT CMAKE_MATCH_2)
-            message(FATAL_ERROR "Malformed version condition ${version_range}")
+            socmake_message(FATAL_ERROR "Malformed version condition ${version_range}")
         endif()
         
         __compare_version(satisfies "${ip_version}" "${CMAKE_MATCH_1}" "${CMAKE_MATCH_2}")
         if(NOT satisfies)
             set(version_satisfied FALSE)
-            message(FATAL_ERROR "Linked IP \"${ip_lib_wo_version}\" version condition \"${ip_version} ${CMAKE_MATCH_1} ${CMAKE_MATCH_2}\" cannot be satisfied")
+            socmake_message(FATAL_ERROR "Linked IP \"${ip_lib_wo_version}\" version condition \"${ip_version} ${CMAKE_MATCH_1} ${CMAKE_MATCH_2}\" cannot be satisfied")
         endif()
     endforeach()
 endfunction()
@@ -633,11 +634,11 @@ function(ip_link IP_LIB)
 
         # Issue an error if the library does not exist
         if(NOT TARGET ${lib} AND NOT SOCMAKE_ALLOW_UNDEFINED_TARGETS)
-            message(FATAL_ERROR "Library ${lib} linked to ${_reallib} is not defined")
+            socmake_message(FATAL_ERROR "Library ${lib} linked to ${_reallib} is not defined")
         endif()
         # In case user tries to link library to itself, raise an error
         if(${lib} STREQUAL ${_reallib})
-            message(FATAL_ERROR "Cannot link library ${lib} to ${_reallib} (itself)")
+            socmake_message(FATAL_ERROR "Cannot link library ${lib} to ${_reallib} (itself)")
         endif()
         # Link the library to the target
         target_link_libraries(${_reallib} INTERFACE ${lib})
@@ -834,7 +835,7 @@ endfunction()
 function(get_ip_links OUTVAR IP_LIB)
     cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     alias_dereference(_reallib ${IP_LIB})

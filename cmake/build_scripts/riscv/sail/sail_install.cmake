@@ -2,6 +2,7 @@
 #]]
 
 include_guard(GLOBAL)
+include("${CMAKE_CURRENT_LIST_DIR}/../../../utils/socmake_message.cmake")
 
 set(SAIL_INSTALL_LIST_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "")
 
@@ -14,7 +15,7 @@ set(SAIL_INSTALL_LIST_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "")
 macro(sail_install)
     cmake_parse_arguments(ARG "" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${SAIL_INSTALL_LIST_DIR}/../../utils/find_python.cmake")

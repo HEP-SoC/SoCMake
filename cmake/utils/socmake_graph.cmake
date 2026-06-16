@@ -2,6 +2,7 @@
 #]]
 
 include_guard(GLOBAL)
+include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
 
 #[[[
 # Flatten the dependency graph of NODE into a topologically-sorted flat list stored in the ``FLAT_GRAPH`` target property.
@@ -61,7 +62,7 @@ function(__dfs_topo NODE RET)
     # Already visited, means there was a cycle detected, flag FATAL_ERROR
     get_target_property(temp ${NODE} __ALREADY_VISITED)
     if(temp)
-        message(FATAL_ERROR "Cycle detected in dependency graph at node: ${NODE}")
+        socmake_message(FATAL_ERROR "Cycle detected in dependency graph at node: ${NODE}")
     endif()
 
     # Node is visited, we should not visit the same node again

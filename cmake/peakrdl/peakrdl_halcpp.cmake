@@ -1,5 +1,6 @@
 #[[[ @module peakrdl_halcpp
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 
 #[[[
 # Create a target for invoking PeakRDL-halcpp on IP_LIB.
@@ -44,7 +45,7 @@
 function(peakrdl_halcpp IP_LIB)
     cmake_parse_arguments(ARG "SKIP_BUSES;GENERATE_TESTS" "OUTDIR" "PARAMETERS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
@@ -86,7 +87,7 @@ function(peakrdl_halcpp IP_LIB)
     endif()
 
     if(NOT RDL_FILES)
-        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
+        socmake_message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 

@@ -2,6 +2,7 @@
 #]]
 
 include_guard(GLOBAL)
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 
 #[[[
 # This function runs the Icarus Verilog (iverilog) tool on a specified IP library.
@@ -32,7 +33,7 @@ function(iverilog IP_LIB)
     cmake_parse_arguments(ARG "NO_RUN_TARGET" "TOP_MODULE;OUTDIR;EXECUTABLE;RUN_TARGET_NAME" "SV_COMPILE_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     # Include the hardware IP management cmake functions
@@ -41,11 +42,11 @@ function(iverilog IP_LIB)
     # Check the executables are available
     find_program(IVERILOG_EXECUTABLE iverilog)
     if(NOT IVERILOG_EXECUTABLE)
-        message(FATAL_ERROR "iverilog not found in PATH. Please install icarus verilog or add it to your PATH.")
+        socmake_message(FATAL_ERROR "iverilog not found in PATH. Please install icarus verilog or add it to your PATH.")
     endif()
     find_program(VVP_EXECUTABLE vvp)
     if(NOT VVP_EXECUTABLE)
-        message(FATAL_ERROR "vvp not found in PATH. Please install icarus verilog or add it to your PATH.")
+        socmake_message(FATAL_ERROR "vvp not found in PATH. Please install icarus verilog or add it to your PATH.")
     endif()
 
     # Assume the IP library is the latest one provided if full name is not given

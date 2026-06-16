@@ -1,6 +1,7 @@
 #[[[ @module vhdl
 #]]
 include_guard(GLOBAL)
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 
 #[[[
 # vhdl-linter tool interface.
@@ -19,7 +20,7 @@ include_guard(GLOBAL)
 function(vhdl_linter IP_LIB)
     cmake_parse_arguments(ARG "" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")

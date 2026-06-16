@@ -1,5 +1,6 @@
 #[[[ @module ipxact
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 
 #[[[
 # This function imports an IP-XACT .xml file and converts it to a SoCMake HWIP.
@@ -19,7 +20,7 @@
 function(add_ip_from_ipxact COMP_XML)
     cmake_parse_arguments(ARG "GENERATE_ONLY" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     convert_paths_to_absolute(COMP_XML ${COMP_XML})

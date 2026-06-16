@@ -1,5 +1,6 @@
 #[[[ @module peakrdl_socgen
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 
 #[[[
 # Create a target for invoking PeakRDL-socgen on IP_LIB.
@@ -54,7 +55,7 @@
 function(peakrdl_socgen IP_LIB)
     cmake_parse_arguments(ARG "USE_INCLUDE;GEN_DOT" "OUTDIR" "INJECT_V_FILES;PARAMETERS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
                 "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
@@ -124,7 +125,7 @@ function(peakrdl_socgen IP_LIB)
     endif()
 
     if(NOT SYSTEMRDL_SOURCES)
-        message(FATAL_ERROR "Library ${_reallib} does not have SYSTEMRDL_SOURCES property set,
+        socmake_message(FATAL_ERROR "Library ${_reallib} does not have SYSTEMRDL_SOURCES property set,
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
@@ -167,7 +168,7 @@ function(peakrdl_socgen IP_LIB)
         list(REMOVE_DUPLICATES V_GEN)
     else()
         string(REPLACE ";" " " __CMD_STR "${__CMD_LF}")
-        message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${_reallib},
+        socmake_message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${_reallib},
                 output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n
                 Command Called: \n ${__CMD_STR}")
     endif()

@@ -1,5 +1,6 @@
 #[[[ @module alias_dereference
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
 
 #[[[
 # This function returns the original library name if the given one is an alias.

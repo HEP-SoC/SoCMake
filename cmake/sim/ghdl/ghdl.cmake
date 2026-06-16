@@ -2,6 +2,7 @@
 #]]
 
 include_guard(GLOBAL)
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 
 # This function is used to set by ``ghdl``, it shouldn't be used directly in your cmake file.
 #
@@ -13,7 +14,7 @@ function(__ghdl_get_standard_arg OUTVAR)
     set(SUPPORTED_VHDL_STANDARDS  87 93c 93 00 02 08)
     if(ARGN)
         if(NOT ${ARGN} IN_LIST SUPPORTED_VHDL_STANDARDS)
-            message(FATAL_ERROR "VHDL standard not supported ${ARGN}, supported standards: ${SUPPORTED_VHDL_STANDARDS}")
+            socmake_message(FATAL_ERROR "VHDL standard not supported ${ARGN}, supported standards: ${SUPPORTED_VHDL_STANDARDS}")
         endif()
         set(${OUTVAR} ${ARGN} PARENT_SCOPE)
     else()
@@ -55,7 +56,7 @@ endfunction()
 function(ghdl IP_LIB)
     cmake_parse_arguments(ARG "NO_RUN_TARGET" "OUTDIR;RUN_TARGET_NAME;TOP_MODULE;EXECUTABLE_NAME;STANDARD" "VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
@@ -194,7 +195,7 @@ function(__ghdl_compile_lib IP_LIB)
     cmake_parse_arguments(ARG "" "LIBRARY;OUTDIR;STANDARD" "VHDL_COMPILE_ARGS;FILE_SETS" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
@@ -316,7 +317,7 @@ endfunction()
 function(__get_ghdl_search_lib_args IP_LIB)
     cmake_parse_arguments(ARG "" "OUTDIR;LIBRARY" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     get_ip_links(ips ${IP_LIB})
@@ -327,7 +328,7 @@ function(__get_ghdl_search_lib_args IP_LIB)
         if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
             list(APPEND dpi_libs_args -Wl,$<TARGET_FILE:${lib}>)
             if(ip_type STREQUAL "SHARED_LIBRARY")
-                message(WARNING "Shared library linked to simulation executable, set LD_LIBRARY_PATH")
+                socmake_message(WARNING "Shared library linked to simulation executable, set LD_LIBRARY_PATH")
             endif()
         else()
             # Library of the current IP block, get it from SoCMake library if present
@@ -358,7 +359,7 @@ endfunction()
 # :type IP_LIB: string
 function(__add_ghdl_cxx_properties_to_libs IP_LIB)
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
     # Find the GHDL tools/include directory, needed for VPI/DPI libraries
     find_program(ghdl_exec_path ghdl)
@@ -371,7 +372,7 @@ function(__add_ghdl_cxx_properties_to_libs IP_LIB)
         get_target_property(ip_type ${lib} TYPE)
         if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
             if(NOT ghdl_exec_path)
-                message(FATAL_ERROR "GHDL executable was not found, cannot set include directory on DPI library")
+                socmake_message(FATAL_ERROR "GHDL executable was not found, cannot set include directory on DPI library")
             endif()
             # Add tools/include directory to the include directories of DPI libraries
             # TODO do this only when its needed

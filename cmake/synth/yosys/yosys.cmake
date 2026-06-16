@@ -2,6 +2,7 @@
 #]]
 
 include_guard(GLOBAL)
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 
 include(${CMAKE_CURRENT_LIST_DIR}/../sv2v.cmake)
 
@@ -38,7 +39,7 @@ function(yosys IP_LIB)
     cmake_parse_arguments(ARG "SV2V;SHOW;REPLACE" "OUTDIR;TOP;PLUGINS;SCRIPTS" "" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     # Include the hardware IP managament main functions
@@ -133,7 +134,7 @@ function(yosys IP_LIB)
             if(${__type} STREQUAL "SHARED_LIBRARY" OR ${__type} STREQUAL "STATIC_LIBRARY")
                 list(APPEND __PLUGINS_ARG -m $<TARGET_FILE:${plugin}>)
             else()
-                message(FATAL_ERROR "Only Shared and Static libraries are supported for Yosys PLUGINS at the moment")
+                socmake_message(FATAL_ERROR "Only Shared and Static libraries are supported for Yosys PLUGINS at the moment")
             endif()
         endforeach()
     endif()

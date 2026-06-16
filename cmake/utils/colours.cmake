@@ -1,5 +1,6 @@
 #[[[ @module colours
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
 
 if(NOT WIN32)
   string(ASCII 27 Esc)
@@ -51,7 +52,7 @@ set(__Colours Red Green Yellow Blue Magenta Cyan White BoldRed BoldGreen BoldYel
 function(msg TEXT COLOUR)
     cmake_parse_arguments(ARG "" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
     message("${${COLOUR}}${TEXT}${ColourReset}")
 endfunction()

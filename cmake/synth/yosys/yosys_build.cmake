@@ -2,6 +2,7 @@
 #]]
 
 include_guard(GLOBAL)
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 
 #[[[
 # This function can be used to build yosys if needed. A tag or a version need to be given in the arguments, both can't be used at the same time obviously.
@@ -20,11 +21,11 @@ function(yosys_build)
         ${ARGN}
         )
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_MACRO} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_MACRO} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     if(ARG_VERSION AND ARG_TAG)
-        message(FATAL_ERROR "Cannot use both VERSION and TAG")
+        socmake_message(FATAL_ERROR "Cannot use both VERSION and TAG")
     endif()
 
     if(ARG_VERSION)

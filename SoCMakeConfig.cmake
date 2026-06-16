@@ -5,6 +5,7 @@ set(SoCMake_FOUND TRUE)
 # ====================================
 # ======== Core functions ============
 # ====================================
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/socmake_message.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/socmake_graph.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/hwip.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/subdirectory_search.cmake")

@@ -1,5 +1,6 @@
 #[[[ @module peakrdl_regblock
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 
 #[[[
 # Create a target for invoking PeakRDL-regblock on IP_LIB.
@@ -43,7 +44,7 @@ function(peakrdl_regblock IP_LIB)
     cmake_parse_arguments(ARG "" "OUTDIR;RENAME;INTF;RESET" "PARAMETERS;ARGS" ${ARGN})
     # Check for any unknown argument
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
                 "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
@@ -88,7 +89,7 @@ function(peakrdl_regblock IP_LIB)
     endif()
 
     if(NOT RDL_SOURCES)
-        message(FATAL_ERROR "Library ${IP_LIB} does not have SYSTEMRDL_SOURCES property set,
+        socmake_message(FATAL_ERROR "Library ${IP_LIB} does not have SYSTEMRDL_SOURCES property set,
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 

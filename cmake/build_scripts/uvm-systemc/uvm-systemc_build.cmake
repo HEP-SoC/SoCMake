@@ -1,5 +1,6 @@
 #[[[ @module build_scripts
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 
 #[[[
 # Build and install the UVM-SystemC library.
@@ -16,7 +17,7 @@
 function(uvm_systemc_build)
     cmake_parse_arguments(ARG "EXACT_VERSION" "VERSION;INSTALL_DIR" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/colours.cmake")
@@ -54,12 +55,12 @@ function(uvm_systemc_build)
     endif()
 
     if(NOT SystemCLanguage_DIR)
-        message(FATAL_ERROR "Please provide SystemC library using \"systemc_build()\" or \"find_package()\" ")
+        socmake_message(FATAL_ERROR "Please provide SystemC library using \"systemc_build()\" or \"find_package()\" ")
     endif()
 
     if(NOT UVM-SystemC_FOUND)
-        message(STATUS "${Magenta}[UVM-SystemC Not Found]${ColourReset}")
-        message(STATUS "${Magenta}[Building UVM-SystemC]${ColourReset}")
+        socmake_message(STATUS "${Magenta}[UVM-SystemC Not Found]${ColourReset}")
+        socmake_message(STATUS "${Magenta}[Building UVM-SystemC]${ColourReset}")
         execute_process(COMMAND ${CMAKE_COMMAND}
             -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
             -B ${BUILD_DIR}
@@ -80,6 +81,6 @@ function(uvm_systemc_build)
         HINTS ${ARG_INSTALL_DIR}
         )
 
-    message(STATUS "${Green}[Found UVM-SystemC]${ColourReset}: ${UVM-SystemC_VERSION} in ${UVM-SystemC_DIR}")
+    socmake_message(STATUS "${Green}[Found UVM-SystemC]${ColourReset}: ${UVM-SystemC_VERSION} in ${UVM-SystemC_DIR}")
 
 endfunction()

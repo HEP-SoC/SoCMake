@@ -1,5 +1,6 @@
 #[[[ @module peakrdl_print
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 
 #[[[
 # Creates a target <IP_LIB>_peakrdl_print that prints address map in terminal.
@@ -17,7 +18,7 @@ function(peakrdl_print IP_LIB)
     get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMRDL)
 
     if(NOT RDL_FILES)
-        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
+        socmake_message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 

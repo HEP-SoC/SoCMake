@@ -1,5 +1,6 @@
 #[[[ @module cocotb_tests
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 
 #[[[
 # This function scans a given directory for cocotb test subdirectories and registers each as a CTest, with support for both simple and multi-testcase cocotb test configurations.
@@ -52,21 +53,21 @@ function(add_cocotb_tests IP_LIB DIRECTORY)
         add_subdirectory("${DIRECTORY}/${test}" "${test}_test")
 
         if(NOT COCOTB_MODULE)
-            message(STATUS "add_cocotb_tests: \"${test}\" did not set COCOTB_MODULE, skipping (no test registered)")
+            socmake_message(STATUS "add_cocotb_tests: \"${test}\" did not set COCOTB_MODULE, skipping (no test registered)")
             continue()
         endif()
 
         if(NOT COCOTB_SIM_RUN_CMD)
-            message(WARNING "add_cocotb_tests: \"${test}\" set COCOTB_MODULE but not COCOTB_SIM_RUN_CMD, skipping")
+            socmake_message(WARNING "add_cocotb_tests: \"${test}\" set COCOTB_MODULE but not COCOTB_SIM_RUN_CMD, skipping")
             continue()
         endif()
 
         if(NOT COCOTB_SIM_BUILD_DEP)
-            message(WARNING "add_cocotb_tests: \"${test}\" set COCOTB_MODULE but not COCOTB_SIM_BUILD_DEP, skipping")
+            socmake_message(WARNING "add_cocotb_tests: \"${test}\" set COCOTB_MODULE but not COCOTB_SIM_BUILD_DEP, skipping")
             continue()
         endif()
 
-        message(STATUS "add_cocotb_tests: registering test(s) for module \"${COCOTB_MODULE}\" from \"${test}\"")
+        socmake_message(STATUS "add_cocotb_tests: registering test(s) for module \"${COCOTB_MODULE}\" from \"${test}\"")
 
         if(NOT COCOTB_TESTCASE)
 
@@ -129,7 +130,7 @@ function(add_cocotb_tests IP_LIB DIRECTORY)
         DEPENDS ${IP_LIB} ${deps_list}
     )
 
-    message(STATUS "test_list: ${test_list}")
+    socmake_message(STATUS "test_list: ${test_list}")
 
     list(APPEND _msg "\nTo run ctest on all of the tests run:\n")
     list(APPEND _msg "    make check\n")

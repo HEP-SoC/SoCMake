@@ -1,5 +1,6 @@
 #[[[ @module peakrdl_html
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 
 #[[[
 # Create a target for invoking PeakRDL-html on IP_LIB.
@@ -31,7 +32,7 @@
 function(peakrdl_html IP_LIB)
     cmake_parse_arguments(ARG "SERVER_TARGET" "OUTDIR" "ARGS" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
@@ -51,7 +52,7 @@ function(peakrdl_html IP_LIB)
     get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMRDL)
 
     if(NOT RDL_SOURCES)
-        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_SOURCES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
+        socmake_message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_SOURCES property set, unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
     unset(INCDIRS_ARG)

@@ -1,5 +1,6 @@
 #[[[ @module verible
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 
 #[[[
 # Verible lint tool interface
@@ -36,7 +37,7 @@
 function(verible_lint IP_LIB)
     cmake_parse_arguments(ARG "REQUIRED;ONLY_TOP;SKIP_GENERATED" "OUTDIR;AUTOFIX;RULES_FILE" "RULES;WAIVER_FILES" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
@@ -53,7 +54,7 @@ function(verible_lint IP_LIB)
 
     set(AUTOFIX_OPTIONS "no;patch-interactive;patch;inplace-interactive;inplace;generate-waiver")
     if(ARG_AUTOFIX AND (NOT ARG_AUTOFIX IN_LIST AUTOFIX_OPTIONS))
-        message(FATAL_ERROR "Not valid option for AUTOFIX: ${ARG_AUTOFIX}, valid options are ${AUTOFIX_OPTIONS}")
+        socmake_message(FATAL_ERROR "Not valid option for AUTOFIX: ${ARG_AUTOFIX}, valid options are ${AUTOFIX_OPTIONS}")
     endif()
 
     if(ARG_AUTOFIX)

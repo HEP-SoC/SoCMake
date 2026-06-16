@@ -1,5 +1,6 @@
 #[[[ @module fpga
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 
 #[[[
 # Generate a vivado FPGA project and create a target to generate the bitstream.
@@ -22,7 +23,7 @@
 function(vivado IP_LIB)
     cmake_parse_arguments(ARG "" "TOP;OUTDIR" "VERILOG_DEFINES" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")

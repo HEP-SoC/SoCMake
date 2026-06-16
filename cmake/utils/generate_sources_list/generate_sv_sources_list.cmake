@@ -1,3 +1,4 @@
+include("${CMAKE_CURRENT_LIST_DIR}/../socmake_message.cmake")
 #[[[
 # Generate a dependency-ordered Verilog/SystemVerilog source list for an IP target, including only instantiated modules.
 #
@@ -23,16 +24,16 @@
 function(generate_sv_sources_list IP_LIB)
   cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE;SLANG_ARGS" "" ${ARGN})
   if(ARG_UNPARSED_ARGUMENTS)
-    message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
   endif()
 
   # Find slang executable
   find_program(SLANG_EXECUTABLE slang)
   if(NOT SLANG_EXECUTABLE)
     if(NOT DEFINED ENV{SLANG_EXECUTABLE})
-        message(WARNING "slang executable not found! Please install slang or set SLANG_EXECUTABLE.")
+        socmake_message(WARNING "slang executable not found! Please install slang or set SLANG_EXECUTABLE.")
       else()
-        message(STATUS "-- SOCMAKE: slang executable found using SLANG_EXECUTABLE env variable: $ENV{SLANG_EXECUTABLE}")
+        socmake_message(STATUS "slang executable found using SLANG_EXECUTABLE env variable: $ENV{SLANG_EXECUTABLE}")
         set(SLANG_EXECUTABLE $ENV{SLANG_EXECUTABLE})
     endif()
   endif()

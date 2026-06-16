@@ -1,5 +1,6 @@
 #[[[ @module verilator
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 
 #[[[
 # Create a target for invoking verilator (compilation, elaboration, and simulation) on IP_LIB.
@@ -64,7 +65,7 @@ function(verilator IP_LIB)
         ${ARGN})
 
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
     # Optimization to not do topological sort of linked IPs on get_ip_...() calls
     flatten_graph_and_disallow_flattening(${IP_LIB})
@@ -134,7 +135,7 @@ function(verilator IP_LIB)
 
     get_ip_sources(SOURCES ${IP_LIB} VLT VERILATOR_CFG SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
     if(NOT SOURCES)
-        message(FATAL_ERROR "Verilate function needs at least one VERILOG or SYSTEMVERILOG source added to the IP")
+        socmake_message(FATAL_ERROR "Verilate function needs at least one VERILOG or SYSTEMVERILOG source added to the IP")
     endif()
 
     unset(EXECUTABLE_PATH)
@@ -387,13 +388,13 @@ endmacro()
 function(verilator_add_cxx_libs)
     cmake_parse_arguments(ARG "" "" "LIBRARIES" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     set(allowed_libraries DPI-C)
     foreach(lib ${ARG_LIBRARIES})
         if(NOT ${lib} IN_LIST allowed_libraries)
-            message(FATAL_ERROR "Verilator does not support library: ${lib}")
+            socmake_message(FATAL_ERROR "Verilator does not support library: ${lib}")
         endif()
     endforeach()
 

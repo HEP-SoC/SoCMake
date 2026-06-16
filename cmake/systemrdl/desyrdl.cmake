@@ -1,5 +1,6 @@
 #[[[ @module systemrdl
 #]]
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 
 #[[[
 # Generate a VHDL register block and adds it to the IP library.
@@ -26,7 +27,7 @@ function(desyrdl IP_LIB)
     cmake_parse_arguments(ARG "" "OUTDIR;INTF;TOP_ADDRMAP" "ARGS" ${ARGN})
     # Check for any unknown argument
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
                 "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
@@ -52,7 +53,7 @@ function(desyrdl IP_LIB)
     endif()
     set(supported_intfs "axi4l;ibus")
     if(NOT ARG_INTF IN_LIST supported_intfs)
-        message(FATAL_ERROR "Interface not supported: ${ARG_INTF}, supported interfaces are ${supported_intfs}")
+        socmake_message(FATAL_ERROR "Interface not supported: ${ARG_INTF}, supported interfaces are ${supported_intfs}")
     endif()
 
 
@@ -61,7 +62,7 @@ function(desyrdl IP_LIB)
     get_ip_sources(RDL_SOURCES ${IP_LIB} SYSTEMRDL)
 
     if(NOT RDL_SOURCES)
-        message(FATAL_ERROR "Library ${IP_LIB} does not have SYSTEMRDL_SOURCES property set,
+        socmake_message(FATAL_ERROR "Library ${IP_LIB} does not have SYSTEMRDL_SOURCES property set,
                 unable to run ${CMAKE_CURRENT_FUNCTION}")
     endif()
 
