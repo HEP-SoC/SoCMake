@@ -66,6 +66,13 @@ jobs:
           make docusaurus_doc
 
       - name: Deploy / clean up PR preview
+        id: preview
         uses: rossjrw/pr-preview-action@v1
         with:
           source-dir: ./docs/build/docusaurus
+
+      - name: Print preview URL
+        if: github.event.action != 'closed'
+        run: |
+          echo "Preview URL: ${{ steps.preview.outputs.preview-url }}"
+          echo "### 📖 Docs preview: ${{ steps.preview.outputs.preview-url }}" >> "$GITHUB_STEP_SUMMARY"
