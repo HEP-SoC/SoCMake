@@ -26,7 +26,9 @@ const config = {
   url: 'https://hep-soc.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl : '/SoCMake/',
+  // Overridable via DOCS_BASE_URL so PR preview builds can be served from a
+  // sub-path (e.g. /SoCMake/pr-preview/pr-123/) without touching this file.
+  baseUrl: process.env.DOCS_BASE_URL || '/SoCMake/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.

@@ -9,6 +9,8 @@ jobs:
 
   build_docs_job:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
@@ -30,14 +32,16 @@ jobs:
         run: |
           python -m pip install -U sphinx
           python -m pip install sphinx-rtd-theme
-          # python -m pip install sphinxcontrib-apidoc
           python -m pip install sphinx-autoapi
 
       - name: make the sphinx docs
         run: |
-          # sphinx-apidoc -f -o docs/source . -H Test -e -t docs/source/_templates
-          mkdir -p docs/build
-          cd docs/build
+          cd docs
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r python_requirements.txt
+          mkdir -p build
+          cd build
           cmake ../
           make docusaurus_doc
 
@@ -46,3 +50,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/build/docusaurus
+          # Without this, every master deploy wipes the whole gh-pages branch,
+          # which would also delete any live PR preview sub-folders (see
+          # pages_preview.yml).
+          keep_files: true
