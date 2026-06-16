@@ -44,17 +44,6 @@ The supported language list can be extended with `socmake_add_languages()`.
 
 ---
 
-### `SOCMAKE_DONT_ADD_TEST`
-
-When set before calling `add_cocotb_tests()`, the next test subdirectory is skipped — no `add_test()` CTest entry is created for it. The variable is automatically unset after being consumed (one-shot).
-
-```cmake
-set(SOCMAKE_DONT_ADD_TEST TRUE)
-add_cocotb_tests(DIRECTORY tests IP_LIB my_ip)
-```
-
----
-
 ## Output Variables
 
 These variables are set by SoCMake simulator functions in the **caller's scope** (`PARENT_SCOPE`). Read them after the function call to obtain the names of the created CMake targets or the simulation command.

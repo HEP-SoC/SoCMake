@@ -5,6 +5,17 @@
 # This function scans a given directory for cocotb test subdirectories and registers each as a CTest, with support for both simple and multi-testcase cocotb test configurations.
 # Multi-testcase tests are auto-numbered into single CTest and a ``check`` target is created to run all the different tests.
 #
+# Each test subdirectory's ``CMakeLists.txt`` is expected to set the following variables in ``PARENT_SCOPE`` to register a test:
+#
+# - ``COCOTB_MODULE`` (required): name of the test, used as the CTest name.
+# - ``COCOTB_SIM_RUN_CMD`` (required): command used to run the simulation.
+# - ``COCOTB_SIM_BUILD_DEP`` (required): build target(s) the simulation run depends on.
+# - ``COCOTB_DESCRIPTION`` (optional): human readable description, shown in the summary message.
+# - ``COCOTB_PYTHONPATH`` (optional): ``PYTHONPATH`` environment variable for the test.
+# - ``COCOTB_TESTCASE`` (optional): number of test cases to register (from 1 to N). If unset, a single CTest is registered.
+#
+# If a subdirectory does not set ``COCOTB_MODULE``, it is silently skipped (no test registered for it).
+#
 # :param IP_LIB: The target IP library, it needs to have SOURCES property set with a list of SystemVerilog files.
 # :type IP_LIB: string
 # :param DIRECTORY: Path to the directory containing the cocotb test subdirectories to scan. Subdirectories prefixed with ``_`` are excluded.
@@ -28,11 +39,34 @@ function(add_cocotb_tests IP_LIB DIRECTORY)
 
     enable_testing()
     foreach(test ${TEST_SUBDIRS})
+        # Reset the variables expected to be set by the test subdirectory's CMakeLists.txt,
+        # so that a subdirectory which sets none of them is correctly detected as "no test to add"
+        # instead of inheriting stale values from a previous loop iteration.
+        unset(COCOTB_MODULE)
+        unset(COCOTB_DESCRIPTION)
+        unset(COCOTB_SIM_RUN_CMD)
+        unset(COCOTB_SIM_BUILD_DEP)
+        unset(COCOTB_PYTHONPATH)
+        unset(COCOTB_TESTCASE)
+
         add_subdirectory("${DIRECTORY}/${test}" "${test}_test")
-        if(SOCMAKE_DONT_ADD_TEST)
-            unset(SOCMAKE_DONT_ADD_TEST)
+
+        if(NOT COCOTB_MODULE)
+            message(STATUS "add_cocotb_tests: \"${test}\" did not set COCOTB_MODULE, skipping (no test registered)")
             continue()
         endif()
+
+        if(NOT COCOTB_SIM_RUN_CMD)
+            message(WARNING "add_cocotb_tests: \"${test}\" set COCOTB_MODULE but not COCOTB_SIM_RUN_CMD, skipping")
+            continue()
+        endif()
+
+        if(NOT COCOTB_SIM_BUILD_DEP)
+            message(WARNING "add_cocotb_tests: \"${test}\" set COCOTB_MODULE but not COCOTB_SIM_BUILD_DEP, skipping")
+            continue()
+        endif()
+
+        message(STATUS "add_cocotb_tests: registering test(s) for module \"${COCOTB_MODULE}\" from \"${test}\"")
 
         if(NOT COCOTB_TESTCASE)
 
@@ -86,7 +120,6 @@ function(add_cocotb_tests IP_LIB DIRECTORY)
 
             endforeach()
         endif() # COCOTB_TESTCASE
-        unset(COCOTB_TESTCASE)
     endforeach()
 
     include(ProcessorCount)
