@@ -48,7 +48,7 @@
                 <xsl:text>&#10;</xsl:text>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:text>    ${IP_SOURCE_DIR}/</xsl:text>
+                <xsl:text>    ${CMAKE_CURRENT_LIST_DIR}/</xsl:text>
                 <xsl:value-of select="ipxact:name"/>
                 <xsl:text>&#10;</xsl:text>
             </xsl:otherwise>
@@ -59,17 +59,12 @@
   </xsl:template>
 
   <xsl:template match="/">
+      <xsl:variable name="comp" select="/*"/>
       <xsl:text>add_ip(</xsl:text>
-      <xsl:value-of select="concat(//ipxact:vendor, '::', //ipxact:library, '::', //ipxact:name, '::', //ipxact:version)"/>
+      <xsl:value-of select="concat($comp/ipxact:vendor, '::', $comp/ipxact:library, '::', $comp/ipxact:name, '::', $comp/ipxact:version)"/>
       <xsl:text>)&#10;&#10;</xsl:text>
 
-      <xsl:text>if(NOT DEFINED ${IP}_IPXACT_SOURCE_DIR)&#10;</xsl:text>
-      <xsl:text>    set(IP_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})&#10;</xsl:text>
-      <xsl:text>else()&#10;</xsl:text>
-      <xsl:text>    set(IP_SOURCE_DIR ${${IP}_IPXACT_SOURCE_DIR})&#10;</xsl:text>
-      <xsl:text>endif()&#10;&#10;</xsl:text>
-
-      <xsl:for-each select="//ipxact:fileSets/ipxact:fileSet">
+      <xsl:for-each select="$comp/ipxact:fileSets/ipxact:fileSet">
         <xsl:variable name="file_set_name" select="ipxact:name"/>
 
         <xsl:for-each select="ipxact:file
@@ -86,16 +81,19 @@
         </xsl:for-each>
       </xsl:for-each>
 
-      <xsl:text>ip_find_and_link(${IP}</xsl:text>
-      <xsl:text>&#10;</xsl:text>
-      <xsl:for-each select="//*[@vendor and @library and @name and @version]">
-          <xsl:if test="generate-id() = generate-id(key('deps', concat(@vendor, '|', @library, '|', @name))[1])">
-              <xsl:text>    </xsl:text>
-              <xsl:value-of select="concat(@vendor, '::', @library, '::', @name)"/>
-              <xsl:text>&#10;</xsl:text>
-          </xsl:if>
-      </xsl:for-each>
-      <xsl:text>)&#10;</xsl:text>
+      <xsl:variable name="dep_nodes" select="//*[@vendor and @library and @name and @version]"/>
+      <xsl:if test="$dep_nodes">
+          <xsl:text>ip_find_and_link(${IP}</xsl:text>
+          <xsl:text>&#10;</xsl:text>
+          <xsl:for-each select="$dep_nodes">
+              <xsl:if test="generate-id() = generate-id(key('deps', concat(@vendor, '|', @library, '|', @name))[1])">
+                  <xsl:text>	</xsl:text>
+                  <xsl:value-of select="concat(@vendor, '::', @library, '::', @name)"/>
+                  <xsl:text>&#10;</xsl:text>
+              </xsl:if>
+          </xsl:for-each>
+          <xsl:text>)&#10;</xsl:text>
+      </xsl:if>
   </xsl:template>
 
 </xsl:stylesheet>
