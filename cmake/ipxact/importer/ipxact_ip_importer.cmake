@@ -13,7 +13,7 @@
 #
 # **Keyword Arguments**
 #
-# :keyword GENERATE_ONLY: Config.cmake file is written but not include()d.
+# :keyword GENERATE_ONLY: Config.cmake file is written but not included.
 # :type GENERATE_ONLY: bool
 #]]
 function(add_ip_from_ipxact COMP_XML)
