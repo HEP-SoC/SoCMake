@@ -1,7 +1,7 @@
 name: docs_preview_workflow
 
-# Build the docs for any PR touching docs/ or cmake/ (function docstrings feed
-# the API reference) and publish them to a per-PR sub-path on gh-pages, e.g.
+# Build the docs for any PR touching docs/ or carrying the 'preview-docs' label
+# and publish them to a per-PR sub-path on gh-pages, e.g.
 # https://hep-soc.github.io/SoCMake/pr-preview/pr-123/
 # The preview is removed automatically when the PR is closed.
 #
@@ -9,11 +9,7 @@ name: docs_preview_workflow
 # so this only deploys previews for branches pushed within this repository.
 on:
   pull_request:
-    types: [opened, reopened, synchronize, closed]
-    paths:
-      - 'docs/**'
-      - 'cmake/**'
-      - '.github/workflows/pages_preview.yml'
+    types: [opened, reopened, synchronize, closed, labeled]
 
 concurrency:
   group: docs-preview-${{ github.event.number }}
@@ -24,7 +20,45 @@ permissions:
   pull-requests: write
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+    steps:
+      - uses: actions/checkout@v3
+
+      # Only check for file changes on push-like events, not on label or close
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event.action != 'closed' && github.event.action != 'labeled'
+        with:
+          filters: |
+            docs:
+              - 'docs/**'
+              - '.github/workflows/pages_preview.yml'
+
+      - id: gate
+        shell: bash
+        run: |
+          ACTION="${{ github.event.action }}"
+          HAS_LABEL="${{ contains(github.event.pull_request.labels.*.name, 'preview-docs') }}"
+          DOCS_CHANGED="${{ steps.filter.outputs.docs }}"
+
+          if [[ "$ACTION" == "closed" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$ACTION" == "labeled" ]]; then
+            # Only rebuild when 'preview-docs' itself is added, not unrelated labels
+            [[ "${{ github.event.label.name }}" == "preview-docs" ]] && \
+              echo "run=true" >> "$GITHUB_OUTPUT" || echo "run=false" >> "$GITHUB_OUTPUT"
+          elif [[ "$HAS_LABEL" == "true" || "$DOCS_CHANGED" == "true" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
   preview_docs_job:
+    needs: check
+    if: needs.check.outputs.run == 'true'
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
