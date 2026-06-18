@@ -86,6 +86,8 @@ jobs:
 
       - name: Trigger GitLab pipeline (pull_request_target)
         if: github.event_name == 'pull_request_target'
+        env:
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
           set -e
           curl --fail-with-body -X POST \
@@ -93,7 +95,7 @@ jobs:
             -F ref=main \
             -F "variables[PR_NUMBER]=${{ github.event.pull_request.number }}" \
             -F "variables[PR_SHA]=${{ github.event.pull_request.head.sha }}" \
-            -F "variables[PR_BRANCH]=${{ github.event.pull_request.head.ref }}" \
+            -F "variables[PR_BRANCH]=$PR_BRANCH" \
             -F "variables[BASE_BRANCH]=${{ github.event.pull_request.base.ref }}" \
             -F "variables[PR_MERGED]=${{ github.event.pull_request.merged }}" \
             -F "variables[CI_JOB]=${{ github.repository }}" \
