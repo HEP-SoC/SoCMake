@@ -1717,13 +1717,17 @@ endfunction()
 
 
 #[[[
-# Retrieve compile definitions for the given language from IP_LIB and its dependencies.
+# Retrieve compile definitions for one or more languages from IP_LIB and its dependencies.
 #
 # :param OUTVAR: Variable that receives the list of compile definitions (without leading ``-D``).
 # :type OUTVAR: string
 # :param IP_LIB: The target IP library.
 # :type IP_LIB: string
-# :param LANGUAGE: Language whose compile definitions should be retrieved (e.g. SYSTEMVERILOG, VHDL).
+# :param LANGUAGE: First language whose compile definitions should be retrieved (e.g. ``SYSTEMVERILOG``, ``VHDL``).
+#   Despite the singular name, **additional languages may be appended as extra positional arguments** after
+#   ``LANGUAGE``; definitions are collected in the order the languages are listed and duplicates are removed.
+#   Example: ``get_ip_compile_definitions(DEFS ${IP} VERILOG SYSTEMVERILOG)`` returns VERILOG definitions
+#   first, then SYSTEMVERILOG definitions.
 # :type LANGUAGE: string
 #
 # **Keyword Arguments**
