@@ -364,7 +364,7 @@ function(vivado_sim_add_cxx_libs)
     set(allowed_libraries DPI-C)
     foreach(lib ${ARG_LIBRARIES})
         if(NOT ${lib} IN_LIST allowed_libraries)
-            message(FATAL_ERROR "Xcelium does not support library: ${lib}")
+            message(FATAL_ERROR "Vivado does not support library: ${lib}")
         endif()
     endforeach()
 

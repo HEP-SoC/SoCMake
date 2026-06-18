@@ -761,7 +761,7 @@ macro(vcs_configure_cxx)
     cmake_parse_arguments(ARG "32BIT" "" "LIBRARIES" ${ARGN})
 
     if(NOT DEFINED ENV{VG_GNU_PACKAGE})
-        message(FATAL_ERROR "VG_GNU_PACKAGE variable not set for VCS. VCS CXX simulation should be used with GCC suplied by VCS")
+        message(FATAL_ERROR "VG_GNU_PACKAGE variable not set for VCS. VCS CXX simulation should be used with GCC supplied by VCS")
     endif()
 
     if(ARG_LIBRARIES)
