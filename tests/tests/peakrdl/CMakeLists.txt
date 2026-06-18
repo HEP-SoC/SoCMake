@@ -1,3 +1,3 @@
 add_subdirectory(html)
-add_subdirectory(print)
+add_subdirectory(dump)
 add_subdirectory(regblock)

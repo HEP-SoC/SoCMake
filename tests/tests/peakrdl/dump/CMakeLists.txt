@@ -1,6 +1,6 @@
 include("../../../../SoCMakeConfig.cmake")
 cmake_minimum_required(VERSION 3.27)
-project(peakrdl_print_test NONE)
+project(peakrdl_dump_test NONE)
 
 #########
 ## UDP ##
@@ -79,12 +79,12 @@ ip_compile_definitions(tests::peakrdl::top SYSTEMRDL
 ## TARGETS ##
 #############
 
-peakrdl_print(tests::peakrdl::top)
+peakrdl_dump(tests::peakrdl::top)
 
 include(CTest)
 
 add_test(NAME ${PROJECT_NAME} 
-    COMMAND /bin/bash -c "diff <(make ${IP}_peakrdl_print | sed -e 's/\\x1b\[[0-9;]*m//g') <(cat  ${CMAKE_CURRENT_LIST_DIR}/golden.txt)"
+    COMMAND /bin/bash -c "diff <(make ${IP}_peakrdl_dump | sed -e 's/\\x1b\[[0-9;]*m//g') <(cat  ${CMAKE_CURRENT_LIST_DIR}/golden.txt)"
     # Diff with golden, and ignore colours in make output with sed command
     )
 set_property(TEST ${PROJECT_NAME} PROPERTY LABELS peakrdl)

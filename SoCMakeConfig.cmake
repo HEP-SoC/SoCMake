@@ -64,7 +64,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_regblock.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_halcpp.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_html.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_socgen.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_print.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/peakrdl/peakrdl_dump.cmake")
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/systemrdl/desyrdl.cmake")
 

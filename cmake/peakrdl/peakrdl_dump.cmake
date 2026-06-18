@@ -1,12 +1,12 @@
-#[[[ @module peakrdl_print
+#[[[ @module peakrdl_dump
 #]]
 include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 
 #[[[
-# Creates a target <IP_LIB>_peakrdl_print that prints address map in terminal.
+# Creates a target <IP_LIB>_peakrdl_dump that prints address map in terminal.
 #
 #]]
-function(peakrdl_print IP_LIB)
+function(peakrdl_dump IP_LIB)
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/find_python.cmake")
 
@@ -33,7 +33,7 @@ function(peakrdl_print IP_LIB)
     endforeach()
 
     find_python3()
-    add_custom_target(${IP_LIB}_peakrdl_print
+    add_custom_target(${IP_LIB}_peakrdl_dump
         COMMAND ${Python3_EXECUTABLE} -m peakrdl dump
             ${INCDIRS_ARG}
             ${COMPDEFS_ARG}
