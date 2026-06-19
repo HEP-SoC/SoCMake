@@ -1,0 +1,151 @@
+# The configurations that used for the recording, feel free to edit them
+config:
+
+  # Specify a command to be executed
+  # like `/bin/bash -l`, `ls`, or any other commands
+  # the default is bash for Linux
+  # or powershell.exe for Windows
+  command: bash -l
+  
+  # Specify the current working directory path
+  # the default is the current working directory path
+  cwd: /mnt/ext/riscv/SoCMake-Ibex/deps/_deps/socmake-src/docs/static/examples/sim_example
+  
+  # Export additional ENV variables
+  env:
+    recording: true
+  
+  # Explicitly set the number of columns
+  # or use `auto` to take the current
+  # number of columns of your shell
+  cols: 226
+  
+  # Explicitly set the number of rows
+  # or use `auto` to take the current
+  # number of rows of your shell
+  rows: 61
+  
+  # Amount of times to repeat GIF
+  # If value is -1, play once
+  # If value is 0, loop indefinitely
+  # If value is a positive number, loop n times
+  repeat: 0
+  
+  # Quality
+  # 1 - 100
+  quality: 100
+  
+  # Delay between frames in ms
+  # If the value is `auto` use the actual recording delays
+  frameDelay: auto
+  
+  # Maximum delay between frames in ms
+  # Ignored if the `frameDelay` isn't set to `auto`
+  # Set to `auto` to prevent limiting the max idle time
+  maxIdleTime: 2000
+  
+  # The surrounding frame box
+  # The `type` can be null, window, floating, or solid`
+  # To hide the title use the value null
+  # Don't forget to add a backgroundColor style with a null as type
+  frameBox:
+    type: floating
+    title: Terminalizer
+    style:
+      border: 0px black solid
+      # boxShadow: none
+      # margin: 0px
+  
+  # Add a watermark image to the rendered gif
+  # You need to specify an absolute path for
+  # the image on your machine or a URL, and you can also
+  # add your own CSS styles
+  watermark:
+    imagePath: null
+    style:
+      position: absolute
+      right: 15px
+      bottom: 15px
+      width: 100px
+      opacity: 0.9
+  
+  # Cursor style can be one of
+  # `block`, `underline`, or `bar`
+  cursorStyle: block
+  
+  # Font family
+  # You can use any font that is installed on your machine
+  # in CSS-like syntax
+  fontFamily: "Monaco, Lucida Console, Ubuntu Mono, Monospace"
+  
+  # The size of the font
+  fontSize: 12
+  
+  # The height of lines
+  lineHeight: 1
+  
+  # The spacing between letters
+  letterSpacing: 0
+  
+  # Theme
+  theme:
+    background: "transparent"
+    foreground: "#afafaf"
+    cursor: "#c7c7c7"
+    black: "#232628"
+    red: "#fc4384"
+    green: "#b3e33b"
+    yellow: "#ffa727"
+    blue: "#75dff2"
+    magenta: "#ae89fe"
+    cyan: "#708387"
+    white: "#d5d5d0"
+    brightBlack: "#626566"
+    brightRed: "#ff7fac"
+    brightGreen: "#c8ed71"
+    brightYellow: "#ebdf86"
+    brightBlue: "#75dff2"
+    brightMagenta: "#ae89fe"
+    brightCyan: "#b1c6ca"
+    brightWhite: "#f9f9f4"
+  
+# Records, feel free to edit them
+records:
+  - delay: 1200
+    content: "\e[1m\e[38;5;1mristo\e(B\e[m\e(B\e[m\e[38;5;11m@lxmicv010:\e(B\e[m\e[38;5;33m[\e(B\e[m\e[38;5;39m/mnt/ext/riscv/SoCMake-Ibex/deps/_deps/socmake-src/docs/static/examples/sim_example\e(B\e[m\e[38;5;33m]\e(B\e[m\e[38;5;15m$ \e(B\e[m"
+  - delay: 3573
+    content: l
+  - delay: 112
+    content: s
+  - delay: 443
+    content: "\b\e[K"
+  - delay: 125
+    content: "\b\e[K"
+  - delay: 146
+    content: t
+  - delay: 174
+    content: r
+  - delay: 65
+    content: e
+  - delay: 207
+    content: "\r\n"
+  - delay: 710
+    content: "\r\nCommand 'tre' not found, did you mean:\r\n\r\n  command 'tree' from snap tree (1.8.0+pkg-3fd6)\r\n  command 'toe' from deb ncurses-bin (6.2-0ubuntu2.1)\r\n  command 'trs' from deb konwert (1.8-13build1)\r\n  command 'true' from deb coreutils (8.30-3ubuntu2)\r\n  command 're' from deb re (0.1-7build1)\r\n  command 'trn' from deb trn4 (4.0-test77-12)"
+  - delay: 8
+    content: "\r\n  command 'tr' from deb coreutils (8.30-3ubuntu2)\r\n  command 'trev' from deb staden (2.0.0+b11-4build1)\r\n  command 'tee' from deb coreutils (8.30-3ubuntu2)\r\n  command 'tde' from deb devtodo (0.1.20-7build1)\r\n  command 'the' from deb the (3.3~rc1-3build1)\r\n  command 'tree' from deb tree (1.8.0-1)\r\n  command 'tred' from deb graphviz (2.42.2-3build2)\r\n  command 'trek' from deb bsdgames (2.17-28build1)\r\n  command 'tie' from deb texlive-binaries (2019.20190605.51237-3ubuntu0.1)\r\n\r\nSee 'snap info <snapname>' for additional versions.\r\n\r\n"
+  - delay: 31
+    content: "\e[1m\e[38;5;1mristo\e(B\e[m\e(B\e[m\e[38;5;11m@lxmicv010:\e(B\e[m\e[38;5;33m[\e(B\e[m\e[38;5;39m/mnt/ext/riscv/SoCMake-Ibex/deps/_deps/socmake-src/docs/static/examples/sim_example\e(B\e[m\e[38;5;33m]\e(B\e[m\e[38;5;15m$ \e(B\e[m"
+  - delay: 577
+    content: t
+  - delay: 161
+    content: r
+  - delay: 50
+    content: e
+  - delay: 157
+    content: e
+  - delay: 160
+    content: "\r\n.\r\n├── CMakeLists.txt\r\n├── deps\r\n│\_\_ ├── CPM.cmake\r\n│\_\_ └── deps.cmake\r\n├── tb.v\r\n└── verilate.cmake\r\n\r\n1 directory, 5 files\r\n"
+  - delay: 42
+    content: "\e[1m\e[38;5;1mristo\e(B\e[m\e(B\e[m\e[38;5;11m@lxmicv010:\e(B\e[m\e[38;5;33m[\e(B\e[m\e[38;5;39m/mnt/ext/riscv/SoCMake-Ibex/deps/_deps/socmake-src/docs/static/examples/sim_example\e(B\e[m\e[38;5;33m]\e(B\e[m\e[38;5;15m$ \e(B\e[m"
+  - delay: 3469
+    content: "logout\r\n"
