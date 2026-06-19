@@ -1,4 +1,4 @@
-name: testing_workflow 
+name: testing_workflow
 
 on:
   pull_request:
@@ -23,6 +23,11 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        generator: ["Unix Makefiles", "Ninja"]
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,20 +41,18 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y cmake iverilog make g++ perl cpanminus xsltproc
+          sudo apt install -y cmake iverilog make ninja-build g++ perl cpanminus xsltproc
 
           pip install jinja2~=3.1.6 peakrdl==1.5.0 rich==14.2.0
 
       - name: run tests
         run: |
-          mkdir build
-          cd build
-          cmake -DSOCMAKE_BUILD_TESTING=TRUE ../
-          
+          cmake -G "${{ matrix.generator }}" -DSOCMAKE_BUILD_TESTING=TRUE -B build .
+
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             # PR build -> no CDash update
-            make check
+            cmake --build build --target check
           else
             # Push / merge build -> CDash update
-            make check_cdash
+            cmake --build build --target check_cdash
           fi
