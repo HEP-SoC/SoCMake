@@ -1,4 +1,4 @@
-include("${CMAKE_CURRENT_LIST_DIR}/../../../CMakeLists.txt")
+include("${CMAKE_CURRENT_LIST_DIR}/../../../../CMakeLists.txt")
 
 set(TEST_NAME option_string_default)
 ct_add_test(NAME ${TEST_NAME})

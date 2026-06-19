@@ -1,4 +1,4 @@
-include("${CMAKE_CURRENT_LIST_DIR}/../../../SoCMakeConfig.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/../../../../SoCMakeConfig.cmake")
 
 set(CDIR ${CMAKE_CURRENT_LIST_DIR})
 
