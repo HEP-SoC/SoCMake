@@ -25,7 +25,7 @@ include(CTest)
 enable_testing()
 
 find_python3()
-add_test_makefile_rule_match_patterns(${IP}_peakrdl_html
+add_test_build_commands_match_patterns(${IP}_peakrdl_html
     "${Python3_EXECUTABLE} -m peakrdl html"
     "-I${PROJECT_SOURCE_DIR}/inc"
     "-I${PROJECT_SOURCE_DIR}"
@@ -51,7 +51,7 @@ peakrdl_html(${IP}
          --home-url "https://www.google.com"
     )
 
-add_test_makefile_rule_match_patterns(${IP}_peakrdl_html
+add_test_build_commands_match_patterns(${IP}_peakrdl_html
     "${Python3_EXECUTABLE} -m peakrdl html"
     "-o ${PROJECT_BINARY_DIR}/ip2_html"
     "${PROJECT_SOURCE_DIR}/ip1.rdl"
@@ -60,7 +60,7 @@ add_test_makefile_rule_match_patterns(${IP}_peakrdl_html
     )
 set_property(TEST ${CTEST_NAME} PROPERTY LABELS peakrdl)
 
-add_test_makefile_rule_match_patterns(${IP}_peakrdl_html_server
+add_test_build_commands_match_patterns(${IP}_peakrdl_html_server
     "cd ${PROJECT_BINARY_DIR}/ip2_html && ${Python3_EXECUTABLE} -m http.server"
     )
 set_property(TEST ${CTEST_NAME} PROPERTY LABELS peakrdl)

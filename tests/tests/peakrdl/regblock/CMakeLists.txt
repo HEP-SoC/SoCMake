@@ -17,7 +17,7 @@ include(CTest)
 enable_testing()
 
 find_python3()
-add_test_makefile_rule_match_patterns(${IP}_peakrdl_regblock
+add_test_build_commands_match_patterns(${IP}_peakrdl_regblock
     "${Python3_EXECUTABLE} -m peakrdl regblock"
     "--rename ${IP_NAME}_regblock"
     "--cpuif apb3-flat"
@@ -48,7 +48,7 @@ include(CTest)
 enable_testing()
 
 find_python3()
-add_test_makefile_rule_match_patterns(${IP}_peakrdl_regblock
+add_test_build_commands_match_patterns(${IP}_peakrdl_regblock
     "${Python3_EXECUTABLE} -m peakrdl regblock"
     "--rename random_ip"
     "--cpuif axi4-lite"

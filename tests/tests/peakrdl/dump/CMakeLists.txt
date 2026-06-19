@@ -84,7 +84,7 @@ peakrdl_dump(tests::peakrdl::top)
 include(CTest)
 
 add_test(NAME ${PROJECT_NAME} 
-    COMMAND /bin/bash -c "diff <(make ${IP}_peakrdl_dump | sed -e 's/\\x1b\[[0-9;]*m//g') <(cat  ${CMAKE_CURRENT_LIST_DIR}/golden.txt)"
+    COMMAND /bin/bash -c "diff <(${CMAKE_MAKE_PROGRAM} ${IP}_peakrdl_dump | sed -e 's/\\x1b\[[0-9;]*m//g') <(cat  ${CMAKE_CURRENT_LIST_DIR}/golden.txt)"
     # Diff with golden, and ignore colours in make output with sed command
     )
 set_property(TEST ${PROJECT_NAME} PROPERTY LABELS peakrdl)
