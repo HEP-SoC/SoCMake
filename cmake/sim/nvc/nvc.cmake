@@ -80,12 +80,14 @@ function(nvc IP_LIB)
         OUTDIR ${OUTDIR})
     set(hdl_libs_args ${HDL_LIBS_ARGS})
     set(dpi_libs_args ${DPI_LIBS_ARGS})
+    set(foreign_lib_deps ${NVC_FOREIGN_LIB_DEPS})
 
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL ${ARG_FILE_SETS})
     get_ip_sources(HEADERS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL HEADERS ${ARG_FILE_SETS})
     if(NOT TARGET ${elaborate_target})
         set(elaborate_cmd COMMAND nvc
                 ${hdl_libs_args}
+                ${dpi_libs_args}
                 --work=${LIBRARY}
                 -e
                 ${ARG_ELABORATE_ARGS}
@@ -109,7 +111,7 @@ function(nvc IP_LIB)
             COMMAND touch ${STAMP_FILE}
             COMMENT ${DESCRIPTION}
             WORKING_DIRECTORY ${OUTDIR}
-            DEPENDS ${compile_target} ${SOURCES} ${HEADERS}
+            DEPENDS ${compile_target} ${SOURCES} ${HEADERS} ${foreign_lib_deps}
             COMMAND_EXPAND_LISTS
             )
 
@@ -377,33 +379,42 @@ function(__get_nvc_search_lib_args IP_LIB)
 
     get_ip_links(ips ${IP_LIB})
     unset(hdl_libs_args)
+    unset(dpi_libs_args)
+    unset(foreign_lib_deps)
     foreach(lib ${ips})
         __is_socmake_systemc_lib(is_systemc_lib ${lib})
         __is_socmake_ip_lib(is_ip_lib ${lib})
         __is_socmake_vhpi_lib(is_vhpi_lib ${lib})
         __is_socmake_dpic_lib(is_dpic_lib ${lib})
-        # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
         get_target_property(ip_type ${lib} TYPE)
-        if(is_systemc_lib OR is_dpic_lib)
-            message(FATAL_ERROR "NVC simulator does not support SystemC or DPI libraries")
-            # list(APPEND dpi_libs_args -sv_lib $<TARGET_FILE_DIR:${lib}>/lib$<TARGET_FILE_BASE_NAME:${lib}>)
+
+        if(is_systemc_lib)
+            message(FATAL_ERROR "NVC simulator does not support SystemC libraries")
         endif()
 
         if(is_ip_lib)
-            # Library of the current IP block, get it from SoCMake library if present
-            # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
             __nvc_default_library(__comp_lib_name ${lib})
 
             set(lib_outdir ${ARG_OUTDIR}/${__comp_lib_name})
-            # Append current library outdir to list of search directories
             if(NOT ${lib_outdir} IN_LIST hdl_libs_args)
                 list(APPEND hdl_libs_args -L ${lib_outdir})
+            endif()
+        elseif(ip_type STREQUAL "SHARED_LIBRARY")
+            list(APPEND dpi_libs_args --load $<TARGET_FILE:${lib}>)
+            list(APPEND foreign_lib_deps ${lib})
+        elseif(ip_type STREQUAL "STATIC_LIBRARY")
+            message(FATAL_ERROR "NVC --load requires a shared library. "
+                "Change add_library(${lib} STATIC ...) to SHARED or STATIC+SHARED")
+        elseif(ip_type STREQUAL "INTERFACE_LIBRARY")
+            if(is_dpic_lib)
+                message(FATAL_ERROR "NVC simulator does not support DPI-C libraries")
             endif()
         endif()
     endforeach()
 
     set(HDL_LIBS_ARGS ${hdl_libs_args} PARENT_SCOPE)
     set(DPI_LIBS_ARGS ${dpi_libs_args} PARENT_SCOPE)
+    set(NVC_FOREIGN_LIB_DEPS ${foreign_lib_deps} PARENT_SCOPE)
 endfunction()
 
 # This function allows to find the path to nvc home directory and to store it in a given variable.
