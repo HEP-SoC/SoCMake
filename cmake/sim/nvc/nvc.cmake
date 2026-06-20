@@ -34,7 +34,6 @@ function(nvc IP_LIB)
     else()
         set(OUTDIR ${ARG_OUTDIR})
     endif()
-    file(MAKE_DIRECTORY ${OUTDIR})
 
     if(ARG_COMPILE_ARGS)
         set(ARG_COMPILE_ARGS COMPILE_ARGS ${ARG_COMPILE_ARGS})
@@ -209,7 +208,6 @@ function(__nvc_compile_lib IP_LIB)
     else()
         set(OUTDIR ${ARG_OUTDIR})
     endif()
-    file(MAKE_DIRECTORY ${OUTDIR})
 
     if(ARG_FILE_SETS)
         set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
@@ -303,7 +301,7 @@ function(__nvc_compile_lib IP_LIB)
         unset(__nvc_${lib}_stamp_files)
         if(SV_SOURCES)
             set(DESCRIPTION "Compile Verilog and SV sources of ${lib} with nvc in library ${__comp_lib_name}")
-            set(STAMP_FILE "${lib_outdir}/${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(STAMP_FILE "${OUTDIR}/.${__comp_lib_name}_${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 ${sv_compile_cmd}
@@ -318,7 +316,7 @@ function(__nvc_compile_lib IP_LIB)
 
         if(VHDL_SOURCES)
             set(DESCRIPTION "Compile VHDL sources of ${lib} with nvc in library ${__comp_lib_name}")
-            set(STAMP_FILE "${lib_outdir}/${lib}_vhdl_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(STAMP_FILE "${OUTDIR}/.${__comp_lib_name}_${lib}_vhdl_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 ${vhdl_compile_cmd}
@@ -333,10 +331,9 @@ function(__nvc_compile_lib IP_LIB)
 
         if(NOT SV_SOURCES AND NOT VHDL_SOURCES)
             set(DESCRIPTION "Generate stamp file for ${lib} for nvc")
-            set(STAMP_FILE "${lib_outdir}/.${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(STAMP_FILE "${OUTDIR}/.${__comp_lib_name}_${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp")
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
-                COMMAND ${CMAKE_COMMAND} -E make_directory ${lib_outdir}
                 COMMAND touch ${STAMP_FILE}
                 DEPENDS ${__nvc_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
@@ -381,6 +378,12 @@ function(__get_nvc_search_lib_args IP_LIB)
     unset(hdl_libs_args)
     unset(dpi_libs_args)
     unset(foreign_lib_deps)
+
+    # NVC discovers libraries by scanning a parent directory for
+    # library-named subdirectories/files.  Add OUTDIR once as the
+    # search root rather than per-library paths.
+    list(APPEND hdl_libs_args -L ${ARG_OUTDIR})
+
     foreach(lib ${ips})
         __is_socmake_systemc_lib(is_systemc_lib ${lib})
         __is_socmake_ip_lib(is_ip_lib ${lib})
@@ -392,14 +395,11 @@ function(__get_nvc_search_lib_args IP_LIB)
             message(FATAL_ERROR "NVC simulator does not support SystemC libraries")
         endif()
 
-        if(is_ip_lib)
-            __nvc_default_library(__comp_lib_name ${lib})
+        if(NOT is_ip_lib AND NOT (ip_type STREQUAL "SHARED_LIBRARY") AND NOT (ip_type STREQUAL "STATIC_LIBRARY") AND NOT (ip_type STREQUAL "INTERFACE_LIBRARY"))
+            continue()
+        endif()
 
-            set(lib_outdir ${ARG_OUTDIR}/${__comp_lib_name})
-            if(NOT ${lib_outdir} IN_LIST hdl_libs_args)
-                list(APPEND hdl_libs_args -L ${lib_outdir})
-            endif()
-        elseif(ip_type STREQUAL "SHARED_LIBRARY")
+        if(ip_type STREQUAL "SHARED_LIBRARY")
             list(APPEND dpi_libs_args --load $<TARGET_FILE:${lib}>)
             list(APPEND foreign_lib_deps ${lib})
         elseif(ip_type STREQUAL "STATIC_LIBRARY")

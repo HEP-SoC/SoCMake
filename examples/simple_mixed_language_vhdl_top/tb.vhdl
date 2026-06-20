@@ -1,6 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use std.env.all;
 
 entity tb is
 end tb;
@@ -38,7 +39,7 @@ begin
             & integer'image(to_integer(unsigned(b))) & " = "
             & integer'image(to_integer(unsigned(o))) severity note;
 
-        wait;
+        std.env.stop;
     end process;
 
 end behavioral;
