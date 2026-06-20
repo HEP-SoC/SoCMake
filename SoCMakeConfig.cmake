@@ -45,6 +45,9 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/siemens/questasim.cmake")
 # ----- ghdl ------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/ghdl/ghdl.cmake")
 
+# ----- nvc ------
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/nvc/nvc.cmake")
+
 # ----- vivado_sim ------
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/sim/xilinx/vivado_sim.cmake")
 

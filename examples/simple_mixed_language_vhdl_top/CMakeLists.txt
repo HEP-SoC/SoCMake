@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.27)
-project(simple_mixed_language NONE)
+project(simple_mixed_language_vhdl_top NONE)
 
 include("../../SoCMakeConfig.cmake")
 
@@ -9,10 +9,10 @@ if(SIMULATOR STREQUAL "all")
 endif()
 
 add_ip(tb
-    DESCRIPTION "Simple verilog testbench")
+    DESCRIPTION "Simple VHDL testbench")
 
-ip_sources(${IP} VERILOG
-    tb.v)
+ip_sources(${IP} VHDL
+    tb.vhdl)
 
 add_subdirectory(adder)
 ip_link(${IP} adder)
@@ -22,7 +22,6 @@ if(SIMULATOR STREQUAL "questa" OR ALL_SIMS)
 endif()
 
 if(SIMULATOR STREQUAL "nvc" OR ALL_SIMS)
-    message(WARNING "NVC does not currently support SystemVerilog on Top")
     nvc(${IP})
 endif()
 
