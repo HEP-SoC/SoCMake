@@ -27,7 +27,7 @@ function(add_test_build_commands_match_patterns TARGET)
     get_target_property(BINARY_DIR ${TARGET} BINARY_DIR)
 
     if(CMAKE_GENERATOR MATCHES "Ninja")
-        set(DRY_RUN_CMD "${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR} -n ${TARGET}")
+        set(DRY_RUN_CMD "${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR} -v -n ${TARGET}")
     else()
         set(DRY_RUN_CMD "make -f ${BINARY_DIR}/CMakeFiles/${TARGET}.dir/build.make ${TARGET} -n")
     endif()
