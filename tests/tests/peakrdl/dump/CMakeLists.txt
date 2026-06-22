@@ -83,8 +83,15 @@ peakrdl_dump(tests::peakrdl::top)
 
 include(CTest)
 
+if(CMAKE_GENERATOR MATCHES "Ninja")
+    set(GOLDEN_FILE "${CMAKE_CURRENT_LIST_DIR}/golden_ninja.txt")
+else()
+    set(GOLDEN_FILE "${CMAKE_CURRENT_LIST_DIR}/golden_make.txt")
+endif()
+
 add_test(NAME ${PROJECT_NAME} 
-    COMMAND /bin/bash -c "diff <(${CMAKE_MAKE_PROGRAM} ${IP}_peakrdl_dump | sed -e 's/\\x1b\[[0-9;]*m//g') <(cat  ${CMAKE_CURRENT_LIST_DIR}/golden.txt)"
+    COMMAND /bin/bash -c "diff <(${CMAKE_MAKE_PROGRAM} ${IP}_peakrdl_dump | sed -e 's/\\x1b\[[0-9;]*m//g') <(cat  ${GOLDEN_FILE})"
     # Diff with golden, and ignore colours in make output with sed command
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 set_property(TEST ${PROJECT_NAME} PROPERTY LABELS peakrdl)
