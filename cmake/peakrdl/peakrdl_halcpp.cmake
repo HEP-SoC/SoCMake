@@ -115,18 +115,21 @@ function(peakrdl_halcpp IP_LIB)
     target_include_directories(${IP_LIB} INTERFACE ${OUTDIR} ${OUTDIR}/include)
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(DESCRIPTION "Generate C++ HAL for \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}")
+
     add_custom_command(
         OUTPUT ${CPP_HEADERS} ${STAMP_FILE}
         COMMAND ${__CMD}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
+        COMMENT ${DESCRIPTION}
         )
 
     add_custom_target(
         ${IP_LIB}_halcpp
         DEPENDS ${CPP_HEADERS} ${STAMP_FILE}
         )
+    set_property(TARGET ${IP_LIB}_halcpp PROPERTY DESCRIPTION ${DESCRIPTION})
 
     add_dependencies(${IP_LIB} ${IP_LIB}_halcpp)
 

@@ -141,19 +141,21 @@ function(yosys IP_LIB)
 
     # Set the stamp file path used as the generated output of the custom command
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(DESCRIPTION "Run synthesis on \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}")
     # Add a custom command to run Yosys
     add_custom_command(
         OUTPUT ${STAMP_FILE}
         COMMAND yosys ${CMP_DEFS_ARG} -s ${YOSYS_SCRIPTS} ${__PLUGINS_ARG}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
+        COMMENT ${DESCRIPTION}
     )
     # Custom target that depends on the stamp file, sources, and yosys scripts
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${STAMP_FILE} ${SOURCES} ${YOSYS_SCRIPTS}
     )
+    set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
 
     # Add
 

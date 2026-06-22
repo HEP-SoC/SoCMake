@@ -101,13 +101,14 @@ function(verible_lint IP_LIB)
             ${__sources}
         )
 
+    set(DESCRIPTION "Lint ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
     if(ARG_REQUIRED)
         set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
         add_custom_command(OUTPUT ${STAMP_FILE}
             COMMAND ${__CMD}
             COMMAND touch ${STAMP_FILE}
             DEPENDS ${__sources}
-            COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
+            COMMENT ${DESCRIPTION}
             )
 
         add_custom_target(${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
@@ -117,10 +118,11 @@ function(verible_lint IP_LIB)
     else()
         add_custom_target( ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
             COMMAND ${__CMD}
-            COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
+            COMMENT ${DESCRIPTION}
             )
         add_dependencies(${IP_LIB}_${CMAKE_CURRENT_FUNCTION} ${IP_LIB})
     endif()
+    set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
 
 
 endfunction()

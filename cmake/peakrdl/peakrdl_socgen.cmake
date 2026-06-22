@@ -177,18 +177,21 @@ function(peakrdl_socgen IP_LIB)
     ip_sources(${_reallib} SYSTEMVERILOG ${V_GEN})
 
     set(STAMP_FILE "${BINARY_DIR}/${_reallib}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(DESCRIPTION "Generate SoC verilog for \"${_reallib}\" with ${CMAKE_CURRENT_FUNCTION}")
+
     add_custom_command(
         OUTPUT ${V_GEN} ${SOCGEN_DOT_FILES} ${STAMP_FILE}
         COMMAND ${__CMD}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SYSTEMRDL_SOURCES} ${ADDITIONAL_DEPENDS}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${_reallib}"
+        COMMENT ${DESCRIPTION}
         )
 
     add_custom_target(
         ${_reallib}_socgen
         DEPENDS ${V_GEN} ${SOCGEN_DOT_FILES} ${SOCGEN_DOT_FILES} ${STAMP_FILE}
         )
+    set_property(TARGET ${_reallib}_socgen PROPERTY DESCRIPTION ${DESCRIPTION})
 
     add_dependencies(${_reallib} ${_reallib}_socgen)
 

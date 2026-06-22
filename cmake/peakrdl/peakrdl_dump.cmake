@@ -32,6 +32,8 @@ function(peakrdl_dump IP_LIB)
         list(APPEND COMPDEFS_ARG -D${__compdefs})
     endforeach()
 
+    set(DESCRIPTION "Print address map for \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}")
+
     find_python3()
     add_custom_target(${IP_LIB}_peakrdl_dump
         COMMAND ${Python3_EXECUTABLE} -m peakrdl dump
@@ -39,6 +41,7 @@ function(peakrdl_dump IP_LIB)
             ${COMPDEFS_ARG}
             ${RDL_FILES}
         DEPENDS ${IP_LIB}
-        COMMENT "Running peakrdl dump on ${IP_LIB}"
+        COMMENT ${DESCRIPTION}
         )
+    set_property(TARGET ${IP_LIB}_peakrdl_print PROPERTY DESCRIPTION ${DESCRIPTION})
 endfunction()

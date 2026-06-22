@@ -60,6 +60,7 @@ function(vivado IP_LIB)
     set_source_files_properties(${BITSTREAM} PROPERTIES GENERATED TRUE)
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(DESCRIPTION "Generate bitstream for \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}")
     add_custom_command(
         OUTPUT ${BITSTREAM} ${STAMP_FILE}
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/edalize_vivado.py
@@ -74,11 +75,12 @@ function(vivado IP_LIB)
 
         COMMAND /bin/sh -c date > ${STAMP_FILE}
         DEPENDS ${SOURCES} ${XDC_FILES} ${IP_LIB}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
+        COMMENT ${DESCRIPTION}
     )
 
     add_custom_target(
         ${IP_LIB}_vivado
         DEPENDS ${BITSTREAM} ${STAMP_FILE}
     )
+    set_property(TARGET ${IP_LIB}_vivado PROPERTY DESCRIPTION ${DESCRIPTION})
 endfunction()

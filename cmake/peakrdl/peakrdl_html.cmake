@@ -92,6 +92,7 @@ function(peakrdl_html IP_LIB)
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     set(DESCRIPTION "Generate html documentation for \"${IP_LIB}\", with ${CMAKE_CURRENT_FUNCTION}")
+
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${GENERATED_FILES}
         COMMAND ${__CMD}

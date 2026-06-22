@@ -125,6 +125,7 @@ function(peakrdl_regblock IP_LIB)
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     set(DESCRIPTION "Generate register file for \"${IP_LIB}\" with ${ARG_INTF} bus, with ${CMAKE_CURRENT_FUNCTION}")
+
     add_custom_command(
         # The output files are automtically marked as GENERATED (deleted by make clean among other things)
         OUTPUT ${SV_GEN} ${STAMP_FILE}
