@@ -1,3 +1,13 @@
+"""Search a file for one or more substrings and report which patterns were found.
+
+Used by CTest via add_test_build_commands_match_patterns to verify that expected
+commands (e.g. compiler flags, tool invocations) appear in a captured build dry-run
+output file. Exits with 0 if all patterns are found, -1 otherwise.
+
+Usage:
+    python file_pattern_search.py <file> [--] <pattern> [<pattern> ...]
+"""
+
 import argparse
 from pathlib import Path
 from rich.console import Console
@@ -110,7 +120,6 @@ def main():
     if matched_lines_set:
         for line_number, line in matched_lines_set:
             highlighted_line = highlight_patterns(line, args.patterns)
-            # console.print(f"[yellow]{line_number}: {highlighted_line}[/yellow]")
             console.print(Panel(f"[yellow]{line_number}: {highlighted_line}[/yellow]", title="Matched Lines", expand=False))
     else:
         console.print("[yellow]No matching lines found in the file.[/yellow]")
