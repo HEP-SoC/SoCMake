@@ -1,5 +1,5 @@
 // Verifies that SV_COMPILE_ARGS are forwarded to iverilog.
-// The -DEXTRA_DEF flag must be passed via SV_COMPILE_ARGS for this to pass.
+// The -DEXTRA_DEF flag must be passed either via SV_COMPILE_ARGS or COMPILE_DEFINITIONS for this to pass.
 module tb;
     initial begin
         `ifndef EXTRA_DEF
