@@ -3,11 +3,8 @@ project(iverilog_compile_args NONE)
 
 # --- SV_COMPILE_ARGS ---
 
-add_ip(iverilog_compile_args
-    VENDOR tests
-    LIBRARY iverilog
-    VERSION 1
-    )
+add_ip(tests::iverilog::iverilog_compile_args::1)
+
 ip_sources(${IP} VERILOG ${PROJECT_SOURCE_DIR}/tb.v)
 
 # SV_COMPILE_ARGS are forwarded verbatim to the iverilog command line.
@@ -26,11 +23,8 @@ add_dependencies(check_cdash ${IP}_iverilog)
 
 # --- COMPILE_DEFINITIONS ---
 
-add_ip(iverilog_compile_definitions
-    VENDOR tests
-    LIBRARY iverilog
-    VERSION 1
-    )
+add_ip(tests::iverilog::iverilog_compile_definitions::1)
+
 ip_sources(${IP} VERILOG ${PROJECT_SOURCE_DIR}/tb.v)
 
 ip_compile_definitions(${IP} SYSTEMVERILOG EXTRA_DEF)

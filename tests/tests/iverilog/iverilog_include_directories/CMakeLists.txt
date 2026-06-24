@@ -3,11 +3,8 @@ project(iverilog_include_directories NONE)
 
 # --- INCLUDE_DIRECTORIES ---
 
-add_ip(iverilog_include_directories
-    VENDOR tests
-    LIBRARY iverilog
-    VERSION 1
-    )
+add_ip(tests::iverilog::iverilog_include_directories::1)
+
 ip_sources(${IP} VERILOG ${PROJECT_SOURCE_DIR}/tb_incdirs.v)
 
 # ip_include_directories adds the inc/ path so iverilog receives -I<inc/>.
@@ -25,11 +22,8 @@ add_dependencies(check_cdash ${IP}_iverilog)
 
 # --- HEADER FILE_SET ---
 
-add_ip(iverilog_header_file_set
-    VENDOR tests
-    LIBRARY iverilog
-    VERSION 1
-    )
+add_ip(tests::iverilog::iverilog_header_file_set::1)
+
 ip_sources(${IP}
     VERILOG ${PROJECT_SOURCE_DIR}/tb_incdirs.v
     HEADERS ${PROJECT_SOURCE_DIR}/inc/inc_header.vh
