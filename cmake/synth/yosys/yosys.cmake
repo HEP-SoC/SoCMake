@@ -71,11 +71,11 @@ function(yosys IP_LIB)
 
     # If SV2V argument is passed and the target does not exist, convert SystemVerilog to Verilog
     if(ARG_SV2V AND NOT TARGET ${IP_LIB}_sv2v)
-        message("Yosys ${IP_LIB}: sv2v argument call")
+        socmake_message(STATUS "Yosys ${IP_LIB}: sv2v argument call")
         # Replace the original files with the generated ones
         sv2v(${IP_LIB} REPLACE)
     else()
-        message("Yosys ${IP_LIB}: sv2v argument NOT call")
+        socmake_message(STATUS "Yosys ${IP_LIB}: sv2v argument NOT call")
         # Otherwise use original source files
         get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
         list(REMOVE_DUPLICATES SOURCES)
@@ -87,7 +87,7 @@ function(yosys IP_LIB)
     # Format the string for config file format
     string (REPLACE ";" " " V_FILES_STR "${SOURCES}")
 
-    message("Yosys V_FILES_STR: ${V_FILES_STR}")
+    socmake_message(STATUS "Yosys V_FILES_STR: ${V_FILES_STR}")
 
     # Get the IP compile definitions (e.g., )
     get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG)

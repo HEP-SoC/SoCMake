@@ -3,6 +3,8 @@
 
 include_guard(GLOBAL)
 
+include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
+
 #[[[
 # Macro to print all the item in a given list.
 #
@@ -11,6 +13,6 @@ include_guard(GLOBAL)
 #]]
 macro(print_list LIST)
     foreach(item ${LIST})
-        message(${item})
+        socmake_message(STATUS ${item})
     endforeach()
 endmacro()

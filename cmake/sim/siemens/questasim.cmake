@@ -950,6 +950,6 @@ endfunction()
 # It will print a deprecation message and redirect the arguments used to the questasim SoCMake function.
 #]]
 macro(modelsim)
-    message(DEPRECATION "${Red}modelsim function is deprecated, questasim() is called instead${ColourReset}")
+    socmake_message(DEPRECATION "${Red}modelsim function is deprecated, questasim() is called instead${ColourReset}")
     questasim(${ARGV})
 endmacro()

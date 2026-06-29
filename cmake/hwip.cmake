@@ -909,7 +909,7 @@ function(check_languages LANGUAGE)
         else()
             set(_verbosity WARNING)
         endif()
-        message(${_verbosity} "Language not supported: ${LANGUAGE}")
+        socmake_message(${_verbosity} "Language not supported: ${LANGUAGE}")
     endif()
 endfunction()
 
