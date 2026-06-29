@@ -87,6 +87,42 @@ Hello from Adder!
 [100%] Built target run_adder_iverilog
 ```
 
+## Dependency management
+
+Once you use more advanced SoCMake targets, e.g. simulation, etc., you will have dependency on some external tools. You are free to choose how you provide all the dependencies required for your project. However, to simplify this task, a Nix-based workflow is available using the provided `flake.nix` file.
+
+### Using Nix for a Reproducible Environment
+
+Nix allows you to create a fully reproducible development environment with all necessary tools and dependencies pre-installed.
+
+To use the Nix flow:
+
+1. **Install Nix**
+
+Follow the instructions at https://nixos.org/download.html to install the Nix package manager on your system.
+For more advanced Nix installation scenarios, check the guide at [Nix Installation Guide](https://nixos.wiki/wiki/Nix_Installation_Guide#Single-user_install).
+ You can also download a statically linked *nix* binary, useful e.g. in HPC environments: [Static Nix Binary](https://discourse.nixos.org/t/where-can-i-get-a-statically-built-nix/34253/15).
+
+2. **Enter the development environment**
+
+In the project directory (where `flake.nix` is located), run:
+
+```shell
+$ nix --experimental-features 'nix-command flakes' develop
+```
+
+As you can see, we use [Nix flakes](https://nixos.wiki/wiki/Flakes). Nix Flakes can be enabled permanently in the configuration file ([link](https://nixos.wiki/wiki/Flakes)), and then the command is simple:
+
+```shell
+$ nix develop
+```
+
+3. **Start working**
+
+You will be dropped into a shell with all required tools (such as `cmake`, `peakrdl`, `verible`, `verilator`, etc.) available and ready to use.
+
+This approach ensures that everyone working on the project uses the same versions of all dependencies, making builds and development more reliable and reproducible.
+
 Examples
 --------
 
