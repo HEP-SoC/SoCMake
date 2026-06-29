@@ -28,7 +28,8 @@ jobs:
             cmake/ CMakeLists.txt SoCMakeConfig.cmake \
             | grep -vE 'socmake_message\s*\(' \
             | grep -vE ':[0-9]+:\s*#' \
-            | grep -v 'cmake/utils/socmake_message.cmake')
+            | grep -v 'cmake/utils/socmake_message.cmake' \
+            || true)
 
           if [ -n "$violations" ]; then
             echo "ERROR: bare message() calls found — use socmake_message() instead:"
