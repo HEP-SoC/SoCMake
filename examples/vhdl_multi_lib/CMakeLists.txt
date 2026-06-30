@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.27)
-project(simple_mixed_language NONE)
+project(vhdl_multi_lib NONE)
 
 include("../../SoCMakeConfig.cmake")
 
@@ -9,20 +9,20 @@ if(SIMULATOR STREQUAL "all")
 endif()
 
 add_ip(tb
-    DESCRIPTION "Simple verilog testbench")
+    DESCRIPTION "Testbench for multi-library counter")
 
-ip_sources(${IP} VERILOG
-    tb.v)
+ip_sources(${IP} VHDL
+    tb.vhdl)
 
-add_subdirectory(adder)
-ip_link(${IP} adder)
+add_subdirectory(gates)
+add_subdirectory(counter)
+ip_link(${IP} acme::counter_lib::counter)
 
 if(SIMULATOR STREQUAL "questa" OR ALL_SIMS)
     questasim(${IP})
 endif()
 
 if(SIMULATOR STREQUAL "nvc" OR ALL_SIMS)
-    message(WARNING "NVC does not currently support SystemVerilog on Top")
     nvc(${IP})
 endif()
 
