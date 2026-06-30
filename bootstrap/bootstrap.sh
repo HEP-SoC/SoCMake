@@ -2,8 +2,8 @@
 set -e
 
 # Configuration
-# TODO change develop to a fixed TAG
-SOCMAKE_VERSION="${SOCMAKE_VERSION:-develop}"
+# TODO keep the fixed TAG up to date.
+SOCMAKE_VERSION="${SOCMAKE_VERSION:-v1.0.0}"
 INSTALL_DIR="${HOME}/.local/lib/cmake/socmake"
 REPO_URL="${SOCMAKE_REPO_URL:-https://raw.githubusercontent.com/HEP-SoC/SoCMake}"
 

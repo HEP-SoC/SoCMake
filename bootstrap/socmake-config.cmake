@@ -1,5 +1,5 @@
 set(_socmake_version "${${CMAKE_FIND_PACKAGE_NAME}_FIND_VERSION}")
-set(_socmake_git_ref "develop")
+set(_socmake_git_ref "master")
 set(_socmake_git_url "https://github.com/HEP-SoC/SoCMake.git")
 
 if(_socmake_version)
