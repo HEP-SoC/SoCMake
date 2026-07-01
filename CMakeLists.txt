@@ -1,4 +1,3 @@
-
 cmake_minimum_required(VERSION 3.27)
 
 # Version is set first to reuse it across the SoCMake project
@@ -6,10 +5,11 @@ cmake_minimum_required(VERSION 3.27)
 # and build the documentation
 set(SOCMAKE_VERSION 0.2.18)
 
-project(SoCMake
-        VERSION ${SOCMAKE_VERSION}
-        DESCRIPTION "SoCMake building system to generate SoC platforms."
-        LANGUAGES NONE
+project(
+    SoCMake
+    VERSION ${SOCMAKE_VERSION}
+    DESCRIPTION "SoCMake building system to generate SoC platforms."
+    LANGUAGES NONE
 )
 
 include(${CMAKE_CURRENT_LIST_DIR}/SoCMakeConfig.cmake)

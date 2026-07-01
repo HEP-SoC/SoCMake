@@ -19,7 +19,12 @@ function(__cmake_to_json_array OUTVAR)
     if(ARGN)
         set(val_index 0)
         foreach(val ${ARGN})
-            string(JSON values_array SET "${values_array}" "${val_index}" "\"${val}\"")
+            string(
+                JSON values_array
+                SET "${values_array}"
+                "${val_index}"
+                "\"${val}\""
+            )
             math(EXPR val_index "${val_index} + 1")
         endforeach()
     endif()
@@ -56,33 +61,45 @@ function(_create_help_target HELP_NAME JQ_FILE OUTFILE GROUP_NAME)
         return()
     endif()
 
-    set(cmd ${JQ_EXECUTABLE} -L ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -r
-               -f ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${JQ_FILE} ${outfile})
+    set(cmd
+        ${JQ_EXECUTABLE}
+        -L
+        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
+        -r
+        -f
+        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${JQ_FILE}
+        ${outfile}
+    )
     set(DESCRIPTION "Help for ${HELP_NAME}")
-    add_custom_target(${target}
-        COMMAND ${cmd} --argjson termwidth \"$$\(tput cols\)\" --arg group \"${GROUP_NAME}\"
+    add_custom_target(
+        ${target}
+        COMMAND
+            ${cmd} --argjson termwidth \"$$\(tput cols\)\" --arg group
+            \"${GROUP_NAME}\"
         COMMENT ${DESCRIPTION}
         USES_TERMINAL
-        )
+    )
     set_property(TARGET ${target} PROPERTY DESCRIPTION ${DESCRIPTION})
     set_property(TARGET ${target} APPEND PROPERTY SOCMAKE_GROUPS help)
 
     if(ARG_PRINT_ON_CONF)
-        execute_process(COMMAND tput cols
+        execute_process(
+            COMMAND tput cols
             OUTPUT_VARIABLE TERM_WIDTH
             OUTPUT_STRIP_TRAILING_WHITESPACE
-            RESULT_VARIABLE tput_result)
+            RESULT_VARIABLE tput_result
+        )
         if(tput_result)
             socmake_message(WARNING "tput failed with code ${tput_result}, using default width")
             set(TERM_WIDTH 150)
         endif()
 
         execute_process(
-            COMMAND ${cmd} --argjson termwidth ${TERM_WIDTH} --arg group "${GROUP_NAME}"
+            COMMAND
+                ${cmd} --argjson termwidth ${TERM_WIDTH} --arg group
+                "${GROUP_NAME}"
         )
     endif()
-
-
 endfunction()
 
 #[[[
@@ -109,11 +126,11 @@ function(help_options)
     if(NOT ALL_OPTIONS)
         return()
     endif()
-    
+
     # Start with empty options array
     set(options_array "[]")
     set(index 0)
-    
+
     foreach(option ${ALL_OPTIONS})
         get_property(advanced GLOBAL PROPERTY SOCMAKE_${option}_ADVANCED)
         get_property(type GLOBAL PROPERTY SOCMAKE_${option}_TYPE)
@@ -127,17 +144,27 @@ function(help_options)
         string(JSON option_obj SET "${option_obj}" "type" "\"${type}\"")
         string(JSON option_obj SET "${option_obj}" "current" "\"${${option}}\"")
         string(JSON option_obj SET "${option_obj}" "default" "\"${default}\"")
-        string(JSON option_obj SET "${option_obj}" "description" "\"${description}\"")
+        string(
+            JSON option_obj
+            SET "${option_obj}"
+            "description"
+            "\"${description}\""
+        )
         string(JSON option_obj SET "${option_obj}" "advanced" "\"${advanced}\"")
         __cmake_to_json_array(values_json ${values})
         string(JSON option_obj SET "${option_obj}" "values" "${values_json}")
         __cmake_to_json_array(groups_json ${groups})
         string(JSON option_obj SET "${option_obj}" "groups" "${groups_json}")
 
-        string(JSON options_array SET "${options_array}" "${index}" "${option_obj}")
+        string(
+            JSON options_array
+            SET "${options_array}"
+            "${index}"
+            "${option_obj}"
+        )
         math(EXPR index "${index} + 1")
     endforeach()
-    
+
     set(json_output "{}")
     string(JSON json_output SET "${json_output}" "options" "${options_array}")
 
@@ -146,7 +173,6 @@ function(help_options)
     file(WRITE ${outfile} ${json_output})
 
     _create_help_target("options" "option.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
-
 endfunction()
 
 #[[[
@@ -254,21 +280,30 @@ function(help_targets)
         string(JSON target_obj SET "${target_obj}" "groups" "${groups_json}")
 
         string(JSON target_obj SET "${target_obj}" "name" "\"${target}\"")
-        string(JSON target_obj SET "${target_obj}" "description" "\"${description}\"")
-        string(JSON targets_array SET "${targets_array}" "${index}" "${target_obj}")
+        string(
+            JSON target_obj
+            SET "${target_obj}"
+            "description"
+            "\"${description}\""
+        )
+        string(
+            JSON targets_array
+            SET "${targets_array}"
+            "${index}"
+            "${target_obj}"
+        )
         math(EXPR index "${index} + 1")
     endforeach()
 
     set(json_output "{}")
     string(JSON json_output SET "${json_output}" "targets" "${targets_array}")
     file(WRITE ${outfile} ${json_output})
-
 endfunction()
 
 #[[[
 # This functions create a target, to display an help message for targets from a specific group, the pattern or a list needs to be given.
 #
-# :param GROUP_NAME: Name of the group for the help message 
+# :param GROUP_NAME: Name of the group for the help message
 # :type GROUP_NAME: string
 #
 # **Keyword Arguments**
@@ -287,7 +322,13 @@ endfunction()
 # :type HELP_TARGET_NAME: string
 #]]
 function(help_custom_targets GROUP_NAME)
-    cmake_parse_arguments(ARG "DONT_MAKE_GROUP;PRINT_ON_CONF" "PATTERN;DESCRIPTION;HELP_TARGET_NAME" "LIST" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "DONT_MAKE_GROUP;PRINT_ON_CONF"
+        "PATTERN;DESCRIPTION;HELP_TARGET_NAME"
+        "LIST"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -325,7 +366,7 @@ endfunction()
 #[[[
 # This functions create a target, to display an help message for IPs from a specific group, the pattern or a list needs to be given.
 #
-# :param GROUP_NAME: Name of the group for the help message 
+# :param GROUP_NAME: Name of the group for the help message
 # :type GROUP_NAME: string
 #
 # **Keyword Arguments**
@@ -340,7 +381,13 @@ endfunction()
 # :type LIST: list[string]
 #]]
 function(help_custom_ips GROUP_NAME)
-    cmake_parse_arguments(ARG "PRINT_ON_CONF" "PATTERN;DESCRIPTION" "LIST" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "PRINT_ON_CONF"
+        "PATTERN;DESCRIPTION"
+        "LIST"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -365,13 +412,12 @@ function(help_custom_ips GROUP_NAME)
     set(outfile ${CMAKE_BINARY_DIR}/.help/help_ips.json)
 
     _create_help_target("${GROUP_NAME}" "ip.jq" ${outfile} "${GROUP_NAME}" ${ARG_PRINT_ON_CONF})
-
 endfunction()
 
 #[[[
 # # This functions create a target, to display an help message for options from a specific group, the pattern or a list needs to be given.
 #
-# :param GROUP_NAME: Name of the group for the help message 
+# :param GROUP_NAME: Name of the group for the help message
 # :type GROUP_NAME: string
 #
 # **Keyword Arguments**
@@ -386,7 +432,13 @@ endfunction()
 # :type LIST: list[string]
 #]]
 function(help_custom_options GROUP_NAME)
-    cmake_parse_arguments(ARG "PRINT_ON_CONF" "PATTERN;DESCRIPTION" "LIST" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "PRINT_ON_CONF"
+        "PATTERN;DESCRIPTION"
+        "LIST"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -411,7 +463,6 @@ function(help_custom_options GROUP_NAME)
     set(outfile ${CMAKE_BINARY_DIR}/.help/help_options.json)
 
     _create_help_target("${GROUP_NAME}" "option.jq" ${outfile} "${GROUP_NAME}" ${ARG_PRINT_ON_CONF})
-
 endfunction()
 
 #[[[
@@ -438,7 +489,6 @@ function(help)
 
     get_property(ALL_OPTIONS GLOBAL PROPERTY SOCMAKE_OPTIONS)
 
-
     help_ips(${ARG_PRINT_ON_CONF})
     help_options(${ARG_PRINT_ON_CONF})
 
@@ -448,9 +498,6 @@ function(help)
 
     # get_property(HELP_TARGETS GLOBAL PROPERTY SOCMAKE_HELP_TARGETS)
     get_all_targets_of_group(help_targets "help")
-    
-    add_custom_target(help_all
-        DEPENDS ${help_targets} help_ips help_options
-        )
 
+    add_custom_target(help_all DEPENDS ${help_targets} help_ips help_options)
 endfunction()

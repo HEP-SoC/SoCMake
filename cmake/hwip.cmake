@@ -12,7 +12,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_message.cmake")
 # `add_library() <https://cmake.org/cmake/help/latest/command/add_library.html>`_ function.
 # It generates the library name using the vendor, library, name, and version (VLNV) information passed
 # in arguments (see create_ip_vlnv()). It creates two alias libraries to the default <vendor>__<library>__<name>__<version>:
-# 
+#
 # * <vendor>::<library>::<name>::<version> ('__' replaced by '::')
 # * <vendor>::<library>::<name> (short name without the version)
 #
@@ -36,7 +36,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_message.cmake")
 # Short form::
 #
 #   add_ip(vendor2::lib2::ip2::1.2.2)
-# 
+#
 # In short form only the full VLNV format is accepted
 #
 # :param IP_NAME: The name of the IP.
@@ -54,16 +54,27 @@ include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_message.cmake")
 # :type DESCRIPTION: string
 #]]
 function(add_ip IP_NAME)
-    cmake_parse_arguments(ARG "NO_ALIAS" "VENDOR;LIBRARY;VERSION;DESCRIPTION" "" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "NO_ALIAS"
+        "VENDOR;LIBRARY;VERSION;DESCRIPTION"
+        ""
+        ${ARGN}
+    )
 
     # Vendor and library arguments are expected at the minimum
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
-                            "${ARG_UNPARSED_ARGUMENTS}")
+                            "${ARG_UNPARSED_ARGUMENTS}"
+        )
     endif()
-    
+
     # If none of optional arguments VENDOR, LIBRARY, VERSION are passed expect to receive VLNV format in IP_NAME like vendor::lib::ip::0.0.1
-    if(NOT DEFINED ARG_VENDOR AND NOT DEFINED ARG_LIBRARY AND NOT DEFINED ARG_VERSION)
+    if(
+        NOT DEFINED ARG_VENDOR
+        AND NOT DEFINED ARG_LIBRARY
+        AND NOT DEFINED ARG_VERSION
+    )
         unset(ARG_VENDOR)
         parse_ip_vlnv(${IP_NAME} VENDOR LIBRARY IP_NAME VERSION)
         set(ARG_VENDOR ${VENDOR})
@@ -72,7 +83,7 @@ function(add_ip IP_NAME)
     endif()
     # Create the IP unique name using VLNV information
     create_ip_vlnv(IP_LIB ${IP_NAME} VENDOR "${ARG_VENDOR}" LIBRARY "${ARG_LIBRARY}" VERSION "${ARG_VERSION}")
- 
+
     if(NOT TARGET ${IP_LIB})
         add_library(${IP_LIB} INTERFACE)
 
@@ -182,7 +193,14 @@ endfunction()
 # :param VERSION: Output variable name that receives the version field (e.g. ``1.0.13``).
 # :type VERSION: string
 #]]
-function(parse_ip_vlnv IP_VLNV VENDOR LIBRARY IP_NAME VERSION)
+function(
+    parse_ip_vlnv
+    IP_VLNV
+    VENDOR
+    LIBRARY
+    IP_NAME
+    VERSION
+)
     cmake_parse_arguments(ARG "" "" "" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -193,7 +211,7 @@ function(parse_ip_vlnv IP_VLNV VENDOR LIBRARY IP_NAME VERSION)
     # Remove empty list elements in case something like vendor::::ip::1.2.3 is passed
     list(REMOVE_ITEM _ip_tokens "")
 
-    # Raise an error if there are different than 4 tokens provided (`add_ip(vendor::lib::ip::0.0.1)`), unless its only 1 (`add_ip(ip)`) 
+    # Raise an error if there are different than 4 tokens provided (`add_ip(vendor::lib::ip::0.0.1)`), unless its only 1 (`add_ip(ip)`)
     list(LENGTH _ip_tokens _token_cnt)
 
     # Its alowed for IP_VLNV to have 4 tokens (FULL) `add_ip(vendor::lib::ip::0.0.1)`
@@ -207,29 +225,28 @@ function(parse_ip_vlnv IP_VLNV VENDOR LIBRARY IP_NAME VERSION)
         set(${LIBRARY} ${_l_val} PARENT_SCOPE)
         set(${IP_NAME} ${_n_val} PARENT_SCOPE)
         set(${VERSION} ${_r_val} PARENT_SCOPE)
-    # Its alowed for IP_VLNV to have 1 token (SHORT) `add_ip(ip)`
+        # Its alowed for IP_VLNV to have 1 token (SHORT) `add_ip(ip)`
     elseif(_token_cnt EQUAL 1)
         set(${IP_NAME} ${IP_VLNV} PARENT_SCOPE)
         unset(${VENDOR} PARENT_SCOPE)
         unset(${LIBRARY} PARENT_SCOPE)
         unset(${VERSION} PARENT_SCOPE)
-    # Anything else is not allowed and will throw an error
+        # Anything else is not allowed and will throw an error
     else()
         socmake_message(FATAL_ERROR "Please specify full VLNV format for IP: ${IP_VLNV}")
     endif()
 endfunction()
-
 
 #[[[
 # This function adds source file(s) to an IP target.
 #
 # This functions adds source file(s) under a file set to an IP target as a property named after the name of the file set, type of source file(s)
 # and the suffix '_SOURCES'. The property is of the following format <LANGUAGE>_<FILE_SET>_SOURCES, in case FILE_SET is not set, DEFAULT is used.
-# If source files of the same type already exist they are appended to the existing list. 
+# If source files of the same type already exist they are appended to the existing list.
 # The source files can also be prepended with the optional keyword PREPEND. The source
 # files are later used to create the list of files to be compiled (e.g., by a simulator) by a tool to
 # execute its tasks. The source files are passed as a list after the parameters and keywords.
-# 
+#
 # Relative file paths are accepted and will be converted to absolute, relative to ${CMAKE_CURRENT_SOURCE_DIR}
 #
 # :param IP_LIB: The target IP library.
@@ -297,9 +314,15 @@ function(ip_sources IP_LIB LANGUAGE)
         endif()
     endif()
 
-    set_property(TARGET ${_reallib} ${append_arg} PROPERTY ${sources_property} ${_sources})
+    set_property(
+        TARGET ${_reallib} ${append_arg}
+        PROPERTY ${sources_property} ${_sources}
+    )
     if(ARG_HEADERS)
-        set_property(TARGET ${_reallib} ${append_arg} PROPERTY ${headers_property} ${_headers})
+        set_property(
+            TARGET ${_reallib} ${append_arg}
+            PROPERTY ${headers_property} ${_headers}
+        )
         foreach(header ${_headers})
             cmake_path(GET header PARENT_PATH header_incdir)
             ip_include_directories(${IP_LIB} ${LANGUAGE} FILE_SET ${ARG_FILE_SET} ${header_incdir})
@@ -344,7 +367,7 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
         set(property_type HEADERS)
         list(REMOVE_ITEM ARGN HEADERS)
     endif()
-    
+
     # In case FILE_SETS function argument is not passed, return all file sets that were defined in IP or sub IPs
     # Otherwise return only files in listed in FILE_SETS argument
     get_ip_property(all_filesets ${_reallib} FILE_SETS ${_no_deps})
@@ -412,7 +435,7 @@ endfunction()
 #
 # **Keyword Arguments**
 #
-# :param FILE_SET: Specify to which file set to associate the listed include directories 
+# :param FILE_SET: Specify to which file set to associate the listed include directories
 # :type FILE_SET: string
 #]]
 function(ip_include_directories IP_LIB LANGUAGE)
@@ -439,7 +462,11 @@ function(ip_include_directories IP_LIB LANGUAGE)
     # Convert all listed files to absolute paths relative to ${CMAKE_CURRENT_SOURCE_DIR}
     convert_paths_to_absolute(dir_list ${ARGN})
     # Append the new include directories to the exsiting ones
-    set_property(TARGET ${_reallib} APPEND PROPERTY ${incdir_property} ${dir_list})
+    set_property(
+        TARGET ${_reallib}
+        APPEND
+        PROPERTY ${incdir_property} ${dir_list}
+    )
 endfunction()
 
 #[[[
@@ -515,7 +542,6 @@ endfunction()
 #
 # The allowed comparisons are ==, >=, >, <=, <, !=
 function(__compare_version RESULT COMPARE_LHS RELATION COMPARE_RHS)
-
     unset(NEGATION)
     if(RELATION STREQUAL ">=")
         set(RELATION VERSION_GREATER_EQUAL)
@@ -559,19 +585,23 @@ function(__ip_link_check_version OUT_IP_WO_VERSION IP_LIB)
     string(SUBSTRING "${ip_lib_str}" 0 ${first_found} ip_lib_wo_version)
     set(${OUT_IP_WO_VERSION} ${ip_lib_wo_version} PARENT_SCOPE)
 
-    string(REPLACE "${ip_lib_wo_version}" "" version_ranges "${ip_lib_str}" )
+    string(REPLACE "${ip_lib_wo_version}" "" version_ranges "${ip_lib_str}")
     string(REPLACE "," ";" version_ranges "${version_ranges}")
 
     get_target_property(ip_version ${ip_lib_wo_version} VERSION)
 
     set(version_satisfied TRUE)
     foreach(version_range ${version_ranges})
-        string(REGEX MATCH "^(!=|>=|<=|==|<|>)([0-9]+\.?[0-9]*\.?[0-9]*)$" version_ranges "${version_range}")
+        string(
+            REGEX MATCH "^(!=|>=|<=|==|<|>)([0-9]+\.?[0-9]*\.?[0-9]*)$"
+            version_ranges
+            "${version_range}"
+        )
 
         if(NOT CMAKE_MATCH_1 AND NOT CMAKE_MATCH_2)
             socmake_message(FATAL_ERROR "Malformed version condition ${version_range}")
         endif()
-        
+
         __compare_version(satisfies "${ip_version}" "${CMAKE_MATCH_1}" "${CMAKE_MATCH_2}")
         if(NOT satisfies)
             set(version_satisfied FALSE)
@@ -647,7 +677,6 @@ function(ip_link IP_LIB)
             add_dependencies(${_reallib} ${lib})
         endif()
     endforeach()
-
 endfunction()
 
 #[[[
@@ -710,7 +739,7 @@ endfunction()
 #
 # **Keyword Arguments**
 #
-# :param FILE_SET: Specify to which file set to associate the listed include directories 
+# :param FILE_SET: Specify to which file set to associate the listed include directories
 # :type FILE_SET: string
 #
 #]]
@@ -742,9 +771,12 @@ function(ip_compile_definitions IP_LIB LANGUAGE)
     list(REMOVE_ITEM __comp_defs "")
 
     # Append the new compile definitions to the exsiting ones
-    set_property(TARGET ${_reallib} APPEND PROPERTY ${comp_def_property} ${__comp_defs})
+    set_property(
+        TARGET ${_reallib}
+        APPEND
+        PROPERTY ${comp_def_property} ${__comp_defs}
+    )
 endfunction()
-
 
 #[[[
 # Retrieve compile definitions for one or more languages from IP_LIB and its dependencies.
@@ -797,7 +829,6 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
         endforeach()
     endif()
 
-
     # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
     list(REMOVE_ITEM ARGN NO_DEPS)
     unset(COMPDEFS)
@@ -841,7 +872,11 @@ function(get_ip_links OUTVAR IP_LIB)
     alias_dereference(_reallib ${IP_LIB})
 
     if(ARG_NO_DEPS)
-        get_property(__flat_graph TARGET ${_reallib} PROPERTY INTERFACE_LINK_LIBRARIES)
+        get_property(
+            __flat_graph
+            TARGET ${_reallib}
+            PROPERTY INTERFACE_LINK_LIBRARIES
+        )
     else()
         flatten_graph_if_allowed(${_reallib})
 
@@ -853,7 +888,7 @@ endfunction()
 
 #[[[
 # Add languages to the list of supported languages
-# There is no special meaning of language being supported by SoCMake, 
+# There is no special meaning of language being supported by SoCMake,
 # other than not issuing a warning message if an unsupported language is detected.
 #
 # :param ARGN: list of languages to add
@@ -872,17 +907,29 @@ endfunction()
 # :type OUTVAR: list[string]
 #]]
 function(get_socmake_languages OUTVAR)
-    get_property(additional_languages GLOBAL PROPERTY SOCMAKE_ADDITIONAL_LANGUAGES)
+    get_property(
+        additional_languages
+        GLOBAL
+        PROPERTY SOCMAKE_ADDITIONAL_LANGUAGES
+    )
 
     set(languages
-            SYSTEMVERILOG SYSTEMVERILOG_SIM SYSTEMVERILOG_FPGA
-            VERILOG VERILOG_SIM VERILOG_FPGA
-            VHDL VHDL_SIM VHDL_FPGA
-            SYSTEMRDL SYSTEMRDL_SOCGEN
-            IPXACT
-            VERILATOR_CFG
-            ${SOCMAKE_ADDITIONAL_LANGUAGES}
-            ${additional_languages})
+        SYSTEMVERILOG
+        SYSTEMVERILOG_SIM
+        SYSTEMVERILOG_FPGA
+        VERILOG
+        VERILOG_SIM
+        VERILOG_FPGA
+        VHDL
+        VHDL_SIM
+        VHDL_FPGA
+        SYSTEMRDL
+        SYSTEMRDL_SOCGEN
+        IPXACT
+        VERILATOR_CFG
+        ${SOCMAKE_ADDITIONAL_LANGUAGES}
+        ${additional_languages}
+    )
 
     set(${OUTVAR} ${languages} PARENT_SCOPE)
 endfunction()
@@ -902,7 +949,7 @@ function(check_languages LANGUAGE)
     # The default supported languages
     # The user can add addition languages using the SOCMAKE_ADDITIONAL_LANGUAGES variable and global property
     get_socmake_languages(SOCMAKE_SUPPORTED_LANGUAGES)
-    
+
     if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
         if(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL)
             set(_verbosity FATAL_ERROR)
@@ -913,7 +960,6 @@ function(check_languages LANGUAGE)
     endif()
 endfunction()
 
-
 #[[[
 # This macro wraps the find_package() calls.
 #
@@ -922,7 +968,7 @@ endfunction()
 #
 # Use it as following:
 # find_package(Vendor::Library::Name REQUIRED)
-# 
+#
 # This will then search for a file called "Vendor__Library__NameConfig.cmake" or "vendor__library__name-config.cmake"
 # It is recommended to place the directory of this file in "CMAKE_PREFIX_PATH" variable, to facilitate finding it
 #
@@ -930,10 +976,9 @@ endfunction()
 # :type IP_LIB: string
 #]]
 macro(find_ip IP_LIB)
-    string(REPLACE ":" "_" ip_lib_sanitized "${IP_LIB}" )
+    string(REPLACE ":" "_" ip_lib_sanitized "${IP_LIB}")
     find_package("${ip_lib_sanitized}" CONFIG ${ARGN})
 endmacro()
-
 
 #[[[
 # This function combines ip_link() and find_ip() functions.

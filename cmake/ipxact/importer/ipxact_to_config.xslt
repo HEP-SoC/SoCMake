@@ -87,7 +87,7 @@
           <xsl:text>&#10;</xsl:text>
           <xsl:for-each select="$dep_nodes">
               <xsl:if test="generate-id() = generate-id(key('deps', concat(@vendor, '|', @library, '|', @name))[1])">
-                  <xsl:text>	</xsl:text>
+                  <xsl:text>    </xsl:text>
                   <xsl:value-of select="concat(@vendor, '::', @library, '::', @name)"/>
                   <xsl:text>&#10;</xsl:text>
               </xsl:if>

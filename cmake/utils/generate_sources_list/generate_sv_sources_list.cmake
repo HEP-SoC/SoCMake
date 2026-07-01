@@ -22,84 +22,92 @@ include("${CMAKE_CURRENT_LIST_DIR}/../socmake_message.cmake")
 # :type SLANG_ARGS: list
 #]]
 function(generate_sv_sources_list IP_LIB)
-  cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE;SLANG_ARGS" "" ${ARGN})
-  if(ARG_UNPARSED_ARGUMENTS)
-    socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-  endif()
-
-  # Find slang executable
-  find_program(SLANG_EXECUTABLE slang)
-  if(NOT SLANG_EXECUTABLE)
-    if(NOT DEFINED ENV{SLANG_EXECUTABLE})
-        socmake_message(WARNING "slang executable not found! Please install slang or set SLANG_EXECUTABLE.")
-      else()
-        socmake_message(STATUS "slang executable found using SLANG_EXECUTABLE env variable: $ENV{SLANG_EXECUTABLE}")
-        set(SLANG_EXECUTABLE $ENV{SLANG_EXECUTABLE})
+    cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE;SLANG_ARGS" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
-  endif()
 
-  # Initialize variables
-  set(INCDIR_ARG)
-  set(TOP_MODULE_ARG)
-  set(USER_SLANG_ARGS)
+    # Find slang executable
+    find_program(SLANG_EXECUTABLE slang)
+    if(NOT SLANG_EXECUTABLE)
+        if(NOT DEFINED ENV{SLANG_EXECUTABLE})
+            socmake_message(WARNING "slang executable not found! Please install slang or set SLANG_EXECUTABLE.")
+        else()
+            socmake_message(STATUS "slang executable found using SLANG_EXECUTABLE env variable: $ENV{SLANG_EXECUTABLE}")
+            set(SLANG_EXECUTABLE $ENV{SLANG_EXECUTABLE})
+        endif()
+    endif()
 
-  include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
-  alias_dereference(IP_LIB ${IP_LIB})
+    # Initialize variables
+    set(INCDIR_ARG)
+    set(TOP_MODULE_ARG)
+    set(USER_SLANG_ARGS)
 
-  if(NOT ARG_OUTDIR)
-    set(OUTDIR ${CMAKE_BINARY_DIR}/ip_sources)
-  else()
-    set(OUTDIR ${ARG_OUTDIR})
-  endif()
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
+    alias_dereference(IP_LIB ${IP_LIB})
 
-  # If a top module is provided, only modules in its hierarchy are included.
-  if(ARG_TOP_MODULE)
-    list(APPEND TOP_MODULE_ARG --top ${ARG_TOP_MODULE})
-  endif()
+    if(NOT ARG_OUTDIR)
+        set(OUTDIR ${CMAKE_BINARY_DIR}/ip_sources)
+    else()
+        set(OUTDIR ${ARG_OUTDIR})
+    endif()
 
-  # Get the list of RTL sources
-  get_ip_sources(RTL_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
-  get_ip_include_directories(RTL_INCDIRS ${IP_LIB} SYSTEMVERILOG)
-  foreach(_i ${RTL_INCDIRS})
-    list(APPEND INCDIR_ARG -I${_i})
-  endforeach()
+    # If a top module is provided, only modules in its hierarchy are included.
+    if(ARG_TOP_MODULE)
+        list(APPEND TOP_MODULE_ARG --top ${ARG_TOP_MODULE})
+    endif()
 
-  if(ARG_SLANG_ARGS)
-    list(APPEND USER_SLANG_ARGS ${ARG_SLANG_ARGS})
-  endif()
+    # Get the list of RTL sources
+    get_ip_sources(RTL_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
+    get_ip_include_directories(RTL_INCDIRS ${IP_LIB} SYSTEMVERILOG)
+    foreach(_i ${RTL_INCDIRS})
+        list(APPEND INCDIR_ARG -I${_i})
+    endforeach()
 
-  set(RTL_FILE ${OUTDIR}/rtl_sources.f)
-  set(INCLUDE_FILE ${OUTDIR}/include_sources.f)
-  file(MAKE_DIRECTORY ${OUTDIR})
+    if(ARG_SLANG_ARGS)
+        list(APPEND USER_SLANG_ARGS ${ARG_SLANG_ARGS})
+    endif()
 
-  set(SLANG_CMD
-    ${SLANG_EXECUTABLE}
-    --depfile-trim --Mmodule ${RTL_FILE} --Minclude ${INCLUDE_FILE}
-    ${TOP_MODULE_ARG}
-    ${INCDIR_ARG}
-    ${USER_SLANG_ARGS}
-    ${RTL_SOURCES}
-  )
+    set(RTL_FILE ${OUTDIR}/rtl_sources.f)
+    set(INCLUDE_FILE ${OUTDIR}/include_sources.f)
+    file(MAKE_DIRECTORY ${OUTDIR})
 
-  get_ip_links(DEPENDENT_TARGETS ${IP_LIB})
+    set(SLANG_CMD
+        ${SLANG_EXECUTABLE}
+        --depfile-trim
+        --Mmodule
+        ${RTL_FILE}
+        --Minclude
+        ${INCLUDE_FILE}
+        ${TOP_MODULE_ARG}
+        ${INCDIR_ARG}
+        ${USER_SLANG_ARGS}
+        ${RTL_SOURCES}
+    )
 
-  add_custom_command(
-    OUTPUT ${RTL_FILE} ${INCLUDE_FILE}
-    COMMAND ${SLANG_CMD}
-    DEPENDS ${DEPENDENT_TARGETS} ${RTL_SOURCES}
-    COMMENT "Generating list of the RTL source files in ${OUTDIR}"
-    VERBATIM
-  )
+    get_ip_links(DEPENDENT_TARGETS ${IP_LIB})
 
-  set(DESCRIPTION "Generate dependency-ordered Verilog/SystemVerilog source list for ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
+    add_custom_command(
+        OUTPUT ${RTL_FILE} ${INCLUDE_FILE}
+        COMMAND ${SLANG_CMD}
+        DEPENDS ${DEPENDENT_TARGETS} ${RTL_SOURCES}
+        COMMENT "Generating list of the RTL source files in ${OUTDIR}"
+        VERBATIM
+    )
 
-  add_custom_target(
-    ${IP_LIB}_source_list
-    DEPENDS ${RTL_FILE} ${INCLUDE_FILE}
-    COMMENT ${DESCRIPTION}
-    VERBATIM
-  )
+    set(DESCRIPTION
+        "Generate dependency-ordered Verilog/SystemVerilog source list for ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}"
+    )
 
-  set_property(TARGET ${IP_LIB}_source_list PROPERTY DESCRIPTION ${DESCRIPTION})
+    add_custom_target(
+        ${IP_LIB}_source_list
+        DEPENDS ${RTL_FILE} ${INCLUDE_FILE}
+        COMMENT ${DESCRIPTION}
+        VERBATIM
+    )
 
+    set_property(
+        TARGET ${IP_LIB}_source_list
+        PROPERTY DESCRIPTION ${DESCRIPTION}
+    )
 endfunction()

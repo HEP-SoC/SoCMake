@@ -9,7 +9,7 @@ add_ip(regblock_ip)
 
 ip_sources(${IP} SYSTEMRDL
     ${CMAKE_CURRENT_LIST_DIR}/ip.rdl
-    )
+)
 
 peakrdl_regblock(${IP})
 
@@ -23,7 +23,7 @@ add_test_build_commands_match_patterns(${IP}_peakrdl_regblock
     "--cpuif apb3-flat"
     "-o ${PROJECT_BINARY_DIR}/${IP}_peakrdl_regblock"
     "${CMAKE_CURRENT_LIST_DIR}/ip.rdl"
-    )
+)
 set_property(TEST ${CTEST_NAME} PROPERTY LABELS peakrdl)
 
 ##### Test with mutliple arguments
@@ -31,7 +31,7 @@ add_ip(regblock_ip2)
 
 ip_sources(${IP} SYSTEMRDL
     ${CMAKE_CURRENT_LIST_DIR}/ip2.rdl
-    )
+)
 
 ip_link(regblock_ip2 regblock_ip)
 
@@ -42,7 +42,7 @@ peakrdl_regblock(${IP}
     RESET arst_n
     ARGS --addr-width 8
          --rt-read-response
-    )
+)
 
 include(CTest)
 enable_testing()
@@ -57,5 +57,5 @@ add_test_build_commands_match_patterns(${IP}_peakrdl_regblock
     "--rt-read-response"
     "-o ${PROJECT_BINARY_DIR}/ip2_regblock"
     "${CMAKE_CURRENT_LIST_DIR}/ip.rdl ${CMAKE_CURRENT_LIST_DIR}/ip2.rdl" # Keep them in single string to enforce order
-    )
+)
 set_property(TEST ${CTEST_NAME} PROPERTY LABELS peakrdl)

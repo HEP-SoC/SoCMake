@@ -54,15 +54,23 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :type FILE_SETS: list[string]
 #]]
 function(verilator IP_LIB)
-    set(OPTIONS "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN;TIMING;NO_RUN_TARGET")
-    set(ONE_PARAM_ARGS "PREFIX;TOP_MODULE;THREADS;DIRECTORY;EXECUTABLE_NAME;RUN_TARGET_NAME")
-    set(MULTI_PARAM_ARGS "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL;RUN_ARGS;FILE_SETS")
+    set(OPTIONS
+        "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN;TIMING;NO_RUN_TARGET"
+    )
+    set(ONE_PARAM_ARGS
+        "PREFIX;TOP_MODULE;THREADS;DIRECTORY;EXECUTABLE_NAME;RUN_TARGET_NAME"
+    )
+    set(MULTI_PARAM_ARGS
+        "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL;RUN_ARGS;FILE_SETS"
+    )
 
-    cmake_parse_arguments(ARG
+    cmake_parse_arguments(
+        ARG
         "${OPTIONS}"
         "${ONE_PARAM_ARGS}"
         "${MULTI_PARAM_ARGS}"
-        ${ARGN})
+        ${ARGN}
+    )
 
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -70,7 +78,7 @@ function(verilator IP_LIB)
     # Optimization to not do topological sort of linked IPs on get_ip_...() calls
     flatten_graph_and_disallow_flattening(${IP_LIB})
 
-    enable_language(CXX C)      # We need to enable CXX and C for Verilator
+    enable_language(CXX C) # We need to enable CXX and C for Verilator
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
 
@@ -101,9 +109,12 @@ function(verilator IP_LIB)
         cmake_policy(POP)
     endif()
 
-    find_file(_VERILATED_H verilated.h REQUIRED
+    find_file(
+        _VERILATED_H
+        verilated.h
+        REQUIRED
         HINTS ${VERILATOR_HOME}/include ${verilator_DIR}/include
-        )
+    )
     get_filename_component(VERILATOR_INCLUDE_DIR ${_VERILATED_H} DIRECTORY)
 
     set(VERILATOR_ROOT ${VERILATOR_INCLUDE_DIR}/../)
@@ -193,7 +204,12 @@ function(verilator IP_LIB)
             list(APPEND ARGUMENTS_LIST ${param})
         endif()
     endforeach()
-    foreach(param ${PASS_ADDITIONAL_MULTIPARAM} ${PASS_ADDITIONAL_ONEPARAM} ${PASS_ADDITIONAL_OPTIONS})
+    foreach(
+        param
+        ${PASS_ADDITIONAL_MULTIPARAM}
+        ${PASS_ADDITIONAL_ONEPARAM}
+        ${PASS_ADDITIONAL_OPTIONS}
+    )
         if(${param})
             list(APPEND EXT_PRJ_ARGS "-DVERILATE_${param}=${${param}}")
             list(APPEND ARGUMENTS_LIST ${param})
@@ -222,7 +238,8 @@ function(verilator IP_LIB)
     set(VERILATE_TARGET ${IP_LIB}_verilate)
     if(NOT TARGET ${IP_LIB}_verilate)
         include(ExternalProject)
-        ExternalProject_Add(${VERILATE_TARGET}
+        ExternalProject_Add(
+            ${VERILATE_TARGET}
             DOWNLOAD_COMMAND ""
             SOURCE_DIR "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/verilator"
             PREFIX ${VERILATE_PRJ_PREFIX_DIR}
@@ -230,35 +247,34 @@ function(verilator IP_LIB)
             LIST_SEPARATOR |
             BUILD_ALWAYS 1
             BUILD_BYPRODUCTS ${VLT_STATIC_LIB}
-
-
             CMAKE_ARGS
                 ${ARG_CMAKE_CXX_STANDARD}
                 -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                 -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                 -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}
                 -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${BINARY_DIR}
-
-                -DTARGET=${ARG_TOP_MODULE}
-                -DARGUMENTS_LIST=${ARGUMENTS_LIST}
-                ${EXT_PRJ_ARGS}
-                -DVERILATOR_ROOT=${VERILATOR_ROOT}
+                -DTARGET=${ARG_TOP_MODULE} -DARGUMENTS_LIST=${ARGUMENTS_LIST}
+                ${EXT_PRJ_ARGS} -DVERILATOR_ROOT=${VERILATOR_ROOT}
                 -DSYSTEMC_ROOT=${SYSTEMC_HOME}
             # VERILATOR_ROOT env variable is required for some older versions of verilator
             # For the configuration phase, this is set in the verilator/CMakeLists.txt file
             # For the build phase, this is the simplest (only?) solution
-            BUILD_COMMAND ${CMAKE_COMMAND} -E env VERILATOR_ROOT=${VERILATOR_ROOT} make -j${CMAKE_BUILD_PARALLEL_LEVEL}
+            BUILD_COMMAND
+                ${CMAKE_COMMAND} -E env VERILATOR_ROOT=${VERILATOR_ROOT} make
+                -j${CMAKE_BUILD_PARALLEL_LEVEL}
             INSTALL_COMMAND ""
             DEPENDS ${IP_LIB}
             EXCLUDE_FROM_ALL 1
-
             # For Ninja so it prints status live and not delayed
             USES_TERMINAL_CONFIGURE TRUE
             USES_TERMINAL_BUILD TRUE
-
-            COMMENT ${DESCRIPTION}
-            )
-        set_property(TARGET ${VERILATE_TARGET} PROPERTY DESCRIPTION ${DESCRIPTION})
+            COMMENT
+            ${DESCRIPTION}
+        )
+        set_property(
+            TARGET ${VERILATE_TARGET}
+            PROPERTY DESCRIPTION ${DESCRIPTION}
+        )
 
         file(MAKE_DIRECTORY ${DIRECTORY}) # target_include_directories would fail otherwise
 
@@ -273,25 +289,35 @@ function(verilator IP_LIB)
         add_library(${VERILATED_LIB} STATIC IMPORTED)
         set_target_properties(${VERILATED_LIB} PROPERTIES IMPORTED_GLOBAL TRUE)
         add_dependencies(${VERILATED_LIB} ${VERILATE_TARGET})
-        set_target_properties(${VERILATED_LIB} PROPERTIES IMPORTED_LOCATION ${VLT_STATIC_LIB})
-
-        target_include_directories(${VERILATED_LIB} INTERFACE
-            "${DIRECTORY}"
-            "${VERILATOR_INCLUDE_DIR}"
-            "${VERILATOR_INCLUDE_DIR}/vltstd")
-        target_compile_options(${VERILATED_LIB} INTERFACE
-            ${interface_compile_options}
+        set_target_properties(
+            ${VERILATED_LIB}
+            PROPERTIES IMPORTED_LOCATION ${VLT_STATIC_LIB}
         )
-        target_link_libraries(${VERILATED_LIB} INTERFACE
-            ${interface_link_libraries}
-            -pthread
+
+        target_include_directories(
+            ${VERILATED_LIB}
+            INTERFACE
+                "${DIRECTORY}"
+                "${VERILATOR_INCLUDE_DIR}"
+                "${VERILATOR_INCLUDE_DIR}/vltstd"
+        )
+        target_compile_options(
+            ${VERILATED_LIB}
+            INTERFACE ${interface_compile_options}
+        )
+        target_link_libraries(
+            ${VERILATED_LIB}
+            INTERFACE ${interface_link_libraries} -pthread
         )
 
         # Search for linked libraries that are Shared or Static libraries and link them to the verilated library
         get_ip_links(IPS_LIST ${IP_LIB})
         foreach(ip ${IPS_LIST})
             get_target_property(ip_type ${ip} TYPE)
-            if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
+            if(
+                ip_type STREQUAL "SHARED_LIBRARY"
+                OR ip_type STREQUAL "STATIC_LIBRARY"
+            )
                 target_link_libraries(${VERILATED_LIB} INTERFACE ${ip})
             endif()
         endforeach()
@@ -303,22 +329,20 @@ function(verilator IP_LIB)
     if(EXECUTABLE_PATH AND NOT TARGET ${ARG_EXECUTABLE_NAME})
         set(GENERATED_MAIN "${DIRECTORY}/${PREFIX}__main.cpp")
         set_property(SOURCE ${GENERATED_MAIN} PROPERTY GENERATED TRUE)
-        add_executable(${ARG_EXECUTABLE_NAME}
-            ${GENERATED_MAIN}
-            )
-        target_link_libraries(${ARG_EXECUTABLE_NAME} PRIVATE
-            ${VERILATED_LIB}
-            )
+        add_executable(${ARG_EXECUTABLE_NAME} ${GENERATED_MAIN})
+        target_link_libraries(${ARG_EXECUTABLE_NAME} PRIVATE ${VERILATED_LIB})
         add_dependencies(${ARG_EXECUTABLE_NAME} ${VERILATE_TARGET})
     endif()
 
     ## Files to be deleted on make clean
     set_property(
         TARGET ${VERILATE_TARGET}
-        APPEND PROPERTY ADDITIONAL_CLEAN_FILES
-            ${DIRECTORY}
-            ${EXECUTABLE_PATH}
-            ${VLT_STATIC_LIB}
+        APPEND
+        PROPERTY
+            ADDITIONAL_CLEAN_FILES
+                ${DIRECTORY}
+                ${EXECUTABLE_PATH}
+                ${VLT_STATIC_LIB}
     )
 
     set(__sim_run_cmd ${EXECUTABLE_PATH} ${__ARG_RUN_ARGS})
@@ -326,7 +350,9 @@ function(verilator IP_LIB)
         if(NOT ARG_RUN_TARGET_NAME)
             set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
         endif()
-        set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB}")
+        set(DESCRIPTION
+            "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB}"
+        )
         # Add a custom target to run the generated executable
         add_custom_target(
             ${ARG_RUN_TARGET_NAME}
@@ -335,7 +361,10 @@ function(verilator IP_LIB)
             COMMENT ${DESCRIPTION}
             USES_TERMINAL
         )
-        set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(
+            TARGET ${ARG_RUN_TARGET_NAME}
+            PROPERTY DESCRIPTION ${DESCRIPTION}
+        )
     endif()
 
     set(SOCMAKE_SIM_RUN_CMD ${__sim_run_cmd} PARENT_SCOPE)
@@ -356,7 +385,7 @@ endfunction()
 # In this specific case, it won't change anything for the compiler use but will add some useful information to IP_LIB.
 #
 # The only supported library by this function is DPI-C, it can be used as done in the following example :
-# 
+#
 # .. code-block:: cmake
 #
 #    verilator_configure_cxx(LIBRARIES DPI-C)
@@ -402,5 +431,4 @@ function(verilator_add_cxx_libs)
         add_library(verilator_dpi-c INTERFACE)
         add_library(SoCMake::DPI-C ALIAS verilator_dpi-c)
     endif()
-
 endfunction()

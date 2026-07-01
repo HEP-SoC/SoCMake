@@ -9,7 +9,7 @@ function(${${TEST_NAME}})
     ip_include_directories(${IP} SYSTEMVERILOG FILE_SET SIMULATION
         ${CDIR}/dir1
         ${CDIR}/dir2
-        )
+    )
 
     get_ip_include_directories(incdirs ${IP} SYSTEMVERILOG)
     ct_assert_list(incdirs)
@@ -32,17 +32,17 @@ function(${${TEST_NAME}})
     ip_include_directories(${IP} SYSTEMVERILOG FILE_SET SIMULATION
         ${CDIR}/dir1
         ${CDIR}/dir2
-        )
+    )
 
     ip_include_directories(${IP} SYSTEMVERILOG FILE_SET SYNTHESIS
         ${CDIR}/dir3
         ${CDIR}/dir4
-        )
+    )
 
     ip_include_directories(${IP} SYSTEMVERILOG
         ${CDIR}/dir5
         ${CDIR}/dir6
-        )
+    )
 
     get_ip_include_directories(incdirs ${IP} SYSTEMVERILOG)
     ct_assert_list(incdirs)

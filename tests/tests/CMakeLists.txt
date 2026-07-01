@@ -3,12 +3,14 @@ project(SoCMake_testing)
 
 include(CTest)
 
-add_custom_target(check
+add_custom_target(
+    check
     COMMAND ctest -j${CMAKE_BUILD_PARALLEL_LEVEL} --output-on-failure
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../../
 )
 
-add_custom_target(check_cdash
+add_custom_target(
+    check_cdash
     COMMAND ctest -D Nightly -j${CMAKE_BUILD_PARALLEL_LEVEL} --output-on-failure
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../../
 )

@@ -34,6 +34,6 @@ int main (int argc, char *argv[]) {
     }
 
     m_trace->close();
-    
+
     return 0;
 }

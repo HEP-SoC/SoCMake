@@ -6,7 +6,7 @@ add_ip(iverilog_mod_ip
     VENDOR tests
     LIBRARY iverilog
     VERSION 1
-    )
+)
 ip_sources(${IP} VERILOG ${PROJECT_SOURCE_DIR}/mod.v)
 set(MOD_IP ${IP})
 
@@ -15,7 +15,7 @@ add_ip(iverilog_linked_ips
     VENDOR tests
     LIBRARY iverilog
     VERSION 1
-    )
+)
 ip_sources(${IP} VERILOG ${PROJECT_SOURCE_DIR}/tb.v)
 ip_link(${IP} ${MOD_IP})
 

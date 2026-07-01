@@ -11,12 +11,12 @@ __fzf_socmake_target_ip_picker() {
     local json_file="$1"
     local header="$2"
     local key_path="$3" # The JSON key to iterate over (e.g., .ips or .targets)
-    
+
     if [[ ! -f "$json_file" ]]; then
         echo "Could not find $json_file, verify you are in build directory and the project is configured"
         return
     fi
-    
+
     local build_program=""
     if [[ -f "build.ninja" ]]; then
         build_program="ninja"
@@ -94,7 +94,7 @@ _fzf_cmake_option_append() {
     if [[ "$READLINE_LINE" =~ ^cmake ]]; then
         # Remove trailing ../ if it exists (we'll add it back at the end)
         READLINE_LINE="${READLINE_LINE% ../}"
-        
+
         # Check if the flag is already there to avoid duplicates
         if [[ "$READLINE_LINE" == *"$opt_name"* ]]; then
              # Optional: use sed to replace the old value if it exists

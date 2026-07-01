@@ -2,4 +2,3 @@ grandparent -- "parent A";
 child;
 "parent B" -- child;
 grandparent --  "parent B";
-

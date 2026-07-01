@@ -53,10 +53,17 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 # :type INJECT_V_FILES: List[string path]
 #]]
 function(peakrdl_socgen IP_LIB)
-    cmake_parse_arguments(ARG "USE_INCLUDE;GEN_DOT" "OUTDIR" "INJECT_V_FILES;PARAMETERS" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "USE_INCLUDE;GEN_DOT"
+        "OUTDIR"
+        "INJECT_V_FILES;PARAMETERS"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
-                "${ARG_UNPARSED_ARGUMENTS}")
+                "${ARG_UNPARSED_ARGUMENTS}"
+        )
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
@@ -98,7 +105,10 @@ function(peakrdl_socgen IP_LIB)
 
     if(ARG_GEN_DOT)
         set(SOCGEN_DOT_FILES ${OUTDIR}/soc_diagram.dot)
-        set_source_files_properties(${SOCGEN_DOT_FILES} PROPERTIES GENERATED TRUE)
+        set_source_files_properties(
+            ${SOCGEN_DOT_FILES}
+            PROPERTIES GENERATED TRUE
+        )
         ip_sources(${_reallib} GRAPHVIZ  ${SOCGEN_DOT_FILES})
         set(ARG_GEN_DOT --gen-dot)
     else()
@@ -126,7 +136,8 @@ function(peakrdl_socgen IP_LIB)
 
     if(NOT SYSTEMRDL_SOURCES)
         socmake_message(FATAL_ERROR "Library ${_reallib} does not have SYSTEMRDL_SOURCES property set,
-                unable to run ${CMAKE_CURRENT_FUNCTION}")
+                unable to run ${CMAKE_CURRENT_FUNCTION}"
+        )
     endif()
 
     unset(INCDIRS_ARG)
@@ -139,21 +150,25 @@ function(peakrdl_socgen IP_LIB)
         list(APPEND COMPDEFS_ARG -D${__compdefs})
     endforeach()
 
-
     find_python3()
     set(__CMD
-        ${Python3_EXECUTABLE} -m peakrdl socgen
-            --intfs ${RDL_SOCGEN_GLUE}
-            ${INCDIR_ARG}
-            -o ${OUTDIR}
-            ${SYSTEMRDL_SOURCES}
-            ${INCDIRS_ARG}
-            ${COMPDEFS_ARG}
-            ${ARG_USE_INCLUDE}
-            ${ARG_INJECT_V_FILES}
-            ${ARG_GEN_DOT}
-            ${OVERWRITTEN_PARAMETERS}
-        )
+        ${Python3_EXECUTABLE}
+        -m
+        peakrdl
+        socgen
+        --intfs
+        ${RDL_SOCGEN_GLUE}
+        ${INCDIR_ARG}
+        -o
+        ${OUTDIR}
+        ${SYSTEMRDL_SOURCES}
+        ${INCDIRS_ARG}
+        ${COMPDEFS_ARG}
+        ${ARG_USE_INCLUDE}
+        ${ARG_INJECT_V_FILES}
+        ${ARG_GEN_DOT}
+        ${OVERWRITTEN_PARAMETERS}
+    )
     set(__CMD_LF ${__CMD} --list-files)
 
     # Call peakrdl-socgen with --list-files option to get the list of headers
@@ -161,7 +176,7 @@ function(peakrdl_socgen IP_LIB)
         OUTPUT_VARIABLE V_GEN
         ERROR_VARIABLE ERROR_MSG
         COMMAND ${__CMD_LF}
-        )
+    )
     if(V_GEN)
         string(REPLACE " " ";" V_GEN "${V_GEN}")
         string(REPLACE "\n" "" V_GEN "${V_GEN}")
@@ -170,14 +185,17 @@ function(peakrdl_socgen IP_LIB)
         string(REPLACE ";" " " __CMD_STR "${__CMD_LF}")
         socmake_message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${_reallib},
                 output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n
-                Command Called: \n ${__CMD_STR}")
+                Command Called: \n ${__CMD_STR}"
+        )
     endif()
 
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
     ip_sources(${_reallib} SYSTEMVERILOG ${V_GEN})
 
     set(STAMP_FILE "${BINARY_DIR}/${_reallib}_${CMAKE_CURRENT_FUNCTION}.stamp")
-    set(DESCRIPTION "Generate SoC verilog for \"${_reallib}\" with ${CMAKE_CURRENT_FUNCTION}")
+    set(DESCRIPTION
+        "Generate SoC verilog for \"${_reallib}\" with ${CMAKE_CURRENT_FUNCTION}"
+    )
 
     add_custom_command(
         OUTPUT ${V_GEN} ${SOCGEN_DOT_FILES} ${STAMP_FILE}
@@ -185,14 +203,13 @@ function(peakrdl_socgen IP_LIB)
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SYSTEMRDL_SOURCES} ${ADDITIONAL_DEPENDS}
         COMMENT ${DESCRIPTION}
-        )
+    )
 
     add_custom_target(
         ${_reallib}_socgen
         DEPENDS ${V_GEN} ${SOCGEN_DOT_FILES} ${SOCGEN_DOT_FILES} ${STAMP_FILE}
-        )
+    )
     set_property(TARGET ${_reallib}_socgen PROPERTY DESCRIPTION ${DESCRIPTION})
 
     add_dependencies(${_reallib} ${_reallib}_socgen)
-
 endfunction()

@@ -46,7 +46,13 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :type DO_FILES: list[string]
 #]]
 function(questasim IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER;32BIT" "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME" "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS;FILE_SETS;DO_FILES" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "NO_RUN_TARGET;QUIET;GUI;GUI_VISUALIZER;32BIT"
+        "LIBRARY;TOP_MODULE;OUTDIR;RUN_TARGET_NAME"
+        "VHDL_COMPILE_ARGS;SV_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS;FILE_SETS;DO_FILES"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -56,7 +62,6 @@ function(questasim IP_LIB)
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../sim_utils.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/colours.cmake")
-
 
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
@@ -88,7 +93,7 @@ function(questasim IP_LIB)
     if(ARG_GUI_VISUALIZER)
         set(ARG_GUI FALSE)
     endif()
-    
+
     if(ARG_32BIT)
         set(bitness 32)
         set(ARG_BITNESS 32BIT)
@@ -131,7 +136,7 @@ function(questasim IP_LIB)
             ${ARG_SV_COMPILE_ARGS}
             ${ARG_VHDL_COMPILE_ARGS}
             ${ARG_FILE_SETS}
-            )
+        )
     endif()
 
     ### Get list of linked libraries marked as SystemC
@@ -144,34 +149,39 @@ function(questasim IP_LIB)
         endif()
     endforeach()
 
-    __get_questasim_search_lib_args(${IP_LIB} 
+    __get_questasim_search_lib_args(${IP_LIB}
         ${ARG_LIBRARY}
-        OUTDIR ${OUTDIR})
+        OUTDIR ${OUTDIR}
+    )
     set(hdl_libs_args ${HDL_LIBS_ARGS})
     set(dpi_libs_args ${DPI_LIBS_ARGS})
 
     ##### SCCOM link
     unset(sccom_link_tgt)
     if(NOT TARGET ${IP_LIB}_sccom_link AND systemc_libs)
-    #
+        #
         if(bitness STREQUAL "64")
             set(libpath "gcc64/lib64")
         else()
             set(libpath "gcc32/lib")
         endif()
 
-        set(__sccom_link_cmd sccom -link
-                -${bitness}
-                -nologo
-                -Wl,-rpath,${questasim_home}/${libpath}
-            )
+        set(__sccom_link_cmd
+            sccom
+            -link
+            -${bitness}
+            -nologo
+            -Wl,-rpath,${questasim_home}/${libpath}
+        )
 
         ### Clean files
         #       * For elaborate "e~${ARG_EXECUTABLE_NAME}.o" and executable gets created
         # set(__clean_files "${OUTDIR}/e~${ARG_EXECUTABLE_NAME}.o")
         # set(__clean_files "${OUTDIR}/${LIBRARY}-obj${STANDARD}.cf")
 
-        set(DESCRIPTION "Link SystemC objects into systemc.so for ${IP_LIB} with sccom")
+        set(DESCRIPTION
+            "Link SystemC objects into systemc.so for ${IP_LIB} with sccom"
+        )
         set(STAMP_FILE "${OUTDIR}/${IP_LIB}_sccom_link.stamp")
         add_custom_command(
             OUTPUT ${STAMP_FILE}
@@ -180,27 +190,33 @@ function(questasim IP_LIB)
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${compile_target} #${SC_SOURCES}
             COMMENT ${DESCRIPTION}
-            )
-
-        add_custom_target(${IP_LIB}_sccom_link
-            DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_sccom_link PROPERTY DESCRIPTION ${DESCRIPTION})
+
+        add_custom_target(${IP_LIB}_sccom_link DEPENDS ${STAMP_FILE} ${IP_LIB})
+        set_property(
+            TARGET ${IP_LIB}_sccom_link
+            PROPERTY DESCRIPTION ${DESCRIPTION}
+        )
         set(sccom_link_tgt ${IP_LIB}_sccom_link)
     endif()
 
     if(NOT TARGET ${elaborate_target})
         get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL ${ARG_FILE_SETS})
         get_ip_sources(HEADERS ${IP_LIB} SYSTEMVERILOG VERILOG VHDL HEADERS ${ARG_FILE_SETS})
-        set(elaborate_cmd vopt
+        set(elaborate_cmd
+            vopt
             -${bitness}
             $<$<BOOL:${ARG_QUIET}>:-quiet>
             ${ARG_ELABORATE_ARGS}
-            -work ${LIBRARY}
-            -Ldir ${OUTDIR} ${hdl_libs_args}
-            -o ${ARG_TOP_MODULE}_opt
+            -work
+            ${LIBRARY}
+            -Ldir
+            ${OUTDIR}
+            ${hdl_libs_args}
+            -o
+            ${ARG_TOP_MODULE}_opt
             ${LIBRARY}.${ARG_TOP_MODULE}
-            )
+        )
 
         ### Clean files:
         #       *
@@ -220,25 +236,33 @@ function(questasim IP_LIB)
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${compile_target} ${sccom_link_tgt} ${SOURCES} ${HEADERS}
             COMMAND_EXPAND_LISTS
-            )
-
-        add_custom_target(${elaborate_target}
-            DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
-        set_property(TARGET ${elaborate_target} PROPERTY DESCRIPTION ${DESCRIPTION})
-        set_property(TARGET ${elaborate_target} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${__clean_files})
+
+        add_custom_target(${elaborate_target} DEPENDS ${STAMP_FILE} ${IP_LIB})
+        set_property(
+            TARGET ${elaborate_target}
+            PROPERTY DESCRIPTION ${DESCRIPTION}
+        )
+        set_property(
+            TARGET ${elaborate_target}
+            APPEND
+            PROPERTY ADDITIONAL_CLEAN_FILES ${__clean_files}
+        )
     endif()
 
-
-    set(run_sim_cmd vsim
+    set(run_sim_cmd
+        vsim
         -${bitness}
         $<$<BOOL:${ARG_QUIET}>:-quiet>
         $<$<BOOL:${ARG_GUI}>:-gui>
         $<$<BOOL:${ARG_GUI_VISUALIZER}>:-visualizer>
         ${ARG_RUN_ARGS}
-        -Ldir ${OUTDIR} ${hdl_libs_args} ${dpi_libs_args}
+        -Ldir
+        ${OUTDIR}
+        ${hdl_libs_args}
+        ${dpi_libs_args}
         ${ARG_TOP_MODULE}_opt
-        )
+    )
 
     # If GUI is not used, pass the -do files to CLI argument
     if(NOT ARG_GUI AND NOT ARG_GUI_VISUALIZER)
@@ -247,8 +271,10 @@ function(questasim IP_LIB)
         # This script makes sure the exit code from testbench is passed to the shell
         # Otherwise $fatal(), $error() exit codes are ignored by questasim
         if(NOT DEFINED ARG_DO_FILES)
-            list(APPEND run_sim_cmd
-                -do ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/run.do
+            list(
+                APPEND run_sim_cmd
+                -do
+                ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/run.do
             )
         else()
             # Optionally use custom DO_FILES
@@ -257,14 +283,15 @@ function(questasim IP_LIB)
                 list(APPEND run_sim_cmd -do ${do_file})
             endforeach()
         endif()
-
     endif()
 
     if(NOT ARG_NO_RUN_TARGET)
-        set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB}")
+        set(DESCRIPTION
+            "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB}"
+        )
         add_custom_target(
             ${run_target}
-            COMMAND  ${run_sim_cmd} -noautoldlibpath
+            COMMAND ${run_sim_cmd} -noautoldlibpath
             DEPENDS ${elaborate_target}
             WORKING_DIRECTORY ${OUTDIR}
             COMMENT ${DESCRIPTION}
@@ -311,7 +338,13 @@ endfunction()
 # :keyword FILE_SETS: Specify list of File sets to retrieve the sources from
 # :type FILE_SETS: list[string]
 function(__questasim_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "QUIET;32BIT" "OUTDIR;LIBRARY" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;FILE_SETS" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "QUIET;32BIT"
+        "OUTDIR;LIBRARY"
+        "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;FILE_SETS"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -322,7 +355,6 @@ function(__questasim_compile_lib IP_LIB)
 
     alias_dereference(IP_LIB ${IP_LIB})
     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
-
 
     if(NOT ARG_OUTDIR)
         set(OUTDIR ${BINARY_DIR}/${IP_LIB}_questasim)
@@ -359,17 +391,23 @@ function(__questasim_compile_lib IP_LIB)
                 __is_socmake_ip_lib(child_is_ip_lib ${child})
 
                 if(parent_is_systemc_lib AND child_is_ip_lib)
-                    questasim_gen_sc_wrapper(${child} 
+                    questasim_gen_sc_wrapper(${child}
                         OUTDIR ${OUTDIR}
                         LIBRARY ${LIBRARY}
                         ${ARG_BITNESS}
                         ${ARG_FILE_SETS}
                     )
-                    add_dependencies(${parent} ${child}_questasim_gen_sc_wrapper)
+                    add_dependencies(
+                        ${parent}
+                        ${child}_questasim_gen_sc_wrapper
+                    )
                 endif()
 
                 if(parent_is_ip_lib AND child_is_systemc_lib)
-                    set_property(TARGET ${child} PROPERTY SOCMAKE_SC_BOUNDARY_LIB TRUE)
+                    set_property(
+                        TARGET ${child}
+                        PROPERTY SOCMAKE_SC_BOUNDARY_LIB TRUE
+                    )
                 endif()
             endforeach()
         endif()
@@ -413,47 +451,57 @@ function(__questasim_compile_lib IP_LIB)
                 list(APPEND SV_CMP_DEFS_ARG +define+${def})
             endforeach()
 
-            set(DESCRIPTION "${Green}Compile Verilog and SV files of ${lib} with questasim vlog${ColourReset}")
-            set(sv_compile_cmd vlog
-                    -${bitness}
-                    -nologo
-                    $<$<BOOL:${ARG_QUIET}>:-quiet>
-                    -sv
-                    -sv17compat
-                    -work ${__comp_lib_name}
-                    -Ldir ${OUTDIR} ${hdl_libs_args}
-                    ${ARG_SV_COMPILE_ARGS}
-                    ${SV_ARG_INCDIRS}
-                    ${SV_CMP_DEFS_ARG}
-                    ${SV_SOURCES}
-                )
+            set(DESCRIPTION
+                "${Green}Compile Verilog and SV files of ${lib} with questasim vlog${ColourReset}"
+            )
+            set(sv_compile_cmd
+                vlog
+                -${bitness}
+                -nologo
+                $<$<BOOL:${ARG_QUIET}>:-quiet>
+                -sv
+                -sv17compat
+                -work
+                ${__comp_lib_name}
+                -Ldir
+                ${OUTDIR}
+                ${hdl_libs_args}
+                ${ARG_SV_COMPILE_ARGS}
+                ${SV_ARG_INCDIRS}
+                ${SV_CMP_DEFS_ARG}
+                ${SV_SOURCES}
+            )
         endif()
 
         # VHDL files and arguments
         get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS ${ARG_FILE_SETS})
         unset(vhdl_compile_cmd)
         if(VHDL_SOURCES)
-            set(vhdl_compile_cmd vcom
-                    -nologo
-                    -${bitness}
-                    $<$<BOOL:${ARG_QUIET}>:-quiet>
-                    -work ${__comp_lib_name}
-                    ${ARG_VHDL_COMPILE_ARGS}
-                    ${VHDL_SOURCES}
-                )
+            set(vhdl_compile_cmd
+                vcom
+                -nologo
+                -${bitness}
+                $<$<BOOL:${ARG_QUIET}>:-quiet>
+                -work
+                ${__comp_lib_name}
+                ${ARG_VHDL_COMPILE_ARGS}
+                ${VHDL_SOURCES}
+            )
         endif()
 
         get_target_property(is_sc_boundary_lib ${lib} SOCMAKE_SC_BOUNDARY_LIB)
         unset(sccom_cmd)
         if(is_sc_boundary_lib)
             get_target_property(cxx_sources ${lib} SOURCES)
-            set(sccom_cmd sccom
-                    -${bitness}
-                    -work ${__comp_lib_name}
-                    "$<PATH:ABSOLUTE_PATH,NORMALIZE,$<LIST:GET,$<TARGET_PROPERTY:${lib},SOURCES>,-1>,$<TARGET_PROPERTY:${lib},SOURCE_DIR>>" # Get Absolute path to the last source file
-                    "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${lib},INCLUDE_DIRECTORIES>,PREPEND,-I>" 
-                    "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${lib},COMPILE_DEFINITIONS>,PREPEND,-D>" 
-                )
+            set(sccom_cmd
+                sccom
+                -${bitness}
+                -work
+                ${__comp_lib_name}
+                "$<PATH:ABSOLUTE_PATH,NORMALIZE,$<LIST:GET,$<TARGET_PROPERTY:${lib},SOURCES>,-1>,$<TARGET_PROPERTY:${lib},SOURCE_DIR>>" # Get Absolute path to the last source file
+                "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${lib},INCLUDE_DIRECTORIES>,PREPEND,-I>"
+                "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${lib},COMPILE_DEFINITIONS>,PREPEND,-D>"
+            )
         endif()
 
         # Questasim custom command of current IP block should depend on stamp files of immediate linked IPs
@@ -461,20 +509,30 @@ function(__questasim_compile_lib IP_LIB)
         get_ip_links(ip_subdeps ${lib} NO_DEPS)
         unset(__questasim_subdep_stamp_files)
         foreach(ip_dep ${ip_subdeps})
-            list(APPEND __questasim_subdep_stamp_files ${__questasim_${ip_dep}_stamp_files})
+            list(
+                APPEND __questasim_subdep_stamp_files
+                ${__questasim_${ip_dep}_stamp_files}
+            )
         endforeach()
 
         unset(__questasim_${lib}_stamp_files)
         if(SV_SOURCES)
-            set(DESCRIPTION "${Green}Compile SV, and Verilog sources of ${lib} with questasim vlog in library ${__comp_lib_name}${ColourReset}")
-            set(STAMP_FILE "${OUTDIR}/.${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(DESCRIPTION
+                "${Green}Compile SV, and Verilog sources of ${lib} with questasim vlog in library ${__comp_lib_name}${ColourReset}"
+            )
+            set(STAMP_FILE
+                "${OUTDIR}/.${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp"
+            )
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND vlib "${lib_outdir}" > /dev/null 2>&1 || true
                 COMMAND ${sv_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
                 WORKING_DIRECTORY ${OUTDIR}
-                DEPENDS ${SV_SOURCES} ${SV_HEADERS} ${__questasim_subdep_stamp_files}
+                DEPENDS
+                    ${SV_SOURCES}
+                    ${SV_HEADERS}
+                    ${__questasim_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
@@ -482,8 +540,12 @@ function(__questasim_compile_lib IP_LIB)
         endif()
 
         if(VHDL_SOURCES)
-            set(DESCRIPTION "Compile VHDL sources for ${lib} with questasim vcom in library ${__comp_lib_name}")
-            set(STAMP_FILE "${OUTDIR}/.${lib}_vcom_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(DESCRIPTION
+                "Compile VHDL sources for ${lib} with questasim vcom in library ${__comp_lib_name}"
+            )
+            set(STAMP_FILE
+                "${OUTDIR}/.${lib}_vcom_${CMAKE_CURRENT_FUNCTION}.stamp"
+            )
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND vlib "${lib_outdir}" > /dev/null 2>&1 || true
@@ -498,8 +560,12 @@ function(__questasim_compile_lib IP_LIB)
         endif()
 
         if(is_sc_boundary_lib)
-            set(DESCRIPTION "Compile SystemC language boundary library ${lib} with sccom in library ${__comp_lib_name}")
-            set(STAMP_FILE "${OUTDIR}/.${lib}_sc_compile_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(DESCRIPTION
+                "Compile SystemC language boundary library ${lib} with sccom in library ${__comp_lib_name}"
+            )
+            set(STAMP_FILE
+                "${OUTDIR}/.${lib}_sc_compile_${CMAKE_CURRENT_FUNCTION}.stamp"
+            )
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND ${sccom_cmd}
@@ -515,8 +581,12 @@ function(__questasim_compile_lib IP_LIB)
         endif()
 
         if(NOT SV_SOURCES AND NOT VHDL_SOURCES AND NOT is_sc_boundary_lib)
-            set(DESCRIPTION "Generate library ${__comp_lib_name} for ${lib} for questasim")
-            set(STAMP_FILE "${OUTDIR}/.${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(DESCRIPTION
+                "Generate library ${__comp_lib_name} for ${lib} for questasim"
+            )
+            set(STAMP_FILE
+                "${OUTDIR}/.${lib}_dummy_stamp_${CMAKE_CURRENT_FUNCTION}.stamp"
+            )
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND vlib "${lib_outdir}" > /dev/null 2>&1 || true
@@ -527,7 +597,6 @@ function(__questasim_compile_lib IP_LIB)
             list(APPEND all_stamp_files ${STAMP_FILE})
             list(APPEND __questasim_${lib}_stamp_files ${STAMP_FILE})
         endif()
-
     endforeach()
 
     if(NOT TARGET ${IP_LIB}_questasim_complib)
@@ -535,12 +604,19 @@ function(__questasim_compile_lib IP_LIB)
             ${IP_LIB}_questasim_complib
             DEPENDS ${all_stamp_files} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_questasim_complib PROPERTY 
-            DESCRIPTION "Compile VHDL, SV, and Verilog files for ${IP_LIB} with questasim in library ${LIBRARY}")
+        set_property(
+            TARGET ${IP_LIB}_questasim_complib
+            PROPERTY
+                DESCRIPTION
+                    "Compile VHDL, SV, and Verilog files for ${IP_LIB} with questasim in library ${LIBRARY}"
+        )
 
-        set_property(TARGET ${IP_LIB}_questasim_complib APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${lib_outdir})
+        set_property(
+            TARGET ${IP_LIB}_questasim_complib
+            APPEND
+            PROPERTY ADDITIONAL_CLEAN_FILES ${lib_outdir}
+        )
     endif()
-
 endfunction()
 
 # This function is called by ``questasim``, it shouldn't be used directly in a cmake file.
@@ -574,11 +650,19 @@ function(__get_questasim_search_lib_args IP_LIB)
         __is_socmake_dpic_lib(is_dpic_lib ${lib})
 
         if(is_vhpi_lib)
-            list(APPEND dpi_libs_args -vhpi $<TARGET_FILE_DIR:${lib}>/lib$<TARGET_FILE_BASE_NAME:${lib}>)
+            list(
+                APPEND dpi_libs_args
+                -vhpi
+                $<TARGET_FILE_DIR:${lib}>/lib$<TARGET_FILE_BASE_NAME:${lib}>
+            )
         endif()
 
         if(is_dpic_lib)
-            list(APPEND dpi_libs_args -sv_lib $<TARGET_FILE_DIR:${lib}>/lib$<TARGET_FILE_BASE_NAME:${lib}>)
+            list(
+                APPEND dpi_libs_args
+                -sv_lib
+                $<TARGET_FILE_DIR:${lib}>/lib$<TARGET_FILE_BASE_NAME:${lib}>
+            )
         endif()
 
         if(is_ip_lib)
@@ -641,7 +725,13 @@ endfunction()
 # :type FILE_SETS: list[string]
 #]]
 function(questasim_gen_sc_wrapper IP_LIB)
-    cmake_parse_arguments(ARG "32BIT;QUIET" "OUTDIR;LIBRARY;TOP_MODULE" "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;FILE_SETS" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "32BIT;QUIET"
+        "OUTDIR;LIBRARY;TOP_MODULE"
+        "SV_COMPILE_ARGS;VHDL_COMPILE_ARGS;FILE_SETS"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -683,7 +773,6 @@ function(questasim_gen_sc_wrapper IP_LIB)
         set(bitness 64)
     endif()
 
-
     get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
     list(GET SV_SOURCES -1 last_sv_file) # TODO this is not correct, as the last Verilog file might not be top
     unset(sv_compile_cmd)
@@ -705,26 +794,27 @@ function(questasim_gen_sc_wrapper IP_LIB)
             set(sc_portmap_arg -sc_portmap ${sc_portmap})
         endif()
 
-        set(sv_compile_cmd vlog
-                -${bitness}
-                -nologo
-                $<$<BOOL:${ARG_QUIET}>:-quiet>
-                -sv
-                -sv17compat
-                -work ${__comp_lib_name}
-                ${ARG_SV_COMPILE_ARGS}
-                ${SV_ARG_INCDIRS}
-                ${SV_CMP_DEFS_ARG}
-                ${SV_SOURCES}
-            )
+        set(sv_compile_cmd
+            vlog
+            -${bitness}
+            -nologo
+            $<$<BOOL:${ARG_QUIET}>:-quiet>
+            -sv
+            -sv17compat
+            -work
+            ${__comp_lib_name}
+            ${ARG_SV_COMPILE_ARGS}
+            ${SV_ARG_INCDIRS}
+            ${SV_CMP_DEFS_ARG}
+            ${SV_SOURCES}
+        )
 
-        set(scgenmod_cmd scgenmod
-            -bool -sc_uint
-            ${ARG_TOP_MODULE}
-            )
+        set(scgenmod_cmd scgenmod -bool -sc_uint ${ARG_TOP_MODULE})
 
         set(generated_header ${OUTDIR}/${ARG_TOP_MODULE}.h)
-        set(DESCRIPTION "Generate a SC wrapper file for ${IP_LIB} with Questasim scgenmod")
+        set(DESCRIPTION
+            "Generate a SC wrapper file for ${IP_LIB} with Questasim scgenmod"
+        )
         set(STAMP_FILE "${OUTDIR}/${lib}_${CMAKE_CURRENT_FUNCTION}.stamp")
         add_custom_command(
             OUTPUT ${STAMP_FILE} ${generated_header}
@@ -740,13 +830,19 @@ function(questasim_gen_sc_wrapper IP_LIB)
             ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
             DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
-        set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR})
+        set_property(
+            TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+            PROPERTY DESCRIPTION ${DESCRIPTION}
+        )
+        set_property(
+            TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+            APPEND
+            PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR}
+        )
 
         target_include_directories(${IP_LIB} INTERFACE ${OUTDIR})
         # target_sources(${IP_LIB} INTERFACE ${generated_header})
     endif()
-
 endfunction()
 
 #[[[
@@ -809,15 +905,19 @@ function(questasim_compile_sc_lib SC_LIB)
 
     get_target_property(cxx_sources ${SC_LIB} SOURCES)
 
-    set(sccom_cmd sccom
-            -${bitness}
-            -work ${__comp_lib_name}
-            "$<PATH:ABSOLUTE_PATH,NORMALIZE,$<LIST:GET,$<TARGET_PROPERTY:${SC_LIB},SOURCES>,-1>,$<TARGET_PROPERTY:${SC_LIB},SOURCE_DIR>>" # Get Absolute path to the last source file
-            "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},INCLUDE_DIRECTORIES>,PREPEND,-I>" 
-            "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},COMPILE_DEFINITIONS>,PREPEND,-D>" 
-        )
+    set(sccom_cmd
+        sccom
+        -${bitness}
+        -work
+        ${__comp_lib_name}
+        "$<PATH:ABSOLUTE_PATH,NORMALIZE,$<LIST:GET,$<TARGET_PROPERTY:${SC_LIB},SOURCES>,-1>,$<TARGET_PROPERTY:${SC_LIB},SOURCE_DIR>>" # Get Absolute path to the last source file
+        "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},INCLUDE_DIRECTORIES>,PREPEND,-I>"
+        "$<LIST:TRANSFORM,$<TARGET_PROPERTY:${SC_LIB},COMPILE_DEFINITIONS>,PREPEND,-D>"
+    )
 
-    set(DESCRIPTION "Compile SystemC language boundary library ${SC_LIB} with sccom")
+    set(DESCRIPTION
+        "Compile SystemC language boundary library ${SC_LIB} with sccom"
+    )
     set(STAMP_FILE "${OUTDIR}/${SC_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${STAMP_FILE}
@@ -834,14 +934,17 @@ function(questasim_compile_sc_lib SC_LIB)
         ${SC_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${STAMP_FILE} ${SC_LIB}
     )
-    set_property(TARGET ${SC_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+    set_property(
+        TARGET ${SC_LIB}_${CMAKE_CURRENT_FUNCTION}
+        PROPERTY DESCRIPTION ${DESCRIPTION}
+    )
 endfunction()
 
 #[[[
 # This macro is used to configure the C and CXX compiler to the one used by the tool.
 #
 # It can also be used to add some libraries, such as SystemC, DPI-C and VHPI in this case, for example if you want to use dpi, you should use this macro like this :
-# 
+#
 # .. code-block:: cmake
 #
 #    questasim_configure_cxx(LIBRARIES DPI-C)
@@ -899,21 +1002,22 @@ function(questasim_add_cxx_libs)
     __find_questasim_home(questasim_home)
 
     if(SystemC IN_LIST ARG_LIBRARIES)
-
         add_library(questasim_systemc INTERFACE)
         add_library(SoCMake::SystemC ALIAS questasim_systemc)
 
         if(ARG_32BIT)
             target_compile_options(questasim_systemc INTERFACE -m32)
-            target_link_options   (questasim_systemc INTERFACE -m32)
+            target_link_options(questasim_systemc INTERFACE -m32)
         endif()
         # set_property(TARGET questasim_systemc PROPERTY POSITION_INDEPENDENT_CODE ON)
         target_compile_definitions(questasim_systemc INTERFACE MTI_SYSTEMC)
-        target_include_directories(questasim_systemc INTERFACE
-            ${questasim_home}/include/systemc
-            ${questasim_home}/include
-            ${questasim_home}/include/ac_types
-            )
+        target_include_directories(
+            questasim_systemc
+            INTERFACE
+                ${questasim_home}/include/systemc
+                ${questasim_home}/include
+                ${questasim_home}/include/ac_types
+        )
     endif()
 
     if(DPI-C IN_LIST ARG_LIBRARIES)
@@ -922,9 +1026,12 @@ function(questasim_add_cxx_libs)
 
         if(ARG_32BIT)
             target_compile_options(questasim_dpi-c INTERFACE -m32)
-            target_link_options   (questasim_dpi-c INTERFACE -m32)
+            target_link_options(questasim_dpi-c INTERFACE -m32)
         endif()
-        target_include_directories(questasim_dpi-c INTERFACE ${questasim_home}/include)
+        target_include_directories(
+            questasim_dpi-c
+            INTERFACE ${questasim_home}/include
+        )
         target_compile_definitions(questasim_dpi-c INTERFACE QUESTA)
     endif()
 
@@ -934,14 +1041,16 @@ function(questasim_add_cxx_libs)
 
         if(ARG_32BIT)
             target_compile_options(questasim_vhpi INTERFACE -m32)
-            target_link_options   (questasim_vhpi INTERFACE -m32)
+            target_link_options(questasim_vhpi INTERFACE -m32)
         endif()
         target_compile_definitions(questasim_vhpi INTERFACE QUESTA)
 
-        target_include_directories(questasim_vhpi INTERFACE ${questasim_home}/include)
+        target_include_directories(
+            questasim_vhpi
+            INTERFACE ${questasim_home}/include
+        )
         target_compile_definitions(questasim_vhpi INTERFACE QUESTA)
     endif()
-
 endfunction()
 
 #[[[

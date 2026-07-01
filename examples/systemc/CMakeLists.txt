@@ -5,12 +5,8 @@ include("../../SoCMakeConfig.cmake")
 
 systemc_build(VERSION 3.0.0 EXACT_VERSION)
 
-add_executable(systemc_example
-    sc_main.cpp
-    )
+add_executable(systemc_example sc_main.cpp)
 
-target_link_libraries(systemc_example PUBLIC
-    SystemC::systemc)
+target_link_libraries(systemc_example PUBLIC SystemC::systemc)
 
-add_custom_target(run_systemc_example
-    COMMAND systemc_example)
+add_custom_target(run_systemc_example COMMAND systemc_example)

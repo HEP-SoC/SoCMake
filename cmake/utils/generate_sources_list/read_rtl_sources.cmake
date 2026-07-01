@@ -28,7 +28,8 @@ function(read_rtl_sources RTL_SOURCES_FILE)
     # Check for any unexpected arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
-                            "${ARG_UNPARSED_ARGUMENTS}")
+                            "${ARG_UNPARSED_ARGUMENTS}"
+        )
     endif()
 
     # Read the content of the .f file
@@ -50,7 +51,11 @@ function(read_rtl_sources RTL_SOURCES_FILE)
         endif()
 
         # Determine the absolute path (assuming the paths in .f are relative)
-        get_filename_component(RTL_FILE_ABS "${RTL_SOURCES_FILE}/../${RTL_FILE}" ABSOLUTE)
+        get_filename_component(
+            RTL_FILE_ABS
+            "${RTL_SOURCES_FILE}/../${RTL_FILE}"
+            ABSOLUTE
+        )
 
         # Classify based on file extension
         if(RTL_FILE_ABS MATCHES "\\.v$")

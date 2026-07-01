@@ -9,7 +9,7 @@ function(${${TEST_NAME}})
     ip_sources(${IP} SYSTEMVERILOG FILE_SET SIMULATION
         ${CDIR}/svfile1.sv
         ${CDIR}/svfile2.sv
-        )
+    )
 
     get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG)
     ct_assert_list(SV_SOURCES)
@@ -28,12 +28,12 @@ function(${${TEST_NAME}})
     ip_sources(${IP} VHDL FILE_SET SYNTHESIS
         ${CDIR}/vhdlfile1.vhd
         ${CDIR}/vhdlfile2.vhd
-        )
+    )
 
     ip_sources(${IP} VHDL FILE_SET SYNTHESIS
         ${CDIR}/vhdlfile3.vhd
         ${CDIR}/vhdlfile4.vhd
-        )
+    )
 
     get_ip_sources(sources ${IP} VHDL)
     ct_assert_list(sources)
@@ -52,12 +52,12 @@ function(${${TEST_NAME}})
     ip_sources(${IP} VHDL FILE_SET SYNTHESIS
         ${CDIR}/vhdlfile1.vhd
         ${CDIR}/vhdlfile2.vhd
-        )
+    )
 
     ip_sources(${IP} VHDL FILE_SET SIMULATION
         ${CDIR}/vhdlfile3.vhd
         ${CDIR}/vhdlfile4.vhd
-        )
+    )
 
     get_ip_sources(sources ${IP} VHDL)
     ct_assert_list(sources)
@@ -92,17 +92,17 @@ function(${${TEST_NAME}})
     ip_sources(${IP} VHDL FILE_SET SYNTHESIS
         ${CDIR}/vhdlfile1.vhd
         ${CDIR}/vhdlfile2.vhd
-        )
+    )
 
     ip_sources(${IP} VHDL
         ${CDIR}/vhdlfile3.vhd
         ${CDIR}/vhdlfile4.vhd
-        )
+    )
 
     ip_sources(${IP} VERILOG
         ${CDIR}/vfile1.v
         ${CDIR}/vfile2.v
-        )
+    )
 
     get_ip_sources(sources ${IP} VHDL)
     ct_assert_list(sources)
@@ -148,7 +148,7 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/svheader1.svh
         ${CDIR}/svheader2.svh
-        )
+    )
 
     get_ip_sources(headers ${IP} SYSTEMVERILOG HEADERS)
     ct_assert_list(headers)
@@ -174,13 +174,13 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/vheader1.vh
         ${CDIR}/vheader2.vh
-        )
+    )
 
     ip_sources(${IP} VERILOG FILE_SET SYNTHESIS
         HEADERS
         ${CDIR}/vheader3.vh
         ${CDIR}/vheader4.vh
-        )
+    )
 
     get_ip_sources(sources ${IP} VERILOG HEADERS)
     ct_assert_list(sources)
@@ -206,13 +206,13 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/vheader1.vh
         ${CDIR}/vheader2.vh
-        )
+    )
 
     ip_sources(${IP} VERILOG FILE_SET SIMULATION
         HEADERS
         ${CDIR}/vheader3.vh
         ${CDIR}/vheader4.vh
-        )
+    )
 
     get_ip_sources(sources ${IP} VERILOG HEADERS)
     ct_assert_list(sources)
@@ -254,7 +254,7 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/vheader1.vh
         ${CDIR}/vheader2.vh
-        )
+    )
 
     get_ip_sources(sources ${IP} VERILOG HEADERS)
     ct_assert_list(sources)
@@ -284,7 +284,7 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/vheader1.vh
         ${CDIR}/vheader2.vh
-        )
+    )
 
     add_ip(ip_links_12)
 
@@ -297,7 +297,6 @@ function(${${TEST_NAME}})
     )
 
     ip_link(ip_links_11 ip_links_12)
-
 
     get_ip_sources(sources ip_links_11 VERILOG)
     ct_assert_list(sources)
@@ -331,7 +330,7 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/vheader1.vh
         ${CDIR}/vheader2.vh
-        )
+    )
 
     add_ip(ip_links_22)
 
@@ -344,7 +343,6 @@ function(${${TEST_NAME}})
     )
 
     ip_link(ip_links_21 ip_links_22)
-
 
     get_ip_sources(sources ip_links_21 VERILOG NO_DEPS)
     ct_assert_list(sources)
@@ -375,7 +373,7 @@ function(${${TEST_NAME}})
     ip_sources(${IP} VERILOG FILE_SET SYNTHESIS
         ${CDIR}/ip1_file1.v
         ${CDIR}/ip1_file2.v
-        )
+    )
     ip_sources(${IP} SYSTEMVERILOG FILE_SET SIMULATION
         ${CDIR}/ip1_file1.sv
         ${CDIR}/ip1_file2.sv
@@ -398,7 +396,6 @@ function(${${TEST_NAME}})
     get_ip_sources(sources ip_links_31 SYSTEMVERILOG VERILOG)
     ct_assert_list(sources)
     ct_assert_equal(sources "${CDIR}/ip2_file1.sv;${CDIR}/ip2_file2.sv;${CDIR}/ip2_file1.v;${CDIR}/ip2_file2.v;${CDIR}/ip1_file1.sv;${CDIR}/ip1_file2.sv;${CDIR}/ip1_file1.v;${CDIR}/ip1_file2.v")
-    
 
     get_ip_sources(sources ip_links_31 SYSTEMVERILOG)
     ct_assert_list(sources)
@@ -427,5 +424,4 @@ function(${${TEST_NAME}})
     get_ip_sources(sources ip_links_31 SYSTEMVERILOG VERILOG FILE_SETS SIMULATION SYNTHESIS)
     ct_assert_list(sources)
     ct_assert_equal(sources "${CDIR}/ip2_file1.sv;${CDIR}/ip2_file2.sv;${CDIR}/ip2_file1.v;${CDIR}/ip2_file2.v;${CDIR}/ip1_file1.sv;${CDIR}/ip1_file2.sv;${CDIR}/ip1_file1.v;${CDIR}/ip1_file2.v")
-
 endfunction()

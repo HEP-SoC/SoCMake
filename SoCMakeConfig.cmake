@@ -16,13 +16,19 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/graphviz.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/option.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/find_python.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/print_list.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/uniquify_files_by_basename.cmake")
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/cmake/utils/uniquify_files_by_basename.cmake"
+)
 
 # ====================================
 # ======== Additional utilities ======
 # ====================================
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/generate_sources_list/generate_sv_sources_list.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/utils/generate_sources_list/read_rtl_sources.cmake")
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/cmake/utils/generate_sources_list/generate_sv_sources_list.cmake"
+)
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/cmake/utils/generate_sources_list/read_rtl_sources.cmake"
+)
 
 # ====================================
 # ======== Simulation ================
@@ -93,15 +99,25 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/lint/vhdl_linter.cmake")
 # ====================================
 # ====== Build scripts ===============
 # ====================================
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/systemc/systemc_build.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/uvm-systemc/uvm-systemc_build.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/verilator/verilator_build.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/riscv/sail/sail_install.cmake")
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/systemc/systemc_build.cmake"
+)
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/uvm-systemc/uvm-systemc_build.cmake"
+)
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/verilator/verilator_build.cmake"
+)
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/cmake/build_scripts/riscv/sail/sail_install.cmake"
+)
 
 # ====================================
 # ====== IPXact ======================
 # ====================================
-include("${CMAKE_CURRENT_LIST_DIR}/cmake/ipxact/importer/ipxact_ip_importer.cmake")
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/cmake/ipxact/importer/ipxact_ip_importer.cmake"
+)
 
 # fusesoc importer
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/fusesoc/add_ip_from_fusesoc.cmake")

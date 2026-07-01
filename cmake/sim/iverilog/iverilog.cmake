@@ -26,11 +26,17 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :keyword EXECUTABLE: Simulator executable name. Defaults to <IP_LIB>_iverilog_tb.
 # :type EXECUTABLE: string
 # :keyword FILE_SETS: list of file sets to use for simulation.
-# :type FILE_SETS: list[string] 
+# :type FILE_SETS: list[string]
 #]]
 function(iverilog IP_LIB)
     # Parse the function arguments
-    cmake_parse_arguments(ARG "NO_RUN_TARGET" "TOP_MODULE;OUTDIR;EXECUTABLE;RUN_TARGET_NAME" "SV_COMPILE_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "NO_RUN_TARGET"
+        "TOP_MODULE;OUTDIR;EXECUTABLE;RUN_TARGET_NAME"
+        "SV_COMPILE_ARGS;RUN_ARGS;FILE_SETS"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -77,7 +83,9 @@ function(iverilog IP_LIB)
     # Generator expression for OUTDIR = defined(ARG_OUTDIR) ? ARG_OUTDIR : BINARY_DIR
     set(OUTDIR $<IF:$<BOOL:${ARG_OUTDIR}>,${ARG_OUTDIR},${BINARY_DIR}>)
     # Set the output executable name
-    set(ARG_EXECUTABLE $<IF:$<BOOL:${ARG_EXECUTABLE}>,${ARG_EXECUTABLE},${OUTDIR}/${IP_LIB}_iverilog_tb>)
+    set(ARG_EXECUTABLE
+        $<IF:$<BOOL:${ARG_EXECUTABLE}>,${ARG_EXECUTABLE},${OUTDIR}/${IP_LIB}_iverilog_tb>
+    )
 
     # Set the stamp file path (is the stamp file really needed?)
     set(STAMP_FILE "${OUTDIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
@@ -88,12 +96,10 @@ function(iverilog IP_LIB)
         add_custom_command(
             OUTPUT ${ARG_EXECUTABLE} ${STAMP_FILE}
             COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
-            COMMAND ${IVERILOG_EXECUTABLE}
-                $<$<BOOL:${ARG_TOP_MODULE}>:-s${ARG_TOP_MODULE}>
-                ${ARG_INCDIRS}
-                ${CMP_DEFS_ARG}
-                ${ARG_SV_COMPILE_ARGS}
-                -o ${ARG_EXECUTABLE}
+            COMMAND
+                ${IVERILOG_EXECUTABLE}
+                $<$<BOOL:${ARG_TOP_MODULE}>:-s${ARG_TOP_MODULE}> ${ARG_INCDIRS}
+                ${CMP_DEFS_ARG} ${ARG_SV_COMPILE_ARGS} -o ${ARG_EXECUTABLE}
                 ${SOURCES}
             COMMAND touch ${STAMP_FILE}
             DEPENDS ${SOURCES}
@@ -105,27 +111,35 @@ function(iverilog IP_LIB)
             ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
             DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(
+            TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+            PROPERTY DESCRIPTION ${DESCRIPTION}
+        )
     endif()
 
-    set(__sim_run_cmd
-        ${VVP_EXECUTABLE} ${ARG_RUN_ARGS} ${ARG_EXECUTABLE}
-    )
+    set(__sim_run_cmd ${VVP_EXECUTABLE} ${ARG_RUN_ARGS} ${ARG_EXECUTABLE})
     if(NOT ${ARG_NO_RUN_TARGET})
         if(NOT ARG_RUN_TARGET_NAME)
             set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
         endif()
-        set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB}")
+        set(DESCRIPTION
+            "Run ${CMAKE_CURRENT_FUNCTION} testbench compiled from ${IP_LIB}"
+        )
         # Add a custom target to run the generated executable
         add_custom_target(
             ${ARG_RUN_TARGET_NAME}
             COMMAND ${__sim_run_cmd}
-            DEPENDS ${ARG_EXECUTABLE} ${STAMP_FILE} ${SOURCES} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+            DEPENDS
+                ${ARG_EXECUTABLE}
+                ${STAMP_FILE}
+                ${SOURCES}
+                ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
             COMMENT ${DESCRIPTION}
         )
-        set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
+        set_property(
+            TARGET ${ARG_RUN_TARGET_NAME}
+            PROPERTY DESCRIPTION ${DESCRIPTION}
+        )
     endif()
     set(SOCMAKE_SIM_RUN_CMD ${__sim_run_cmd} PARENT_SCOPE)
-
 endfunction()
-

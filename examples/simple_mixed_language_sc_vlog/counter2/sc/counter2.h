@@ -23,4 +23,3 @@ SC_MODULE(counter2) {
         sensitive << clk.pos();
     }
 };
-

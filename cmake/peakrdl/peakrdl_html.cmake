@@ -6,7 +6,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 # Create a target for invoking PeakRDL-html on IP_LIB.
 #
 # `PeakRDL-html <https://github.com/SystemRDL/PeakRDL-html>`_ generates HTML documentation out of the SystemRDL inputs.
-# 
+#
 # An example of generated documentation can be found `here <https://systemrdl.github.io/PeakRDL-html/?p=>`_
 #
 # Function expects that **${IP_LIB}** has **SYSTEMRDL_SOURCES** property set with
@@ -66,32 +66,39 @@ function(peakrdl_html IP_LIB)
     endforeach()
 
     find_python3()
-    set(__CMD ${Python3_EXECUTABLE} -m peakrdl html
-            ${INCDIRS_ARG}
-            ${COMPDEFS_ARG}
-            -o ${OUTDIR}
-            ${RDL_SOURCES}
-            ${ARG_ARGS}
-            )
+    set(__CMD
+        ${Python3_EXECUTABLE}
+        -m
+        peakrdl
+        html
+        ${INCDIRS_ARG}
+        ${COMPDEFS_ARG}
+        -o
+        ${OUTDIR}
+        ${RDL_SOURCES}
+        ${ARG_ARGS}
+    )
 
     ## Try to estimate the generated files, mostly for `make clean` purposes
     ## It is dangerous to put whole OUTDIR as BYPRODUCTS/OUTPUT, this way risk is a bit lower
-    set(GENERATED_FILES 
-            ${OUTDIR}/content
-            ${OUTDIR}/css
-            ${OUTDIR}/data
-            ${OUTDIR}/favicon.png
-            ${OUTDIR}/fonts
-            ${OUTDIR}/index.html
-            ${OUTDIR}/js
-            ${OUTDIR}/launcher-windows-chrome.bat
-            ${OUTDIR}/launcher-windows-edge.bat
-            ${OUTDIR}/launcher-windows-firefox.bat
-            ${OUTDIR}/search
-        )
+    set(GENERATED_FILES
+        ${OUTDIR}/content
+        ${OUTDIR}/css
+        ${OUTDIR}/data
+        ${OUTDIR}/favicon.png
+        ${OUTDIR}/fonts
+        ${OUTDIR}/index.html
+        ${OUTDIR}/js
+        ${OUTDIR}/launcher-windows-chrome.bat
+        ${OUTDIR}/launcher-windows-edge.bat
+        ${OUTDIR}/launcher-windows-firefox.bat
+        ${OUTDIR}/search
+    )
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
-    set(DESCRIPTION "Generate html documentation for \"${IP_LIB}\", with ${CMAKE_CURRENT_FUNCTION}")
+    set(DESCRIPTION
+        "Generate html documentation for \"${IP_LIB}\", with ${CMAKE_CURRENT_FUNCTION}"
+    )
 
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${GENERATED_FILES}
@@ -100,22 +107,30 @@ function(peakrdl_html IP_LIB)
         DEPENDS ${RDL_SOURCES} ${IP_LIB}
         COMMAND_EXPAND_LISTS
         COMMENT ${DESCRIPTION}
-        )
+    )
 
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${STAMP_FILE} ${GENERATED_FILES}
-        )
-    set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+    )
+    set_property(
+        TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        PROPERTY DESCRIPTION ${DESCRIPTION}
+    )
 
     if(ARG_SERVER_TARGET)
-        set(DESCRIPTION "Run a server for html documentation of \"${IP_LIB}\", generated with ${CMAKE_CURRENT_FUNCTION}")
-        add_custom_target(${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_server
+        set(DESCRIPTION
+            "Run a server for html documentation of \"${IP_LIB}\", generated with ${CMAKE_CURRENT_FUNCTION}"
+        )
+        add_custom_target(
+            ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_server
             WORKING_DIRECTORY ${OUTDIR}
             COMMAND ${Python3_EXECUTABLE} -m http.server
             DEPENDS ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-            )
-        set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_server PROPERTY DESCRIPTION ${DESCRIPTION})
+        )
+        set_property(
+            TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_server
+            PROPERTY DESCRIPTION ${DESCRIPTION}
+        )
     endif()
-
 endfunction()

@@ -41,10 +41,12 @@ function(add_ip_from_ipxact COMP_XML)
     endif()
 
     string(SHA1 _vlnv_key "${COMP_XML}")
-    set(_vlnv_file "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/ipxact_vlnv/${_vlnv_key}")
+    set(_vlnv_file
+        "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/ipxact_vlnv/${_vlnv_key}"
+    )
 
     # Keep .vlnv file as a cache that stores only the VLNV.
-    # This is important as it lets us guess the name of 
+    # This is important as it lets us guess the name of
     # <vendor>__<lib>__<name>Config.cmake file.
     set(_have_vlnv FALSE)
     if(EXISTS "${_vlnv_file}")
@@ -77,27 +79,47 @@ function(add_ip_from_ipxact COMP_XML)
 
     if(_dirty)
         # Parse XML file again, to generate the Config.cmake file
-        execute_process(COMMAND ${xml_command} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ipxact_to_config.xslt" ${COMP_XML}
-                        OUTPUT_VARIABLE _config_body)
+        execute_process(
+            COMMAND
+                ${xml_command}
+                "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ipxact_to_config.xslt"
+                ${COMP_XML}
+            OUTPUT_VARIABLE _config_body
+        )
         # Parse the VLNV from the add_ip() line in the generated Config
         string(REGEX REPLACE "\n.*" "" _add_ip_line "${_config_body}")
-        string(REGEX REPLACE "^add_ip\\(([^)]+)\\).*" "\\1" _vlnv "${_add_ip_line}")
+        string(
+            REGEX REPLACE "^add_ip\\(([^)]+)\\).*"
+            "\\1"
+            _vlnv
+            "${_add_ip_line}"
+        )
         parse_ip_vlnv("${_vlnv}" vendor library name version)
         set(cmake_file ${xml_dir}/${vendor}__${library}__${name}Config.cmake)
         # Add the IPXact file we parsed to ip_sources()
-        set(_config_body "${_config_body}\nip_sources(\${IP} IPXACT\n    \${CMAKE_CURRENT_LIST_DIR}/${xml_name})\n\n")
+        set(_config_body
+            "${_config_body}\nip_sources(\${IP} IPXACT\n    \${CMAKE_CURRENT_LIST_DIR}/${xml_name})\n\n"
+        )
         write_file(${cmake_file} ${_config_body})
 
         # Write out also the VLNV file
         if(NOT _have_vlnv)
-            file(WRITE "${_vlnv_file}" "${vendor}::${library}::${name}::${version}")
+            file(
+                WRITE "${_vlnv_file}"
+                "${vendor}::${library}::${name}::${version}"
+            )
         endif()
     endif()
 
     # Set the _DIR variable in cache, as this variable will be used when
     # find_package() is called to locate the Config.cmake file
     if(NOT DEFINED ${vendor}__${library}__${name}_DIR)
-        set(${vendor}__${library}__${name}_DIR "${xml_dir}" CACHE INTERNAL "" FORCE)
+        set(${vendor}__${library}__${name}_DIR
+            "${xml_dir}"
+            CACHE INTERNAL
+            ""
+            FORCE
+        )
     endif()
 
     if(NOT ARG_GENERATE_ONLY)

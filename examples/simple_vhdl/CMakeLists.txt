@@ -9,10 +9,12 @@ if(SIMULATOR STREQUAL "all")
 endif()
 
 add_ip(tb
-    DESCRIPTION "Simple verilog testbench")
+    DESCRIPTION "Simple verilog testbench"
+)
 
 ip_sources(${IP} VHDL
-    tb.vhdl)
+    tb.vhdl
+)
 
 add_subdirectory(adder)
 ip_link(${IP} adder)

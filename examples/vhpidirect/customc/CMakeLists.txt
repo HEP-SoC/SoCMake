@@ -6,13 +6,11 @@ add_ip(tb)
 
 ip_sources(tb VHDL
     ./tb.vhd
-    )
+)
 
-add_library(customc STATIC
-    ./main.c
-    )
+add_library(customc STATIC ./main.c)
 
 ip_link(${IP}
-    customc)
+    customc
+)
 ghdl(${IP})
-

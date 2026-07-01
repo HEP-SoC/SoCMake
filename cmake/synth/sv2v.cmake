@@ -53,24 +53,26 @@ function(sv2v IP_LIB)
     set(V_GEN ${OUTDIR}/${IP_LIB}.v)
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
-    set(DESCRIPTION "Convert ${IP_LIB} System Verilog files to Verilog with ${CMAKE_CURRENT_FUNCTION}")
+    set(DESCRIPTION
+        "Convert ${IP_LIB} System Verilog files to Verilog with ${CMAKE_CURRENT_FUNCTION}"
+    )
 
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${V_GEN}
-        COMMAND  sv2v
-        ${SOURCES} ${INCDIR_ARG} ${CMP_DEFS_ARG}
-        -w ${V_GEN}
-
+        COMMAND sv2v ${SOURCES} ${INCDIR_ARG} ${CMP_DEFS_ARG} -w ${V_GEN}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES}
         COMMENT ${DESCRIPTION}
-        )
+    )
 
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${STAMP_FILE} ${SOURCES} ${V_GEN}
-        )
-    set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+    )
+    set_property(
+        TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        PROPERTY DESCRIPTION ${DESCRIPTION}
+    )
 
     if(ARG_REPLACE)
         get_property(__flat_graph TARGET ${IP_LIB} PROPERTY FLAT_GRAPH)
@@ -81,5 +83,4 @@ function(sv2v IP_LIB)
         ip_sources(${IP_LIB} VERILOG ${V_GEN})
         add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
     endif()
-
 endfunction()

@@ -35,7 +35,13 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 #]]
 
 function(verible_lint IP_LIB)
-    cmake_parse_arguments(ARG "REQUIRED;ONLY_TOP;SKIP_GENERATED" "OUTDIR;AUTOFIX;RULES_FILE" "RULES;WAIVER_FILES" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "REQUIRED;ONLY_TOP;SKIP_GENERATED"
+        "OUTDIR;AUTOFIX;RULES_FILE"
+        "RULES;WAIVER_FILES"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -52,14 +58,19 @@ function(verible_lint IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
-    set(AUTOFIX_OPTIONS "no;patch-interactive;patch;inplace-interactive;inplace;generate-waiver")
+    set(AUTOFIX_OPTIONS
+        "no;patch-interactive;patch;inplace-interactive;inplace;generate-waiver"
+    )
     if(ARG_AUTOFIX AND (NOT ARG_AUTOFIX IN_LIST AUTOFIX_OPTIONS))
         socmake_message(FATAL_ERROR "Not valid option for AUTOFIX: ${ARG_AUTOFIX}, valid options are ${AUTOFIX_OPTIONS}")
     endif()
 
     if(ARG_AUTOFIX)
         set(ARG_AUTOFIX --autofix ${ARG_AUTOFIX})
-        set(AUTOFIX_OUTFILE_ARG --autofix_output_file ${OUTDIR}/${IP_LIB}_autofix.patch)
+        set(AUTOFIX_OUTFILE_ARG
+            --autofix_output_file
+            ${OUTDIR}/${IP_LIB}_autofix.patch
+        )
     endif()
 
     if(ARG_RULES)
@@ -80,7 +91,7 @@ function(verible_lint IP_LIB)
         get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)
         get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG)
     else()
-    get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
+        get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
     endif()
     set(__sources ${SV_SOURCES} ${V_SOURCES})
 
@@ -94,39 +105,47 @@ function(verible_lint IP_LIB)
     endif()
 
     find_program(VERIBLE_LINTER NAMES verible-verilog-lint)
-    set(__CMD ${VERIBLE_LINTER}
-            ${ARG_AUTOFIX} ${AUTOFIX_OUTFILE_ARG}
-            ${ARG_RULES} ${ARG_RULES_FILE}
-            ${ARG_WAIVER_FILES}
-            ${__sources}
-        )
+    set(__CMD
+        ${VERIBLE_LINTER}
+        ${ARG_AUTOFIX}
+        ${AUTOFIX_OUTFILE_ARG}
+        ${ARG_RULES}
+        ${ARG_RULES_FILE}
+        ${ARG_WAIVER_FILES}
+        ${__sources}
+    )
 
     set(DESCRIPTION "Lint ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
     if(ARG_REQUIRED)
-        set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
-        add_custom_command(OUTPUT ${STAMP_FILE}
+        set(STAMP_FILE
+            "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp"
+        )
+        add_custom_command(
+            OUTPUT ${STAMP_FILE}
             COMMAND ${__CMD}
             COMMAND touch ${STAMP_FILE}
             DEPENDS ${__sources}
             COMMENT ${DESCRIPTION}
-            )
+        )
 
-        add_custom_target(${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        add_custom_target(
+            ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
             DEPENDS ${__sources} ${STAMP_FILE}
-            )
+        )
         add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
     else()
-        add_custom_target( ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        add_custom_target(
+            ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
             COMMAND ${__CMD}
             COMMENT ${DESCRIPTION}
-            )
+        )
         add_dependencies(${IP_LIB}_${CMAKE_CURRENT_FUNCTION} ${IP_LIB})
     endif()
-    set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
-
-
+    set_property(
+        TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        PROPERTY DESCRIPTION ${DESCRIPTION}
+    )
 endfunction()
-
 
 # TODO add formatter
 
@@ -174,7 +193,7 @@ endfunction()
 #
 #     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
 #     add_custom_command(OUTPUT ${STAMP_FILE}
-#         COMMAND verible-verilog-lint 
+#         COMMAND verible-verilog-lint
 #             ${ARG_AUTOFIX} ${AUTOFIX_OUTFILE_ARG}
 #             ${ARG_RULES} ${ARG_RULES_FILE}
 #             ${ARG_WAIVER_FILES}

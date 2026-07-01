@@ -13,14 +13,14 @@ include_guard(GLOBAL)
 # :type dir: string
 #]]
 macro(SUBDIRLIST output_var dir)
-  file(GLOB children RELATIVE ${dir} ${dir}/*)
-  set(dirlist "")
-  foreach(child ${children})
-    if(IS_DIRECTORY ${dir}/${child})
-      list(APPEND dirlist ${child})
-      endif()
+    file(GLOB children RELATIVE ${dir} ${dir}/*)
+    set(dirlist "")
+    foreach(child ${children})
+        if(IS_DIRECTORY ${dir}/${child})
+            list(APPEND dirlist ${child})
+        endif()
     endforeach()
-  set(${output_var} ${dirlist})
+    set(${output_var} ${dirlist})
 endmacro()
 
 #[[[
@@ -35,10 +35,10 @@ endmacro()
 #]]
 macro(SUBDIRLIST_EXCLUDE output_var dir excluded_patterns)
     # Get all subdirectories
-    SUBDIRLIST(SUBDIRS ${dir})
+    subdirlist(SUBDIRS ${dir})
 
     set(filtered_subdirs "")
-    
+
     foreach(subdir ${SUBDIRS})
         get_filename_component(subdir_name ${subdir} NAME)
         set(exclude_dir FALSE)

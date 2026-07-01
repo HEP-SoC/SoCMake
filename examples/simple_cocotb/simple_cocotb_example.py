@@ -1,6 +1,7 @@
 import cocotb
 from cocotb.triggers import Timer
 
+
 class Colors:
     """ANSI escape codes for terminal color output."""
 
@@ -14,21 +15,26 @@ class Colors:
     WHITE = "\033[37m"
     BOLD = "\033[1m"
 
+
 @cocotb.test()
 async def simple_cocotb_example(dut):
-  """Test a simple adder: drives NUM1 and NUM2 with equal values and checks SUM."""
-  dut._log.info("Running simple cocotb example test...")
+    """Test a simple adder: drives NUM1 and NUM2 with equal values and checks SUM."""
+    dut._log.info("Running simple cocotb example test...")
 
-  for i in range(10):
-    dut._log.info(f"{Colors.YELLOW}{Colors.BOLD}Test iteration {i+1}.{Colors.RESET}")
-    # Set adder inputs
-    dut.NUM1.value = i
-    dut.NUM2.value = i
-    expected_result = i + i
-    await Timer(5, units="ns")
-    result = dut.SUM.value
-    if(expected_result == result):
-      dut._log.info(f"{Colors.GREEN}{Colors.BOLD}Test passed.{Colors.RESET}")
-    else:
-      dut._log.info(f"{Colors.RED}{Colors.BOLD}Test failed.{Colors.RESET}")
-      raise ValueError(f"{Colors.RED}{Colors.BOLD}Expected: {expected_result} - Obtained: {result}{Colors.RESET}")
+    for i in range(10):
+        dut._log.info(
+            f"{Colors.YELLOW}{Colors.BOLD}Test iteration {i + 1}.{Colors.RESET}"
+        )
+        # Set adder inputs
+        dut.NUM1.value = i
+        dut.NUM2.value = i
+        expected_result = i + i
+        await Timer(5, units="ns")
+        result = dut.SUM.value
+        if expected_result == result:
+            dut._log.info(f"{Colors.GREEN}{Colors.BOLD}Test passed.{Colors.RESET}")
+        else:
+            dut._log.info(f"{Colors.RED}{Colors.BOLD}Test failed.{Colors.RESET}")
+            raise ValueError(
+                f"{Colors.RED}{Colors.BOLD}Expected: {expected_result} - Obtained: {result}{Colors.RESET}"
+            )

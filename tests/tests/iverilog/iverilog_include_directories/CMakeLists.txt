@@ -15,7 +15,10 @@ iverilog(${IP}
     EXECUTABLE ${PROJECT_BINARY_DIR}/tb_inc_dirs
 )
 
-add_test(NAME iverilog_include_directories COMMAND ${PROJECT_BINARY_DIR}/tb_inc_dirs)
+add_test(
+    NAME iverilog_include_directories
+    COMMAND ${PROJECT_BINARY_DIR}/tb_inc_dirs
+)
 
 add_dependencies(check ${IP}_iverilog)
 add_dependencies(check_cdash ${IP}_iverilog)
@@ -33,7 +36,10 @@ iverilog(${IP}
     EXECUTABLE ${PROJECT_BINARY_DIR}/tb_header_file_set
 )
 
-add_test(NAME iverilog_header_file_set COMMAND ${PROJECT_BINARY_DIR}/tb_header_file_set)
+add_test(
+    NAME iverilog_header_file_set
+    COMMAND ${PROJECT_BINARY_DIR}/tb_header_file_set
+)
 
 add_dependencies(check ${IP}_iverilog)
 add_dependencies(check_cdash ${IP}_iverilog)

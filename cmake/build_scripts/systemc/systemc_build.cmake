@@ -47,12 +47,19 @@ function(systemc_build)
         set(BUILD_DIR ${PROJECT_BINARY_DIR}/systemc-build)
     endif()
 
-    find_package(SystemCLanguage ${ARG_VERSION} CONFIG
+    find_package(
+        SystemCLanguage
+        ${ARG_VERSION}
+        CONFIG
         HINTS ${SYSTEMC_HOME} $ENV{SYSTEMC_HOME} ${ARG_INSTALL_DIR} ${BUILD_DIR}
-        )
+    )
 
     if(ARG_EXACT_VERSION)
-        if(NOT "${SystemCLanguage_VERSION_MAJOR}.${SystemCLanguage_VERSION_MINOR}.${SystemCLanguage_VERSION_PATCH}" STREQUAL ${ARG_VERSION})
+        if(
+            NOT "${SystemCLanguage_VERSION_MAJOR}.${SystemCLanguage_VERSION_MINOR}.${SystemCLanguage_VERSION_PATCH}"
+                STREQUAL
+                ${ARG_VERSION}
+        )
             set(SystemCLanguage_FOUND FALSE)
         endif()
     endif()
@@ -60,26 +67,27 @@ function(systemc_build)
     if(NOT SystemCLanguage_FOUND)
         socmake_message(STATUS "${Magenta}[SystemC Not Found]${ColourReset}")
         socmake_message(STATUS "${Magenta}[Building SystemC]${ColourReset}")
-        execute_process(COMMAND ${CMAKE_COMMAND}
-            -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
-            -B ${BUILD_DIR} 
-            ${CMAKE_ARG_VERSION}
-            ${CMAKE_CXX_STANDARD_ARG}
-            -DCMAKE_INSTALL_PREFIX=${ARG_INSTALL_DIR}
-            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+        execute_process(
+            COMMAND
+                ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -B
+                ${BUILD_DIR} ${CMAKE_ARG_VERSION} ${CMAKE_CXX_STANDARD_ARG}
+                -DCMAKE_INSTALL_PREFIX=${ARG_INSTALL_DIR}
+                -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             COMMAND_ECHO STDOUT
-            )
-
-        execute_process(COMMAND ${CMAKE_COMMAND}
-                --build ${BUILD_DIR}
-                --parallel
-            )
-    endif()
-
-    find_package(SystemCLanguage ${ARG_VERSION} CONFIG REQUIRED
-        HINTS ${ARG_INSTALL_DIR}
         )
 
-    socmake_message(STATUS "${Green}[Found SystemC]${ColourReset}: ${SystemCLanguage_VERSION} in ${SystemCLanguage_DIR}")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} --build ${BUILD_DIR} --parallel
+        )
+    endif()
 
+    find_package(
+        SystemCLanguage
+        ${ARG_VERSION}
+        CONFIG
+        REQUIRED
+        HINTS ${ARG_INSTALL_DIR}
+    )
+
+    socmake_message(STATUS "${Green}[Found SystemC]${ColourReset}: ${SystemCLanguage_VERSION} in ${SystemCLanguage_DIR}")
 endfunction()

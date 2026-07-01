@@ -28,10 +28,12 @@ generate_sv_sources_list(${IP}
 
 include(CTest)
 
-add_test(NAME ${PROJECT_NAME}_${IP_NAME}
-    COMMAND /bin/bash -c "make test__ip__${IP_NAME}__0.0.1_source_list && diff -r ${CMAKE_BINARY_DIR}/${IP_NAME}_sources ${CMAKE_CURRENT_LIST_DIR}/golden/${IP_NAME}_sources"
+add_test(
+    NAME ${PROJECT_NAME}_${IP_NAME}
+    COMMAND
+        /bin/bash -c
+        "make test__ip__${IP_NAME}__0.0.1_source_list && diff -r ${CMAKE_BINARY_DIR}/${IP_NAME}_sources ${CMAKE_CURRENT_LIST_DIR}/golden/${IP_NAME}_sources"
 )
-
 
 add_ip(top_synthesis
     VENDOR test
@@ -55,6 +57,9 @@ generate_sv_sources_list(${IP}
     SLANG_ARGS -DSYNTHESIS
 )
 
-add_test(NAME ${PROJECT_NAME}_${IP_NAME}
-    COMMAND /bin/bash -c "make test__ip__${IP_NAME}__0.0.1_source_list && diff -r ${CMAKE_BINARY_DIR}/${IP_NAME}_sources ${CMAKE_CURRENT_LIST_DIR}/golden/${IP_NAME}_sources"
+add_test(
+    NAME ${PROJECT_NAME}_${IP_NAME}
+    COMMAND
+        /bin/bash -c
+        "make test__ip__${IP_NAME}__0.0.1_source_list && diff -r ${CMAKE_BINARY_DIR}/${IP_NAME}_sources ${CMAKE_CURRENT_LIST_DIR}/golden/${IP_NAME}_sources"
 )

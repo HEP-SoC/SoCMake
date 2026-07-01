@@ -7,5 +7,3 @@ function(${${TEST_NAME}})
     check_languages(FAKELANG)
     ct_assert_prints("Language not supported")
 endfunction()
-
-

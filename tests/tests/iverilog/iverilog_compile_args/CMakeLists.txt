@@ -16,7 +16,10 @@ iverilog(${IP}
 
 include(CTest)
 
-add_test(NAME iverilog_compile_args COMMAND ${PROJECT_BINARY_DIR}/tb_compile_args)
+add_test(
+    NAME iverilog_compile_args
+    COMMAND ${PROJECT_BINARY_DIR}/tb_compile_args
+)
 
 add_dependencies(check ${IP}_iverilog)
 add_dependencies(check_cdash ${IP}_iverilog)
@@ -36,7 +39,10 @@ iverilog(${IP}
 
 include(CTest)
 
-add_test(NAME iverilog_compile_definitions COMMAND ${PROJECT_BINARY_DIR}/tb_compile_definitions)
+add_test(
+    NAME iverilog_compile_definitions
+    COMMAND ${PROJECT_BINARY_DIR}/tb_compile_definitions
+)
 
 add_dependencies(check ${IP}_iverilog)
 add_dependencies(check_cdash ${IP}_iverilog)

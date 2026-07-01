@@ -38,16 +38,26 @@ function(uvm_systemc_build)
     if(ARG_INSTALL_DIR)
         set(BUILD_DIR ${ARG_INSTALL_DIR}/../uvm-systemc-build)
     elseif(FETCHCONTENT_BASE_DIR)
-        set(BUILD_DIR ${FETCHCONTENT_BASE_DIR}/uvm-systemc-build )
+        set(BUILD_DIR ${FETCHCONTENT_BASE_DIR}/uvm-systemc-build)
     else()
-        set(BUILD_DIR ${PROJECT_BINARY_DIR}/uvm-systemc-build )
+        set(BUILD_DIR ${PROJECT_BINARY_DIR}/uvm-systemc-build)
     endif()
 
     # TODO ARG_VERSION cannot be used as its not following major.minor.patch
-    find_package(UVM-SystemC CONFIG
-        HINTS ${UVM_SYSTEMC_HOME} $ENV{UVM_SYSTEMC_HOME} ${ARG_INSTALL_DIR} ${BUILD_DIR}
+    find_package(
+        UVM-SystemC
+        CONFIG
+        HINTS
+            ${UVM_SYSTEMC_HOME}
+            $ENV{UVM_SYSTEMC_HOME}
+            ${ARG_INSTALL_DIR}
+            ${BUILD_DIR}
     )
-    get_target_property(SYSTEMC_INC_DIR SystemC::systemc INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(
+        SYSTEMC_INC_DIR
+        SystemC::systemc
+        INTERFACE_INCLUDE_DIRECTORIES
+    )
     if(SYSTEMC_INC_DIR MATCHES "systemc-build")
         set(SYSTEMC_HOME "${SYSTEMC_INC_DIR}/../../../../systemc/")
     else()
@@ -61,26 +71,22 @@ function(uvm_systemc_build)
     if(NOT UVM-SystemC_FOUND)
         socmake_message(STATUS "${Magenta}[UVM-SystemC Not Found]${ColourReset}")
         socmake_message(STATUS "${Magenta}[Building UVM-SystemC]${ColourReset}")
-        execute_process(COMMAND ${CMAKE_COMMAND}
-            -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
-            -B ${BUILD_DIR}
-            ${CMAKE_ARG_VERSION}
-            -DSYSTEMC_HOME=${SYSTEMC_HOME}
-            -DCMAKE_INSTALL_PREFIX=${ARG_INSTALL_DIR}
+        execute_process(
+            COMMAND
+                ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -B
+                ${BUILD_DIR} ${CMAKE_ARG_VERSION} -DSYSTEMC_HOME=${SYSTEMC_HOME}
+                -DCMAKE_INSTALL_PREFIX=${ARG_INSTALL_DIR}
             COMMAND_ECHO STDOUT
-            )
-
-        execute_process(COMMAND ${CMAKE_COMMAND}
-                --build ${BUILD_DIR}
-                --parallel ${CMAKE_BUILD_PARALLEL_LEVEL}
-                --target install
-            )
-    endif()
-
-    find_package(UVM-SystemC CONFIG REQUIRED
-        HINTS ${ARG_INSTALL_DIR}
         )
 
-    socmake_message(STATUS "${Green}[Found UVM-SystemC]${ColourReset}: ${UVM-SystemC_VERSION} in ${UVM-SystemC_DIR}")
+        execute_process(
+            COMMAND
+                ${CMAKE_COMMAND} --build ${BUILD_DIR} --parallel
+                ${CMAKE_BUILD_PARALLEL_LEVEL} --target install
+        )
+    endif()
 
+    find_package(UVM-SystemC CONFIG REQUIRED HINTS ${ARG_INSTALL_DIR})
+
+    socmake_message(STATUS "${Green}[Found UVM-SystemC]${ColourReset}: ${UVM-SystemC_VERSION} in ${UVM-SystemC_DIR}")
 endfunction()

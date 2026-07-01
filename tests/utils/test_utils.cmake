@@ -13,7 +13,10 @@
 #]]
 function(add_test_build_commands_match_patterns TARGET)
     if(ARGC LESS 2)
-        message(FATAL_ERROR "Provide search patterns as arguments to ${CMAKE_CURRENT_FUNCTION}")
+        message(
+            FATAL_ERROR
+            "Provide search patterns as arguments to ${CMAKE_CURRENT_FUNCTION}"
+        )
     endif()
 
     set(SEARCH_PATTERNS "")
@@ -27,16 +30,23 @@ function(add_test_build_commands_match_patterns TARGET)
     get_target_property(BINARY_DIR ${TARGET} BINARY_DIR)
 
     if(CMAKE_GENERATOR MATCHES "Ninja")
-        set(DRY_RUN_CMD "${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR} -v -n ${TARGET}")
+        set(DRY_RUN_CMD
+            "${CMAKE_MAKE_PROGRAM} -C ${CMAKE_BINARY_DIR} -v -n ${TARGET}"
+        )
     else()
-        set(DRY_RUN_CMD "make -f ${BINARY_DIR}/CMakeFiles/${TARGET}.dir/build.make ${TARGET} -n")
+        set(DRY_RUN_CMD
+            "make -f ${BINARY_DIR}/CMakeFiles/${TARGET}.dir/build.make ${TARGET} -n"
+        )
     endif()
 
-    add_test(NAME ${TARGET}_makefile_validate
-        COMMAND sh -c "${DRY_RUN_CMD} > ${BINARY_DIR}/${TARGET}_validate_commands.txt && \
+    add_test(
+        NAME ${TARGET}_makefile_validate
+        COMMAND
+            sh -c
+            "${DRY_RUN_CMD} > ${BINARY_DIR}/${TARGET}_validate_commands.txt && \
         python ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/file_pattern_search.py ${BINARY_DIR}/${TARGET}_validate_commands.txt -- ${SEARCH_PATTERNS}"
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 
-    SET(CTEST_NAME ${TARGET}_makefile_validate PARENT_SCOPE)
+    set(CTEST_NAME ${TARGET}_makefile_validate PARENT_SCOPE)
 endfunction()

@@ -8,7 +8,7 @@ function(${${TEST_NAME}})
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.3
-        )
+    )
 
     set(IP_REF ${IP_VENDOR}::${IP_LIBRARY}::${IP_NAME}::${IP_VERSION})
     ct_assert_target_has_property(${IP_REF} ALIASED_TARGET)

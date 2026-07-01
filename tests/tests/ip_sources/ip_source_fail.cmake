@@ -8,12 +8,11 @@ function(${${TEST_NAME}})
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.3
-        )
+    )
 
     set(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL TRUE)
     ip_sources(${IP} FAKELANG
         file1.fakelang
         svfile2.sv
-        )
+    )
 endfunction()
-

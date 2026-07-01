@@ -10,7 +10,7 @@ module test_counters();
         clk = 1'b0;
     end
 
-    always begin 
+    always begin
         #10 clk = ~clk;
     end
 
@@ -44,4 +44,3 @@ module test_counters();
     end
 
 endmodule
-

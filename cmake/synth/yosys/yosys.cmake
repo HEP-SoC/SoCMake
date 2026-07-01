@@ -36,7 +36,13 @@ function(yosys IP_LIB)
     # TODO iterate over linked libraries and replace SYSTEMVERILOG_SOURCES with VERILOG_SOURCES instead
 
     # Parse the function arguments
-    cmake_parse_arguments(ARG "SV2V;SHOW;REPLACE" "OUTDIR;TOP;PLUGINS;SCRIPTS" "" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "SV2V;SHOW;REPLACE"
+        "OUTDIR;TOP;PLUGINS;SCRIPTS"
+        ""
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -85,7 +91,7 @@ function(yosys IP_LIB)
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
 
     # Format the string for config file format
-    string (REPLACE ";" " " V_FILES_STR "${SOURCES}")
+    string(REPLACE ";" " " V_FILES_STR "${SOURCES}")
 
     socmake_message(STATUS "Yosys V_FILES_STR: ${V_FILES_STR}")
 
@@ -103,8 +109,16 @@ function(yosys IP_LIB)
     # If no custom scripts are provided, use the default Yosys script
     if(NOT ARG_SCRIPTS)
         set(YOSYS_SCRIPTS ${OUTDIR}/flows/default_${IP_LIB}.ys)
-        configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/flows/default.ys.in ${YOSYS_SCRIPTS} @ONLY)
-        set_property(TARGET ${IP_LIB} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${YOSYS_SCRIPTS})
+        configure_file(
+            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/flows/default.ys.in
+            ${YOSYS_SCRIPTS}
+            @ONLY
+        )
+        set_property(
+            TARGET ${IP_LIB}
+            APPEND
+            PROPERTY ADDITIONAL_CLEAN_FILES ${YOSYS_SCRIPTS}
+        )
     else()
         foreach(_script ${ARG_SCRIPTS})
             # Configure and set the custom scripts
@@ -112,7 +126,11 @@ function(yosys IP_LIB)
             get_filename_component(__fn ${_script} NAME_WLE)
             if(__ext STREQUAL ".ys.in")
                 configure_file(${_script} ${OUTDIR}/flows/${__fn} @ONLY)
-                set_property(TARGET ${IP_LIB} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR}/flows/${__fn})
+                set_property(
+                    TARGET ${IP_LIB}
+                    APPEND
+                    PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR}/flows/${__fn}
+                )
                 list(APPEND YOSYS_SCRIPTS ${OUTDIR}/flows/${__fn})
             endif()
         endforeach()
@@ -120,8 +138,16 @@ function(yosys IP_LIB)
 
     # If SHOW argument is passed, configure an additional Yosys script to show the netlist
     if(ARG_SHOW)
-        configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/flows/show.ys.in ${OUTDIR}/flows/show_${IP_LIB}.ys @ONLY)
-        set_property(TARGET ${IP_LIB} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR}/flows/show_${IP_LIB}.ys)
+        configure_file(
+            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/flows/show.ys.in
+            ${OUTDIR}/flows/show_${IP_LIB}.ys
+            @ONLY
+        )
+        set_property(
+            TARGET ${IP_LIB}
+            APPEND
+            PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR}/flows/show_${IP_LIB}.ys
+        )
         list(PREPEND YOSYS_SCRIPTS ${OUTDIR}/flows/show_${IP_LIB}.ys)
     endif()
 
@@ -131,7 +157,10 @@ function(yosys IP_LIB)
         foreach(plugin ${ARG_PLUGINS})
             get_target_property(__type ${plugin} TYPE)
             # Add the '-m' flag for each shared and static library plugin provided
-            if(${__type} STREQUAL "SHARED_LIBRARY" OR ${__type} STREQUAL "STATIC_LIBRARY")
+            if(
+                ${__type} STREQUAL "SHARED_LIBRARY"
+                OR ${__type} STREQUAL "STATIC_LIBRARY"
+            )
                 list(APPEND __PLUGINS_ARG -m $<TARGET_FILE:${plugin}>)
             else()
                 socmake_message(FATAL_ERROR "Only Shared and Static libraries are supported for Yosys PLUGINS at the moment")
@@ -141,7 +170,9 @@ function(yosys IP_LIB)
 
     # Set the stamp file path used as the generated output of the custom command
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
-    set(DESCRIPTION "Run synthesis on \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}")
+    set(DESCRIPTION
+        "Run synthesis on \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}"
+    )
     # Add a custom command to run Yosys
     add_custom_command(
         OUTPUT ${STAMP_FILE}
@@ -155,7 +186,10 @@ function(yosys IP_LIB)
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${STAMP_FILE} ${SOURCES} ${YOSYS_SCRIPTS}
     )
-    set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+    set_property(
+        TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        PROPERTY DESCRIPTION ${DESCRIPTION}
+    )
 
     # Add
 
@@ -165,6 +199,4 @@ function(yosys IP_LIB)
         set_property(TARGET ${IP_LIB} PROPERTY SYSTEMVERILOG_SOURCES "")
         add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
     endif()
-
 endfunction()
-
