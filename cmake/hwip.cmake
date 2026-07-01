@@ -54,13 +54,16 @@ include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_message.cmake")
 # :type DESCRIPTION: string
 #]]
 function(add_ip IP_NAME)
-    cmake_parse_arguments(
-        ARG
-        "NO_ALIAS"
-        "VENDOR;LIBRARY;VERSION;DESCRIPTION"
-        ""
-        ${ARGN}
+    set(options NO_ALIAS)
+    set(oneValueArgs
+        VENDOR
+        LIBRARY
+        VERSION
+        DESCRIPTION
     )
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     # Vendor and library arguments are expected at the minimum
     if(ARG_UNPARSED_ARGUMENTS)
@@ -152,7 +155,15 @@ endfunction()
 # :type VERSION: string
 #]]
 function(create_ip_vlnv OUTVAR IP_NAME)
-    cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION" "" ${ARGN})
+    set(options)
+    set(oneValueArgs
+        VENDOR
+        LIBRARY
+        VERSION
+    )
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -201,7 +212,11 @@ function(
     IP_NAME
     VERSION
 )
-    cmake_parse_arguments(ARG "" "" "" ${ARGN})
+    set(options)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -266,7 +281,14 @@ endfunction()
 # :type HEADERS: list[string]
 #]]
 function(ip_sources IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "PREPEND;REPLACE" "FILE_SET" "HEADERS" ${ARGN})
+    set(options
+        PREPEND
+        REPLACE
+    )
+    set(oneValueArgs FILE_SET)
+    set(multiValueArgs HEADERS)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     # Delete PREPEND and REPLACE from argument list, so only sources are left
     list(REMOVE_ITEM ARGN "PREPEND" "REPLACE")
 
@@ -350,7 +372,14 @@ endfunction()
 # :type FILE_SETS: list[string]
 #]]
 function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS;HEADERS" "" "FILE_SETS" ${ARGN})
+    set(options
+        NO_DEPS
+        HEADERS
+    )
+    set(oneValueArgs)
+    set(multiValueArgs FILE_SETS)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     alias_dereference(_reallib ${IP_LIB})
 
     # Handle NO_DEPS flag
@@ -439,7 +468,11 @@ endfunction()
 # :type FILE_SET: string
 #]]
 function(ip_include_directories IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "" "FILE_SET" "" ${ARGN})
+    set(options)
+    set(oneValueArgs FILE_SET)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     # Check that the file language is supported by SoCMake
     check_languages(${LANGUAGE})
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
@@ -487,7 +520,11 @@ endfunction()
 # :type FILE_SETS: list[string]
 #]]
 function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "FILE_SETS" ${ARGN})
+    set(options NO_DEPS)
+    set(oneValueArgs)
+    set(multiValueArgs FILE_SETS)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     unset(_no_deps)
     if(ARG_NO_DEPS)
         set(_no_deps "NO_DEPS")
@@ -638,7 +675,11 @@ endfunction()
 #
 #]]
 function(ip_link IP_LIB)
-    cmake_parse_arguments(ARG "NODEPEND" "" "" ${ARGN})
+    set(options NODEPEND)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
@@ -693,7 +734,11 @@ endfunction()
 #
 #]]
 function(get_ip_property OUTVAR IP_LIB PROPERTY)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    set(options NO_DEPS)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     # Retrieve the real library name in case an alias is used
     alias_dereference(_reallib ${IP_LIB})
@@ -744,7 +789,11 @@ endfunction()
 #
 #]]
 function(ip_compile_definitions IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "" "FILE_SET" "" ${ARGN})
+    set(options)
+    set(oneValueArgs FILE_SET)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     check_languages(${LANGUAGE})
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
@@ -800,7 +849,11 @@ endfunction()
 # :type FILE_SETS: list[string]
 #]]
 function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "FILE_SETS" ${ARGN})
+    set(options NO_DEPS)
+    set(oneValueArgs)
+    set(multiValueArgs FILE_SETS)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     unset(_no_deps)
     if(ARG_NO_DEPS)
         set(_no_deps "NO_DEPS")
@@ -864,7 +917,11 @@ endfunction()
 # :type NO_DEPS: bool
 #]]
 function(get_ip_links OUTVAR IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    set(options NO_DEPS)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()

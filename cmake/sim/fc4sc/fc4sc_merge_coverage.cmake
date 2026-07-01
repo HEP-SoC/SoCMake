@@ -20,7 +20,14 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :type DEPENDS: string
 #]]
 function(fc4sc_merge_coverage DIRECTORY)
-    cmake_parse_arguments(ARG "" "OUTFILE;FC4SC_HOME" "DEPENDS" ${ARGN})
+    set(options)
+    set(oneValueArgs
+        OUTFILE
+        FC4SC_HOME
+    )
+    set(multiValueArgs DEPENDS)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()

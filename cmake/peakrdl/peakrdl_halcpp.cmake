@@ -43,13 +43,14 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 # :type OUTDIR: string path
 #]]
 function(peakrdl_halcpp IP_LIB)
-    cmake_parse_arguments(
-        ARG
-        "SKIP_BUSES;GENERATE_TESTS"
-        "OUTDIR"
-        "PARAMETERS"
-        ${ARGN}
+    set(options
+        SKIP_BUSES
+        GENERATE_TESTS
     )
+    set(oneValueArgs OUTDIR)
+    set(multiValueArgs PARAMETERS)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
