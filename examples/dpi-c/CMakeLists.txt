@@ -19,11 +19,11 @@ project(dpi_example NONE)
 
 add_ip(tb
     DESCRIPTION "Simple verilog testbench"
-    )
+)
 
 ip_sources(${IP} SYSTEMVERILOG
     ${PROJECT_SOURCE_DIR}/tb.sv
-    )
+)
 
 add_subdirectory(hello)
 

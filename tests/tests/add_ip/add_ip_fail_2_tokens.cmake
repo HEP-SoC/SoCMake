@@ -31,7 +31,6 @@ function(${${TEST_NAME}})
     add_ip(lib::0.0.1)
 endfunction()
 
-
 set(TEST_NAME add_ip_fail_2_tokens_empty_token_1)
 ct_add_test(NAME ${TEST_NAME} EXPECTFAIL)
 function(${${TEST_NAME}})

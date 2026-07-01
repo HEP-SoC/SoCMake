@@ -9,12 +9,11 @@ function(${${TEST_NAME}})
     add_ip(v::l::ip32::4.40.100)
     add_ip(v::l::ip42::100.120.5)
 
-
     ip_link(v::l::top
             v::l::ip2::3.9.2
             v::l::ip32::4.40.100
             v::l::ip42::100.120.5
-        )
+    )
 endfunction()
 
 set(TEST_NAME ip_link_version_condition_1)
@@ -22,7 +21,6 @@ ct_add_test(NAME ${TEST_NAME})
 function(${${TEST_NAME}})
     add_ip(v::l::top::1.5.1)
     add_ip(v::l::ip2::3.9.2)
-
 
     ip_link(v::l::top "v::l::ip2 >= 3.9.2")
     ip_link(v::l::top "v::l::ip2 >  3.9.1")
@@ -54,7 +52,6 @@ function(${${TEST_NAME}})
     ip_link(v::l::top "v::l::ip2 <= 4.9.1")
 endfunction()
 
-
 set(TEST_NAME ip_link_version_condition_mult_0)
 ct_add_test(NAME ${TEST_NAME})
 function(${${TEST_NAME}})
@@ -74,12 +71,11 @@ function(${${TEST_NAME}})
     add_ip(v::l::ip23::4.40.100)
     add_ip(v::l::ip24::100.120.5)
 
-
     ip_link(v::l::top
             "v::l::ip2 >=3.9.0, <= 3.9.5"
             "v::l::ip23 >= 4.0.100, < 4.100.0"
             "v::l::ip24 < 200.200.200, > 100.100.100"
-        )
+    )
 endfunction()
 
 set(TEST_NAME ip_link_version_condition_gteq_fail_0)
@@ -210,7 +206,6 @@ function(${${TEST_NAME}})
     ip_link(v::l::top "v::l::ip2 > 2.9.2, < 3.9.2")
 endfunction()
 
-
 set(TEST_NAME ip_link_version_condition_mult_fail_1)
 ct_add_test(NAME ${TEST_NAME} EXPECTFAIL)
 function(${${TEST_NAME}})
@@ -227,7 +222,6 @@ function(${${TEST_NAME}})
     ip_link(v::l::top "v::l::ip2 > 3.9.1, != 3.9.2")
 endfunction()
 
-
 set(TEST_NAME ip_link_version_condition_neq_fail_1)
 ct_add_test(NAME ${TEST_NAME} EXPECTFAIL)
 function(${${TEST_NAME}})
@@ -235,7 +229,6 @@ function(${${TEST_NAME}})
     add_ip(v::l::ip2::3.9.2)
     ip_link(v::l::top "v::l::ip2 != 3.9.2")
 endfunction()
-
 
 set(TEST_NAME ip_link_version_condition_neq_1)
 ct_add_test(NAME ${TEST_NAME})

@@ -8,13 +8,10 @@ include("../../../../../SoCMakeConfig.cmake")
 
 add_ip(ip)
 
-set(SV_INCDIRS
-    .
-    justdir
-    )
+set(SV_INCDIRS . justdir)
 ip_include_directories(ip SYSTEMVERILOG
     ${SV_INCDIRS}
-    )
+)
 
 add_subdirectory(otherdir)
 include(incdir/incdir.cmake_)
@@ -25,7 +22,9 @@ foreach(abspath relpath IN ZIP_LISTS SV_ABS_INCDIRS SV_INCDIRS)
     # If there is only . at the end, remove it, otherwise it wont match
     string(REGEX REPLACE "\\.$" "" relpath ${relpath})
     if(NOT "${CMAKE_CURRENT_SOURCE_DIR}/${relpath}" PATH_EQUAL ${abspath})
-        message(FATAL_ERROR "NOT EQUAL: ${CMAKE_CURRENT_SOURCE_DIR}/${relpath} - ${abspath}")
+        message(
+            FATAL_ERROR
+            "NOT EQUAL: ${CMAKE_CURRENT_SOURCE_DIR}/${relpath} - ${abspath}"
+        )
     endif()
-
 endforeach()

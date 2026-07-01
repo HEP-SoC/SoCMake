@@ -5,7 +5,7 @@ include("../../SoCMakeConfig.cmake")
 
 option_enum(SIMULATOR "Which simulator to use" "iverilog;xcelium;verilator;vcs" "iverilog")
 
-# Support of Verilator is limited with cocotb 
+# Support of Verilator is limited with cocotb
 # Cocotb 1.8.1 and verilator 5.012 works together, that's why we build this exact version
 # If verilator does not work with cocotb on your machine, it's recommended to use an other tool
 if(${SIMULATOR} STREQUAL "verilator")

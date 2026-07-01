@@ -56,7 +56,7 @@ project(adder NONE)                  # Name of CMake project
 find_package(socmake REQUIRED)
 
 # Create an IP block called adder
-add_ip(adder)  
+add_ip(adder)
 # Add verilog file adder.v to adder IP
 ip_sources(adder VERILOG
                  ./adder.v)

@@ -11,7 +11,7 @@ colors as $c |
 
 # Print Header
 "\($c.bold)\($c.yellow)\("IP" | pad($w_name)) \("Description" | pad($w_desc))\($c.reset)",
-  
+
 # Print separator
 ("-" * $termwidth),
 

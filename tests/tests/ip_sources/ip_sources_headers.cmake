@@ -13,7 +13,7 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/svheader1.svh
         ${CDIR}/svheader2.svh
-        )
+    )
 
     ip_sources(${IP} VERILOG
         ${CDIR}/vfile1.v
@@ -21,7 +21,7 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/vheader1.vh
         ${CDIR}/vheader2.vh
-        )
+    )
 
     get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG)
     ct_assert_list(SV_SOURCES)
@@ -37,7 +37,7 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/svheader3.svh
         ${CDIR}/svheader4.svh
-        )
+    )
 
     get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG)
     ct_assert_list(SV_SOURCES)
@@ -47,8 +47,7 @@ function(${${TEST_NAME}})
     ct_assert_list(SV_SOURCES)
     ct_assert_equal(SV_SOURCES "${CDIR}/svheader1.svh;${CDIR}/svheader2.svh;${CDIR}/svheader3.svh;${CDIR}/svheader4.svh")
 
-
-# TEST VERILOG include directories
+    # TEST VERILOG include directories
     get_ip_sources(V_SOURCES ${IP} VERILOG)
     ct_assert_list(V_SOURCES)
     ct_assert_equal(V_SOURCES "${CDIR}/vfile1.v;${CDIR}/vfile2.v")
@@ -63,7 +62,7 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/vheader3.vh
         ${CDIR}/vheader4.vh
-        )
+    )
 
     get_ip_sources(V_SOURCES ${IP} VERILOG)
     ct_assert_list(V_SOURCES)
@@ -72,7 +71,6 @@ function(${${TEST_NAME}})
     get_ip_sources(V_SOURCES ${IP} VERILOG HEADERS)
     ct_assert_list(V_SOURCES)
     ct_assert_equal(V_SOURCES "${CDIR}/vheader1.vh;${CDIR}/vheader2.vh;${CDIR}/vheader3.vh;${CDIR}/vheader4.vh")
-
 endfunction()
 
 set(TEST_NAME ip_sources_headers_filesets)
@@ -86,8 +84,7 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/svheader1.svh
         ${CDIR}/svheader2.svh
-            
-        )
+    )
 
     ip_sources(${IP} VERILOG FILE_SET synth
         ${CDIR}/vfile1.v
@@ -95,7 +92,7 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/vheader1.vh
         ${CDIR}/vheader2.vh
-        )
+    )
 
     get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG HEADERS FILE_SETS sim)
     ct_assert_list(SV_SOURCES)
@@ -114,7 +111,7 @@ function(${${TEST_NAME}})
         HEADERS
         ${CDIR}/svheader3.svh
         ${CDIR}/svheader4.svh
-        )
+    )
 
     get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG HEADERS FILE_SETS synth)
     ct_assert_list(SV_SOURCES)
@@ -131,6 +128,4 @@ function(${${TEST_NAME}})
     get_ip_sources(SV_SOURCES ${IP} SYSTEMVERILOG VERILOG HEADERS FILE_SETS sim synth)
     ct_assert_list(SV_SOURCES)
     ct_assert_equal(SV_SOURCES "${CDIR}/svheader1.svh;${CDIR}/svheader2.svh;${CDIR}/svheader3.svh;${CDIR}/svheader4.svh;${CDIR}/vheader1.vh;${CDIR}/vheader2.vh")
-
 endfunction()
-

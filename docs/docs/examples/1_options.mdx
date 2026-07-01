@@ -9,7 +9,7 @@ The source code for this example can be found in [examples/options](https://gith
 import CodeBlock from '@theme/CodeBlock';
 export const cmakelists = require('!!raw-loader!../../../examples/options/CMakeLists.txt')?.default;
 
-SoCMake allow to use options, a script can easily be adapted to fit in a different environnement or to test different tools or features depending on your needs. 
+SoCMake allow to use options, a script can easily be adapted to fit in a different environnement or to test different tools or features depending on your needs.
 This allows to make generic and configurable script if you would like to share your work with others.
 
 Let's try to create an example with several options, to demonstrate how to use them.
@@ -26,11 +26,11 @@ Not all the options are taken in account in the files, it's to show how to imple
 
 SoCMake API add 6 new functions for options, that can be of the following type **Boolean**, **Integer**, **Enum**, **String**, **File** and **Directory**.
 
-They are generally composed of the following arguments : 
+They are generally composed of the following arguments :
  - **VARIABLE** name of the variable
  - **DESCRIPTION** short description for the variable
  - **DEFAULT** default value of the variable
- 
+
 If using `option_enum()`, an other argument, a list of strings is needed, between the description and the default value to give the possible values.
 
 `SoCMake` performs a check to verify that the value passed is an allowed value for Enum, Boolean, Integer types.

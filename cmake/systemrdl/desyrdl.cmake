@@ -28,7 +28,8 @@ function(desyrdl IP_LIB)
     # Check for any unknown argument
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
-                "${ARG_UNPARSED_ARGUMENTS}")
+                "${ARG_UNPARSED_ARGUMENTS}"
+        )
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
@@ -56,34 +57,42 @@ function(desyrdl IP_LIB)
         socmake_message(FATAL_ERROR "Interface not supported: ${ARG_INTF}, supported interfaces are ${supported_intfs}")
     endif()
 
-
     # Get the SystemRDL sources to generate the register block
     # This function gets the IP sources and the deps
     get_ip_sources(RDL_SOURCES ${IP_LIB} SYSTEMRDL)
 
     if(NOT RDL_SOURCES)
         socmake_message(FATAL_ERROR "Library ${IP_LIB} does not have SYSTEMRDL_SOURCES property set,
-                unable to run ${CMAKE_CURRENT_FUNCTION}")
+                unable to run ${CMAKE_CURRENT_FUNCTION}"
+        )
     endif()
 
     find_python3()
-    set(__CMD ${Python3_EXECUTABLE} -m desyrdl
-            -o ${OUTDIR}
-            -f vhdl
-            -i ${RDL_SOURCES}
-            ${ARG_ARGS}
-        )
+    set(__CMD
+        ${Python3_EXECUTABLE}
+        -m
+        desyrdl
+        -o
+        ${OUTDIR}
+        -f
+        vhdl
+        -i
+        ${RDL_SOURCES}
+        ${ARG_ARGS}
+    )
 
     set(VHDL_GEN
         ${OUTDIR}/vhdl/${ip_name}/pkg_${ip_name}.vhd
         ${OUTDIR}/vhdl/${ip_name}/${ip_name}_decoder_${ARG_INTF}.vhd
         ${OUTDIR}/vhdl/${ip_name}/${ip_name}.vhd
-        )
+    )
     # Prepend the generated files to the IP sources
     ip_sources(${IP_LIB} VHDL PREPEND ${VHDL_GEN})
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
-    set(DESCRIPTION "Generate register file for \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}")
+    set(DESCRIPTION
+        "Generate register file for \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}"
+    )
     add_custom_command(
         # The output files are automatically marked as GENERATED (deleted by make clean among other things)
         OUTPUT ${VHDL_GEN} ${STAMP_FILE}
@@ -98,17 +107,19 @@ function(desyrdl IP_LIB)
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${VHDL_GEN} ${STAMP_FILE}
     )
-    set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+    set_property(
+        TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        PROPERTY DESCRIPTION ${DESCRIPTION}
+    )
     add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
 
     add_ip(common
-        LIBRARY desyrdl)
+        LIBRARY desyrdl
+    )
 
     ip_sources(desyrdl::common VHDL
         ${OUTDIR}/vhdl/desyrdl/pkg_desyrdl_common.vhd
-        )
+    )
 
     ip_link(${IP_LIB} desyrdl::common)
-
 endfunction()
-

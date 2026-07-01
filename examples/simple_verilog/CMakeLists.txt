@@ -9,10 +9,12 @@ if(SIMULATOR STREQUAL "all")
 endif()
 
 add_ip(tb
-    DESCRIPTION "Simple verilog testbench")
+    DESCRIPTION "Simple verilog testbench"
+)
 
 ip_sources(${IP} VERILOG
-    tb.v)
+    tb.v
+)
 
 add_subdirectory(adder)
 ip_link(${IP} adder)
@@ -40,6 +42,5 @@ endif()
 if(SIMULATOR STREQUAL "vcs" OR ALL_SIMS)
     vcs(${IP})
 endif()
-
 
 help()

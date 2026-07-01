@@ -43,7 +43,13 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 # :type OUTDIR: string path
 #]]
 function(peakrdl_halcpp IP_LIB)
-    cmake_parse_arguments(ARG "SKIP_BUSES;GENERATE_TESTS" "OUTDIR" "PARAMETERS" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "SKIP_BUSES;GENERATE_TESTS"
+        "OUTDIR"
+        "PARAMETERS"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -88,7 +94,8 @@ function(peakrdl_halcpp IP_LIB)
 
     if(NOT RDL_FILES)
         socmake_message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
-                unable to run ${CMAKE_CURRENT_FUNCTION}")
+                unable to run ${CMAKE_CURRENT_FUNCTION}"
+        )
     endif()
 
     unset(INCDIRS_ARG)
@@ -102,14 +109,20 @@ function(peakrdl_halcpp IP_LIB)
     endforeach()
 
     find_python3()
-    set(__CMD ${Python3_EXECUTABLE} -m peakrdl halcpp
-            ${RDL_FILES}
-            ${EXT_ARG}
-            ${INCDIRS_ARG}
-            ${COMPDEFS_ARG}
-            ${GENERATE_TESTS_ARG}
-            ${SKIP_BUSES_ARG} -o ${OUTDIR}
-            ${OVERWRITTEN_PARAMETERS}
+    set(__CMD
+        ${Python3_EXECUTABLE}
+        -m
+        peakrdl
+        halcpp
+        ${RDL_FILES}
+        ${EXT_ARG}
+        ${INCDIRS_ARG}
+        ${COMPDEFS_ARG}
+        ${GENERATE_TESTS_ARG}
+        ${SKIP_BUSES_ARG}
+        -o
+        ${OUTDIR}
+        ${OVERWRITTEN_PARAMETERS}
     )
 
     target_include_directories(${IP_LIB} INTERFACE ${OUTDIR} ${OUTDIR}/include)
@@ -121,15 +134,11 @@ function(peakrdl_halcpp IP_LIB)
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
-        )
+    )
 
-    add_custom_target(
-        ${IP_LIB}_halcpp
-        DEPENDS ${CPP_HEADERS} ${STAMP_FILE}
-        )
+    add_custom_target(${IP_LIB}_halcpp DEPENDS ${CPP_HEADERS} ${STAMP_FILE})
 
     add_dependencies(${IP_LIB} ${IP_LIB}_halcpp)
-
 endfunction()
 
 # Find headers that have _ext.h extension and compare with libraries. If there is a library that
@@ -154,5 +163,4 @@ function(__ext_header_provided LIB libs)
 
     list(REMOVE_DUPLICATES ext_libs)
     set(${libs} ${ext_libs} PARENT_SCOPE)
-
 endfunction()

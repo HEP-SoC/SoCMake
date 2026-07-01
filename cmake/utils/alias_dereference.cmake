@@ -12,7 +12,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
 #
 #]]
 function(alias_dereference OUT LIB)
-
     # Check if the library is STATIC linked one, the library name will be $<LINK_ONLY:${LIB}> in that case
     if("${LIB}" MATCHES "\\$<LINK_ONLY:")
         return()

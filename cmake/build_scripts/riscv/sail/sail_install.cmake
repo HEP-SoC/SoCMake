@@ -23,23 +23,33 @@ macro(sail_install)
     find_python3()
 
     # Try to find SAIL executable
-    find_program(RISCV32_SAIL_EXE riscv_sim_RV32
-        HINTS ${FETCHCONTENT_BASE_DIR}/sail/*/*
-              ${SAIL_HOME}/* $ENV{SAIL_HOME}/*
-        )
+    find_program(
+        RISCV32_SAIL_EXE
+        riscv_sim_RV32
+        HINTS ${FETCHCONTENT_BASE_DIR}/sail/*/* ${SAIL_HOME}/* $ENV{SAIL_HOME}/*
+    )
 
     # Install SAIL if executable not found
     if(NOT RISCV32_SAIL_EXE)
-        execute_process(COMMAND ${Python3_EXECUTABE} -m pip install -e ${SAIL_INSTALL_LIST_DIR}/requirements.txt)
-        execute_process(COMMAND /bin/bash ${SAIL_INSTALL_LIST_DIR}/install_sail.sh
-                --prefix ${FETCHCONTENT_BASE_DIR}/sail
-                --build-dir ${FETCHCONTENT_BASE_DIR}/sail-build
+        execute_process(
+            COMMAND
+                ${Python3_EXECUTABE} -m pip install -e
+                ${SAIL_INSTALL_LIST_DIR}/requirements.txt
+        )
+        execute_process(
+            COMMAND
+                /bin/bash ${SAIL_INSTALL_LIST_DIR}/install_sail.sh --prefix
+                ${FETCHCONTENT_BASE_DIR}/sail --build-dir
+                ${FETCHCONTENT_BASE_DIR}/sail-build
         )
 
-        find_program(RISCV32_SAIL_EXE riscv_sim_RV32 REQUIRED
-                    HINTS ${FETCHCONTENT_BASE_DIR}/sail/*/*
+        find_program(
+            RISCV32_SAIL_EXE
+            riscv_sim_RV32
+            REQUIRED
+            HINTS ${FETCHCONTENT_BASE_DIR}/sail/*/*
         )
- 
+
         msg("-----------------------------------------------------------------" Yellow)
         msg("-  Successfull installation of Riscv-Sail" Yellow)
         msg("-  You can now delete directory ${FETCHCONTENT_BASE_DIR}/sail-build" Yellow)
@@ -47,5 +57,4 @@ macro(sail_install)
         msg("-  Variable is created holding path to sail binary RISCV32_SAIL_EXE" Yellow)
         msg("-----------------------------------------------------------------" Yellow)
     endif()
-
 endmacro()

@@ -4,4 +4,3 @@ module top2;
         $finish();
     end
 endmodule
-

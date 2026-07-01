@@ -103,7 +103,7 @@ endfunction()
 # :type L1: list
 # :param L2: 2nd list
 # :type L2: list
-# :param RET: returned value for the comparison 
+# :param RET: returned value for the comparison
 # :type RET: integer
 #]]
 function(compare_lists L1 L2 RET)
@@ -127,4 +127,3 @@ function(compare_lists L1 L2 RET)
 
     set(${RET} 1 PARENT_SCOPE)
 endfunction()
-

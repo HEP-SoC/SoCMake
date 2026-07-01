@@ -4,16 +4,17 @@ from typing import List
 import sys
 from edalize.edatool import get_edatool
 
+
 def main(
-        rtl_files: List[str],
-        inc_dirs: List[str],
-        verilog_defs : List[str],
-        constraint_files: List[str],
-        part: str,
-        name: str,
-        top: str,
-        outdir : str,
-        ):
+    rtl_files: List[str],
+    inc_dirs: List[str],
+    verilog_defs: List[str],
+    constraint_files: List[str],
+    part: str,
+    name: str,
+    top: str,
+    outdir: str,
+):
     """Configure, build, and run a Vivado synthesis flow using Edalize.
 
     Args:
@@ -34,7 +35,7 @@ def main(
     # create console handler with a higher log level
     ch = logging.StreamHandler()
     # create formatter and add it to the handlers
-    FORMAT = '-- %(levelname)s: %(name)s - %(message)s'
+    FORMAT = "-- %(levelname)s: %(name)s - %(message)s"
     formatter = logging.Formatter(FORMAT)
     ch.setFormatter(formatter)
     # add the handlers to the logger
@@ -44,45 +45,62 @@ def main(
 
     files = []
     for f in rtl_files:
-        files.append({'name' : f, 'file_type' : 'verilogSource'})
+        files.append({"name": f, "file_type": "verilogSource"})
 
     for d in inc_dirs:
-        files.append({'name' : d, 'file_type' : 'verilogSource', 'is_include_file' : True, 'include_path' : d})
+        files.append(
+            {
+                "name": d,
+                "file_type": "verilogSource",
+                "is_include_file": True,
+                "include_path": d,
+            }
+        )
 
     for f in constraint_files:
-        files.append({'name' : f, 'file_type' : 'xdc'})
+        files.append({"name": f, "file_type": "xdc"})
 
     params = {}
-    params['SYNTHESIS'] = {'datatype' : 'bool', 'default' : True, 'paramtype' : 'vlogdefine'}
+    params["SYNTHESIS"] = {
+        "datatype": "bool",
+        "default": True,
+        "paramtype": "vlogdefine",
+    }
     for define in verilog_defs:
-        param = define.split('=')
+        param = define.split("=")
         p_name = param[0]
-        type = 'str'
+        type = "str"
         # Check param list length:
         # len=1: parameter of type MY_DEFINE
         # len=2: parameter of type MY_DEFINE=MYVALUE
         # len>2: error
         param_len = len(param)
         # by default params are set to one if no value is given
-        param_value = '1'
-        if (param_len == 1):
-            logger.warning(f"Verilog define '{p_name}' is assigned the default value of 1")
-        elif (param_len == 2):
+        param_value = "1"
+        if param_len == 1:
+            logger.warning(
+                f"Verilog define '{p_name}' is assigned the default value of 1"
+            )
+        elif param_len == 2:
             param_value = param[1]
         else:
             logger.error(f"Verilog define '{p_name}' syntax is wrong: {define}")
             sys.exit(1)
-        params[p_name] = {'datatype' : type, 'default' : param_value, 'paramtype' : 'vlogdefine'}
+        params[p_name] = {
+            "datatype": type,
+            "default": param_value,
+            "paramtype": "vlogdefine",
+        }
 
-    tool = 'vivado'
+    tool = "vivado"
 
     edam = {
-            'files'        : files,
-            'name'         : name,
-            'parameters'   : params,
-            'toplevel'     : top,
-            'tool_options' : {tool : {'part' : part}},
-            }
+        "files": files,
+        "name": name,
+        "parameters": params,
+        "toplevel": top,
+        "tool_options": {tool: {"part": part}},
+    }
 
     backend = get_edatool(tool)(edam=edam, work_root=outdir)
 
@@ -91,17 +109,24 @@ def main(
     backend.run()
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process RTL files with constraints')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Process RTL files with constraints")
 
-    parser.add_argument('--rtl-files', nargs='+', type=str, help='List of RTL files')
-    parser.add_argument('--verilog-defs', nargs='*', type=str, help='List of Verilog defines <NAME>=VALUE')
-    parser.add_argument('--inc-dirs', nargs='*', type=str, help='List of RTL inc_dirs')
-    parser.add_argument('--constraint-files', nargs='+', type=str, help='List of constraint files')
-    parser.add_argument('--part', type=str, help='Single string specifying the part')
-    parser.add_argument('--name', type=str, help='Single string specifying the name')
-    parser.add_argument('--top', type=str, help='Single string specifying the top')
-    parser.add_argument('--outdir', type=str, help='Build directory')
+    parser.add_argument("--rtl-files", nargs="+", type=str, help="List of RTL files")
+    parser.add_argument(
+        "--verilog-defs",
+        nargs="*",
+        type=str,
+        help="List of Verilog defines <NAME>=VALUE",
+    )
+    parser.add_argument("--inc-dirs", nargs="*", type=str, help="List of RTL inc_dirs")
+    parser.add_argument(
+        "--constraint-files", nargs="+", type=str, help="List of constraint files"
+    )
+    parser.add_argument("--part", type=str, help="Single string specifying the part")
+    parser.add_argument("--name", type=str, help="Single string specifying the name")
+    parser.add_argument("--top", type=str, help="Single string specifying the top")
+    parser.add_argument("--outdir", type=str, help="Build directory")
 
     args = parser.parse_args()
 

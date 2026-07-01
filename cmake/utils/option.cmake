@@ -11,12 +11,19 @@ include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
 # :param DESCRIPTION: short description string for the variable
 # :type DESCRIPTION: string
 # :param DEFAULT: default value of the variable
-# :type DEFAULT: integer 
+# :type DEFAULT: integer
 # :param ADVANCED: optional, mark options as advanced, it will not show in help menu
 # :type ADVANCED: boolean
 # :param POSSIBLE_VALUES: possible values variable can have
 # :type POSSIBLE_VALUES: list[string]
-function(__define_socmake_option NAME TYPE DESCRIPTION DEFAULT ADVANCED)
+function(
+    __define_socmake_option
+    NAME
+    TYPE
+    DESCRIPTION
+    DEFAULT
+    ADVANCED
+)
     cmake_parse_arguments(ARG "" "" "POSSIBLE_VALUES" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -27,7 +34,10 @@ function(__define_socmake_option NAME TYPE DESCRIPTION DEFAULT ADVANCED)
     set_property(GLOBAL PROPERTY SOCMAKE_${NAME}_DEFAULT ${DEFAULT})
     set_property(GLOBAL PROPERTY SOCMAKE_${NAME}_ADVANCED ${ADVANCED})
     if(ARG_POSSIBLE_VALUES)
-        set_property(GLOBAL PROPERTY SOCMAKE_${NAME}_VALUES ${ARG_POSSIBLE_VALUES})
+        set_property(
+            GLOBAL
+            PROPERTY SOCMAKE_${NAME}_VALUES ${ARG_POSSIBLE_VALUES}
+        )
     endif()
     if(ADVANCED)
         mark_as_advanced(${NAME})
@@ -44,10 +54,10 @@ endfunction()
 # :type VARIABLE: string
 # :param DESCRIPTION: short description string for the variable
 # :type DESCRIPTION: string
-# :param ENUM_VALUES: possible values variable can have 
+# :param ENUM_VALUES: possible values variable can have
 # :type ENUM_VALUES: list[string]
 # :param DEFAULT: default value of the variable
-# :type DEFAULT: integer 
+# :type DEFAULT: integer
 # :param ADVANCED: optional, mark options as advanced, it will not show in help menu
 # :type ADVANCED: boolean
 #]]
@@ -168,7 +178,7 @@ endfunction()
 # :param DESCRIPTION: short description string for the variable
 # :type DESCRIPTION: string
 # :param DEFAULT: default value of the variable
-# :type DEFAULT: integer 
+# :type DEFAULT: integer
 # :param ADVANCED: optional, mark options as advanced, it will not show in help menu
 # :type ADVANCED: boolean
 #]]
@@ -195,7 +205,7 @@ endfunction()
 # :param DESCRIPTION: short description string for the variable
 # :type DESCRIPTION: string
 # :param DEFAULT: default value of the variable
-# :type DEFAULT: boolean 
+# :type DEFAULT: boolean
 # :param ADVANCED: optional, mark options as advanced, it will not show in help menu
 # :type ADVANCED: boolean
 #]]

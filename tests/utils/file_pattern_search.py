@@ -4,6 +4,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
+
 def check_search(file_content, search_term):
     """Check if a search term exists in the file content and return matching lines with their line numbers.
 
@@ -20,6 +21,7 @@ def check_search(file_content, search_term):
             matched_lines.append((line_number, line))
     return matched_lines
 
+
 def generate_report(results):
     """Generate a detailed report from the search results with colored output.
 
@@ -33,7 +35,7 @@ def generate_report(results):
     report = []
     report.append("Search Report")
     report.append("=" * 40)
-    
+
     return_status = 0
     for term, (found, _) in results.items():
         if found:
@@ -43,14 +45,15 @@ def generate_report(results):
             # Red [FAILED] message for mismatches
             status = Text("[red][FAILED][/red] Not found: ")
             return_status = -1
-        
+
         # Add the search term to the status
         report.append(Text.assemble(status, term))
-    
+
     report.append("=" * 40)
-    
+
     # Return the full report as a string
     return "\n".join(str(line) for line in report), return_status
+
 
 def highlight_patterns(line, patterns):
     """Highlight matched and unmatched patterns in the given line.
@@ -71,12 +74,15 @@ def highlight_patterns(line, patterns):
             line = line.replace(pattern, f"[green]{pattern}[/green]")
     return line
 
+
 def main():
     """Entry point: search a file for one or more patterns and print a formatted report."""
-    parser = argparse.ArgumentParser(description="Search for multiple patterns in a file and report results.")
-    parser.add_argument('file', type=Path, help="Path to the file to search")
-    parser.add_argument('patterns', nargs='+', help="Patterns to search for")
-    
+    parser = argparse.ArgumentParser(
+        description="Search for multiple patterns in a file and report results."
+    )
+    parser.add_argument("file", type=Path, help="Path to the file to search")
+    parser.add_argument("patterns", nargs="+", help="Patterns to search for")
+
     args = parser.parse_args()
 
     console = Console(force_terminal=True)
@@ -87,7 +93,7 @@ def main():
         return
 
     # Read file content
-    with args.file.open('r') as file:
+    with args.file.open("r") as file:
         file_content = file.read()
 
     # Perform the searches and collect unique matching lines
@@ -111,12 +117,18 @@ def main():
         for line_number, line in matched_lines_set:
             highlighted_line = highlight_patterns(line, args.patterns)
             # console.print(f"[yellow]{line_number}: {highlighted_line}[/yellow]")
-            console.print(Panel(f"[yellow]{line_number}: {highlighted_line}[/yellow]", title="Matched Lines", expand=False))
+            console.print(
+                Panel(
+                    f"[yellow]{line_number}: {highlighted_line}[/yellow]",
+                    title="Matched Lines",
+                    expand=False,
+                )
+            )
     else:
         console.print("[yellow]No matching lines found in the file.[/yellow]")
 
     exit(return_status)
 
+
 if __name__ == "__main__":
     main()
-

@@ -41,7 +41,13 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 #]]
 function(cocotb IP_LIB)
     # Parse the function arguments
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI" "OUTDIR;RUN_TARGET_NAME;TOP_MODULE;COCOTB_MODULE;COCOTB_TESTCASE;SIM;TIMESCALE" "PYTHONPATH;SV_COMPILE_ARGS;RUN_ARGS" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "NO_RUN_TARGET;GUI"
+        "OUTDIR;RUN_TARGET_NAME;TOP_MODULE;COCOTB_MODULE;COCOTB_TESTCASE;SIM;TIMESCALE"
+        "PYTHONPATH;SV_COMPILE_ARGS;RUN_ARGS"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -154,7 +160,8 @@ function(cocotb IP_LIB)
         file(MAKE_DIRECTORY ${cocotb_sim_build})
 
         set(EXEC_TARGET cocotb_verilator_${ARG_COCOTB_MODULE}_${IP_LIB})
-        add_executable(${EXEC_TARGET}
+        add_executable(
+            ${EXEC_TARGET}
             ${COCOTB_SHARE_DIR}/lib/verilator/verilator.cpp
         )
 
@@ -168,7 +175,10 @@ function(cocotb IP_LIB)
 
         target_link_libraries(${EXEC_TARGET} PRIVATE ${IP_LIB}__vlt)
         target_link_libraries(${EXEC_TARGET} PRIVATE cocotbvpi_verilator)
-        target_link_options(${EXEC_TARGET} PRIVATE -Wl,-rpath,${COCOTB_LIB_DIR} -L${COCOTB_LIB_DIR})
+        target_link_options(
+            ${EXEC_TARGET}
+            PRIVATE -Wl,-rpath,${COCOTB_LIB_DIR} -L${COCOTB_LIB_DIR}
+        )
 
         set(sim_run_cmd ${PROJECT_BINARY_DIR}/${EXEC_TARGET} ${ARG_RUN_ARGS})
         set(sim_build_dep ${EXEC_TARGET})
@@ -246,7 +256,6 @@ function(cocotb IP_LIB)
 
     # If no test cases are provided, all test cases are run sequentially
     if(NOT ARG_COCOTB_TESTCASE)
-
         # Generator expression for OUTDIR = defined(ARG_OUTDIR) ? ARG_OUTDIR : BINARY_DIR
         set(OUTDIR $<IF:$<BOOL:${ARG_OUTDIR}>,${ARG_OUTDIR},${BINARY_DIR}>)
 
@@ -257,7 +266,9 @@ function(cocotb IP_LIB)
         list(FIND __sim_run_cmd "&&" _and_index)
         if(_and_index GREATER -1)
             math(EXPR _insert_index "${_and_index} + 1")
-            list(INSERT __sim_run_cmd ${_insert_index}
+            list(
+                INSERT __sim_run_cmd
+                ${_insert_index}
                 PYTHONPATH=${PYTHONPATH}
                 MODULE=${ARG_COCOTB_MODULE}
                 COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
@@ -275,19 +286,27 @@ function(cocotb IP_LIB)
             if(ARG_RUN_TARGET_NAME)
                 set(CUSTOM_TARGET_NAME ${ARG_RUN_TARGET_NAME})
             else()
-                set(CUSTOM_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_${ARG_COCOTB_MODULE})
+                set(CUSTOM_TARGET_NAME
+                    run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_${ARG_COCOTB_MODULE}
+                )
             endif()
 
-            set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} simulation compiled from ${IP_LIB} with ${ARG_SIM}")
+            set(DESCRIPTION
+                "Run ${CMAKE_CURRENT_FUNCTION} simulation compiled from ${IP_LIB} with ${ARG_SIM}"
+            )
             # Add a custom target that depends on the executable and stamp file
-            add_custom_target(${CUSTOM_TARGET_NAME}
+            add_custom_target(
+                ${CUSTOM_TARGET_NAME}
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
                 COMMAND ${__sim_run_cmd}
                 BYPRODUCTS ${COCOTB_RESULTS_FILE}
                 DEPENDS ${sim_build_dep} ${cocotb_custom_sim_deps}
                 COMMENT ${DESCRIPTION}
             )
-            set_property(TARGET ${CUSTOM_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
+            set_property(
+                TARGET ${CUSTOM_TARGET_NAME}
+                PROPERTY DESCRIPTION ${DESCRIPTION}
+            )
         endif()
     else() # ARG_COCOTB_TESTCASE
         foreach(i RANGE 1 ${ARG_COCOTB_TESTCASE})
@@ -312,7 +331,9 @@ function(cocotb IP_LIB)
             list(FIND __sim_run_cmd "&&" _and_index)
             if(_and_index GREATER -1)
                 math(EXPR _insert_index "${_and_index} + 1")
-                list(INSERT __sim_run_cmd ${_insert_index}
+                list(
+                    INSERT __sim_run_cmd
+                    ${_insert_index}
                     PYTHONPATH=${PYTHONPATH}
                     MODULE=${ARG_COCOTB_MODULE}
                     COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
@@ -332,25 +353,31 @@ function(cocotb IP_LIB)
                 if(ARG_RUN_TARGET_NAME)
                     set(CUSTOM_TARGET_NAME ${ARG_RUN_TARGET_NAME})
                 else()
-                    set(CUSTOM_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_${ARG_COCOTB_MODULE}_test_${test_num})
+                    set(CUSTOM_TARGET_NAME
+                        run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION}_${ARG_COCOTB_MODULE}_test_${test_num}
+                    )
                 endif()
 
-                set(DESCRIPTION "Run ${CMAKE_CURRENT_FUNCTION} simulation compiled from ${IP_LIB} with ${ARG_SIM}")
+                set(DESCRIPTION
+                    "Run ${CMAKE_CURRENT_FUNCTION} simulation compiled from ${IP_LIB} with ${ARG_SIM}"
+                )
                 # Add a custom target that depends on the executable and stamp file
-                add_custom_target(${CUSTOM_TARGET_NAME}
+                add_custom_target(
+                    ${CUSTOM_TARGET_NAME}
                     COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
                     COMMAND ${__sim_run_cmd}
                     BYPRODUCTS ${COCOTB_RESULTS_FILE}
                     DEPENDS ${sim_build_dep} ${cocotb_custom_sim_deps}
                     COMMENT ${DESCRIPTION}
                 )
-                set_property(TARGET ${CUSTOM_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
+                set_property(
+                    TARGET ${CUSTOM_TARGET_NAME}
+                    PROPERTY DESCRIPTION ${DESCRIPTION}
+                )
             endif() # NOT ARG_NO_RUN_TARGET
         endforeach()
     endif() # ARG_COCOTB_TESTCASE
 
     set(SOCMAKE_SIM_RUN_CMD ${sim_run_cmd} PARENT_SCOPE)
     set(SIM_BUILD_DEP ${sim_build_dep} PARENT_SCOPE)
-
 endfunction()
-

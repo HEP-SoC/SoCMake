@@ -19,7 +19,8 @@ function(peakrdl_print IP_LIB)
 
     if(NOT RDL_FILES)
         socmake_message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
-                unable to run ${CMAKE_CURRENT_FUNCTION}")
+                unable to run ${CMAKE_CURRENT_FUNCTION}"
+        )
     endif()
 
     unset(INCDIRS_ARG)
@@ -33,12 +34,12 @@ function(peakrdl_print IP_LIB)
     endforeach()
 
     find_python3()
-    add_custom_target(${IP_LIB}_peakrdl_print
-        COMMAND ${Python3_EXECUTABLE} -m peakrdl dump
-            ${INCDIRS_ARG}
-            ${COMPDEFS_ARG}
+    add_custom_target(
+        ${IP_LIB}_peakrdl_print
+        COMMAND
+            ${Python3_EXECUTABLE} -m peakrdl dump ${INCDIRS_ARG} ${COMPDEFS_ARG}
             ${RDL_FILES}
         DEPENDS ${IP_LIB}
         COMMENT "Running peakrdl dump on ${IP_LIB}"
-        )
+    )
 endfunction()

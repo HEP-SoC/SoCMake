@@ -13,21 +13,21 @@ include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
 #
 # **Keyword Arguments**
 #
-# :keyword PATTERN: if a pattern is given, the item in the group list will be filtered and they must have the pattern to be included 
+# :keyword PATTERN: if a pattern is given, the item in the group list will be filtered and they must have the pattern to be included
 # :type PATTERN: string
 # :keyword LIST: if a list is given, the item in the group list are the one given in the list.
 # :type LIST: list[string]
 function(_group_custom_items GROUP_NAME TYPE)
     cmake_parse_arguments(ARG "" "PATTERN" "LIST" ${ARGN})
-    
+
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument ${ARG_UNPARSED_ARGUMENTS}")
     endif()
-    
+
     if(ARG_PATTERN AND ARG_LIST)
         socmake_message(FATAL_ERROR "Arguments PATTERN and LIST cannot be used at the same time")
     endif()
-    
+
     # Filter items based on PATTERN or LIST
     if(ARG_PATTERN)
         if(TYPE STREQUAL "TARGET")
@@ -44,31 +44,38 @@ function(_group_custom_items GROUP_NAME TYPE)
     else()
         socmake_message(FATAL_ERROR "Specify either PATTERN or LIST arguments")
     endif()
-    
+
     if(NOT items)
         socmake_message(WARNING "No items found for PATTERN: ${ARG_PATTERN} or LIST: ${ARG_LIST}")
         return()
     endif()
-    
+
     # Append the GROUP_NAME to SOCMAKE_GROUPS property of the item
     foreach(item ${items})
         if(TYPE STREQUAL "OPTION")
-            set_property(GLOBAL PROPERTY SOCMAKE_${item}_SOCMAKE_GROUPS "${GROUP_NAME}")
+            set_property(
+                GLOBAL
+                PROPERTY SOCMAKE_${item}_SOCMAKE_GROUPS "${GROUP_NAME}"
+            )
         else()
-            set_property(TARGET ${item} APPEND PROPERTY SOCMAKE_GROUPS ${GROUP_NAME})
+            set_property(
+                TARGET ${item}
+                APPEND
+                PROPERTY SOCMAKE_GROUPS ${GROUP_NAME}
+            )
         endif()
     endforeach()
 endfunction()
 
 #[[[
-# This function can be used to create a custom group for targets. 
+# This function can be used to create a custom group for targets.
 #
 # :param GROUP_NAME: Name of the group that needs to be created.
 # :type GROUP_NAME: string
 #
 # **Keyword Arguments**
 #
-# :keyword PATTERN: if a pattern is given, the targets in the group list will be filtered and they must have the pattern to be included 
+# :keyword PATTERN: if a pattern is given, the targets in the group list will be filtered and they must have the pattern to be included
 # :type PATTERN: string
 # :keyword LIST: if a list is given, the target in the group list are the one given in the list.
 # :type LIST: list[string]
@@ -85,7 +92,7 @@ endfunction()
 #
 # **Keyword Arguments**
 #
-# :keyword PATTERN: if a pattern is given, the IPs in the group list will be filtered and they must have the pattern to be included 
+# :keyword PATTERN: if a pattern is given, the IPs in the group list will be filtered and they must have the pattern to be included
 # :type PATTERN: string
 # :keyword LIST: if a list is given, the IPs in the group list are the one given in the list.
 # :type LIST: list[string]
@@ -102,7 +109,7 @@ endfunction()
 #
 # **Keyword Arguments**
 #
-# :keyword PATTERN: if a pattern is given, the options in the group list will be filtered and they must have the pattern to be included 
+# :keyword PATTERN: if a pattern is given, the options in the group list will be filtered and they must have the pattern to be included
 # :type PATTERN: string
 # :keyword LIST: if a list is given, the options in the group list are the one given in the list.
 # :type LIST: list[string]

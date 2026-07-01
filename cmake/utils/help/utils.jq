@@ -11,8 +11,8 @@ def colors:
 
 # Function to pad or truncate text to a specific width
 def pad(width):
-    if length > width then 
-        .[0:width-3] + "..." 
-    else 
-        . + (" " * (width - length)) 
+    if length > width then
+        .[0:width-3] + "..."
+    else
+        . + (" " * (width - length))
     end;

@@ -20,7 +20,8 @@ endif()
 set(CMAKE_POLICY_DEFAULT_CMP0168 NEW)
 
 include(FetchContent)
-FetchContent_Declare(${CMAKE_FIND_PACKAGE_NAME}
+FetchContent_Declare(
+    ${CMAKE_FIND_PACKAGE_NAME}
     GIT_REPOSITORY ${_socmake_git_url}
     GIT_TAG ${_socmake_git_ref}
 )
@@ -30,4 +31,9 @@ set(${CMAKE_FIND_PACKAGE_NAME}_FOUND TRUE)
 set(${CMAKE_FIND_PACKAGE_NAME}_VERSION ${SOCMAKE_VERSION})
 
 # Override the variable that find_package() sets to point to the fetched repo instead of the one in .local/lib/cmake
-set(${CMAKE_FIND_PACKAGE_NAME}_DIR "${socmake_SOURCE_DIR}" CACHE STRING "SoCMake package dir" FORCE)
+set(${CMAKE_FIND_PACKAGE_NAME}_DIR
+    "${socmake_SOURCE_DIR}"
+    CACHE STRING
+    "SoCMake package dir"
+    FORCE
+)

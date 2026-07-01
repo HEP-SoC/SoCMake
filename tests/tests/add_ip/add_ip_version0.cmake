@@ -16,6 +16,4 @@ function(${${TEST_NAME}})
     ct_assert_equal(IP_LIBRARY "lib")
     ct_assert_equal(IP_VERSION "0")
     ct_assert_target_exists(${IP_VENDOR}__${IP_LIBRARY}__${IP_NAME}__${IP_VERSION})
-
 endfunction()
-

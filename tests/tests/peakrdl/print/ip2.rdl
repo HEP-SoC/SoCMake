@@ -10,4 +10,3 @@ addrmap ip2 {
     ip1 ip1_i;
     `endif
 };
-

@@ -41,11 +41,18 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 #]]
 function(peakrdl_regblock IP_LIB)
     # Parse keyword arguments
-    cmake_parse_arguments(ARG "" "OUTDIR;RENAME;INTF;RESET" "PARAMETERS;ARGS" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        ""
+        "OUTDIR;RENAME;INTF;RESET"
+        "PARAMETERS;ARGS"
+        ${ARGN}
+    )
     # Check for any unknown argument
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
-                "${ARG_UNPARSED_ARGUMENTS}")
+                "${ARG_UNPARSED_ARGUMENTS}"
+        )
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
@@ -90,7 +97,8 @@ function(peakrdl_regblock IP_LIB)
 
     if(NOT RDL_SOURCES)
         socmake_message(FATAL_ERROR "Library ${IP_LIB} does not have SYSTEMRDL_SOURCES property set,
-                unable to run ${CMAKE_CURRENT_FUNCTION}")
+                unable to run ${CMAKE_CURRENT_FUNCTION}"
+        )
     endif()
 
     unset(INCDIRS_ARG)
@@ -104,27 +112,33 @@ function(peakrdl_regblock IP_LIB)
     endforeach()
 
     find_python3()
-    set(__CMD ${Python3_EXECUTABLE} -m peakrdl regblock
-            --rename ${REGBLOCK_NAME}
-            --cpuif "$<IF:$<BOOL:${ARG_INTF}>,${ARG_INTF},apb3-flat>"
-            "$<$<BOOL:${ARG_RESET}>:--default-reset\;${ARG_RESET}>"
-            ${INCDIRS_ARG}
-            ${COMPDEFS_ARG}
-            -o ${OUTDIR}
-            ${RDL_SOURCES}
-            ${ARG_ARGS}
-            ${OVERWRITTEN_PARAMETERS}
-        )
+    set(__CMD
+        ${Python3_EXECUTABLE}
+        -m
+        peakrdl
+        regblock
+        --rename
+        ${REGBLOCK_NAME}
+        --cpuif
+        "$<IF:$<BOOL:${ARG_INTF}>,${ARG_INTF},apb3-flat>"
+        "$<$<BOOL:${ARG_RESET}>:--default-reset\;${ARG_RESET}>"
+        ${INCDIRS_ARG}
+        ${COMPDEFS_ARG}
+        -o
+        ${OUTDIR}
+        ${RDL_SOURCES}
+        ${ARG_ARGS}
+        ${OVERWRITTEN_PARAMETERS}
+    )
 
-    set(SV_GEN
-        ${OUTDIR}/${REGBLOCK_NAME}_pkg.sv
-        ${OUTDIR}/${REGBLOCK_NAME}.sv
-        )
+    set(SV_GEN ${OUTDIR}/${REGBLOCK_NAME}_pkg.sv ${OUTDIR}/${REGBLOCK_NAME}.sv)
     # Prepend the generated files to the IP sources
     ip_sources(${IP_LIB} SYSTEMVERILOG PREPEND ${SV_GEN})
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
-    set(DESCRIPTION "Generate register file for \"${IP_LIB}\" with ${ARG_INTF} bus, with ${CMAKE_CURRENT_FUNCTION}")
+    set(DESCRIPTION
+        "Generate register file for \"${IP_LIB}\" with ${ARG_INTF} bus, with ${CMAKE_CURRENT_FUNCTION}"
+    )
     add_custom_command(
         # The output files are automtically marked as GENERATED (deleted by make clean among other things)
         OUTPUT ${SV_GEN} ${STAMP_FILE}
@@ -139,7 +153,9 @@ function(peakrdl_regblock IP_LIB)
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${SV_GEN} ${STAMP_FILE}
     )
-    set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+    set_property(
+        TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        PROPERTY DESCRIPTION ${DESCRIPTION}
+    )
     add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
-
 endfunction()

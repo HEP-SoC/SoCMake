@@ -49,5 +49,3 @@ It is very simple to add support for new EDA tools through the SoCMake's `IP` bl
 | **RTL conversion**  | SV2V |
 | **Synthesis**       | Yosys, Vivado |
 | **PeakRDL**         | regblock, halcpp, html, docusaurus, ipblocksvg, socgen, ldsgen |
-
-

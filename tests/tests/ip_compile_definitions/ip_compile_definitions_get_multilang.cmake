@@ -8,22 +8,22 @@ function(${${TEST_NAME}})
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.3
-        )
+    )
 
     ip_compile_definitions(${IP} SYSTEMVERILOG
         -DSVDEF1=1
         SVDEF2=2
-        )
+    )
 
     ip_compile_definitions(${IP} VERILOG
         VDEF1=1
         VDEF2=2
-        )
+    )
 
     ip_compile_definitions(${IP} VHDL
         VHDLDEF1=1
         VHDLDEF2=2
-        )
+    )
 
     get_ip_compile_definitions(COMPDEFS ${IP} VERILOG SYSTEMVERILOG)
     ct_assert_list(COMPDEFS)
@@ -41,17 +41,17 @@ function(${${TEST_NAME}})
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.4
-        )
+    )
 
     ip_compile_definitions(${IP} VERILOG
         VDEF3=3
         VDEF4=4
-        )
+    )
 
     ip_compile_definitions(${IP} VHDL
         VHDLDEF3=3
         VHDLDEF4=4
-        )
+    )
 
     ip_link(vendor::lib::ip::1.2.3 vendor::lib::ip2::1.2.4)
 
@@ -63,6 +63,3 @@ function(${${TEST_NAME}})
     ct_assert_list(COMPDEFS)
     ct_assert_equal(COMPDEFS "VDEF1=1;VDEF2=2;VHDLDEF1=1;VHDLDEF2=2;SVDEF1=1;SVDEF2=2")
 endfunction()
-
-
-

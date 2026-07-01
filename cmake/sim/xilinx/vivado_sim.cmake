@@ -38,7 +38,13 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :type FILE_SETS: list[string]
 #]]
 function(vivado_sim IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;GUI" "RUN_TARGET_NAME;TOP_MODULE;OUTDIR" "XVLOG_ARGS;XVHDL_ARGS;XELAB_ARGS;XSIM_ARGS;RUN_ARGS;FILE_SETS" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "NO_RUN_TARGET;GUI"
+        "RUN_TARGET_NAME;TOP_MODULE;OUTDIR"
+        "XVLOG_ARGS;XVHDL_ARGS;XELAB_ARGS;XSIM_ARGS;RUN_ARGS;FILE_SETS"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -82,9 +88,18 @@ function(vivado_sim IP_LIB)
     unset(__ld_library_paths)
     foreach(ip ${IPS_LIST})
         get_target_property(ip_type ${ip} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
+        if(
+            ip_type STREQUAL "SHARED_LIBRARY"
+            OR ip_type STREQUAL "STATIC_LIBRARY"
+        )
             get_target_property(DPI_LIB_BINDIR ${ip} BINARY_DIR)
-            list(APPEND __lib_args  --sv_root ${DPI_LIB_BINDIR} --sv_lib lib$<TARGET_FILE_BASE_NAME:${ip}>)
+            list(
+                APPEND __lib_args
+                --sv_root
+                ${DPI_LIB_BINDIR}
+                --sv_lib
+                lib$<TARGET_FILE_BASE_NAME:${ip}>
+            )
             set(__ld_library_paths "${__ld_library_paths}${DPI_LIB_BINDIR}:")
         endif()
     endforeach()
@@ -94,79 +109,94 @@ function(vivado_sim IP_LIB)
         ${ARG_XVLOG_ARGS}
         ${ARG_XVHDL_ARGS}
         ${ARG_FILE_SETS}
-        )
+    )
     set(lib_comp_tgt ${IP_LIB}_vivado_sim_complib)
 
     if(NOT TARGET ${IP_LIB}_vivado_sim)
         get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL ${ARG_FILE_SETS})
         ## Xelab command for elaborating simulation
-        set(__xelab_cmd COMMAND xelab
-                ${LIB_SEARCH_DIRS}
-                ${ARG_XELAB_ARGS}
-                ${__lib_args}
-                ${LIBRARY}.${ARG_TOP_MODULE}
-                # -work ${OUTDIR}/${LIBRARY}
-            )
+        set(__xelab_cmd
+            COMMAND
+            xelab
+            ${LIB_SEARCH_DIRS}
+            ${ARG_XELAB_ARGS}
+            ${__lib_args}
+            ${LIBRARY}.${ARG_TOP_MODULE}
+            # -work ${OUTDIR}/${LIBRARY}
+        )
 
         ### Clean files:
         #       * xelab.log, xelab.pb
-        set(__clean_files 
+        set(__clean_files
             ${OUTDIR}/xelab.log
             ${OUTDIR}/xelab.pb
             ${OUTDIR}/xsim.dir/${LIBRARY}.${IP_NAME}
         )
 
-        set(DESCRIPTION "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION} xelab")
-        set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+        set(DESCRIPTION
+            "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION} xelab"
+        )
+        set(STAMP_FILE
+            "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp"
+        )
         add_custom_command(
             # OUTPUT ${SIM_EXEC_PATH} ${STAMP_FILE}
             OUTPUT ${STAMP_FILE}
             COMMAND ${__xelab_cmd}
             COMMAND touch ${STAMP_FILE}
             COMMENT ${DESCRIPTION}
-            BYPRODUCTS  ${__clean_files}
+            BYPRODUCTS ${__clean_files}
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${lib_comp_tgt} ${SOURCES}
             COMMAND_EXPAND_LISTS
-            )
-
-        add_custom_target(${IP_LIB}_vivado_sim
-            DEPENDS ${STAMP_FILE} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_vivado_sim PROPERTY DESCRIPTION ${DESCRIPTION})
-    endif()
 
+        add_custom_target(${IP_LIB}_vivado_sim DEPENDS ${STAMP_FILE} ${IP_LIB})
+        set_property(
+            TARGET ${IP_LIB}_vivado_sim
+            PROPERTY DESCRIPTION ${DESCRIPTION}
+        )
+    endif()
 
     ### Clean files:
     #       * xelab.log, xelab.pb
-    set(__clean_files 
+    set(__clean_files
         ${OUTDIR}/xsim.log
         ${OUTDIR}/xsim.jou
         ${OUTDIR}/xsim.dir/${LIBRARY}.${IP_NAME}
     )
 
     ## XSIM command for running simulation
-    set(__xsim_cmd xsim
+    set(__xsim_cmd
+        xsim
         ${ARG_RUN_ARGS}
         ${LIBRARY}.${ARG_TOP_MODULE}
         $<IF:$<BOOL:${ARG_GUI}>,--gui,--R>
-        )
+    )
     if(NOT ARG_NO_RUN_TARGET)
         if(NOT ARG_RUN_TARGET_NAME)
             set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
         endif()
-        set(DESCRIPTION "Run simulation on ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
-        add_custom_target(${ARG_RUN_TARGET_NAME}
-            COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${__ld_library_paths}" ${__xsim_cmd}
+        set(DESCRIPTION
+            "Run simulation on ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}"
+        )
+        add_custom_target(
+            ${ARG_RUN_TARGET_NAME}
+            COMMAND
+                ${CMAKE_COMMAND} -E env
+                "LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${__ld_library_paths}"
+                ${__xsim_cmd}
             WORKING_DIRECTORY ${OUTDIR}
             BYPRODUCTS ${__clean_files}
             COMMENT ${DESCRIPTION}
             DEPENDS ${IP_LIB}_vivado_sim
-            )
-        set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
+        )
+        set_property(
+            TARGET ${ARG_RUN_TARGET_NAME}
+            PROPERTY DESCRIPTION ${DESCRIPTION}
+        )
     endif()
     set(SOCMAKE_SIM_RUN_CMD ${__xsim_cmd} PARENT_SCOPE)
-
 endfunction()
 
 # This function is called by ``vivado_sim``, it shouldn't be used directly in a cmake file.
@@ -187,7 +217,13 @@ endfunction()
 # :keyword FILE_SETS: Specify list of File sets to retrieve the sources from
 # :type FILE_SETS: list[string]
 function(__vivado_sim_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR" "XVLOG_ARGS;XVHDL_ARGS;FILE_SETS" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        ""
+        "OUTDIR"
+        "XVLOG_ARGS;XVHDL_ARGS;FILE_SETS"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -200,7 +236,7 @@ function(__vivado_sim_compile_lib IP_LIB)
 
     # get_target_property(LIBRARY ${IP_LIB} LIBRARY)
     # if(NOT LIBRARY)
-        set(LIBRARY work)
+    set(LIBRARY work)
     # endif()
 
     if(NOT ARG_OUTDIR)
@@ -244,30 +280,36 @@ function(__vivado_sim_compile_lib IP_LIB)
                 list(APPEND SV_CMP_DEFS_ARG -d ${def})
             endforeach()
 
-            set(DESCRIPTION "Compile Verilog and SV files of ${lib} with vivado xvlog in library ${LIBRARY}")
-            set(__xvlog_cmd COMMAND xvlog
-                    --sv
-                    -work ${__comp_lib_name}=${lib_outdir}
-                    ${lib_search_dirs}
-                    ${ARG_XVLOG_ARGS}
-                    ${SV_ARG_INCDIRS}
-                    ${SV_CMP_DEFS_ARG}
-                    ${SV_SOURCES}
-                )
+            set(DESCRIPTION
+                "Compile Verilog and SV files of ${lib} with vivado xvlog in library ${LIBRARY}"
+            )
+            set(__xvlog_cmd
+                COMMAND
+                xvlog
+                --sv
+                -work
+                ${__comp_lib_name}=${lib_outdir}
+                ${lib_search_dirs}
+                ${ARG_XVLOG_ARGS}
+                ${SV_ARG_INCDIRS}
+                ${SV_CMP_DEFS_ARG}
+                ${SV_SOURCES}
+            )
         endif()
-
 
         # VHDL files and arguments
         get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS ${ARG_FILE_SETS})
         unset(__xvhdl_cmd)
         if(VHDL_SOURCES)
-
-            set(__xvhdl_cmd COMMAND xvhdl
-                    -work ${__comp_lib_name}=${lib_outdir}
-                    ${lib_search_dirs}
-                    ${ARG_XVHDL_ARGS}
-                    ${VHDL_SOURCES}
-                )
+            set(__xvhdl_cmd
+                COMMAND
+                xvhdl
+                -work
+                ${__comp_lib_name}=${lib_outdir}
+                ${lib_search_dirs}
+                ${ARG_XVHDL_ARGS}
+                ${VHDL_SOURCES}
+            )
         endif()
 
         if(__xvlog_cmd OR __xvhdl_cmd)
@@ -275,7 +317,7 @@ function(__vivado_sim_compile_lib IP_LIB)
         endif()
 
         ### Clean files:
-        set(__clean_files 
+        set(__clean_files
             ${OUTDIR}/xvlog.log
             ${OUTDIR}/xvlog.pb
             ${OUTDIR}/xvhdl.log
@@ -285,17 +327,15 @@ function(__vivado_sim_compile_lib IP_LIB)
         )
         foreach(source ${VHDL_SOURCES})
             get_filename_component(source_basename ${source} NAME_WLE)
-            list(APPEND __clean_files
-                ${lib_outdir}/${source_basename}.vdb
-            )
+            list(APPEND __clean_files ${lib_outdir}/${source_basename}.vdb)
         endforeach()
 
-        set(DESCRIPTION "Compile VHDL, SV, and Verilog files for ${lib} with vivado in library ${LIBRARY}")
+        set(DESCRIPTION
+            "Compile VHDL, SV, and Verilog files for ${lib} with vivado in library ${LIBRARY}"
+        )
         set(STAMP_FILE "${OUTDIR}/${lib}_${CMAKE_CURRENT_FUNCTION}.stamp")
         add_custom_command(
-            OUTPUT ${STAMP_FILE}
-                ${__xvlog_cmd}
-                ${__xvhdl_cmd}
+            OUTPUT ${STAMP_FILE} ${__xvlog_cmd} ${__xvhdl_cmd}
             COMMAND touch ${STAMP_FILE}
             WORKING_DIRECTORY ${OUTDIR}
             BYPRODUCTS ${__clean_files}
@@ -311,11 +351,13 @@ function(__vivado_sim_compile_lib IP_LIB)
             ${IP_LIB}_vivado_sim_complib
             DEPENDS ${all_stamp_files} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_vivado_sim_complib PROPERTY DESCRIPTION ${DESCRIPTION})
-    endif() 
+        set_property(
+            TARGET ${IP_LIB}_vivado_sim_complib
+            PROPERTY DESCRIPTION ${DESCRIPTION}
+        )
+    endif()
 
     set(LIB_SEARCH_DIRS ${lib_search_dirs} PARENT_SCOPE)
-
 endfunction()
 
 #[[[
@@ -323,7 +365,7 @@ endfunction()
 # In this specific case, it won't change anything for the compiler use but will add some useful information to IP_LIB.
 #
 # The only supported library by this function is DPI-C, it can be used as done in the following example :
-# 
+#
 # .. code-block:: cmake
 #
 #    vivado_sim_configure_cxx(LIBRARIES DPI-C)
@@ -379,10 +421,9 @@ function(vivado_sim_add_cxx_libs)
 
         if(ARG_32BIT)
             target_compile_options(vivado_sim_dpi-c INTERFACE -m32)
-            target_link_options   (vivado_sim_dpi-c INTERFACE -m32)
+            target_link_options(vivado_sim_dpi-c INTERFACE -m32)
         endif()
         # target_include_directories(vivado_sim_dpi-c INTERFACE ${vivado_sim_home}/include)
         # target_compile_definitions(vivado_sim_dpi-c INTERFACE INCA)
     endif()
-
 endfunction()

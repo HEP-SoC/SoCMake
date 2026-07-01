@@ -1,4 +1,4 @@
-name: testing_workflow 
+name: testing_workflow
 
 on:
   pull_request:
@@ -45,7 +45,7 @@ jobs:
           mkdir build
           cd build
           cmake -DSOCMAKE_BUILD_TESTING=TRUE ../
-          
+
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             # PR build -> no CDash update
             make check

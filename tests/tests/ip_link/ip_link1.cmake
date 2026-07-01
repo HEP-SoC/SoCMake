@@ -5,30 +5,29 @@ set(TEST_NAME ip_link1)
 
 ct_add_test(NAME ${TEST_NAME})
 function(${${TEST_NAME}})
-
-# Define the following dependency graph
-# The First two files will come from ip4.
-# The following 2 can come from either ip2 or ip3 how flat_graph is implemented, but both are legal
-# The last 2 files will come from ip1
-#            ┌─────┐
-#    ┌───────┤ ip1 ├────┐
-#    │       └─────┘    │
-#    │                  │
-#    │                  │
-# ┌──▼──┐           ┌───▼──┐
-# │ ip2 │           │ ip3  │
-# └──┬──┘           └──┬───┘
-#    │                 │
-#    │                 │
-#    │      ┌──────┐   │
-#    └──────► ip4  │◄──┘
-#           └──────┘
+    # Define the following dependency graph
+    # The First two files will come from ip4.
+    # The following 2 can come from either ip2 or ip3 how flat_graph is implemented, but both are legal
+    # The last 2 files will come from ip1
+    #            ┌─────┐
+    #    ┌───────┤ ip1 ├────┐
+    #    │       └─────┘    │
+    #    │                  │
+    #    │                  │
+    # ┌──▼──┐           ┌───▼──┐
+    # │ ip2 │           │ ip3  │
+    # └──┬──┘           └──┬───┘
+    #    │                 │
+    #    │                 │
+    #    │      ┌──────┐   │
+    #    └──────► ip4  │◄──┘
+    #           └──────┘
 
     add_ip(ip1
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.3
-        )
+    )
     ip_sources(${IP} VERILOG ${CDIR}/ip1_f1.v ${CDIR}/ip1_f2.v)
     set(IP1 ${IP})
 
@@ -36,7 +35,7 @@ function(${${TEST_NAME}})
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.3
-        )
+    )
     ip_sources(${IP} VERILOG ${CDIR}/ip2_f1.v ${CDIR}/ip2_f2.v)
     set(IP2 ${IP})
 
@@ -44,7 +43,7 @@ function(${${TEST_NAME}})
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.3
-        )
+    )
     ip_sources(${IP} VERILOG ${CDIR}/ip3_f1.v ${CDIR}/ip3_f2.v)
     set(IP3 ${IP})
 
@@ -52,7 +51,7 @@ function(${${TEST_NAME}})
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.3
-        )
+    )
     ip_sources(${IP} VERILOG ${CDIR}/ip4_f1.v ${CDIR}/ip4_f2.v)
     set(IP4 ${IP})
 
@@ -66,9 +65,17 @@ function(${${TEST_NAME}})
     ct_assert_equal(CURRENT_V_FILES "${CDIR}/ip4_f1.v;${CDIR}/ip4_f2.v")
 
     list(SUBLIST V_SOURCES 2 4 CURRENT_V_FILES)
-    if("${CURRENT_V_FILES}" STREQUAL "${CDIR}/ip2_f1.v;${CDIR}/ip2_f2.v;${CDIR}/ip3_f1.v;${CDIR}/ip3_f2.v")
+    if(
+        "${CURRENT_V_FILES}"
+            STREQUAL
+            "${CDIR}/ip2_f1.v;${CDIR}/ip2_f2.v;${CDIR}/ip3_f1.v;${CDIR}/ip3_f2.v"
+    )
         ct_assert_true(TRUE)
-    elseif("${CURRENT_V_FILES}" STREQUAL "${CDIR}/ip3_f1.v;${CDIR}/ip3_f2.v;${CDIR}/ip3_f1.v;${CDIR}/ip3_f2.v")
+    elseif(
+        "${CURRENT_V_FILES}"
+            STREQUAL
+            "${CDIR}/ip3_f1.v;${CDIR}/ip3_f2.v;${CDIR}/ip3_f1.v;${CDIR}/ip3_f2.v"
+    )
         ct_assert_true(TRUE)
     else()
         ct_assert_true(FALSE)

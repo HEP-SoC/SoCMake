@@ -15,7 +15,6 @@ macro(__check_linked_interface_lib)
     endif()
 endmacro()
 
-
 # This function is used to check if the SystemC library has been linked in the project.
 #
 # :param RESULT: If true, the SystemC library has correctly been linked to the IP library.
@@ -65,5 +64,3 @@ function(__is_socmake_ip_lib RESULT IP_LIB)
         set(${RESULT} FALSE PARENT_SCOPE)
     endif()
 endfunction()
-
-

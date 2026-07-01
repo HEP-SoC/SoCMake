@@ -6,7 +6,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # Generate a vivado FPGA project and create a target to generate the bitstream.
 #
 # The python script, edalize_vivado, using edalize library is used to correctly run vivado with the given informations.
-# The different arguments are parsed and formatted to be properly given to vivado. 
+# The different arguments are parsed and formatted to be properly given to vivado.
 #
 # :param IP_LIB: The target IP library.
 # :type IP_LIB: string
@@ -62,23 +62,16 @@ function(vivado IP_LIB)
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
     add_custom_command(
         OUTPUT ${BITSTREAM} ${STAMP_FILE}
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/edalize_vivado.py
-            --rtl-files ${SOURCES}
-            --inc-dirs ${INCLUDE_DIRS}
-            --constraint-files ${XDC_FILES}
-            --part ${FPGA_PART}
-            --name ${IP_LIB}
-            --top  ${TOP}
-            --outdir ${OUTDIR}
-            --verilog-defs ${COMP_DEFS}
-
+        COMMAND
+            ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/edalize_vivado.py --rtl-files
+            ${SOURCES} --inc-dirs ${INCLUDE_DIRS} --constraint-files
+            ${XDC_FILES} --part ${FPGA_PART} --name ${IP_LIB} --top ${TOP}
+            --outdir ${OUTDIR} --verilog-defs ${COMP_DEFS}
         COMMAND /bin/sh -c date > ${STAMP_FILE}
         DEPENDS ${SOURCES} ${XDC_FILES} ${IP_LIB}
         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
     )
 
-    add_custom_target(
-        ${IP_LIB}_vivado
-        DEPENDS ${BITSTREAM} ${STAMP_FILE}
-    )
+    add_custom_target(${IP_LIB}_vivado DEPENDS ${BITSTREAM} ${STAMP_FILE})
 endfunction()

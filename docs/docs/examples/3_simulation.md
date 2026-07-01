@@ -23,7 +23,7 @@ import CodeBlock from '@theme/CodeBlock';
 export const tb_v = require('!!raw-loader!../../../examples/simple_verilog/tb.v')?.default;
 export const cmakelists = require('!!raw-loader!../../../examples/simple_verilog/CMakeLists.txt')?.default;
 
-## tb.v 
+## tb.v
 
 The following testbench will just print something to the stdout.
 
@@ -56,7 +56,7 @@ This function also sets `IP` variable in the current scope from where it was cal
 To add design sources to the `IP` library, we can use `ip_sources()` function.
 The function takes
 *   First argument is positional **NAME** of the library to add sources to.
-*   Second argument is positional **TYPE** and represents the file type to be added. 
+*   Second argument is positional **TYPE** and represents the file type to be added.
 *   Third argument is positional **SOURCES** and is a list of source files to be added
 
 :::info
@@ -82,7 +82,7 @@ For a custom C++ testbench checkout the next example.
 The name of the created `Makefile` target will be: `${IP}_verilate` in this case : `cern__ip__tb__0.0.1_verilate`.
 
 
-## Running the example 
+## Running the example
 
 
 ### Video example

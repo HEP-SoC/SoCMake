@@ -16,29 +16,24 @@ add_subdirectory(adder)
 # Create a static library from the DUT with verilator
 verilator(adder SYSTEMC
     VERILATOR_ARGS --pins-sc-uint
-    )
+)
 
 # Create SystemC main executable
-add_executable(simple_sc_sv_example 
-    ./sc_main.cpp
-    )
+add_executable(simple_sc_sv_example ./sc_main.cpp)
 
 # Link SystemC and the static library of the DUT to the executable
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    # External libraries
-    SystemC::systemc
-
-    # Verilated HDL
-   adder__vlt 
-    )
+target_link_libraries(
+    ${PROJECT_NAME}
+    PRIVATE
+        # External libraries
+        SystemC::systemc
+        # Verilated HDL
+        adder__vlt
+)
 
 # Add VERBOSE flag to enable message printing
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    VERBOSE
-    )
+target_compile_definitions(${PROJECT_NAME} PRIVATE VERBOSE)
 
-add_custom_target(run_simple_sc_sv_example
-    COMMAND simple_sc_sv_example)
+add_custom_target(run_simple_sc_sv_example COMMAND simple_sc_sv_example)
 
 help()
-

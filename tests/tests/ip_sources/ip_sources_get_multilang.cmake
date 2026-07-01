@@ -9,22 +9,22 @@ function(${${TEST_NAME}})
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.3
-        )
+    )
 
     ip_sources(${IP} SYSTEMVERILOG
         ${CDIR}/ip1_svfile1.sv
         ${CDIR}/ip1_svfile2.sv
-        )
+    )
 
     ip_sources(${IP} VERILOG
         ${CDIR}/ip1_vfile1.v
         ${CDIR}/ip1_vfile2.v
-        )
+    )
 
     ip_sources(${IP} VHDL
         ${CDIR}/ip1_vhdlfile1.vhdl
         ${CDIR}/ip1_vhdlfile2.vhdl
-        )
+    )
 
     get_ip_sources(SOURCES ${IP} VERILOG SYSTEMVERILOG)
     ct_assert_list(SOURCES)
@@ -42,17 +42,17 @@ function(${${TEST_NAME}})
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.4
-        )
+    )
 
     ip_sources(${IP} VERILOG
         ${CDIR}/ip2_vfile1.v
         ${CDIR}/ip2_vfile2.v
-        )
+    )
 
     ip_sources(${IP} VHDL
         ${CDIR}/ip2_vhdlfile1.vhdl
         ${CDIR}/ip2_vhdlfile2.vhdl
-        )
+    )
 
     ip_link(vendor::lib::ip1::1.2.3 vendor::lib::ip2::1.2.4)
 
@@ -64,4 +64,3 @@ function(${${TEST_NAME}})
     ct_assert_list(SOURCES)
     ct_assert_equal(SOURCES "${CDIR}/ip1_vfile1.v;${CDIR}/ip1_vfile2.v;${CDIR}/ip1_vhdlfile1.vhdl;${CDIR}/ip1_vhdlfile2.vhdl;${CDIR}/ip1_svfile1.sv;${CDIR}/ip1_svfile2.sv")
 endfunction()
-
