@@ -11,22 +11,12 @@ get set up, the conventions we follow, and how to submit changes.
    git checkout develop
    git checkout -b my-feature
    ```
-3. Create a Python virtual environment and install the required dependencies,
-   then enable the pre-commit hooks:
-
-   **With venv (stdlib):**
+3. Create a virtual environment (using `venv`, `uv`, or any tool you prefer),
+   install the dependencies, and enable the hooks:
    ```bash
    python3 -m venv .venv
-   source .venv/bin/activate   # Windows: .venv\Scripts\activate
+   source .venv/bin/activate
    pip install -r python_requirements.txt
-   pre-commit install
-   ```
-
-   **With uv:**
-   ```bash
-   uv venv
-   source .venv/bin/activate   # Windows: .venv\Scripts\activate
-   uv pip install -r python_requirements.txt
    pre-commit install
    ```
 
