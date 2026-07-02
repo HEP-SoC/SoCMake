@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Questasim
 
 cmake -DSIMULATOR=questa -DTEST_LANG=systemc -DDUT_LANG=systemc  -S $(pwd) -B $(pwd)/build

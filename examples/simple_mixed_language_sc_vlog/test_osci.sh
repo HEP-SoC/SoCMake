@@ -1,3 +1,5 @@
+#!/bin/bash
+
 cmake -DSIMULATOR=osci -DTEST_LANG=verilog -DDUT_LANG=verilog  -S $(pwd) -B $(pwd)/build
 cmake --build $(pwd)/build --target run_test_counters_verilator
 rm -rf build
