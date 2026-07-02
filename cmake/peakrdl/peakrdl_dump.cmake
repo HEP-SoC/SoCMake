@@ -43,5 +43,5 @@ function(peakrdl_dump IP_LIB)
         DEPENDS ${IP_LIB}
         COMMENT ${DESCRIPTION}
         )
-    set_property(TARGET ${IP_LIB}_peakrdl_print PROPERTY DESCRIPTION ${DESCRIPTION})
+    set_property(TARGET ${IP_LIB}_peakrdl_dump PROPERTY DESCRIPTION ${DESCRIPTION})
 endfunction()
