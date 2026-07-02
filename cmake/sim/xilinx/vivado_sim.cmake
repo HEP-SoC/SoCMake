@@ -84,8 +84,8 @@ function(vivado_sim IP_LIB)
 
     get_ip_links(IPS_LIST ${IP_LIB})
 
-    unset(__lib_args)
-    unset(__ld_library_paths)
+    unset(_lib_args)
+    unset(_ld_library_paths)
     foreach(ip ${IPS_LIST})
         get_target_property(ip_type ${ip} TYPE)
         if(
@@ -94,13 +94,13 @@ function(vivado_sim IP_LIB)
         )
             get_target_property(DPI_LIB_BINDIR ${ip} BINARY_DIR)
             list(
-                APPEND __lib_args
+                APPEND _lib_args
                 --sv_root
                 ${DPI_LIB_BINDIR}
                 --sv_lib
                 lib$<TARGET_FILE_BASE_NAME:${ip}>
             )
-            set(__ld_library_paths "${__ld_library_paths}${DPI_LIB_BINDIR}:")
+            set(_ld_library_paths "${_ld_library_paths}${DPI_LIB_BINDIR}:")
         endif()
     endforeach()
 
@@ -115,19 +115,19 @@ function(vivado_sim IP_LIB)
     if(NOT TARGET ${IP_LIB}_vivado_sim)
         get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG VHDL ${ARG_FILE_SETS})
         ## Xelab command for elaborating simulation
-        set(__xelab_cmd
+        set(_xelab_cmd
             COMMAND
             xelab
             ${LIB_SEARCH_DIRS}
             ${ARG_XELAB_ARGS}
-            ${__lib_args}
+            ${_lib_args}
             ${LIBRARY}.${ARG_TOP_MODULE}
             # -work ${OUTDIR}/${LIBRARY}
         )
 
         ### Clean files:
         #       * xelab.log, xelab.pb
-        set(__clean_files
+        set(_clean_files
             ${OUTDIR}/xelab.log
             ${OUTDIR}/xelab.pb
             ${OUTDIR}/xsim.dir/${LIBRARY}.${IP_NAME}
@@ -142,10 +142,10 @@ function(vivado_sim IP_LIB)
         add_custom_command(
             # OUTPUT ${SIM_EXEC_PATH} ${STAMP_FILE}
             OUTPUT ${STAMP_FILE}
-            COMMAND ${__xelab_cmd}
+            COMMAND ${_xelab_cmd}
             COMMAND touch ${STAMP_FILE}
             COMMENT ${DESCRIPTION}
-            BYPRODUCTS ${__clean_files}
+            BYPRODUCTS ${_clean_files}
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${lib_comp_tgt} ${SOURCES}
             COMMAND_EXPAND_LISTS
@@ -160,14 +160,14 @@ function(vivado_sim IP_LIB)
 
     ### Clean files:
     #       * xelab.log, xelab.pb
-    set(__clean_files
+    set(_clean_files
         ${OUTDIR}/xsim.log
         ${OUTDIR}/xsim.jou
         ${OUTDIR}/xsim.dir/${LIBRARY}.${IP_NAME}
     )
 
     ## XSIM command for running simulation
-    set(__xsim_cmd
+    set(_xsim_cmd
         xsim
         ${ARG_RUN_ARGS}
         ${LIBRARY}.${ARG_TOP_MODULE}
@@ -184,10 +184,10 @@ function(vivado_sim IP_LIB)
             ${ARG_RUN_TARGET_NAME}
             COMMAND
                 ${CMAKE_COMMAND} -E env
-                "LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${__ld_library_paths}"
-                ${__xsim_cmd}
+                "LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${_ld_library_paths}"
+                ${_xsim_cmd}
             WORKING_DIRECTORY ${OUTDIR}
-            BYPRODUCTS ${__clean_files}
+            BYPRODUCTS ${_clean_files}
             COMMENT ${DESCRIPTION}
             DEPENDS ${IP_LIB}_vivado_sim
         )
@@ -196,7 +196,7 @@ function(vivado_sim IP_LIB)
             PROPERTY DESCRIPTION ${DESCRIPTION}
         )
     endif()
-    set(SOCMAKE_SIM_RUN_CMD ${__xsim_cmd} PARENT_SCOPE)
+    set(SOCMAKE_SIM_RUN_CMD ${_xsim_cmd} PARENT_SCOPE)
 endfunction()
 
 # This function is called by ``vivado_sim``, it shouldn't be used directly in a cmake file.
@@ -250,22 +250,22 @@ function(__vivado_sim_compile_lib IP_LIB)
         set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
     endif()
 
-    get_ip_links(__ips ${IP_LIB})
+    get_ip_links(_ips ${IP_LIB})
     unset(all_stamp_files)
     unset(lib_search_dirs)
-    foreach(lib ${__ips})
-        get_target_property(__comp_lib_name ${lib} LIBRARY)
-        if(NOT __comp_lib_name)
-            set(__comp_lib_name work)
+    foreach(lib ${_ips})
+        get_target_property(_comp_lib_name ${lib} LIBRARY)
+        if(NOT _comp_lib_name)
+            set(_comp_lib_name work)
         endif()
         if(ARG_LIBRARY)
-            set(__comp_lib_name ${ARG_LIBRARY})
+            set(_comp_lib_name ${ARG_LIBRARY})
         endif()
-        set(lib_outdir ${OUTDIR}/${__comp_lib_name})
+        set(lib_outdir ${OUTDIR}/${_comp_lib_name})
 
         # SystemVerilog and Verilog files and arguments
         get_ip_sources(SV_SOURCES ${lib} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
-        unset(__xvlog_cmd)
+        unset(_xvlog_cmd)
         unset(SV_ARG_INCDIRS)
         unset(SV_CMP_DEFS_ARG)
         if(SV_SOURCES)
@@ -283,12 +283,12 @@ function(__vivado_sim_compile_lib IP_LIB)
             set(DESCRIPTION
                 "Compile Verilog and SV files of ${lib} with vivado xvlog in library ${LIBRARY}"
             )
-            set(__xvlog_cmd
+            set(_xvlog_cmd
                 COMMAND
                 xvlog
                 --sv
                 -work
-                ${__comp_lib_name}=${lib_outdir}
+                ${_comp_lib_name}=${lib_outdir}
                 ${lib_search_dirs}
                 ${ARG_XVLOG_ARGS}
                 ${SV_ARG_INCDIRS}
@@ -299,35 +299,35 @@ function(__vivado_sim_compile_lib IP_LIB)
 
         # VHDL files and arguments
         get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS ${ARG_FILE_SETS})
-        unset(__xvhdl_cmd)
+        unset(_xvhdl_cmd)
         if(VHDL_SOURCES)
-            set(__xvhdl_cmd
+            set(_xvhdl_cmd
                 COMMAND
                 xvhdl
                 -work
-                ${__comp_lib_name}=${lib_outdir}
+                ${_comp_lib_name}=${lib_outdir}
                 ${lib_search_dirs}
                 ${ARG_XVHDL_ARGS}
                 ${VHDL_SOURCES}
             )
         endif()
 
-        if(__xvlog_cmd OR __xvhdl_cmd)
-            list(APPEND lib_search_dirs -L ${__comp_lib_name}=${lib_outdir})
+        if(_xvlog_cmd OR _xvhdl_cmd)
+            list(APPEND lib_search_dirs -L ${_comp_lib_name}=${lib_outdir})
         endif()
 
         ### Clean files:
-        set(__clean_files
+        set(_clean_files
             ${OUTDIR}/xvlog.log
             ${OUTDIR}/xvlog.pb
             ${OUTDIR}/xvhdl.log
             ${OUTDIR}/xvhdl.pb
             ${lib_outdir}/xsim.dir/${LIBRARY}
-            ${lib_outdir}/${__comp_lib_name}.rlx
+            ${lib_outdir}/${_comp_lib_name}.rlx
         )
         foreach(source ${VHDL_SOURCES})
             get_filename_component(source_basename ${source} NAME_WLE)
-            list(APPEND __clean_files ${lib_outdir}/${source_basename}.vdb)
+            list(APPEND _clean_files ${lib_outdir}/${source_basename}.vdb)
         endforeach()
 
         set(DESCRIPTION
@@ -335,10 +335,10 @@ function(__vivado_sim_compile_lib IP_LIB)
         )
         set(STAMP_FILE "${OUTDIR}/${lib}_${CMAKE_CURRENT_FUNCTION}.stamp")
         add_custom_command(
-            OUTPUT ${STAMP_FILE} ${__xvlog_cmd} ${__xvhdl_cmd}
+            OUTPUT ${STAMP_FILE} ${_xvlog_cmd} ${_xvhdl_cmd}
             COMMAND touch ${STAMP_FILE}
             WORKING_DIRECTORY ${OUTDIR}
-            BYPRODUCTS ${__clean_files}
+            BYPRODUCTS ${_clean_files}
             DEPENDS ${all_stamp_files} ${SV_SOURCES} ${VHDL_SOURCES}
             COMMENT ${DESCRIPTION}
         )

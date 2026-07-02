@@ -120,18 +120,18 @@ function(yosys IP_LIB)
             PROPERTY ADDITIONAL_CLEAN_FILES ${YOSYS_SCRIPTS}
         )
     else()
-        foreach(_script ${ARG_SCRIPTS})
+        foreach(script ${ARG_SCRIPTS})
             # Configure and set the custom scripts
-            get_filename_component(__ext ${_script} EXT)
-            get_filename_component(__fn ${_script} NAME_WLE)
-            if(__ext STREQUAL ".ys.in")
-                configure_file(${_script} ${OUTDIR}/flows/${__fn} @ONLY)
+            get_filename_component(_ext ${script} EXT)
+            get_filename_component(_fn ${script} NAME_WLE)
+            if(_ext STREQUAL ".ys.in")
+                configure_file(${script} ${OUTDIR}/flows/${_fn} @ONLY)
                 set_property(
                     TARGET ${IP_LIB}
                     APPEND
-                    PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR}/flows/${__fn}
+                    PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR}/flows/${_fn}
                 )
-                list(APPEND YOSYS_SCRIPTS ${OUTDIR}/flows/${__fn})
+                list(APPEND YOSYS_SCRIPTS ${OUTDIR}/flows/${_fn})
             endif()
         endforeach()
     endif()
@@ -153,15 +153,15 @@ function(yosys IP_LIB)
 
     # If PLUGINS argument is passed, set the plugins for Yosys
     if(ARG_PLUGINS)
-        unset(__PLUGINS_ARG)
+        unset(_plugins_arg)
         foreach(plugin ${ARG_PLUGINS})
-            get_target_property(__type ${plugin} TYPE)
+            get_target_property(_type ${plugin} TYPE)
             # Add the '-m' flag for each shared and static library plugin provided
             if(
-                ${__type} STREQUAL "SHARED_LIBRARY"
-                OR ${__type} STREQUAL "STATIC_LIBRARY"
+                ${_type} STREQUAL "SHARED_LIBRARY"
+                OR ${_type} STREQUAL "STATIC_LIBRARY"
             )
-                list(APPEND __PLUGINS_ARG -m $<TARGET_FILE:${plugin}>)
+                list(APPEND _plugins_arg -m $<TARGET_FILE:${plugin}>)
             else()
                 socmake_message(FATAL_ERROR "Only Shared and Static libraries are supported for Yosys PLUGINS at the moment")
             endif()
@@ -176,7 +176,7 @@ function(yosys IP_LIB)
     # Add a custom command to run Yosys
     add_custom_command(
         OUTPUT ${STAMP_FILE}
-        COMMAND yosys ${CMP_DEFS_ARG} -s ${YOSYS_SCRIPTS} ${__PLUGINS_ARG}
+        COMMAND yosys ${CMP_DEFS_ARG} -s ${YOSYS_SCRIPTS} ${_plugins_arg}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES}
         COMMENT ${DESCRIPTION}

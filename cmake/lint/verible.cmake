@@ -93,26 +93,26 @@ function(verible_lint IP_LIB)
     else()
         get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
     endif()
-    set(__sources ${SV_SOURCES} ${V_SOURCES})
+    set(_sources ${SV_SOURCES} ${V_SOURCES})
 
     if(ARG_SKIP_GENERATED)
-        foreach(fn ${__sources})
-            get_property(__file_is_gen SOURCE ${fn} PROPERTY GENERATED)
-            if(__file_is_gen)
-                list(REMOVE_ITEM __sources ${fn})
+        foreach(fn ${_sources})
+            get_property(_file_is_gen SOURCE ${fn} PROPERTY GENERATED)
+            if(_file_is_gen)
+                list(REMOVE_ITEM _sources ${fn})
             endif()
         endforeach()
     endif()
 
     find_program(VERIBLE_LINTER NAMES verible-verilog-lint)
-    set(__CMD
+    set(_cmd
         ${VERIBLE_LINTER}
         ${ARG_AUTOFIX}
         ${AUTOFIX_OUTFILE_ARG}
         ${ARG_RULES}
         ${ARG_RULES_FILE}
         ${ARG_WAIVER_FILES}
-        ${__sources}
+        ${_sources}
     )
 
     set(DESCRIPTION "Lint ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
@@ -122,21 +122,21 @@ function(verible_lint IP_LIB)
         )
         add_custom_command(
             OUTPUT ${STAMP_FILE}
-            COMMAND ${__CMD}
+            COMMAND ${_cmd}
             COMMAND touch ${STAMP_FILE}
-            DEPENDS ${__sources}
+            DEPENDS ${_sources}
             COMMENT ${DESCRIPTION}
         )
 
         add_custom_target(
             ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-            DEPENDS ${__sources} ${STAMP_FILE}
+            DEPENDS ${_sources} ${STAMP_FILE}
         )
         add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
     else()
         add_custom_target(
             ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
-            COMMAND ${__CMD}
+            COMMAND ${_cmd}
             COMMENT ${DESCRIPTION}
         )
         add_dependencies(${IP_LIB}_${CMAKE_CURRENT_FUNCTION} ${IP_LIB})

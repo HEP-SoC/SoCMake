@@ -521,13 +521,13 @@ function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
     list(REMOVE_ITEM ARGN NO_DEPS)
     unset(INCDIRS)
     # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
-    foreach(_lang ${LANGUAGE} ${ARGN})
-        check_languages(${_lang})
+    foreach(lang ${LANGUAGE} ${ARGN})
+        check_languages(${lang})
         foreach(fileset ${filesets})
             string(REPLACE "::" ";" fileset_list "${fileset}")
             list(GET fileset_list 0 fileset_language)
             list(GET fileset_list 1 fileset_name)
-            if(fileset_language STREQUAL ${_lang})
+            if(fileset_language STREQUAL ${lang})
                 get_ip_property(_lang_incdirs ${_reallib} ${fileset_language}_${fileset_name}_INCLUDE_DIRECTORIES ${_no_deps})
                 list(APPEND INCDIRS ${_lang_incdirs})
             endif()
@@ -766,15 +766,15 @@ function(ip_compile_definitions IP_LIB LANGUAGE)
     list(REMOVE_ITEM ARGN "FILE_SET")
 
     # Strip -D
-    set(__comp_defs ${ARGN})
-    string(REPLACE "-D" "" __comp_defs "${__comp_defs}")
-    list(REMOVE_ITEM __comp_defs "")
+    set(_comp_defs ${ARGN})
+    string(REPLACE "-D" "" _comp_defs "${_comp_defs}")
+    list(REMOVE_ITEM _comp_defs "")
 
     # Append the new compile definitions to the existing ones
     set_property(
         TARGET ${_reallib}
         APPEND
-        PROPERTY ${comp_def_property} ${__comp_defs}
+        PROPERTY ${comp_def_property} ${_comp_defs}
     )
 endfunction()
 
@@ -833,13 +833,13 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
     list(REMOVE_ITEM ARGN NO_DEPS)
     unset(COMPDEFS)
     # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
-    foreach(_lang ${LANGUAGE} ${ARGN})
-        check_languages(${_lang})
+    foreach(lang ${LANGUAGE} ${ARGN})
+        check_languages(${lang})
         foreach(fileset ${filesets})
             string(REPLACE "::" ";" fileset_list "${fileset}")
             list(GET fileset_list 0 fileset_language)
             list(GET fileset_list 1 fileset_name)
-            if(fileset_language STREQUAL ${_lang})
+            if(fileset_language STREQUAL ${lang})
                 get_ip_property(_lang_compdefs ${_reallib} ${fileset_language}_${fileset_name}_COMPILE_DEFINITIONS ${_no_deps})
                 list(APPEND COMPDEFS ${_lang_compdefs})
             endif()
@@ -873,17 +873,17 @@ function(get_ip_links OUTVAR IP_LIB)
 
     if(ARG_NO_DEPS)
         get_property(
-            __flat_graph
+            _flat_graph
             TARGET ${_reallib}
             PROPERTY INTERFACE_LINK_LIBRARIES
         )
     else()
         flatten_graph_if_allowed(${_reallib})
 
-        get_property(__flat_graph TARGET ${_reallib} PROPERTY FLAT_GRAPH)
+        get_property(_flat_graph TARGET ${_reallib} PROPERTY FLAT_GRAPH)
     endif()
 
-    set(${OUTVAR} ${__flat_graph} PARENT_SCOPE)
+    set(${OUTVAR} ${_flat_graph} PARENT_SCOPE)
 endfunction()
 
 #[[[
@@ -976,8 +976,8 @@ endfunction()
 # :type IP_LIB: string
 #]]
 macro(find_ip IP_LIB)
-    string(REPLACE ":" "_" ip_lib_sanitized "${IP_LIB}")
-    find_package("${ip_lib_sanitized}" CONFIG ${ARGN})
+    string(REPLACE ":" "_" __ip_lib_sanitized "${IP_LIB}")
+    find_package("${__ip_lib_sanitized}" CONFIG ${ARGN})
 endmacro()
 
 #[[[

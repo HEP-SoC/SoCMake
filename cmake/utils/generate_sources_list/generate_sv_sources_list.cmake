@@ -60,8 +60,8 @@ function(generate_sv_sources_list IP_LIB)
     # Get the list of RTL sources
     get_ip_sources(RTL_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
     get_ip_include_directories(RTL_INCDIRS ${IP_LIB} SYSTEMVERILOG)
-    foreach(_i ${RTL_INCDIRS})
-        list(APPEND INCDIR_ARG -I${_i})
+    foreach(i ${RTL_INCDIRS})
+        list(APPEND INCDIR_ARG -I${i})
     endforeach()
 
     if(ARG_SLANG_ARGS)

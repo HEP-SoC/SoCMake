@@ -141,17 +141,17 @@ function(peakrdl_socgen IP_LIB)
     endif()
 
     unset(INCDIRS_ARG)
-    foreach(__incdir ${INC_DIRS})
-        list(APPEND INCDIRS_ARG -I${__incdir})
+    foreach(incdir ${INC_DIRS})
+        list(APPEND INCDIRS_ARG -I${incdir})
     endforeach()
 
     unset(COMPDEFS_ARG)
-    foreach(__compdefs ${COMP_DEFS})
-        list(APPEND COMPDEFS_ARG -D${__compdefs})
+    foreach(compdefs ${COMP_DEFS})
+        list(APPEND COMPDEFS_ARG -D${compdefs})
     endforeach()
 
     find_python3()
-    set(__CMD
+    set(_cmd
         ${Python3_EXECUTABLE}
         -m
         peakrdl
@@ -169,23 +169,23 @@ function(peakrdl_socgen IP_LIB)
         ${ARG_GEN_DOT}
         ${OVERWRITTEN_PARAMETERS}
     )
-    set(__CMD_LF ${__CMD} --list-files)
+    set(_cmd_lf ${_cmd} --list-files)
 
     # Call peakrdl-socgen with --list-files option to get the list of headers
     execute_process(
         OUTPUT_VARIABLE V_GEN
         ERROR_VARIABLE ERROR_MSG
-        COMMAND ${__CMD_LF}
+        COMMAND ${_cmd_lf}
     )
     if(V_GEN)
         string(REPLACE " " ";" V_GEN "${V_GEN}")
         string(REPLACE "\n" "" V_GEN "${V_GEN}")
         list(REMOVE_DUPLICATES V_GEN)
     else()
-        string(REPLACE ";" " " __CMD_STR "${__CMD_LF}")
+        string(REPLACE ";" " " _cmd_str "${_cmd_lf}")
         socmake_message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${_reallib},
                 output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n
-                Command Called: \n ${__CMD_STR}"
+                Command Called: \n ${_cmd_str}"
         )
     endif()
 
@@ -199,7 +199,7 @@ function(peakrdl_socgen IP_LIB)
 
     add_custom_command(
         OUTPUT ${V_GEN} ${SOCGEN_DOT_FILES} ${STAMP_FILE}
-        COMMAND ${__CMD}
+        COMMAND ${_cmd}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SYSTEMRDL_SOURCES} ${ADDITIONAL_DEPENDS}
         COMMENT ${DESCRIPTION}

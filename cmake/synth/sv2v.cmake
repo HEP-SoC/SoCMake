@@ -75,8 +75,8 @@ function(sv2v IP_LIB)
     )
 
     if(ARG_REPLACE)
-        get_property(__flat_graph TARGET ${IP_LIB} PROPERTY FLAT_GRAPH)
-        foreach(ip ${__flat_graph})
+        get_property(_flat_graph TARGET ${IP_LIB} PROPERTY FLAT_GRAPH)
+        foreach(ip ${_flat_graph})
             ip_sources(${ip} SYSTEMVERILOG REPLACE  "")
         endforeach()
 

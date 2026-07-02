@@ -13,14 +13,14 @@ include_guard(GLOBAL)
 # :type dir: string
 #]]
 macro(SUBDIRLIST output_var dir)
-    file(GLOB children RELATIVE ${dir} ${dir}/*)
-    set(dirlist "")
-    foreach(child ${children})
+    file(GLOB __children RELATIVE ${dir} ${dir}/*)
+    set(__dirlist "")
+    foreach(child ${__children})
         if(IS_DIRECTORY ${dir}/${child})
-            list(APPEND dirlist ${child})
+            list(APPEND __dirlist ${child})
         endif()
     endforeach()
-    set(${output_var} ${dirlist})
+    set(${output_var} ${__dirlist})
 endmacro()
 
 #[[[
@@ -35,27 +35,27 @@ endmacro()
 #]]
 macro(SUBDIRLIST_EXCLUDE output_var dir excluded_patterns)
     # Get all subdirectories
-    subdirlist(SUBDIRS ${dir})
+    subdirlist(__subdirs ${dir})
 
-    set(filtered_subdirs "")
+    set(__filtered_subdirs "")
 
-    foreach(subdir ${SUBDIRS})
-        get_filename_component(subdir_name ${subdir} NAME)
-        set(exclude_dir FALSE)
+    foreach(subdir ${__subdirs})
+        get_filename_component(__subdir_name ${subdir} NAME)
+        set(__exclude_dir FALSE)
 
         # Check if the subdirectory starts with any of the excluded patterns
         foreach(pattern ${excluded_patterns})
-            if(subdir_name MATCHES "^${pattern}")
-                set(exclude_dir TRUE)
+            if(__subdir_name MATCHES "^${pattern}")
+                set(__exclude_dir TRUE)
             endif()
         endforeach()
 
         # If it's not excluded, add to the filtered list
-        if(NOT exclude_dir)
-            list(APPEND filtered_subdirs ${subdir})
+        if(NOT __exclude_dir)
+            list(APPEND __filtered_subdirs ${subdir})
         endif()
     endforeach()
 
     # Return the filtered list
-    set(${output_var} ${filtered_subdirs})
+    set(${output_var} ${__filtered_subdirs})
 endmacro()

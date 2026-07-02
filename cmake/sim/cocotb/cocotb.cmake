@@ -262,19 +262,19 @@ function(cocotb IP_LIB)
         # Default parameters based on cocotb Makefile.inc
         set(COCOTB_RESULTS_FILE ${OUTDIR}/results.xml)
 
-        set(__sim_run_cmd ${sim_run_cmd})
-        list(FIND __sim_run_cmd "&&" _and_index)
+        set(_sim_run_cmd ${sim_run_cmd})
+        list(FIND _sim_run_cmd "&&" _and_index)
         if(_and_index GREATER -1)
             math(EXPR _insert_index "${_and_index} + 1")
             list(
-                INSERT __sim_run_cmd
+                INSERT _sim_run_cmd
                 ${_insert_index}
                 PYTHONPATH=${PYTHONPATH}
                 MODULE=${ARG_COCOTB_MODULE}
                 COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
             )
         else()
-            set(__sim_run_cmd
+            set(_sim_run_cmd
                 PYTHONPATH=${PYTHONPATH}
                 MODULE=${ARG_COCOTB_MODULE}
                 COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
@@ -298,7 +298,7 @@ function(cocotb IP_LIB)
             add_custom_target(
                 ${CUSTOM_TARGET_NAME}
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
-                COMMAND ${__sim_run_cmd}
+                COMMAND ${_sim_run_cmd}
                 BYPRODUCTS ${COCOTB_RESULTS_FILE}
                 DEPENDS ${sim_build_dep} ${cocotb_custom_sim_deps}
                 COMMENT ${DESCRIPTION}
@@ -327,12 +327,12 @@ function(cocotb IP_LIB)
             # Default parameters based on cocotb Makefile.inc
             set(COCOTB_RESULTS_FILE ${OUTDIR}/results.xml)
 
-            set(__sim_run_cmd ${sim_run_cmd})
-            list(FIND __sim_run_cmd "&&" _and_index)
+            set(_sim_run_cmd ${sim_run_cmd})
+            list(FIND _sim_run_cmd "&&" _and_index)
             if(_and_index GREATER -1)
                 math(EXPR _insert_index "${_and_index} + 1")
                 list(
-                    INSERT __sim_run_cmd
+                    INSERT _sim_run_cmd
                     ${_insert_index}
                     PYTHONPATH=${PYTHONPATH}
                     MODULE=${ARG_COCOTB_MODULE}
@@ -340,7 +340,7 @@ function(cocotb IP_LIB)
                     TESTCASE=${ARG_COCOTB_MODULE}_test_${test_num}
                 )
             else()
-                set(__sim_run_cmd
+                set(_sim_run_cmd
                     PYTHONPATH=${PYTHONPATH}
                     MODULE=${ARG_COCOTB_MODULE}
                     COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
@@ -365,7 +365,7 @@ function(cocotb IP_LIB)
                 add_custom_target(
                     ${CUSTOM_TARGET_NAME}
                     COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
-                    COMMAND ${__sim_run_cmd}
+                    COMMAND ${_sim_run_cmd}
                     BYPRODUCTS ${COCOTB_RESULTS_FILE}
                     DEPENDS ${sim_build_dep} ${cocotb_custom_sim_deps}
                     COMMENT ${DESCRIPTION}

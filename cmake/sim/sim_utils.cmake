@@ -6,9 +6,9 @@ include_guard(GLOBAL)
 # This macro is used if a given library as been linked to the IP library.
 # It is used by the following functions to check some libraries.
 macro(__check_linked_interface_lib)
-    get_target_property(linked_libraries ${IP_LIB} LINK_LIBRARIES)
+    get_target_property(__linked_libraries ${IP_LIB} LINK_LIBRARIES)
 
-    if(${__lib_to_check} IN_LIST linked_libraries)
+    if(${__lib_to_check} IN_LIST __linked_libraries)
         set(${RESULT} TRUE PARENT_SCOPE)
     else()
         set(${RESULT} FALSE PARENT_SCOPE)
@@ -55,10 +55,10 @@ endfunction()
 # :param IP_LIB: The target IP library.
 # :type IP_LIB: string
 function(__is_socmake_ip_lib RESULT IP_LIB)
-    get_target_property(ip_type ${IP_LIB} TYPE)
-    get_target_property(ip_name ${IP_LIB} IP_NAME)
+    get_target_property(_ip_type ${IP_LIB} TYPE)
+    get_target_property(_ip_name ${IP_LIB} IP_NAME)
 
-    if(ip_type STREQUAL "INTERFACE_LIBRARY" AND ip_name)
+    if(_ip_type STREQUAL "INTERFACE_LIBRARY" AND _ip_name)
         set(${RESULT} TRUE PARENT_SCOPE)
     else()
         set(${RESULT} FALSE PARENT_SCOPE)

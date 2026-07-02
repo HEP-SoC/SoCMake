@@ -56,17 +56,17 @@ function(peakrdl_html IP_LIB)
     endif()
 
     unset(INCDIRS_ARG)
-    foreach(__incdir ${INC_DIRS})
-        list(APPEND INCDIRS_ARG -I${__incdir})
+    foreach(incdir ${INC_DIRS})
+        list(APPEND INCDIRS_ARG -I${incdir})
     endforeach()
 
     unset(COMPDEFS_ARG)
-    foreach(__compdefs ${COMP_DEFS})
-        list(APPEND COMPDEFS_ARG -D${__compdefs})
+    foreach(compdefs ${COMP_DEFS})
+        list(APPEND COMPDEFS_ARG -D${compdefs})
     endforeach()
 
     find_python3()
-    set(__CMD
+    set(_cmd
         ${Python3_EXECUTABLE}
         -m
         peakrdl
@@ -102,7 +102,7 @@ function(peakrdl_html IP_LIB)
 
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${GENERATED_FILES}
-        COMMAND ${__CMD}
+        COMMAND ${_cmd}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_SOURCES} ${IP_LIB}
         COMMAND_EXPAND_LISTS

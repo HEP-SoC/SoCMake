@@ -68,7 +68,7 @@ function(desyrdl IP_LIB)
     endif()
 
     find_python3()
-    set(__CMD
+    set(_cmd
         ${Python3_EXECUTABLE}
         -m
         desyrdl
@@ -96,7 +96,7 @@ function(desyrdl IP_LIB)
     add_custom_command(
         # The output files are automatically marked as GENERATED (deleted by make clean among other things)
         OUTPUT ${VHDL_GEN} ${STAMP_FILE}
-        COMMAND ${__CMD}
+        COMMAND ${_cmd}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_SOURCES}
         COMMENT ${DESCRIPTION}
