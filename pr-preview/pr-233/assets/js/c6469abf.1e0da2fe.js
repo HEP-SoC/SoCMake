@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkdocs=globalThis.webpackChunkdocs||[]).push([[168],{1238(e){e.exports=JSON.parse('{"tags":[{"label":"socmake","permalink":"/SoCMake/pr-preview/pr-233/blog/tags/socmake","count":1},{"label":"announcement","permalink":"/SoCMake/pr-preview/pr-233/blog/tags/announcement","count":1}]}')}}]);
