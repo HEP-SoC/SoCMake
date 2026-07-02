@@ -1,4 +1,4 @@
-# This test will succed because its allowed to have short notation in `ip_link(ip)` call
+# This test will succeed because its allowed to have short notation in `ip_link(ip)` call
 include("${CMAKE_CURRENT_LIST_DIR}/../../../CMakeLists.txt")
 
 set(TEST_NAME add_ip_1_token)

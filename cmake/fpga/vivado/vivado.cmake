@@ -5,7 +5,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 #[[[
 # Generate a vivado FPGA project and create a target to generate the bitstream.
 #
-# The python script, edalize_vivado, using edalize library is used to correctly run vivado with the given informations.
+# The python script, edalize_vivado, using edalize library is used to correctly run vivado with the given information.
 # The different arguments are parsed and formatted to be properly given to vivado.
 #
 # :param IP_LIB: The target IP library.

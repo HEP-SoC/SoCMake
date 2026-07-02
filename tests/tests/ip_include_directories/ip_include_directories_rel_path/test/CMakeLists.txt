@@ -19,7 +19,7 @@ include(incdir/incdir.cmake_)
 get_ip_include_directories(SV_ABS_INCDIRS ip SYSTEMVERILOG)
 
 foreach(abspath relpath IN ZIP_LISTS SV_ABS_INCDIRS SV_INCDIRS)
-    # If there is only . at the end, remove it, otherwise it wont match
+    # If there is only . at the end, remove it, otherwise it won't match
     string(REGEX REPLACE "\\.$" "" relpath ${relpath})
     if(NOT "${CMAKE_CURRENT_SOURCE_DIR}/${relpath}" PATH_EQUAL ${abspath})
         message(

@@ -64,7 +64,7 @@ Using just the name of the library `tb` is possible only if the add_ip() call is
 In other cases you can use:
 *   `${IP}` same as `tb`, should be in same subdirectory and last library added
 *   Full name `cern__ip__tb__0.0.1` (always works, from any subdirectory)
-*   Alias libray name `cern::ip::tb::0.0.1` (always works, from any subdirectory)
+*   Alias library name `cern::ip::tb::0.0.1` (always works, from any subdirectory)
 
 :::
 

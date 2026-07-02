@@ -73,7 +73,7 @@ if(SIMULATOR STREQUAL "osci")
     if(TEST_LANG STREQUAL "verilog" AND DUT_LANG STREQUAL "systemc")
         message(
             FATAL_ERROR
-            "Incorrect project configuration, Open-Source simulation cannot support Verilog-SystemC hierachy"
+            "Incorrect project configuration, Open-Source simulation cannot support Verilog-SystemC hierarchy"
         )
     endif()
 

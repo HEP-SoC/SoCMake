@@ -11,7 +11,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 #
 # It expects that **IP_LIB** has **SOURCES** property set with a list of VHDL files to be used as inputs.
 #
-# During the linting, errors, warning or informations will be displayed in the terminal.
+# During the linting, errors, warning or information will be displayed in the terminal.
 # No changes will be done to the files and no new files with corrected errors or warning will be produced.
 #
 # :param IP_LIB: The target IP library.

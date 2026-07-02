@@ -62,7 +62,7 @@ And finally we need a top `CMakeLists.txt` that will assemble the full project a
 
 <CodeBlock language="cmake" title="CMakeLists.txt" showLineNumbers>{cmakelists}</CodeBlock>
 
-To give the right flags to use the DPI-C with the simulator used, the `${simulator}_configure_cxx()` function can be used, in our case, we will use `verilator_configure_cxx(LIBRAIRES DPI-C)`.
+To give the right flags to use the DPI-C with the simulator used, the `${simulator}_configure_cxx()` function can be used, in our case, we will use `verilator_configure_cxx(LIBRARIES DPI-C)`.
 
 We can add the `adder` IP as a subdirectory with [`add_subdirectory()`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) CMake function.
 

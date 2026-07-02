@@ -25,7 +25,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 # **Keyword Arguments**
 #
 # :keyword OUTDIR: output directory in which the files will be generated.
-# If ommited ${BINARY_DIR}/regblock will be used.
+# If omitted ${BINARY_DIR}/regblock will be used.
 # :type OUTDIR: string
 # :keyword RENAME: Rename the generated module and file name to a custom string, otherwise the
 # name will be ${IP_LIB}.sv.
@@ -141,7 +141,7 @@ function(peakrdl_regblock IP_LIB)
     )
 
     add_custom_command(
-        # The output files are automtically marked as GENERATED (deleted by make clean among other things)
+        # The output files are automatically marked as GENERATED (deleted by make clean among other things)
         OUTPUT ${SV_GEN} ${STAMP_FILE}
         COMMAND ${__CMD}
         COMMAND touch ${STAMP_FILE}

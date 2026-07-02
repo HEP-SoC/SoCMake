@@ -46,7 +46,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 # :type USE_INCLUDE: option
 # :keyword GEN_DOT: enable generation of graphviz dot file along with verilog files
 # :type GEN_DOT: option
-# :keyword OUTDIR: output directory in which the files will be generated, if ommited
+# :keyword OUTDIR: output directory in which the files will be generated, if omitted
 # ${BINARY_DIR}/socgen will be used.
 # :type OUTDIR: string path
 # :keyword INJECT_V_FILES: list of Verilog or SV files to be injected into the subsystems.

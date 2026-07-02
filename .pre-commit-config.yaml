@@ -46,3 +46,4 @@ repos:
         entry: codespell
         language: python
         types: [text]
+        args: ['--ignore-words=.codespell.ignore', '--skip=docs/package-lock.json']

@@ -48,7 +48,7 @@ function(yosys IP_LIB)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    # Include the hardware IP managament main functions
+    # Include the hardware IP management main functions
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
 
     # Assume the IP library is the latest one provided if full name is not given

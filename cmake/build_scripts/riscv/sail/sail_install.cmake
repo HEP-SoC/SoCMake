@@ -51,7 +51,7 @@ macro(sail_install)
         )
 
         msg("-----------------------------------------------------------------" Yellow)
-        msg("-  Successfull installation of Riscv-Sail" Yellow)
+        msg("-  Successful installation of Riscv-Sail" Yellow)
         msg("-  You can now delete directory ${FETCHCONTENT_BASE_DIR}/sail-build" Yellow)
         msg("-  Keep the binary installed in ${RISCV32_SAIL_EXE}" Yellow)
         msg("-  Variable is created holding path to sail binary RISCV32_SAIL_EXE" Yellow)

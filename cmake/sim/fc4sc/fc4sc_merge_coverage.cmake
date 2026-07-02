@@ -7,7 +7,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 #[[[
 # This function use fc4sc to merge already existing coverages files in the ``DIRECTORY`` directory (function's argument).
 #
-# :param DIRECTORY: Directory containing coverage informations
+# :param DIRECTORY: Directory containing coverage information
 # :type DIRECTORY: path string
 #
 # **Keyword Arguments**

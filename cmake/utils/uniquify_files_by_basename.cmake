@@ -9,7 +9,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
 # /home/user/file1.sv and /home/user/dir/file1.sv are recognized as a unique file and only the first occurrence is kept.
 # This function also check the files have the same content and throws an error if this is not the case.
 #
-# :param INPUT_LIST: Input ist of files.
+# :param INPUT_LIST: Input list of files.
 # :type INPUT_LIST: string
 # :param OUTPUT_LIST: Output variable used to store the list of uniquify files.
 # :type OUTPUT_LIST: string
@@ -32,7 +32,7 @@ function(uniquify_files_by_basename OUTPUT_LIST INPUT_LIST MESSAGE_MODE)
             # If the basename is not yet seen, mark it and store the full path
             set(_seen_basenames_${basename} ${file})
             list(APPEND _unique_files ${file})
-            socmake_message(DEBUG "    '-> First occurence stored in _unique_files")
+            socmake_message(DEBUG "    '-> First occurrence stored in _unique_files")
         else()
             # If the basename has been seen, compare file contents
             file(READ ${file} CURRENT_CONTENT)

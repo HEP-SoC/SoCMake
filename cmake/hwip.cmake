@@ -214,7 +214,7 @@ function(
     # Raise an error if there are different than 4 tokens provided (`add_ip(vendor::lib::ip::0.0.1)`), unless its only 1 (`add_ip(ip)`)
     list(LENGTH _ip_tokens _token_cnt)
 
-    # Its alowed for IP_VLNV to have 4 tokens (FULL) `add_ip(vendor::lib::ip::0.0.1)`
+    # Its allowed for IP_VLNV to have 4 tokens (FULL) `add_ip(vendor::lib::ip::0.0.1)`
     if(_token_cnt EQUAL 4)
         # Get elements of the list
         list(GET _ip_tokens 0 _v_val)
@@ -225,7 +225,7 @@ function(
         set(${LIBRARY} ${_l_val} PARENT_SCOPE)
         set(${IP_NAME} ${_n_val} PARENT_SCOPE)
         set(${VERSION} ${_r_val} PARENT_SCOPE)
-        # Its alowed for IP_VLNV to have 1 token (SHORT) `add_ip(ip)`
+        # Its allowed for IP_VLNV to have 1 token (SHORT) `add_ip(ip)`
     elseif(_token_cnt EQUAL 1)
         set(${IP_NAME} ${IP_VLNV} PARENT_SCOPE)
         unset(${VENDOR} PARENT_SCOPE)
@@ -461,7 +461,7 @@ function(ip_include_directories IP_LIB LANGUAGE)
     list(REMOVE_ITEM ARGN "FILE_SET")
     # Convert all listed files to absolute paths relative to ${CMAKE_CURRENT_SOURCE_DIR}
     convert_paths_to_absolute(dir_list ${ARGN})
-    # Append the new include directories to the exsiting ones
+    # Append the new include directories to the existing ones
     set_property(
         TARGET ${_reallib}
         APPEND
@@ -643,7 +643,7 @@ function(ip_link IP_LIB)
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
     alias_dereference(_reallib ${IP_LIB})
 
-    # Remove the optional NODEPEND argument to keep only a list of dependecies
+    # Remove the optional NODEPEND argument to keep only a list of dependencies
     if(ARG_NODEPEND)
         list(REMOVE_ITEM ARGN "NODEPEND")
     endif()
@@ -770,7 +770,7 @@ function(ip_compile_definitions IP_LIB LANGUAGE)
     string(REPLACE "-D" "" __comp_defs "${__comp_defs}")
     list(REMOVE_ITEM __comp_defs "")
 
-    # Append the new compile definitions to the exsiting ones
+    # Append the new compile definitions to the existing ones
     set_property(
         TARGET ${_reallib}
         APPEND

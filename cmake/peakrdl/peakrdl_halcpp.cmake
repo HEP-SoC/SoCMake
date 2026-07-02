@@ -39,7 +39,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 #
 # **Keyword Arguments**
 #
-# :keyword OUTDIR: output directory in which the files will be generated, if ommited ${BINARY_DIR}/halcpp will be used.
+# :keyword OUTDIR: output directory in which the files will be generated, if omitted ${BINARY_DIR}/halcpp will be used.
 # :type OUTDIR: string path
 #]]
 function(peakrdl_halcpp IP_LIB)

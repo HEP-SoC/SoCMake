@@ -26,7 +26,7 @@ add_test_build_commands_match_patterns(${IP}_peakrdl_regblock
 )
 set_property(TEST ${CTEST_NAME} PROPERTY LABELS peakrdl)
 
-##### Test with mutliple arguments
+##### Test with multiple arguments
 add_ip(regblock_ip2)
 
 ip_sources(${IP} SYSTEMRDL

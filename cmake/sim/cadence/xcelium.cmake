@@ -382,7 +382,7 @@ function(__xcelium_compile_lib IP_LIB)
         # If neither LIBRARY property is set, or LIBRARY passed as argument, use "worklib" as default
         __xcelium_default_library(__comp_lib_name ${lib})
 
-        # Create output directoy for the VHDL library
+        # Create output directory for the VHDL library
         set(lib_outdir ${OUTDIR}/xcelium.d/${__comp_lib_name})
 
         __get_xcelium_search_lib_args(${lib}
@@ -674,7 +674,7 @@ function(xcelium_gen_sc_wrapper IP_LIB)
     endif()
 
     __xcelium_default_library(__comp_lib_name ${IP_LIB})
-    # Create output directoy for the VHDL library
+    # Create output directory for the VHDL library
     set(lib_outdir ${OUTDIR}/${__comp_lib_name})
 
     get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
@@ -996,7 +996,7 @@ function(__xcelium_default_library OUT_LIB IP_LIB)
     if(ARG_LIBRARY)
         set(__comp_lib_name ${ARG_LIBRARY})
     endif()
-    # Xcelium doesnt like some characters in the name of the libraries, sanitize
+    # Xcelium doesn't like some characters in the name of the libraries, sanitize
     string(MAKE_C_IDENTIFIER "${__comp_lib_name}" __comp_lib_name)
     set(${OUT_LIB} ${__comp_lib_name} PARENT_SCOPE)
 endfunction()
