@@ -126,10 +126,6 @@ def main():
     if matched_lines_set:
         for line_number, line in matched_lines_set:
             highlighted_line = highlight_patterns(line, args.patterns)
-<<<<<<< HEAD
-            console.print(Panel(f"[yellow]{line_number}: {highlighted_line}[/yellow]", title="Matched Lines", expand=False))
-=======
-            # console.print(f"[yellow]{line_number}: {highlighted_line}[/yellow]")
             console.print(
                 Panel(
                     f"[yellow]{line_number}: {highlighted_line}[/yellow]",
@@ -137,7 +133,6 @@ def main():
                     expand=False,
                 )
             )
->>>>>>> 7df71b2 (pre-commit: initial formatting all files)
     else:
         console.print("[yellow]No matching lines found in the file.[/yellow]")
 

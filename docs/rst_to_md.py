@@ -302,7 +302,7 @@ def rst_file_to_md(rst_text: str, module_name: str, sidebar_position: int) -> st
 
     # Locate all .. function:: directive positions
     func_starts = [
-        i for i, l in enumerate(lines) if l.strip().startswith(".. function::")
+        i for i, line in enumerate(lines) if line.strip().startswith(".. function::")
     ]
 
     md: list = [
