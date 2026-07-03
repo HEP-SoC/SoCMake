@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkdocs=globalThis.webpackChunkdocs||[]).push([[3220],{6455(e){e.exports=JSON.parse('{"authors":[{"name":"SoCMake Team","title":"HEP-SoC","url":"https://github.com/HEP-SoC","imageURL":"/SoCMake/pr-preview/pr-233/img/SoCMakeLogo3.svg","key":"socmake","page":null,"count":1}]}')}}]);
