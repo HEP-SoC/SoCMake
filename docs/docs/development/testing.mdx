@@ -1,0 +1,89 @@
+# Testing
+
+SoCMake ships with a test suite that covers its CMake API. The tests live under
+[tests/tests/](https://github.com/HEP-SoC/SoCMake/tree/develop/tests/tests) and come in
+two flavours:
+
+- **CMake unit tests** written with the
+  [CMakeTest](https://github.com/CMakePP/CMakeTest) framework (fetched automatically
+  with `FetchContent`, see
+  [tests/getcmaketest.cmake](https://github.com/HEP-SoC/SoCMake/blob/develop/tests/getcmaketest.cmake)).
+  They exercise individual functions such as `add_ip()`, `ip_sources()`, or the VLNV
+  helpers.
+- **Tool-driven tests** that run real flows end to end, e.g. Icarus Verilog simulations
+  (`tests/tests/iverilog/`) and PeakRDL generation (`tests/tests/peakrdl/`).
+
+## Running the tests
+
+Testing is disabled by default. Enable it with the `SOCMAKE_BUILD_TESTING` option at
+configure time, then build the `check` target:
+
+```bash
+cmake -DSOCMAKE_BUILD_TESTING=TRUE -B build .
+cmake --build build --target check
+```
+
+The `check` target runs the whole suite with `ctest --output-on-failure`. A second
+target, `check_cdash`, runs the same suite as a CTest `Nightly` run and submits the
+results to the [CDash dashboard](https://my.cdash.org/index.php?project=SoCMake); it is
+used by CI on pushes and merges, so you normally don't need it locally. Both targets
+are defined in
+[tests/tests/CMakeLists.txt](https://github.com/HEP-SoC/SoCMake/blob/develop/tests/tests/CMakeLists.txt).
+
+To run a subset of the tests, invoke `ctest` directly from the build directory with a
+name filter:
+
+```bash
+cd build
+ctest -R vlnv --output-on-failure
+```
+
+## Writing a new test
+
+Each tested function has its own directory under `tests/tests/`, registered in
+[tests/tests/CMakeLists.txt](https://github.com/HEP-SoC/SoCMake/blob/develop/tests/tests/CMakeLists.txt)
+with:
+
+```cmake
+ct_add_dir(my_function USE_REL_PATH_NAMES LABEL)
+```
+
+Every `.cmake` file inside such a directory is a test file. A test is declared with
+`ct_add_test()` followed by a function whose name is the test name, using assertions
+like `ct_assert_equal()`. A real example from
+[tests/tests/vlnv/vlnv.cmake](https://github.com/HEP-SoC/SoCMake/blob/develop/tests/tests/vlnv/vlnv.cmake):
+
+```cmake
+include("${CMAKE_CURRENT_LIST_DIR}/../../../CMakeLists.txt")
+
+set(TEST_NAME create_ip_vlnv_full)
+ct_add_test(NAME ${TEST_NAME})
+function(${${TEST_NAME}})
+    create_ip_vlnv(OUT ip VENDOR v LIBRARY l VERSION 1.2.3)
+    ct_assert_equal(OUT "v__l__ip__1.2.3")
+endfunction()
+```
+
+Tests that are expected to fail (e.g. checking that invalid arguments raise an error)
+take the `EXPECTFAIL` keyword:
+
+```cmake
+set(TEST_NAME create_ip_vlnv_unknown_arg_fails)
+ct_add_test(NAME ${TEST_NAME} EXPECTFAIL)
+function(${${TEST_NAME}})
+    create_ip_vlnv(OUT ip VENDOR v BADARG foo)
+endfunction()
+```
+
+As stated in the [contributing guidelines](contributing), each new function should
+have a corresponding test.
+
+## Continuous integration
+
+The [testing workflow](https://github.com/HEP-SoC/SoCMake/blob/master/.github/workflows/testing.yml)
+runs the full suite on every pull request and on pushes to `master` and `develop`,
+across both the `Unix Makefiles` and `Ninja` generators. Pull requests build the
+`check` target, while pushes and merges build `check_cdash`, which publishes the
+results to the [CDash dashboard](https://my.cdash.org/index.php?project=SoCMake)
+(configured in
+[CTestConfig.cmake](https://github.com/HEP-SoC/SoCMake/blob/master/CTestConfig.cmake)).

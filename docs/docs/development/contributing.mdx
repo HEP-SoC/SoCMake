@@ -1,0 +1,88 @@
+# Contributing to SoCMake
+
+Thank you for your interest in contributing! The sections below describe how to
+get set up, the conventions we follow, and how to submit changes.
+
+## Getting started
+
+1. Fork the repository on GitHub and clone your fork locally.
+2. Create a branch from `develop` (not `master`) for your changes:
+   ```bash
+   git checkout develop
+   git checkout -b my-feature
+   ```
+3. Create a virtual environment (using `venv`, `uv`, or any tool you prefer),
+   install the dependencies, and enable the hooks:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r python_requirements.txt
+   pre-commit install
+   ```
+
+## Development setup
+
+The only mandatory build dependencies are `CMake >= 3.27` and `make` or
+`ninja`. See the
+[Getting Started](https://hep-soc.github.io/SoCMake/docs/getting_started)
+guide for optional tool dependencies (simulators, linters, etc.).
+
+```bash
+cmake -DSOCMAKE_BUILD_TESTING=TRUE -B build .
+cmake --build build --target check
+```
+
+See the [Testing](https://hep-soc.github.io/SoCMake/docs/development/testing) page
+for details on running and writing tests.
+
+## Code conventions
+
+| Language | Tool | Notes |
+|----------|------|-------|
+| CMake    | [gersemi](https://github.com/BlankSpruce/gersemi) | auto-formatted by pre-commit |
+| Python   | [ruff](https://docs.astral.sh/ruff/) | lints and formats on commit |
+| All      | codespell, trailing-whitespace, end-of-file-fixer | enforced by pre-commit |
+
+The pre-commit hooks run automatically on `git commit`. You can also run them
+manually at any time:
+
+```bash
+pre-commit run --all-files
+```
+
+## Adding or modifying functionality
+
+- CMake macros and functions live under
+  [cmake/](https://github.com/HEP-SoC/SoCMake/tree/develop/cmake), organised
+  by category (e.g. `sim/`, `lint/`, `synth/`).
+- Each new function should have a corresponding test under
+  [tests/](https://github.com/HEP-SoC/SoCMake/tree/develop/tests).
+- If you add new Python helpers, place them alongside the relevant CMake
+  module and keep them compatible with the Python version used in CI.
+- Update or add documentation pages under
+  [docs/](https://github.com/HEP-SoC/SoCMake/tree/develop/docs) when the
+  public API changes.
+
+## Submitting a pull request
+
+1. Push your branch to your fork and open a PR against the `develop` branch of
+   `HEP-SoC/SoCMake`.
+2. Describe *what* changed and *why* in the PR description.
+3. Make sure all pre-commit hooks pass and existing tests still succeed
+   (check the [CDash dashboard](https://my.cdash.org/index.php?project=SoCMake)
+   after CI runs).
+4. A maintainer will review your PR. Please address review comments promptly
+   and keep the branch up to date with `develop`.
+
+## Reporting issues
+
+Open an issue on [GitHub](https://github.com/HEP-SoC/SoCMake/issues) with:
+
+- A minimal reproducer (CMakeLists.txt + source files if possible).
+- The CMake version (`cmake --version`) and OS.
+- The full CMake/make error output.
+
+## License
+
+By contributing you agree that your changes will be released under the project's
+existing [LICENSE](https://github.com/HEP-SoC/SoCMake/blob/develop/LICENSE).
