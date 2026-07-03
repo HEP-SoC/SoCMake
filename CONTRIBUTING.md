@@ -50,13 +50,16 @@ pre-commit run --all-files
 
 ## Adding or modifying functionality
 
-- CMake macros and functions live under [cmake/](cmake/), organised by
-  category (e.g. `sim/`, `lint/`, `synth/`).
-- Each new function should have a corresponding test under [tests/](tests/).
+- CMake macros and functions live under
+  [cmake/](https://github.com/HEP-SoC/SoCMake/tree/develop/cmake), organised
+  by category (e.g. `sim/`, `lint/`, `synth/`).
+- Each new function should have a corresponding test under
+  [tests/](https://github.com/HEP-SoC/SoCMake/tree/develop/tests).
 - If you add new Python helpers, place them alongside the relevant CMake
   module and keep them compatible with the Python version used in CI.
-- Update or add documentation pages under [docs/](docs/) when the public API
-  changes.
+- Update or add documentation pages under
+  [docs/](https://github.com/HEP-SoC/SoCMake/tree/develop/docs) when the
+  public API changes.
 
 ## Submitting a pull request
 
@@ -80,4 +83,4 @@ Open an issue on [GitHub](https://github.com/HEP-SoC/SoCMake/issues) with:
 ## License
 
 By contributing you agree that your changes will be released under the project's
-existing [LICENSE](LICENSE).
+existing [LICENSE](https://github.com/HEP-SoC/SoCMake/blob/develop/LICENSE).
