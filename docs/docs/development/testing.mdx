@@ -1,13 +1,13 @@
 # Testing
 
 SoCMake ships with a test suite that covers its CMake API. The tests live under
-[tests/tests/](https://github.com/HEP-SoC/SoCMake/tree/develop/tests/tests) and come in
+[tests/tests/](https://github.com/HEP-SoC/SoCMake/tree/master/tests/tests) and come in
 two flavours:
 
 - **CMake unit tests** written with the
   [CMakeTest](https://github.com/CMakePP/CMakeTest) framework (fetched automatically
   with `FetchContent`, see
-  [tests/getcmaketest.cmake](https://github.com/HEP-SoC/SoCMake/blob/develop/tests/getcmaketest.cmake)).
+  [tests/getcmaketest.cmake](https://github.com/HEP-SoC/SoCMake/blob/master/tests/getcmaketest.cmake)).
   They exercise individual functions such as `add_ip()`, `ip_sources()`, or the VLNV
   helpers.
 - **Tool-driven tests** that run real flows end to end, e.g. Icarus Verilog simulations
@@ -28,7 +28,7 @@ target, `check_cdash`, runs the same suite as a CTest `Nightly` run and submits 
 results to the [CDash dashboard](https://my.cdash.org/index.php?project=SoCMake); it is
 used by CI on pushes and merges, so you normally don't need it locally. Both targets
 are defined in
-[tests/tests/CMakeLists.txt](https://github.com/HEP-SoC/SoCMake/blob/develop/tests/tests/CMakeLists.txt).
+[tests/tests/CMakeLists.txt](https://github.com/HEP-SoC/SoCMake/blob/master/tests/tests/CMakeLists.txt).
 
 To run a subset of the tests, invoke `ctest` directly from the build directory with a
 name filter:
@@ -41,7 +41,7 @@ ctest -R vlnv --output-on-failure
 ## Writing a new test
 
 Each tested function has its own directory under `tests/tests/`, registered in
-[tests/tests/CMakeLists.txt](https://github.com/HEP-SoC/SoCMake/blob/develop/tests/tests/CMakeLists.txt)
+[tests/tests/CMakeLists.txt](https://github.com/HEP-SoC/SoCMake/blob/master/tests/tests/CMakeLists.txt)
 with:
 
 ```cmake
@@ -51,7 +51,7 @@ ct_add_dir(my_function USE_REL_PATH_NAMES LABEL)
 Every `.cmake` file inside such a directory is a test file. A test is declared with
 `ct_add_test()` followed by a function whose name is the test name, using assertions
 like `ct_assert_equal()`. A real example from
-[tests/tests/vlnv/vlnv.cmake](https://github.com/HEP-SoC/SoCMake/blob/develop/tests/tests/vlnv/vlnv.cmake):
+[tests/tests/vlnv/vlnv.cmake](https://github.com/HEP-SoC/SoCMake/blob/master/tests/tests/vlnv/vlnv.cmake):
 
 ```cmake
 include("${CMAKE_CURRENT_LIST_DIR}/../../../CMakeLists.txt")
