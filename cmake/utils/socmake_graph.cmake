@@ -5,13 +5,33 @@ include_guard(GLOBAL)
 include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
 
 #[[[
-# Flatten the dependency graph of NODE into a topologically-sorted flat list stored in the ``FLAT_GRAPH`` target property.
+# Flatten the dependency graph of NODE into a topologically-sorted flat list.
+#
+# With no ``EXCLUDED_IPS``, the result is cached in the ``FLAT_GRAPH`` target property (read it back
+# with ``get_property``). When ``EXCLUDED_IPS`` is passed, the excluded IPs and any of their
+# dependencies that are not also reachable through a non-excluded IP are left out of the traversal;
+# since that result is specific to this call's exclusion set, it is returned via ``OUTVAR`` instead
+# of being cached.
 #
 # :param NODE: The root IP target whose dependency graph should be flattened.
 # :type NODE: string
+#
+# **Keyword Arguments**
+#
+# :keyword OUTVAR: Variable that receives the flattened list. Required when ``EXCLUDED_IPS`` is used.
+# :type OUTVAR: string
+# :keyword EXCLUDED_IPS: Exclude the listed IPs (and dependencies only reachable through them) from the graph.
+# :type EXCLUDED_IPS: list[string]
 #]]
 function(flatten_graph NODE)
+    cmake_parse_arguments(ARG "" "OUTVAR" "EXCLUDED_IPS" ${ARGN})
     alias_dereference(NODE ${NODE})
+
+    set(_excluded_reallibs)
+    foreach(excl_ip ${ARG_EXCLUDED_IPS})
+        alias_dereference(_excl_reallib ${excl_ip})
+        list(APPEND _excluded_reallibs ${_excl_reallib})
+    endforeach()
 
     # __GLOBAL_STACK will hold the flattened graph as the DFS is traversing the tree
     set_property(GLOBAL PROPERTY __GLOBAL_STACK "")
@@ -22,7 +42,7 @@ function(flatten_graph NODE)
     set_property(TARGET ${NODE} PROPERTY __NODE_PROCESSED FALSE)
 
     # Recursive DFS topological sort
-    __dfs_topo(${NODE} unused)
+    __dfs_topo(${NODE} unused "${_excluded_reallibs}")
 
     get_property(STACK GLOBAL PROPERTY __GLOBAL_STACK)
 
@@ -32,22 +52,37 @@ function(flatten_graph NODE)
         set_property(TARGET ${lib} PROPERTY __NODE_PROCESSED FALSE)
     endforeach()
 
-    set_property(TARGET ${NODE} PROPERTY FLAT_GRAPH ${STACK})
+    if(_excluded_reallibs)
+        set(${ARG_OUTVAR} ${STACK} PARENT_SCOPE)
+    else()
+        set_property(TARGET ${NODE} PROPERTY FLAT_GRAPH ${STACK})
+    endif()
 endfunction()
 
 # This function is a recursive DFS topological sort
 #
-# Will return 0 if the node doesn't have the TARGET keyword set or if it has already been processed, otherwise, it will return 1 after processing it.
+# Will return 0 if the node doesn't have the TARGET keyword set, was excluded, or has already been
+# processed, otherwise, it will return 1 after processing it.
 #
 # :param NODE: node to be processed
 # :type NODE: node
 # :param RET: value returned by this function
 # :type RET: integer
-function(__dfs_topo NODE RET)
+# :param EXCLUDED: list of real (dereferenced) target names to exclude from the graph
+# :type EXCLUDED: list[string]
+function(__dfs_topo NODE RET EXCLUDED)
     alias_dereference(NODE ${NODE})
 
     # Skip non-targets (like -pthread, etc.)
     if(NOT TARGET ${NODE})
+        set(${RET} 0 PARENT_SCOPE)
+        return()
+    endif()
+
+    # Skip excluded IPs entirely: don't visit their dependencies and don't add them to the
+    # graph. A dependency also reachable through a non-excluded IP is still visited normally
+    # via that other path.
+    if(NODE IN_LIST EXCLUDED)
         set(${RET} 0 PARENT_SCOPE)
         return()
     endif()
@@ -78,7 +113,7 @@ function(__dfs_topo NODE RET)
     # Visit each child recursively
     foreach(child ${LINK_LIBS})
         alias_dereference(child ${child})
-        __dfs_topo(${child} child_ret)
+        __dfs_topo(${child} _child_ret "${EXCLUDED}")
     endforeach()
 
     # Mark node as processed

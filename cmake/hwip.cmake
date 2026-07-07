@@ -382,11 +382,13 @@ endfunction()
 # :type HEADERS: bool
 # :keyword FILE_SETS: Restrict results to the listed file sets; returns all file sets when omitted.
 # :type FILE_SETS: list[string]
+# :keyword EXCLUDED_IPS: Exclude the listed IPs (and their sub-graphs) from the search.
+# :type EXCLUDED_IPS: list[string]
 #]]
 function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     set(options NO_DEPS HEADERS)
     set(oneValueArgs)
-    set(multiValueArgs FILE_SETS)
+    set(multiValueArgs FILE_SETS EXCLUDED_IPS)
 
     cmake_parse_arguments(
         ARG
@@ -395,7 +397,7 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
         "${multiValueArgs}"
         ${ARGN}
     )
-    alias_dereference(reallib ${IP_LIB})
+    alias_dereference(_reallib ${IP_LIB})
 
     # Handle NO_DEPS flag
     unset(no_deps)
@@ -410,6 +412,15 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     if(ARG_HEADERS)
         set(property_type HEADERS)
         list(REMOVE_ITEM ARGN HEADERS)
+    endif()
+
+    if(ARG_EXCLUDED_IPS)
+        # Clean ARGN from EXCLUDED_IPS and listed IPs
+        foreach(ip ${ARG_EXCLUDED_IPS})
+            list(REMOVE_ITEM ARGN "${ip}")
+        endforeach()
+        list(REMOVE_ITEM ARGN "EXCLUDED_IPS")
+        set(ARG_EXCLUDED_IPS EXCLUDED_IPS ${ARG_EXCLUDED_IPS})
     endif()
 
     # In case FILE_SETS function argument is not passed, return all file sets that were defined in IP or sub IPs
@@ -438,7 +449,7 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     if(no_deps)
         set(ips ${reallib})
     else()
-        get_ip_links(ips ${reallib})
+        get_ip_links(ips ${_reallib} ${ARG_EXCLUDED_IPS})
     endif()
 
     set(asked_languges ${LANGUAGE} ${ARGN})
@@ -966,11 +977,13 @@ endfunction()
 #
 # :keyword NO_DEPS: If set, only return the direct (immediate) dependencies of IP_LIB instead of the full transitive graph.
 # :type NO_DEPS: bool
+# :keyword EXCLUDED_IPS: Exclude the listed IPs (and their sub-graphs) from the search.
+# :type EXCLUDED_IPS: list[string]
 #]]
 function(get_ip_links OUTVAR IP_LIB)
     set(options NO_DEPS)
     set(oneValueArgs)
-    set(multiValueArgs)
+    set(multiValueArgs EXCLUDED_IPS)
 
     cmake_parse_arguments(
         ARG
@@ -991,6 +1004,14 @@ function(get_ip_links OUTVAR IP_LIB)
             TARGET ${reallib}
             PROPERTY INTERFACE_LINK_LIBRARIES
         )
+        foreach(excl_ip ${ARG_EXCLUDED_IPS})
+            alias_dereference(_excl_reallib ${excl_ip})
+            list(REMOVE_ITEM __flat_graph ${_excl_reallib})
+        endforeach()
+    elseif(ARG_EXCLUDED_IPS)
+        # The FLAT_GRAPH cache holds a single exclusion-free traversal per target, so a
+        # filtered view is computed fresh here instead of being read from (or written to) it.
+        flatten_graph(${_reallib} EXCLUDED_IPS ${ARG_EXCLUDED_IPS} OUTVAR __flat_graph)
     else()
         flatten_graph_if_allowed(${reallib})
 
