@@ -46,18 +46,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :type FILE_SETS: list[string]
 #]]
 function(xcelium IP_LIB)
-    set(options
-        NO_RUN_TARGET
-        GUI
-        GUI_VERISIUM
-        32BIT
-    )
-    set(oneValueArgs
-        OUTDIR
-        RUN_TARGET_NAME
-        TOP_MODULE
-        LIBRARY
-    )
+    set(options NO_RUN_TARGET GUI GUI_VERISIUM 32BIT)
+    set(oneValueArgs OUTDIR RUN_TARGET_NAME TOP_MODULE LIBRARY)
     set(multiValueArgs
         COMPILE_ARGS
         XRUN_COMPILE_ARGS
@@ -68,7 +58,13 @@ function(xcelium IP_LIB)
         FILE_SETS
     )
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -309,11 +305,7 @@ endfunction()
 # :type FILE_SETS: list[string]
 function(__xcelium_compile_lib IP_LIB)
     set(options)
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-        TOP_MODULE
-    )
+    set(oneValueArgs OUTDIR LIBRARY TOP_MODULE)
     set(multiValueArgs
         COMPILE_ARGS
         XRUN_COMPILE_ARGS
@@ -322,7 +314,13 @@ function(__xcelium_compile_lib IP_LIB)
         FILE_SETS
     )
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -589,13 +587,16 @@ endfunction()
 # :type LIBRARY: string
 function(__get_xcelium_search_lib_args IP_LIB)
     set(options)
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-    )
+    set(oneValueArgs OUTDIR LIBRARY)
     set(multiValueArgs)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -672,22 +673,17 @@ endfunction()
 # :type FILE_SETS: list[string]
 #]]
 function(xcelium_gen_sc_wrapper IP_LIB)
-    set(options
-        32BIT
-        QUIET
-    )
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-        TOP_MODULE
-    )
-    set(multiValueArgs
-        SV_COMPILE_ARGS
-        VHDL_COMPILE_ARGS
-        FILE_SETS
-    )
+    set(options 32BIT QUIET)
+    set(oneValueArgs OUTDIR LIBRARY TOP_MODULE)
+    set(multiValueArgs SV_COMPILE_ARGS VHDL_COMPILE_ARGS FILE_SETS)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -825,14 +821,16 @@ endfunction()
 #]]
 function(xcelium_gen_hdl_wrapper SC_LIB)
     set(options 32BIT)
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-        TOP_MODULE
-    )
+    set(oneValueArgs OUTDIR LIBRARY TOP_MODULE)
     set(multiValueArgs)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -929,7 +927,13 @@ macro(xcelium_configure_cxx)
     set(oneValueArgs)
     set(multiValueArgs LIBRARIES)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
 
     __find_xcelium_home(__xcelium_home)
     set(CMAKE_CXX_COMPILER "${__xcelium_home}/tools.lnx86/cdsgcc/gcc/bin/g++")
@@ -957,7 +961,13 @@ function(xcelium_add_cxx_libs)
     set(oneValueArgs)
     set(multiValueArgs LIBRARIES)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -1044,7 +1054,13 @@ function(__xcelium_default_library OUT_LIB IP_LIB)
     set(oneValueArgs LIBRARY)
     set(multiValueArgs)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()

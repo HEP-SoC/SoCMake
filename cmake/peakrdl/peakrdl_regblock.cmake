@@ -42,18 +42,16 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 function(peakrdl_regblock IP_LIB)
     # Parse keyword arguments
     set(options)
-    set(oneValueArgs
-        OUTDIR
-        RENAME
-        INTF
-        RESET
-    )
-    set(multiValueArgs
-        PARAMETERS
-        ARGS
-    )
+    set(oneValueArgs OUTDIR RENAME INTF RESET)
+    set(multiValueArgs PARAMETERS ARGS)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unknown argument
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "

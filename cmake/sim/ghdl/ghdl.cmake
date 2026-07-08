@@ -69,14 +69,15 @@ function(ghdl IP_LIB)
         EXECUTABLE_NAME
         STANDARD
     )
-    set(multiValueArgs
-        VHDL_COMPILE_ARGS
-        ELABORATE_ARGS
-        RUN_ARGS
-        FILE_SETS
-    )
+    set(multiValueArgs VHDL_COMPILE_ARGS ELABORATE_ARGS RUN_ARGS FILE_SETS)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -226,17 +227,16 @@ endfunction()
 # :type FILE_SETS: list[string]
 function(__ghdl_compile_lib IP_LIB)
     set(options)
-    set(oneValueArgs
-        LIBRARY
-        OUTDIR
-        STANDARD
-    )
-    set(multiValueArgs
-        VHDL_COMPILE_ARGS
-        FILE_SETS
-    )
+    set(oneValueArgs LIBRARY OUTDIR STANDARD)
+    set(multiValueArgs VHDL_COMPILE_ARGS FILE_SETS)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -372,13 +372,16 @@ endfunction()
 # :type LIBRARY: string
 function(__get_ghdl_search_lib_args IP_LIB)
     set(options)
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-    )
+    set(oneValueArgs OUTDIR LIBRARY)
     set(multiValueArgs)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()

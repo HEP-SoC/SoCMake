@@ -23,14 +23,16 @@ include("${CMAKE_CURRENT_LIST_DIR}/../socmake_message.cmake")
 #]]
 function(generate_sv_sources_list IP_LIB)
     set(options)
-    set(oneValueArgs
-        OUTDIR
-        TOP_MODULE
-        SLANG_ARGS
-    )
+    set(oneValueArgs OUTDIR TOP_MODULE SLANG_ARGS)
     set(multiValueArgs)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()

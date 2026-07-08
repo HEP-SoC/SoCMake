@@ -44,11 +44,7 @@ socmake_add_languages(VCS_SC_PORTMAP)
 # :type FILE_SETS: list[string]
 #]]
 function(vcs IP_LIB)
-    set(options
-        NO_RUN_TARGET
-        GUI
-        32BIT
-    )
+    set(options NO_RUN_TARGET GUI 32BIT)
     set(oneValueArgs
         OUTDIR
         EXECUTABLE_NAME
@@ -64,7 +60,13 @@ function(vcs IP_LIB)
         FILE_SETS
     )
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -294,11 +296,7 @@ endfunction()
 # :type FILE_SETS: list[string]
 function(__vcs_compile_lib IP_LIB)
     set(options 32BIT)
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-        TOP_MODULE
-    )
+    set(oneValueArgs OUTDIR LIBRARY TOP_MODULE)
     set(multiValueArgs
         SV_COMPILE_ARGS
         VHDL_COMPILE_ARGS
@@ -306,7 +304,13 @@ function(__vcs_compile_lib IP_LIB)
         FILE_SETS
     )
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -544,13 +548,16 @@ endfunction()
 # :type LIBRARY: string
 function(__get_vcs_search_lib_args IP_LIB)
     set(options)
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-    )
+    set(oneValueArgs OUTDIR LIBRARY)
     set(multiValueArgs)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -629,18 +636,16 @@ endfunction()
 #]]
 function(vcs_gen_sc_wrapper IP_LIB)
     set(options 32BIT)
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-        TOP_MODULE
-    )
-    set(multiValueArgs
-        SV_COMPILE_ARGS
-        VHDL_COMPILE_ARGS
-        FILE_SETS
-    )
+    set(oneValueArgs OUTDIR LIBRARY TOP_MODULE)
+    set(multiValueArgs SV_COMPILE_ARGS VHDL_COMPILE_ARGS FILE_SETS)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -773,14 +778,16 @@ endfunction()
 #]]
 function(vcs_gen_hdl_wrapper SC_LIB)
     set(options 32BIT)
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-        TOP_MODULE
-    )
+    set(oneValueArgs OUTDIR LIBRARY TOP_MODULE)
     set(multiValueArgs)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -885,7 +892,13 @@ macro(vcs_configure_cxx)
     set(oneValueArgs)
     set(multiValueArgs LIBRARIES)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
 
     if(NOT DEFINED ENV{VG_GNU_PACKAGE})
         socmake_message(FATAL_ERROR "VG_GNU_PACKAGE variable not set for VCS. VCS CXX simulation should be used with GCC supplied by VCS")
@@ -913,7 +926,13 @@ function(vcs_add_cxx_libs)
     set(oneValueArgs)
     set(multiValueArgs LIBRARIES)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")

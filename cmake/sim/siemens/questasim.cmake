@@ -53,12 +53,7 @@ function(questasim IP_LIB)
         GUI_VISUALIZER
         32BIT
     )
-    set(oneValueArgs
-        LIBRARY
-        TOP_MODULE
-        OUTDIR
-        RUN_TARGET_NAME
-    )
+    set(oneValueArgs LIBRARY TOP_MODULE OUTDIR RUN_TARGET_NAME)
     set(multiValueArgs
         VHDL_COMPILE_ARGS
         SV_COMPILE_ARGS
@@ -68,7 +63,13 @@ function(questasim IP_LIB)
         DO_FILES
     )
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -354,21 +355,17 @@ endfunction()
 # :keyword FILE_SETS: Specify list of File sets to retrieve the sources from
 # :type FILE_SETS: list[string]
 function(__questasim_compile_lib IP_LIB)
-    set(options
-        QUIET
-        32BIT
-    )
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-    )
-    set(multiValueArgs
-        SV_COMPILE_ARGS
-        VHDL_COMPILE_ARGS
-        FILE_SETS
-    )
+    set(options QUIET 32BIT)
+    set(oneValueArgs OUTDIR LIBRARY)
+    set(multiValueArgs SV_COMPILE_ARGS VHDL_COMPILE_ARGS FILE_SETS)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -658,13 +655,16 @@ endfunction()
 # :type LIBRARY: string
 function(__get_questasim_search_lib_args IP_LIB)
     set(options)
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-    )
+    set(oneValueArgs OUTDIR LIBRARY)
     set(multiValueArgs)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -756,22 +756,17 @@ endfunction()
 # :type FILE_SETS: list[string]
 #]]
 function(questasim_gen_sc_wrapper IP_LIB)
-    set(options
-        32BIT
-        QUIET
-    )
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-        TOP_MODULE
-    )
-    set(multiValueArgs
-        SV_COMPILE_ARGS
-        VHDL_COMPILE_ARGS
-        FILE_SETS
-    )
+    set(options 32BIT QUIET)
+    set(oneValueArgs OUTDIR LIBRARY TOP_MODULE)
+    set(multiValueArgs SV_COMPILE_ARGS VHDL_COMPILE_ARGS FILE_SETS)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -904,14 +899,16 @@ endfunction()
 #]]
 function(questasim_compile_sc_lib SC_LIB)
     set(options 32BIT)
-    set(oneValueArgs
-        OUTDIR
-        LIBRARY
-        TOP_MODULE
-    )
+    set(oneValueArgs OUTDIR LIBRARY TOP_MODULE)
     set(multiValueArgs)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -1007,7 +1004,13 @@ macro(questasim_configure_cxx)
     set(oneValueArgs)
     set(multiValueArgs LIBRARIES)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
 
     __find_questasim_home(__questasim_home)
 
@@ -1042,7 +1045,13 @@ function(questasim_add_cxx_libs)
     set(oneValueArgs)
     set(multiValueArgs LIBRARIES)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")

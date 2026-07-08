@@ -27,7 +27,13 @@ function(read_rtl_sources RTL_SOURCES_FILE)
     set(oneValueArgs)
     set(multiValueArgs)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
 
     # Check for any unexpected arguments
     if(ARG_UNPARSED_ARGUMENTS)

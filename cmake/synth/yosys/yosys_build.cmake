@@ -14,13 +14,16 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 #]]
 function(yosys_build)
     set(options)
-    set(oneValueArgs
-        VERSION
-        TAG
-    )
+    set(oneValueArgs VERSION TAG)
     set(multiValueArgs)
 
-    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_MACRO} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
