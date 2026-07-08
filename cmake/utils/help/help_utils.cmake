@@ -230,33 +230,12 @@ function(help_ips)
     _create_help_target("ips" "ip.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
 endfunction()
 
-#[[[
-# This functions create a target, to display an help message for the available targets.
+# Generate the JSON database used by all help targets.
 #
-# It will show the name and a description for each targets.
-#
-# **Keyword Arguments**
-#
-# :keyword PRINT_ON_CONF: If set, it will print the generated help message in the terminal when doing the cmake configuration/generating the makefiles
-# :type PRINT_ON_CONF: bool
-#]]
-function(help_targets)
-    cmake_parse_arguments(ARG "PRINT_ON_CONF" "" "" ${ARGN})
-    if(ARG_UNPARSED_ARGUMENTS)
-        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    endif()
-
-    if(ARG_PRINT_ON_CONF)
-        set(ARG_PRINT_ON_CONF PRINT_ON_CONF)
-    endif()
-
-    # Create the target first, so it can be discovered by get_all_targets() function
-    set(target help_targets)
-    set(outfile ${CMAKE_BINARY_DIR}/.help/${target}.json)
-
-    _create_help_target("targets" "target.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
-
-    # Now get all the targets and write to JSON
+# :param OUTFILE: Path to the generated JSON file.
+# :type OUTFILE: string
+function(_generate_help_targets_json OUTFILE)
+    # Get all available targets.
     get_all_targets(ALL_TARGETS)
 
     set(targets_array "[]")
@@ -297,7 +276,37 @@ function(help_targets)
 
     set(json_output "{}")
     string(JSON json_output SET "${json_output}" "targets" "${targets_array}")
-    file(WRITE ${outfile} ${json_output})
+    file(WRITE "${OUTFILE}" "${json_output}")
+endfunction()
+
+#[[[
+# This functions create a target, to display an help message for the available targets.
+#
+# It will show the name and a description for each targets.
+#
+# **Keyword Arguments**
+#
+# :keyword PRINT_ON_CONF: If set, it will print the generated help message in the terminal when doing the cmake configuration/generating the makefiles
+# :type PRINT_ON_CONF: bool
+#]]
+function(help_targets)
+    cmake_parse_arguments(ARG "PRINT_ON_CONF" "" "" ${ARGN})
+    if(ARG_UNPARSED_ARGUMENTS)
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    if(ARG_PRINT_ON_CONF)
+        set(ARG_PRINT_ON_CONF PRINT_ON_CONF)
+    endif()
+
+    # Create the target first, so it can be discovered by get_all_targets() function
+    set(target help_targets)
+    set(outfile ${CMAKE_BINARY_DIR}/.help/${target}.json)
+
+    _create_help_target("targets" "target.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
+
+    # Now get all the targets and write to JSON
+    _generate_help_targets_json(${outfile})
 endfunction()
 
 #[[[
@@ -359,7 +368,7 @@ function(help_custom_targets GROUP_NAME)
     endif()
 
     set(outfile ${CMAKE_BINARY_DIR}/.help/help_targets.json)
-
+    _generate_help_targets_json(${outfile})
     _create_help_target("${help_name}" "target.jq" ${outfile} "${GROUP_NAME}" ${ARG_PRINT_ON_CONF})
 endfunction()
 
