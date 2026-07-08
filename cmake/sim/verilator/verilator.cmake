@@ -54,23 +54,34 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :type FILE_SETS: list[string]
 #]]
 function(verilator IP_LIB)
-    set(OPTIONS
-        "COVERAGE;TRACE;TRACE_FST;SYSTEMC;TRACE_STRUCTS;MAIN;TIMING;NO_RUN_TARGET"
+    set(options
+        COVERAGE
+        TRACE
+        TRACE_FST
+        SYSTEMC
+        TRACE_STRUCTS
+        MAIN
+        TIMING
+        NO_RUN_TARGET
     )
-    set(ONE_PARAM_ARGS
-        "PREFIX;TOP_MODULE;THREADS;DIRECTORY;EXECUTABLE_NAME;RUN_TARGET_NAME"
+    set(oneValueArgs
+        PREFIX
+        TOP_MODULE
+        THREADS
+        DIRECTORY
+        EXECUTABLE_NAME
+        RUN_TARGET_NAME
     )
-    set(MULTI_PARAM_ARGS
-        "VERILATOR_ARGS;OPT_SLOW;OPT_FAST;OPT_GLOBAL;RUN_ARGS;FILE_SETS"
+    set(multiValueArgs
+        VERILATOR_ARGS
+        OPT_SLOW
+        OPT_FAST
+        OPT_GLOBAL
+        RUN_ARGS
+        FILE_SETS
     )
 
-    cmake_parse_arguments(
-        ARG
-        "${OPTIONS}"
-        "${ONE_PARAM_ARGS}"
-        "${MULTI_PARAM_ARGS}"
-        ${ARGN}
-    )
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -93,7 +104,7 @@ function(verilator IP_LIB)
     set(DIRECTORY "${VERILATE_PRJ_PREFIX_DIR}/verilate")
 
     if(ARG_FILE_SETS)
-        list(REMOVE_ITEM MULTI_PARAM_ARGS "FILE_SETS")
+        list(REMOVE_ITEM multiValueArgs "FILE_SETS")
         set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
     endif()
 
@@ -192,13 +203,13 @@ function(verilator IP_LIB)
             string(REPLACE ";" "|" ${param} "${${param}}")
         endif()
     endforeach()
-    foreach(param ${MULTI_PARAM_ARGS})
+    foreach(param ${multiValueArgs})
         if(ARG_${param})
             string(REPLACE ";" "|" ARG_${param} "${ARG_${param}}")
         endif()
     endforeach()
 
-    foreach(param ${MULTI_PARAM_ARGS} ${OPTIONS} ${ONE_PARAM_ARGS})
+    foreach(param ${multiValueArgs} ${options} ${oneValueArgs})
         if(ARG_${param})
             list(APPEND EXT_PRJ_ARGS "-DVERILATE_${param}=${ARG_${param}}")
             list(APPEND ARGUMENTS_LIST ${param})
@@ -396,7 +407,11 @@ endfunction()
 # :type LIBRARIES: list[string]
 #]]
 macro(verilator_configure_cxx)
-    cmake_parse_arguments(ARG "" "" "LIBRARIES" ${ARGN})
+    set(options)
+    set(oneValueArgs)
+    set(multiValueArgs LIBRARIES)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_LIBRARIES)
         verilator_add_cxx_libs(${ARGV})
     endif()
@@ -415,7 +430,11 @@ endmacro()
 # :type LIBRARIES: list[string]
 #]]
 function(verilator_add_cxx_libs)
-    cmake_parse_arguments(ARG "" "" "LIBRARIES" ${ARGN})
+    set(options)
+    set(oneValueArgs)
+    set(multiValueArgs LIBRARIES)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()

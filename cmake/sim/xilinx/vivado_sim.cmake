@@ -38,13 +38,25 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :type FILE_SETS: list[string]
 #]]
 function(vivado_sim IP_LIB)
-    cmake_parse_arguments(
-        ARG
-        "NO_RUN_TARGET;GUI"
-        "RUN_TARGET_NAME;TOP_MODULE;OUTDIR"
-        "XVLOG_ARGS;XVHDL_ARGS;XELAB_ARGS;XSIM_ARGS;RUN_ARGS;FILE_SETS"
-        ${ARGN}
+    set(options
+        NO_RUN_TARGET
+        GUI
     )
+    set(oneValueArgs
+        RUN_TARGET_NAME
+        TOP_MODULE
+        OUTDIR
+    )
+    set(multiValueArgs
+        XVLOG_ARGS
+        XVHDL_ARGS
+        XELAB_ARGS
+        XSIM_ARGS
+        RUN_ARGS
+        FILE_SETS
+    )
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -217,13 +229,15 @@ endfunction()
 # :keyword FILE_SETS: Specify list of File sets to retrieve the sources from
 # :type FILE_SETS: list[string]
 function(__vivado_sim_compile_lib IP_LIB)
-    cmake_parse_arguments(
-        ARG
-        ""
-        "OUTDIR"
-        "XVLOG_ARGS;XVHDL_ARGS;FILE_SETS"
-        ${ARGN}
+    set(options)
+    set(oneValueArgs OUTDIR)
+    set(multiValueArgs
+        XVLOG_ARGS
+        XVHDL_ARGS
+        FILE_SETS
     )
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
@@ -376,7 +390,11 @@ endfunction()
 # :type LIBRARIES: list[string]
 #]]
 macro(vivado_sim_configure_cxx)
-    cmake_parse_arguments(ARG "" "" "LIBRARIES" ${ARGN})
+    set(options)
+    set(oneValueArgs)
+    set(multiValueArgs LIBRARIES)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     # __find_vivado_sim_home(vivado_sim_home)
     # set(CMAKE_CXX_COMPILER "${vivado_sim_home}/tools.lnx86/cdsgcc/gcc/bin/g++")
@@ -400,7 +418,11 @@ endmacro()
 # :type LIBRARIES: list[string]
 #]]
 function(vivado_sim_add_cxx_libs)
-    cmake_parse_arguments(ARG "32BIT" "" "LIBRARIES" ${ARGN})
+    set(options 32BIT)
+    set(oneValueArgs)
+    set(multiValueArgs LIBRARIES)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")

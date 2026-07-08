@@ -21,7 +21,14 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :type OUTDIR: string
 #]]
 function(vivado IP_LIB)
-    cmake_parse_arguments(ARG "" "TOP;OUTDIR" "VERILOG_DEFINES" ${ARGN})
+    set(options)
+    set(oneValueArgs
+        TOP
+        OUTDIR
+    )
+    set(multiValueArgs VERILOG_DEFINES)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()

@@ -53,13 +53,17 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 # :type INJECT_V_FILES: List[string path]
 #]]
 function(peakrdl_socgen IP_LIB)
-    cmake_parse_arguments(
-        ARG
-        "USE_INCLUDE;GEN_DOT"
-        "OUTDIR"
-        "INJECT_V_FILES;PARAMETERS"
-        ${ARGN}
+    set(options
+        USE_INCLUDE
+        GEN_DOT
     )
+    set(oneValueArgs OUTDIR)
+    set(multiValueArgs
+        INJECT_V_FILES
+        PARAMETERS
+    )
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
                 "${ARG_UNPARSED_ARGUMENTS}"

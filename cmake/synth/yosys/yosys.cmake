@@ -36,13 +36,20 @@ function(yosys IP_LIB)
     # TODO iterate over linked libraries and replace SYSTEMVERILOG_SOURCES with VERILOG_SOURCES instead
 
     # Parse the function arguments
-    cmake_parse_arguments(
-        ARG
-        "SV2V;SHOW;REPLACE"
-        "OUTDIR;TOP;PLUGINS;SCRIPTS"
-        ""
-        ${ARGN}
+    set(options
+        SV2V
+        SHOW
+        REPLACE
     )
+    set(oneValueArgs
+        OUTDIR
+        TOP
+        PLUGINS
+        SCRIPTS
+    )
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")

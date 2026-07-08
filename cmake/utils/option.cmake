@@ -24,7 +24,11 @@ function(
     DEFAULT
     ADVANCED
 )
-    cmake_parse_arguments(ARG "" "" "POSSIBLE_VALUES" ${ARGN})
+    set(options)
+    set(oneValueArgs)
+    set(multiValueArgs POSSIBLE_VALUES)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -62,7 +66,11 @@ endfunction()
 # :type ADVANCED: boolean
 #]]
 function(option_enum VARIABLE DESCRIPTION ENUM_VALUES DEFAULT)
-    cmake_parse_arguments(ARG "ADVANCED" "" "" ${ARGN})
+    set(options ADVANCED)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -95,7 +103,11 @@ endfunction()
 # :type ADVANCED: bool
 #]]
 function(option_string VARIABLE DESCRIPTION DEFAULT)
-    cmake_parse_arguments(ARG "ADVANCED" "" "" ${ARGN})
+    set(options ADVANCED)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -121,7 +133,14 @@ endfunction()
 # :type CHECK_EXISTS: bool
 #]]
 function(option_file VARIABLE DESCRIPTION DEFAULT)
-    cmake_parse_arguments(ARG "ADVANCED;CHECK_EXISTS" "" "" ${ARGN})
+    set(options
+        ADVANCED
+        CHECK_EXISTS
+    )
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -153,7 +172,14 @@ endfunction()
 # :type CHECK_EXISTS: bool
 #]]
 function(option_directory VARIABLE DESCRIPTION DEFAULT)
-    cmake_parse_arguments(ARG "ADVANCED;CHECK_EXISTS" "" "" ${ARGN})
+    set(options
+        ADVANCED
+        CHECK_EXISTS
+    )
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -183,7 +209,11 @@ endfunction()
 # :type ADVANCED: boolean
 #]]
 function(option_integer VARIABLE DESCRIPTION DEFAULT)
-    cmake_parse_arguments(ARG "ADVANCED" "" "" ${ARGN})
+    set(options ADVANCED)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -210,7 +240,11 @@ endfunction()
 # :type ADVANCED: boolean
 #]]
 function(option_boolean VARIABLE DESCRIPTION DEFAULT)
-    cmake_parse_arguments(ARG "ADVANCED" "" "" ${ARGN})
+    set(options ADVANCED)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()

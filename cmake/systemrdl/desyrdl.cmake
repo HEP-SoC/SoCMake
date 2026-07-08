@@ -24,7 +24,15 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 #]]
 function(desyrdl IP_LIB)
     # Parse keyword arguments
-    cmake_parse_arguments(ARG "" "OUTDIR;INTF;TOP_ADDRMAP" "ARGS" ${ARGN})
+    set(options)
+    set(oneValueArgs
+        OUTDIR
+        INTF
+        TOP_ADDRMAP
+    )
+    set(multiValueArgs ARGS)
+
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
     # Check for any unknown argument
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument "
