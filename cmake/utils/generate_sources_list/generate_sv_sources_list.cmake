@@ -24,7 +24,13 @@ include("${CMAKE_CURRENT_LIST_DIR}/../socmake_message.cmake")
 # :type FILE_SETS: list
 #]]
 function(generate_sv_sources_list IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE;SLANG_ARGS" "FILE_SETS" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        ""
+        "OUTDIR;TOP_MODULE;SLANG_ARGS"
+        "FILE_SETS"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
