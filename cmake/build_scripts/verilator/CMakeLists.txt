@@ -3,16 +3,16 @@ project(verilator_build)
 
 include("../../utils/option.cmake")
 
-option_string(VERSION "Version of Verilator to build" "5.048")
+option_string(VERILATOR_TAG "Verilator tag, branch, or commit" "v5.048")
 option_enum(CMAKE_CXX_STANDARD "C++ Standard" "98;11;14;17;20;23;26" "17")
 
 include(GNUInstallDirs)
 include(ExternalProject)
 
 ExternalProject_Add(
-    verilator-v${VERSION}
-    URL
-        https://github.com/verilator/verilator/archive/refs/tags/v${VERSION}.tar.gz
+    verilator-${VERILATOR_TAG}
+    GIT_REPOSITORY https://github.com/verilator/verilator.git
+    GIT_TAG ${VERILATOR_TAG}
     PREFIX ${PROJECT_BINARY_DIR}
     INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
     CMAKE_ARGS
@@ -20,5 +20,5 @@ ExternalProject_Add(
         -DCMAKE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
         -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD} -DCMAKE_BUILD_TYPE=Release
-        -DCMAKE_CXX_FLAGS="-pthread" -DPACKAGE_VERSION_NUMBER=${VERSION}
+        -DCMAKE_CXX_FLAGS="-pthread" -DPACKAGE_VERSION_NUMBER=${VERILATOR_TAG}
 )

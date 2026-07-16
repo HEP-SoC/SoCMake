@@ -8,14 +8,20 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 #
 # **Keyword Arguments**
 #
-# :keyword VERSION: Version of the Verilator binary that need to be built.
-# :type VERSION: string
+# :keyword VERILATOR_TAG: Verilator tag, branch, or commit to build.
+# :type VERILATOR_TAG: string
 # :keyword EXACT_VERSION: If EXACT_VERSION is set, the Verilator given version is build if not found.
 # :type EXACT_VERSION: bool
-# :keyword INSTALL_DIR: Path to the location where the binary will be installed. The default is ${PROJECT_BINARY_DIR}/verilator/v${VERSION} or ${FETCHCONTENT_BASE_DIR}/verilator/v${VERSION} if FETCHCONTENT_BASE_DIR is set.
+# :keyword INSTALL_DIR: Path to the location where the binary will be installed. The default is ${PROJECT_BINARY_DIR}/verilator/${VERILATOR_TAG} or ${FETCHCONTENT_BASE_DIR}/verilator/${VERILATOR_TAG} if FETCHCONTENT_BASE_DIR is set.
 #]]
 function(verilator_build)
-    cmake_parse_arguments(ARG "EXACT_VERSION" "VERSION;INSTALL_DIR" "" ${ARGN})
+    cmake_parse_arguments(
+        ARG
+        "EXACT_VERSION"
+        "VERILATOR_TAG;INSTALL_DIR"
+        ""
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -24,9 +30,9 @@ function(verilator_build)
 
     enable_language(C CXX)
 
-    unset(CMAKE_ARG_VERSION)
-    if(ARG_VERSION)
-        set(CMAKE_ARG_VERSION "-DVERSION=${ARG_VERSION}")
+    unset(CMAKE_ARG_VERILATOR_TAG)
+    if(ARG_VERILATOR_TAG)
+        set(CMAKE_ARG_VERILATOR_TAG "-DVERILATOR_TAG=${ARG_VERILATOR_TAG}")
     endif()
 
     if(CMAKE_CXX_STANDARD)
@@ -36,10 +42,12 @@ function(verilator_build)
     if(NOT ARG_INSTALL_DIR)
         if(FETCHCONTENT_BASE_DIR)
             set(ARG_INSTALL_DIR
-                ${FETCHCONTENT_BASE_DIR}/verilator/v${ARG_VERSION}
+                ${FETCHCONTENT_BASE_DIR}/verilator/${ARG_VERILATOR_TAG}
             )
         else()
-            set(ARG_INSTALL_DIR ${PROJECT_BINARY_DIR}/verilator/v${ARG_VERSION})
+            set(ARG_INSTALL_DIR
+                ${PROJECT_BINARY_DIR}/verilator/${ARG_VERILATOR_TAG}
+            )
         endif()
     endif()
 
@@ -52,9 +60,9 @@ function(verilator_build)
         if(
             NOT "${verilator_VERSION_MAJOR}.${verilator_VERSION_MINOR}"
                 VERSION_EQUAL
-                "${ARG_VERSION}"
+                "${ARG_VERILATOR_TAG}"
         )
-            socmake_message(STATUS "${Magenta}[Verilator Not Found]${ColourReset}: requested version is ${ARG_VERSION} but found ${verilator_VERSION_MAJOR}.${verilator_VERSION_MINOR}")
+            socmake_message(STATUS "${Magenta}[Verilator Not Found]${ColourReset}: requested version is ${ARG_VERILATOR_TAG} but found ${verilator_VERSION_MAJOR}.${verilator_VERSION_MINOR}")
             set(verilator_FOUND FALSE)
         endif()
     endif()
@@ -65,8 +73,8 @@ function(verilator_build)
         execute_process(
             COMMAND
                 ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_FUNCTION_LIST_DIR} -B
-                ${CMAKE_BINARY_DIR}/verilator-build/v${ARG_VERSION}
-                ${CMAKE_ARG_VERSION} ${CMAKE_CXX_STANDARD_ARG}
+                ${CMAKE_BINARY_DIR}/verilator-build/${ARG_VERILATOR_TAG}
+                ${CMAKE_ARG_VERILATOR_TAG} ${CMAKE_CXX_STANDARD_ARG}
                 -DCMAKE_INSTALL_PREFIX=${ARG_INSTALL_DIR}
                 -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
             COMMAND_ECHO STDOUT
@@ -75,7 +83,8 @@ function(verilator_build)
         execute_process(
             COMMAND
                 ${CMAKE_COMMAND} --build
-                ${CMAKE_BINARY_DIR}/verilator-build/v${ARG_VERSION} --parallel 4
+                ${CMAKE_BINARY_DIR}/verilator-build/${ARG_VERILATOR_TAG}
+                --parallel 4
         )
 
         find_package(
