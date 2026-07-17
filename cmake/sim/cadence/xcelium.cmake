@@ -30,7 +30,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :type TOP_MODULE: string
 # :keyword LIBRARY: replace the default library name (worklib) to be used for elaboration and simulation.
 # :type LIBRARY: string
-# :keyword COMPILE_ARGS: Extra arguments to be passed to the compilation step (C, C++).
+# :keyword COMPILE_ARGS: Extra arguments to be passed to the compilation step, like filelist files (.f, .flist).
 # :type COMPILE_ARGS: string
 # :keyword XRUN_COMPILE_ARGS: Extra arguments to be passed to the xrun -compile command
 # :type XRUN_COMPILE_ARGS: string
@@ -113,6 +113,13 @@ function(xcelium IP_LIB)
 
     if(ARG_XRUN_COMPILE_ARGS)
         set(ARG_XRUN_COMPILE_ARGS XRUN_COMPILE_ARGS ${ARG_XRUN_COMPILE_ARGS})
+    endif()
+
+    get_target_property(FILELIST ${IP_LIB} FILELIST)
+    if(FILELIST AND NOT FILELIST STREQUAL "NOTFOUND")
+        foreach(file IN LISTS FILELIST)
+            list(APPEND ARG_COMPILE_ARGS -f "${file}")
+        endforeach()
     endif()
 
     #######################
@@ -281,7 +288,7 @@ endfunction()
 # :type LIBRARY: string
 # :keyword TOP_MODULE: Top module name to be used for elaboration and simulation.
 # :type TOP_MODULE: string
-# :keyword COMPILE_ARGS: Extra arguments to be passed to the compilation step (C, C++).
+# :keyword COMPILE_ARGS: Extra arguments to be passed to the compilation step, like filelist files (.f, .flist).
 # :type COMPILE_ARGS: string
 # :keyword XRUN_COMPILE_ARGS: Extra arguments to be passed to the xrun -compile command
 # :type XRUN_COMPILE_ARGS: string

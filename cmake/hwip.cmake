@@ -266,7 +266,7 @@ endfunction()
 # :type HEADERS: list[string]
 #]]
 function(ip_sources IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "PREPEND;REPLACE" "FILE_SET" "HEADERS" ${ARGN})
+    cmake_parse_arguments(ARG "PREPEND;REPLACE" "FILE_SET" "HEADERS;FILELIST" ${ARGN})
     # Delete PREPEND and REPLACE from argument list, so only sources are left
     list(REMOVE_ITEM ARGN "PREPEND" "REPLACE")
 
@@ -298,6 +298,7 @@ function(ip_sources IP_LIB LANGUAGE)
     # Convert all listed files to absolute paths relative to ${CMAKE_CURRENT_SOURCE_DIR}
     convert_paths_to_absolute(file_list ${ARGN})
     convert_paths_to_absolute(header_list ${ARG_HEADERS})
+    convert_paths_to_absolute(filelist_list ${ARG_FILELIST})
 
     unset(append_arg)
     # If the PREPEND option is passed prepend the new sources to the old ones
@@ -327,6 +328,9 @@ function(ip_sources IP_LIB LANGUAGE)
             cmake_path(GET header PARENT_PATH header_incdir)
             ip_include_directories(${IP_LIB} ${LANGUAGE} FILE_SET ${ARG_FILE_SET} ${header_incdir})
         endforeach()
+    endif()
+    if(ARG_FILELIST)
+        set_property(TARGET ${_reallib} ${append_arg} PROPERTY FILELIST ${filelist_list})
     endif()
 endfunction()
 
