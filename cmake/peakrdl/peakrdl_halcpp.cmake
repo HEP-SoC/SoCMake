@@ -113,7 +113,7 @@ function(peakrdl_halcpp IP_LIB)
     endforeach()
 
     find_python3()
-    set(_cmd
+    set(cmd
         ${Python3_EXECUTABLE}
         -m
         peakrdl
@@ -138,7 +138,7 @@ function(peakrdl_halcpp IP_LIB)
 
     add_custom_command(
         OUTPUT ${CPP_HEADERS} ${STAMP_FILE}
-        COMMAND ${_cmd}
+        COMMAND ${cmd}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES}
         COMMENT ${DESCRIPTION}

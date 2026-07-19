@@ -127,7 +127,7 @@ function(ghdl IP_LIB)
             ${ARG_FILE_SETS}
         )
     endif()
-    set(_comp_tgt ${IP_LIB}_ghdl_complib)
+    set(comp_tgt ${IP_LIB}_ghdl_complib)
 
     __get_ghdl_search_lib_args(${IP_LIB}
         ${ARG_LIBRARY}
@@ -139,7 +139,7 @@ function(ghdl IP_LIB)
     ##### GHDL Elaborate
     if(NOT TARGET ${IP_LIB}_ghdl)
         get_ip_sources(VHDL_SOURCES ${IP_LIB} VHDL ${ARG_FILE_SETS})
-        set(_ghdl_elab_cmd
+        set(ghdl_elab_cmd
             ghdl
             elaborate
             --std=${STANDARD}
@@ -153,8 +153,8 @@ function(ghdl IP_LIB)
 
         ### Clean files
         #       * For elaborate "e~${ARG_EXECUTABLE_NAME}.o" and executable gets created
-        # set(__clean_files "${OUTDIR}/e~${ARG_EXECUTABLE_NAME}.o")
-        # set(__clean_files "${OUTDIR}/${LIBRARY}-obj${STANDARD}.cf")
+        # set(clean_files "${OUTDIR}/e~${ARG_EXECUTABLE_NAME}.o")
+        # set(clean_files "${OUTDIR}/${LIBRARY}-obj${STANDARD}.cf")
 
         set(DESCRIPTION
             "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}"
@@ -162,10 +162,10 @@ function(ghdl IP_LIB)
         set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_ghdl.stamp")
         add_custom_command(
             OUTPUT ${STAMP_FILE}
-            COMMAND ${_ghdl_elab_cmd}
+            COMMAND ${ghdl_elab_cmd}
             COMMAND touch ${STAMP_FILE}
             WORKING_DIRECTORY ${OUTDIR}
-            DEPENDS ${_comp_tgt} ${VHDL_SOURCES}
+            DEPENDS ${comp_tgt} ${VHDL_SOURCES}
             COMMENT ${DESCRIPTION}
         )
 
@@ -173,7 +173,7 @@ function(ghdl IP_LIB)
         set_property(TARGET ${IP_LIB}_ghdl PROPERTY DESCRIPTION ${DESCRIPTION})
     endif()
 
-    set(_ghdl_run_cmd
+    set(ghdl_run_cmd
         ghdl
         run
         --std=${STANDARD}
@@ -193,7 +193,7 @@ function(ghdl IP_LIB)
         )
         add_custom_target(
             ${ARG_RUN_TARGET_NAME}
-            COMMAND ${_ghdl_run_cmd}
+            COMMAND ${ghdl_run_cmd}
             COMMENT ${DESCRIPTION}
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${IP_LIB}_ghdl
@@ -203,7 +203,7 @@ function(ghdl IP_LIB)
             PROPERTY DESCRIPTION ${DESCRIPTION}
         )
     endif()
-    set(SOCMAKE_SIM_RUN_CMD ${_ghdl_run_cmd} PARENT_SCOPE)
+    set(SOCMAKE_SIM_RUN_CMD ${ghdl_run_cmd} PARENT_SCOPE)
 endfunction()
 
 # This function is called by ``ghdl``, it shouldn't be used directly in a cmake file.
@@ -263,21 +263,21 @@ function(__ghdl_compile_lib IP_LIB)
     # Find the GHDL tools/include directory, needed for VPI/VHPI libraries
     __add_ghdl_cxx_properties_to_libs(${IP_LIB})
 
-    get_ip_links(_ips ${IP_LIB})
+    get_ip_links(ips ${IP_LIB})
     unset(all_stamp_files)
-    foreach(lib ${_ips})
+    foreach(lib ${ips})
         # VHDL library of the current IP block, get it from SoCMake library if present
         # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
-        get_target_property(_comp_lib_name ${lib} LIBRARY)
-        if(NOT _comp_lib_name)
-            set(_comp_lib_name work)
+        get_target_property(comp_lib_name ${lib} LIBRARY)
+        if(NOT comp_lib_name)
+            set(comp_lib_name work)
         endif()
         if(ARG_LIBRARY)
-            set(_comp_lib_name ${ARG_LIBRARY})
+            set(comp_lib_name ${ARG_LIBRARY})
         endif()
 
         # Create output directory for the VHDL library
-        set(lib_outdir ${OUTDIR}/${_comp_lib_name})
+        set(lib_outdir ${OUTDIR}/${comp_lib_name})
         file(MAKE_DIRECTORY ${lib_outdir})
 
         __get_ghdl_search_lib_args(${lib}
@@ -292,8 +292,8 @@ function(__ghdl_compile_lib IP_LIB)
             analyze
             --std=${STANDARD}
             -fsynopsys
-            --work=${_comp_lib_name}
-            --workdir=${OUTDIR}/${_comp_lib_name}
+            --work=${comp_lib_name}
+            --workdir=${OUTDIR}/${comp_lib_name}
             ${ARG_VHDL_COMPILE_ARGS}
             ${hdl_libs_args}
             ${VHDL_SOURCES}
@@ -309,20 +309,20 @@ function(__ghdl_compile_lib IP_LIB)
         endforeach()
         list(
             APPEND cf_files
-            "${lib_outdir}/${_comp_lib_name}-obj${STANDARD}.cf"
+            "${lib_outdir}/${comp_lib_name}-obj${STANDARD}.cf"
         )
 
         # Questasim custom command of current IP block should depend on stamp files of immediate linked IPs
         # Extract the list from __ghdl_<LIB>_stamp_files
         get_ip_links(ip_subdeps ${lib} NO_DEPS)
-        unset(_ghdl_subdep_stamp_files)
+        unset(ghdl_subdep_stamp_files)
         foreach(ip_dep ${ip_subdeps})
-            list(APPEND _ghdl_subdep_stamp_files ${_ghdl_${ip_dep}_stamp_files})
+            list(APPEND ghdl_subdep_stamp_files ${ghdl_${ip_dep}_stamp_files})
         endforeach()
 
         if(VHDL_SOURCES)
             set(DESCRIPTION
-                "Compile VHDL for ${lib} with ghdl in library ${_comp_lib_name}"
+                "Compile VHDL for ${lib} with ghdl in library ${comp_lib_name}"
             )
             set(STAMP_FILE
                 "${lib_outdir}/${lib}_ghdl_${CMAKE_CURRENT_FUNCTION}.stamp"
@@ -332,11 +332,11 @@ function(__ghdl_compile_lib IP_LIB)
                 COMMAND ${ghdl_analyze_cmd}
                 COMMAND touch ${STAMP_FILE}
                 WORKING_DIRECTORY ${OUTDIR}
-                DEPENDS ${VHDL_SOURCES} ${_ghdl_subdep_stamp_files}
+                DEPENDS ${VHDL_SOURCES} ${ghdl_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
-            list(APPEND _ghdl_${lib}_stamp_files ${STAMP_FILE})
+            list(APPEND ghdl_${lib}_stamp_files ${STAMP_FILE})
         endif()
     endforeach()
 
@@ -402,15 +402,15 @@ function(__get_ghdl_search_lib_args IP_LIB)
         else()
             # Library of the current IP block, get it from SoCMake library if present
             # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
-            get_target_property(_comp_lib_name ${lib} LIBRARY)
-            if(NOT _comp_lib_name)
-                set(_comp_lib_name work)
+            get_target_property(comp_lib_name ${lib} LIBRARY)
+            if(NOT comp_lib_name)
+                set(comp_lib_name work)
             endif()
             if(ARG_LIBRARY)
-                set(_comp_lib_name ${ARG_LIBRARY})
+                set(comp_lib_name ${ARG_LIBRARY})
             endif()
 
-            set(lib_outdir ${ARG_OUTDIR}/${_comp_lib_name})
+            set(lib_outdir ${ARG_OUTDIR}/${comp_lib_name})
             # Append current library outdir to list of search directories
             if(NOT "-P${lib_outdir}" IN_LIST hdl_libs_args)
                 list(APPEND hdl_libs_args -P${lib_outdir})

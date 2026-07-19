@@ -100,10 +100,10 @@ function(vcs IP_LIB)
     file(MAKE_DIRECTORY ${OUTDIR})
 
     if(ARG_32BIT)
-        set(_bitness 32)
+        set(bitness 32)
         set(ARG_BITNESS 32BIT)
     else()
-        set(_bitness 64)
+        set(bitness 64)
         unset(ARG_BITNESS)
     endif()
 
@@ -148,9 +148,9 @@ function(vcs IP_LIB)
     endif()
 
     ### Create arguments for loading SystemC libraries during elaboration
-    get_ip_links(_ips ${IP_LIB})
+    get_ip_links(ips ${IP_LIB})
     unset(systemc_lib_args)
-    foreach(lib ${_ips})
+    foreach(lib ${ips})
         __is_socmake_systemc_lib(is_systemc_lib ${lib})
         if(is_systemc_lib)
             list(APPEND systemc_lib_args $<TARGET_FILE:${lib}>)
@@ -204,7 +204,7 @@ function(vcs IP_LIB)
 
         ### Clean files:
         #       *
-        set(_clean_files
+        set(clean_files
             ${OUTDIR}/csrc
             ${OUTDIR}/${ARG_EXECUTABLE_NAME}.daidir
             # ${OUTDIR}/synopsys_sim.setup # Don't delete for now, as its generated at configure time and is necessary to run vcs, in case make clean comes, it will not reconfigure
@@ -234,7 +234,7 @@ function(vcs IP_LIB)
         set_property(
             TARGET ${elaborate_target}
             APPEND
-            PROPERTY ADDITIONAL_CLEAN_FILES ${_clean_files}
+            PROPERTY ADDITIONAL_CLEAN_FILES ${clean_files}
         )
     endif()
 
@@ -344,9 +344,9 @@ function(__vcs_compile_lib IP_LIB)
         set(ARG_BITNESS 32BIT)
     endif()
 
-    get_ip_links(_ips ${IP_LIB})
+    get_ip_links(ips ${IP_LIB})
 
-    foreach(parent ${_ips})
+    foreach(parent ${ips})
         get_target_property(children_ips ${parent} INTERFACE_LINK_LIBRARIES)
 
         __is_socmake_systemc_lib(parent_is_systemc_lib ${parent})
@@ -380,19 +380,19 @@ function(__vcs_compile_lib IP_LIB)
     endforeach()
 
     unset(all_stamp_files)
-    foreach(lib ${_ips})
+    foreach(lib ${ips})
         # Library of the current IP block, get it from SoCMake library if present
         # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
-        get_target_property(_comp_lib_name ${lib} LIBRARY)
-        if(NOT _comp_lib_name)
-            set(_comp_lib_name work)
+        get_target_property(comp_lib_name ${lib} LIBRARY)
+        if(NOT comp_lib_name)
+            set(comp_lib_name work)
         endif()
         if(ARG_LIBRARY)
-            set(_comp_lib_name ${ARG_LIBRARY})
+            set(comp_lib_name ${ARG_LIBRARY})
         endif()
 
         # Create output directory for the library
-        set(lib_outdir ${OUTDIR}/${_comp_lib_name})
+        set(lib_outdir ${OUTDIR}/${comp_lib_name})
 
         __get_vcs_search_lib_args(${lib}
             OUTDIR ${OUTDIR}
@@ -424,7 +424,7 @@ function(__vcs_compile_lib IP_LIB)
                 -q
                 -sverilog
                 -work
-                ${_comp_lib_name}
+                ${comp_lib_name}
                 ${ARG_SV_COMPILE_ARGS}
                 ${SV_ARG_INCDIRS}
                 ${SV_CMP_DEFS_ARG}
@@ -443,7 +443,7 @@ function(__vcs_compile_lib IP_LIB)
                 -nc
                 -q
                 -work
-                ${_comp_lib_name}
+                ${comp_lib_name}
                 ${ARG_VHDL_COMPILE_ARGS}
                 ${VHDL_SOURCES}
             )
@@ -452,20 +452,20 @@ function(__vcs_compile_lib IP_LIB)
         # VCS custom command of current IP block should depend on stamp files of immediate linked IPs
         # Extract the list from __vcs_<LIB>_stamp_files
         get_ip_links(ip_subdeps ${lib} NO_DEPS)
-        unset(_vcs_subdep_stamp_files)
+        unset(vcs_subdep_stamp_files)
         foreach(ip_dep ${ip_subdeps})
-            list(APPEND _vcs_subdep_stamp_files ${_vcs_${ip_dep}_stamp_files})
+            list(APPEND vcs_subdep_stamp_files ${vcs_${ip_dep}_stamp_files})
         endforeach()
 
         ### Clean files:
-        set(_clean_files # TODO What goes here???
+        set(clean_files # TODO What goes here???
             ${OUTDIR}/vcs.d
         )
 
-        unset(_vcs_${lib}_stamp_files)
+        unset(vcs_${lib}_stamp_files)
         if(SV_SOURCES)
             set(DESCRIPTION
-                "Compile Verilog and SV sources of ${lib} with vcs in library ${_comp_lib_name}"
+                "Compile Verilog and SV sources of ${lib} with vcs in library ${comp_lib_name}"
             )
             set(STAMP_FILE
                 "${lib_outdir}/${lib}_sv_compile_${CMAKE_CURRENT_FUNCTION}.stamp"
@@ -474,16 +474,16 @@ function(__vcs_compile_lib IP_LIB)
                 OUTPUT ${STAMP_FILE} ${sv_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
                 WORKING_DIRECTORY ${OUTDIR}
-                DEPENDS ${SV_SOURCES} ${SV_HEADERS} ${_vcs_subdep_stamp_files}
+                DEPENDS ${SV_SOURCES} ${SV_HEADERS} ${vcs_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
-            list(APPEND _vcs_${lib}_stamp_files ${STAMP_FILE})
+            list(APPEND vcs_${lib}_stamp_files ${STAMP_FILE})
         endif()
 
         if(VHDL_SOURCES)
             set(DESCRIPTION
-                "Compile VHDL sources of ${lib} with vcs in library ${_comp_lib_name}"
+                "Compile VHDL sources of ${lib} with vcs in library ${comp_lib_name}"
             )
             set(STAMP_FILE
                 "${lib_outdir}/${lib}_vhdl_compile_${CMAKE_CURRENT_FUNCTION}.stamp"
@@ -493,11 +493,11 @@ function(__vcs_compile_lib IP_LIB)
                 COMMAND ${vhdl_compile_cmd}
                 COMMAND touch ${STAMP_FILE}
                 WORKING_DIRECTORY ${OUTDIR}
-                DEPENDS ${VHDL_SOURCES} ${_vcs_subdep_stamp_files}
+                DEPENDS ${VHDL_SOURCES} ${vcs_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
-            list(APPEND _vcs_${lib}_stamp_files ${STAMP_FILE})
+            list(APPEND vcs_${lib}_stamp_files ${STAMP_FILE})
         endif()
 
         if(NOT SV_SOURCES AND NOT VHDL_SOURCES)
@@ -508,11 +508,11 @@ function(__vcs_compile_lib IP_LIB)
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND touch ${STAMP_FILE}
-                DEPENDS ${_vcs_subdep_stamp_files}
+                DEPENDS ${vcs_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
-            list(APPEND _vcs_${lib}_stamp_files ${STAMP_FILE})
+            list(APPEND vcs_${lib}_stamp_files ${STAMP_FILE})
         endif()
     endforeach()
 
@@ -528,7 +528,7 @@ function(__vcs_compile_lib IP_LIB)
         set_property(
             TARGET ${IP_LIB}_vcs_complib
             APPEND
-            PROPERTY ADDITIONAL_CLEAN_FILES ${lib_outdir} ${_clean_files}
+            PROPERTY ADDITIONAL_CLEAN_FILES ${lib_outdir} ${clean_files}
         )
     endif()
 endfunction()
@@ -585,22 +585,22 @@ function(__get_vcs_search_lib_args IP_LIB)
         if(is_ip_lib)
             # Library of the current IP block, get it from SoCMake library if present
             # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
-            get_target_property(_comp_lib_name ${lib} LIBRARY)
-            if(NOT _comp_lib_name)
-                set(_comp_lib_name work)
+            get_target_property(comp_lib_name ${lib} LIBRARY)
+            if(NOT comp_lib_name)
+                set(comp_lib_name work)
             endif()
             if(ARG_LIBRARY)
-                set(_comp_lib_name ${ARG_LIBRARY})
+                set(comp_lib_name ${ARG_LIBRARY})
             endif()
 
-            set(lib_outdir ${OUTDIR}/${_comp_lib_name})
+            set(lib_outdir ${OUTDIR}/${comp_lib_name})
             file(MAKE_DIRECTORY ${lib_outdir})
             # Append current library outdir to list of search directories
-            if(NOT ${_comp_lib_name} IN_LIST hdl_libs)
-                list(APPEND hdl_libs ${_comp_lib_name})
+            if(NOT ${comp_lib_name} IN_LIST hdl_libs)
+                list(APPEND hdl_libs ${comp_lib_name})
                 string(
                     APPEND synopsys_sim_setup_str
-                    "${_comp_lib_name}: ./${_comp_lib_name}\n"
+                    "${comp_lib_name}: ./${comp_lib_name}\n"
                 )
             endif()
         endif()
@@ -671,12 +671,12 @@ function(vcs_gen_sc_wrapper IP_LIB)
         set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
     endif()
 
-    get_target_property(_comp_lib_name ${IP_LIB} LIBRARY)
-    if(NOT _comp_lib_name)
-        set(_comp_lib_name work)
+    get_target_property(comp_lib_name ${IP_LIB} LIBRARY)
+    if(NOT comp_lib_name)
+        set(comp_lib_name work)
     endif()
     if(ARG_LIBRARY)
-        set(_comp_lib_name ${ARG_LIBRARY})
+        set(comp_lib_name ${ARG_LIBRARY})
     endif()
 
     get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG NO_DEPS ${ARG_FILE_SETS})
@@ -708,7 +708,7 @@ function(vcs_gen_sc_wrapper IP_LIB)
             -q
             -sverilog
             -work
-            ${_comp_lib_name}
+            ${comp_lib_name}
             ${ARG_SV_COMPILE_ARGS}
             ${SV_ARG_INCDIRS}
             ${SV_CMP_DEFS_ARG}
@@ -808,9 +808,9 @@ function(vcs_gen_hdl_wrapper SC_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
-    set(_comp_lib_name work)
+    set(comp_lib_name work)
     if(ARG_LIBRARY)
-        set(_comp_lib_name ${ARG_LIBRARY})
+        set(comp_lib_name ${ARG_LIBRARY})
     endif()
 
     get_ip_sources(sc_portmap ${SC_LIB} VCS_SC_PORTMAP NO_DEPS)
@@ -823,7 +823,7 @@ function(vcs_gen_hdl_wrapper SC_LIB)
         syscan
         $<$<NOT:$<BOOL:${ARG_32BIT}>>:-full64>
         -work
-        ${_comp_lib_name}
+        ${comp_lib_name}
         ${sc_portmap_arg}
         $<TARGET_FILE:${SC_LIB}>:${ARG_TOP_MODULE}
         -cflags
@@ -866,11 +866,11 @@ endfunction()
 # :param OUTVAR: Name of the variable in which vcs_home will be stored
 # :type OUTVAR: string
 function(__find_vcs_home OUTVAR)
-    find_program(_exec_path vcs REQUIRED)
-    get_filename_component(_bin_path "${_exec_path}" DIRECTORY)
-    cmake_path(SET _vcs_home NORMALIZE "${_bin_path}/..")
+    find_program(exec_path vcs REQUIRED)
+    get_filename_component(bin_path "${exec_path}" DIRECTORY)
+    cmake_path(SET vcs_home NORMALIZE "${bin_path}/..")
 
-    set(${OUTVAR} ${_vcs_home} PARENT_SCOPE)
+    set(${OUTVAR} ${vcs_home} PARENT_SCOPE)
 endfunction()
 
 #[[[
@@ -945,7 +945,7 @@ function(vcs_add_cxx_libs)
         endif()
     endforeach()
 
-    __find_vcs_home(_vcs_home)
+    __find_vcs_home(vcs_home)
 
     if(SystemC IN_LIST ARG_LIBRARIES)
         add_library(vcs_systemc INTERFACE)
@@ -980,7 +980,7 @@ function(vcs_add_cxx_libs)
             target_compile_options(vcs_dpi-c INTERFACE -m32)
             target_link_options(vcs_dpi-c INTERFACE -m32)
         endif()
-        target_include_directories(vcs_dpi-c INTERFACE ${_vcs_home}/include)
+        target_include_directories(vcs_dpi-c INTERFACE ${vcs_home}/include)
         target_compile_definitions(vcs_dpi-c INTERFACE VCS)
     endif()
 endfunction()

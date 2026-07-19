@@ -73,8 +73,8 @@ function(peakrdl_socgen IP_LIB)
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/find_python.cmake")
 
-    alias_dereference(_reallib ${IP_LIB})
-    get_target_property(BINARY_DIR ${_reallib} BINARY_DIR)
+    alias_dereference(reallib ${IP_LIB})
+    get_target_property(BINARY_DIR ${reallib} BINARY_DIR)
 
     if(NOT ARG_OUTDIR)
         set(OUTDIR ${BINARY_DIR}/socgen)
@@ -82,7 +82,7 @@ function(peakrdl_socgen IP_LIB)
         set(OUTDIR ${ARG_OUTDIR})
     endif()
 
-    get_target_property(SOCGEN_INJECT_V_FILES ${_reallib} SOCGEN_INJECT_V_FILES)
+    get_target_property(SOCGEN_INJECT_V_FILES ${reallib} SOCGEN_INJECT_V_FILES)
     if(ARG_INJECT_V_FILES OR SOCGEN_INJECT_V_FILES)
         set(INJECT_V_FILES ${ARG_INJECT_V_FILES} ${SOCGEN_INJECT_V_FILES})
         set(ARG_INJECT_V_FILES --vinject ${INJECT_V_FILES})
@@ -95,11 +95,11 @@ function(peakrdl_socgen IP_LIB)
         set(ARG_USE_INCLUDE --use-include)
         unset(ADDITIONAL_DEPENDS)
         # Add directories to INCLUDE_DIRECTORIES if --use-include is used
-        get_ip_include_directories(INC_DIRS ${_reallib} SYSTEMVERILOG)
+        get_ip_include_directories(INC_DIRS ${reallib} SYSTEMVERILOG)
         foreach(f ${INJECT_V_FILES})
             get_filename_component(dir ${f} DIRECTORY)
             if(NOT ${dir} IN_LIST INC_DIRS)
-                ip_include_directories(${_reallib} SYSTEMVERILOG ${dir})
+                ip_include_directories(${reallib} SYSTEMVERILOG ${dir})
             endif()
         endforeach()
     else()
@@ -113,7 +113,7 @@ function(peakrdl_socgen IP_LIB)
             ${SOCGEN_DOT_FILES}
             PROPERTIES GENERATED TRUE
         )
-        ip_sources(${_reallib} GRAPHVIZ  ${SOCGEN_DOT_FILES})
+        ip_sources(${reallib} GRAPHVIZ  ${SOCGEN_DOT_FILES})
         set(ARG_GEN_DOT --gen-dot)
     else()
         unset(ARG_GEN_DOT)
@@ -127,19 +127,19 @@ function(peakrdl_socgen IP_LIB)
         endforeach()
     endif()
 
-    get_ip_sources(RDL_SOCGEN_GLUE ${_reallib} SYSTEMRDL_SOCGEN)
-    get_ip_sources(SYSTEMRDL_SOURCES ${_reallib} SYSTEMRDL)
-    get_ip_include_directories(INC_DIRS ${_reallib} SYSTEMRDL)
-    get_ip_compile_definitions(COMP_DEFS ${_reallib} SYSTEMRDL)
+    get_ip_sources(RDL_SOCGEN_GLUE ${reallib} SYSTEMRDL_SOCGEN)
+    get_ip_sources(SYSTEMRDL_SOURCES ${reallib} SYSTEMRDL)
+    get_ip_include_directories(INC_DIRS ${reallib} SYSTEMRDL)
+    get_ip_compile_definitions(COMP_DEFS ${reallib} SYSTEMRDL)
 
     # Get SystemRDL include directories
-    get_ip_include_directories(INC_DIRS ${_reallib} SYSTEMRDL)
+    get_ip_include_directories(INC_DIRS ${reallib} SYSTEMRDL)
     if(INC_DIRS)
         set(INCDIR_ARG -I ${INC_DIRS})
     endif()
 
     if(NOT SYSTEMRDL_SOURCES)
-        socmake_message(FATAL_ERROR "Library ${_reallib} does not have SYSTEMRDL_SOURCES property set,
+        socmake_message(FATAL_ERROR "Library ${reallib} does not have SYSTEMRDL_SOURCES property set,
                 unable to run ${CMAKE_CURRENT_FUNCTION}"
         )
     endif()
@@ -155,7 +155,7 @@ function(peakrdl_socgen IP_LIB)
     endforeach()
 
     find_python3()
-    set(_cmd
+    set(cmd
         ${Python3_EXECUTABLE}
         -m
         peakrdl
@@ -173,47 +173,47 @@ function(peakrdl_socgen IP_LIB)
         ${ARG_GEN_DOT}
         ${OVERWRITTEN_PARAMETERS}
     )
-    set(_cmd_lf ${_cmd} --list-files)
+    set(cmd_lf ${cmd} --list-files)
 
     # Call peakrdl-socgen with --list-files option to get the list of headers
     execute_process(
         OUTPUT_VARIABLE V_GEN
         ERROR_VARIABLE ERROR_MSG
-        COMMAND ${_cmd_lf}
+        COMMAND ${cmd_lf}
     )
     if(V_GEN)
         string(REPLACE " " ";" V_GEN "${V_GEN}")
         string(REPLACE "\n" "" V_GEN "${V_GEN}")
         list(REMOVE_DUPLICATES V_GEN)
     else()
-        string(REPLACE ";" " " _cmd_str "${_cmd_lf}")
-        socmake_message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${_reallib},
+        string(REPLACE ";" " " cmd_str "${cmd_lf}")
+        socmake_message(FATAL_ERROR "Error no files generated from ${CMAKE_CURRENT_FUNCTION} for ${reallib},
                 output of --list-files option: ${V_GEN} error output: ${ERROR_MSG} \n
-                Command Called: \n ${_cmd_str}"
+                Command Called: \n ${cmd_str}"
         )
     endif()
 
     set_source_files_properties(${V_GEN} PROPERTIES GENERATED TRUE)
-    ip_sources(${_reallib} SYSTEMVERILOG ${V_GEN})
+    ip_sources(${reallib} SYSTEMVERILOG ${V_GEN})
 
-    set(STAMP_FILE "${BINARY_DIR}/${_reallib}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(STAMP_FILE "${BINARY_DIR}/${reallib}_${CMAKE_CURRENT_FUNCTION}.stamp")
     set(DESCRIPTION
-        "Generate SoC verilog for \"${_reallib}\" with ${CMAKE_CURRENT_FUNCTION}"
+        "Generate SoC verilog for \"${reallib}\" with ${CMAKE_CURRENT_FUNCTION}"
     )
 
     add_custom_command(
         OUTPUT ${V_GEN} ${SOCGEN_DOT_FILES} ${STAMP_FILE}
-        COMMAND ${_cmd}
+        COMMAND ${cmd}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SYSTEMRDL_SOURCES} ${ADDITIONAL_DEPENDS}
         COMMENT ${DESCRIPTION}
     )
 
     add_custom_target(
-        ${_reallib}_socgen
+        ${reallib}_socgen
         DEPENDS ${V_GEN} ${SOCGEN_DOT_FILES} ${SOCGEN_DOT_FILES} ${STAMP_FILE}
     )
-    set_property(TARGET ${_reallib}_socgen PROPERTY DESCRIPTION ${DESCRIPTION})
+    set_property(TARGET ${reallib}_socgen PROPERTY DESCRIPTION ${DESCRIPTION})
 
-    add_dependencies(${_reallib} ${_reallib}_socgen)
+    add_dependencies(${reallib} ${reallib}_socgen)
 endfunction()

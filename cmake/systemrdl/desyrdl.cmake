@@ -78,7 +78,7 @@ function(desyrdl IP_LIB)
     endif()
 
     find_python3()
-    set(_cmd
+    set(cmd
         ${Python3_EXECUTABLE}
         -m
         desyrdl
@@ -106,13 +106,13 @@ function(desyrdl IP_LIB)
     add_custom_command(
         # The output files are automatically marked as GENERATED (deleted by make clean among other things)
         OUTPUT ${VHDL_GEN} ${STAMP_FILE}
-        COMMAND ${_cmd}
+        COMMAND ${cmd}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_SOURCES}
         COMMENT ${DESCRIPTION}
         COMMAND_EXPAND_LISTS
     )
-    # This target triggers the systemverilog register block generation using peakRDL regblock tool (_CMD)
+    # This target triggers the systemverilog register block generation using peakRDL regblock tool (cmd)
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${VHDL_GEN} ${STAMP_FILE}

@@ -10,9 +10,9 @@ include_guard(GLOBAL)
 # :type OUTVAR: list[string]
 #]]
 function(get_all_targets OUTVAR)
-    set(_targets)
-    __get_all_targets_recursive(_targets ${CMAKE_CURRENT_SOURCE_DIR})
-    set(${OUTVAR} ${_targets} PARENT_SCOPE)
+    set(targets)
+    __get_all_targets_recursive(targets ${CMAKE_CURRENT_SOURCE_DIR})
+    set(${OUTVAR} ${targets} PARENT_SCOPE)
 endfunction()
 
 # This function, looks recursively in a directory and it subdirectories, to find new target, then it appends them to the target list.
@@ -22,17 +22,17 @@ endfunction()
 # :param dir: Path to a directory
 # :type dir: string
 macro(__get_all_targets_recursive targets dir)
-    get_property(__subdirectories DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
-    foreach(subdir ${__subdirectories})
+    get_property(_subdirectories DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
+    foreach(subdir ${_subdirectories})
         __get_all_targets_recursive(${targets} ${subdir})
     endforeach()
 
     get_property(
-        __current_targets
+        _current_targets
         DIRECTORY ${dir}
         PROPERTY BUILDSYSTEM_TARGETS
     )
-    list(APPEND ${targets} ${__current_targets})
+    list(APPEND ${targets} ${_current_targets})
 endmacro()
 
 #[[[
@@ -44,13 +44,13 @@ endmacro()
 function(get_all_ips OUTVAR)
     get_all_targets(ALL_TARGETS)
 
-    unset(_targets)
+    unset(targets)
     foreach(target ${ALL_TARGETS})
-        get_target_property(_ip_name ${target} IP_NAME)
-        if(_ip_name) # IP_NAME property is always set for SoCMakes IP library, to differentiate from INTERFACE_LIBRARIES
-            list(APPEND _targets ${target})
+        get_target_property(ip_name ${target} IP_NAME)
+        if(ip_name) # IP_NAME property is always set for SoCMakes IP library, to differentiate from INTERFACE_LIBRARIES
+            list(APPEND targets ${target})
         endif()
     endforeach()
 
-    set(${OUTVAR} ${_targets} PARENT_SCOPE)
+    set(${OUTVAR} ${targets} PARENT_SCOPE)
 endfunction()

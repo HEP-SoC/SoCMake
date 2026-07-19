@@ -78,7 +78,7 @@ function(__dfs_topo NODE RET)
     # Visit each child recursively
     foreach(child ${LINK_LIBS})
         alias_dereference(child ${child})
-        __dfs_topo(${child} _child_ret)
+        __dfs_topo(${child} child_ret)
     endforeach()
 
     # Mark node as processed
@@ -107,20 +107,20 @@ endfunction()
 # :type RET: integer
 #]]
 function(compare_lists L1 L2 RET)
-    set(_l1 ${L1})
-    set(_l2 ${L2})
-    list(LENGTH _l1 L1_LEN)
-    list(LENGTH _l2 L2_LEN)
+    set(l1 ${L1})
+    set(l2 ${L2})
+    list(LENGTH l1 L1_LEN)
+    list(LENGTH l2 L2_LEN)
 
     if(NOT (L1_LEN EQUAL L2_LEN))
         set(${RET} -1 PARENT_SCOPE)
         return()
     endif()
 
-    list(SORT _l1)
-    list(SORT _l2)
+    list(SORT l1)
+    list(SORT l2)
 
-    if(NOT "${_l1}" STREQUAL "${_l2}")
+    if(NOT "${l1}" STREQUAL "${l2}")
         set(${RET} -1 PARENT_SCOPE)
         return()
     endif()

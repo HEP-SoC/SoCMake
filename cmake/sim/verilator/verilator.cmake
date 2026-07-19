@@ -127,12 +127,12 @@ function(verilator IP_LIB)
     endif()
 
     find_file(
-        _VERILATED_H
+        VERILATED_H
         verilated.h
         REQUIRED
         HINTS ${VERILATOR_HOME}/include ${verilator_DIR}/include
     )
-    get_filename_component(VERILATOR_INCLUDE_DIR ${_VERILATED_H} DIRECTORY)
+    get_filename_component(VERILATOR_INCLUDE_DIR ${VERILATED_H} DIRECTORY)
 
     set(VERILATOR_ROOT ${VERILATOR_INCLUDE_DIR}/../)
     ##################################
@@ -191,12 +191,12 @@ function(verilator IP_LIB)
     endif()
 
     if(ARG_RUN_ARGS)
-        set(_arg_run_args ${ARG_RUN_ARGS})
+        set(arg_run_args ${ARG_RUN_ARGS})
         unset(ARG_RUN_ARGS)
     endif()
 
     if(ARG_NO_RUN_TARGET)
-        set(_arg_no_run_target ${ARG_NO_RUN_TARGET})
+        set(arg_no_run_target ${ARG_NO_RUN_TARGET})
         unset(ARG_NO_RUN_TARGET)
     endif()
 
@@ -362,8 +362,8 @@ function(verilator IP_LIB)
                 ${VLT_STATIC_LIB}
     )
 
-    set(_sim_run_cmd ${EXECUTABLE_PATH} ${_arg_run_args})
-    if(EXECUTABLE_PATH AND NOT _arg_no_run_target)
+    set(sim_run_cmd ${EXECUTABLE_PATH} ${arg_run_args})
+    if(EXECUTABLE_PATH AND NOT arg_no_run_target)
         if(NOT ARG_RUN_TARGET_NAME)
             set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
         endif()
@@ -373,7 +373,7 @@ function(verilator IP_LIB)
         # Add a custom target to run the generated executable
         add_custom_target(
             ${ARG_RUN_TARGET_NAME}
-            COMMAND ${_sim_run_cmd}
+            COMMAND ${sim_run_cmd}
             DEPENDS ${EXECUTABLE_PATH} ${STAMP_FILE} ${VERILATE_TARGET}
             COMMENT ${DESCRIPTION}
             USES_TERMINAL
@@ -384,7 +384,7 @@ function(verilator IP_LIB)
         )
     endif()
 
-    set(SOCMAKE_SIM_RUN_CMD ${_sim_run_cmd} PARENT_SCOPE)
+    set(SOCMAKE_SIM_RUN_CMD ${sim_run_cmd} PARENT_SCOPE)
     set(SOCMAKE_COMPILE_TARGET ${VERILATE_TARGET} PARENT_SCOPE)
     set(SOCMAKE_ELABORATE_TARGET ${ARG_EXECUTABLE_NAME} PARENT_SCOPE)
     if(NOT ARG_NO_RUN_TARGET)

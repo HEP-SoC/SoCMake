@@ -121,7 +121,7 @@ function(iverilog IP_LIB)
         )
     endif()
 
-    set(_sim_run_cmd ${VVP_EXECUTABLE} ${ARG_RUN_ARGS} ${ARG_EXECUTABLE})
+    set(sim_run_cmd ${VVP_EXECUTABLE} ${ARG_RUN_ARGS} ${ARG_EXECUTABLE})
     if(NOT ${ARG_NO_RUN_TARGET})
         if(NOT ARG_RUN_TARGET_NAME)
             set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
@@ -132,7 +132,7 @@ function(iverilog IP_LIB)
         # Add a custom target to run the generated executable
         add_custom_target(
             ${ARG_RUN_TARGET_NAME}
-            COMMAND ${_sim_run_cmd}
+            COMMAND ${sim_run_cmd}
             DEPENDS
                 ${ARG_EXECUTABLE}
                 ${STAMP_FILE}
@@ -145,5 +145,5 @@ function(iverilog IP_LIB)
             PROPERTY DESCRIPTION ${DESCRIPTION}
         )
     endif()
-    set(SOCMAKE_SIM_RUN_CMD ${_sim_run_cmd} PARENT_SCOPE)
+    set(SOCMAKE_SIM_RUN_CMD ${sim_run_cmd} PARENT_SCOPE)
 endfunction()

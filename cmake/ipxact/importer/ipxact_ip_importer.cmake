@@ -50,72 +50,72 @@ function(add_ip_from_ipxact COMP_XML)
         set(xml_command ${xsltproc_EXECUTABLE})
     endif()
 
-    string(SHA1 _vlnv_key "${COMP_XML}")
-    set(_vlnv_file
-        "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/ipxact_vlnv/${_vlnv_key}"
+    string(SHA1 vlnv_key "${COMP_XML}")
+    set(vlnv_file
+        "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/ipxact_vlnv/${vlnv_key}"
     )
 
     # Keep .vlnv file as a cache that stores only the VLNV.
     # This is important as it lets us guess the name of
     # <vendor>__<lib>__<name>Config.cmake file.
-    set(_have_vlnv FALSE)
-    if(EXISTS "${_vlnv_file}")
-        file(TIMESTAMP "${_vlnv_file}" _vlnv_ts "%s")
-        file(TIMESTAMP "${COMP_XML}" _xml_ts "%s")
+    set(have_vlnv FALSE)
+    if(EXISTS "${vlnv_file}")
+        file(TIMESTAMP "${vlnv_file}" vlnv_ts "%s")
+        file(TIMESTAMP "${COMP_XML}" xml_ts "%s")
         # If VLNV file timestamp is newer than XML file timestamp
         # We don't need to regenerate the .vlnv file as its up to date
-        if(_vlnv_ts GREATER_EQUAL _xml_ts)
-            file(READ "${_vlnv_file}" _vlnv_list)
-            parse_ip_vlnv("${_vlnv_list}" vendor library name version)
-            set(_have_vlnv TRUE)
+        if(vlnv_ts GREATER_EQUAL xml_ts)
+            file(READ "${vlnv_file}" vlnv_list)
+            parse_ip_vlnv("${vlnv_list}" vendor library name version)
+            set(have_vlnv TRUE)
         endif()
     endif()
 
     # If there is .vlnv file we can know what the Config.cmake file is called
-    if(_have_vlnv)
+    if(have_vlnv)
         set(cmake_file ${xml_dir}/${vendor}__${library}__${name}Config.cmake)
-        set(_dirty TRUE)
+        set(dirty TRUE)
         if(EXISTS "${cmake_file}")
-            file(TIMESTAMP "${cmake_file}" _cmake_ts "%s")
+            file(TIMESTAMP "${cmake_file}" cmake_ts "%s")
             # If the Config file exists and its newer than xml, its up to date
-            if(_cmake_ts GREATER_EQUAL _xml_ts)
-                set(_dirty FALSE)
+            if(cmake_ts GREATER_EQUAL xml_ts)
+                set(dirty FALSE)
             endif()
         endif()
     else()
         # If there is no .vlnv file we regenerate the Config.cmake also
-        set(_dirty TRUE)
+        set(dirty TRUE)
     endif()
 
-    if(_dirty)
+    if(dirty)
         # Parse XML file again, to generate the Config.cmake file
         execute_process(
             COMMAND
                 ${xml_command}
                 "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/ipxact_to_config.xslt"
                 ${COMP_XML}
-            OUTPUT_VARIABLE _config_body
+            OUTPUT_VARIABLE config_body
         )
         # Parse the VLNV from the add_ip() line in the generated Config
-        string(REGEX REPLACE "\n.*" "" _add_ip_line "${_config_body}")
+        string(REGEX REPLACE "\n.*" "" add_ip_line "${config_body}")
         string(
             REGEX REPLACE "^add_ip\\(([^)]+)\\).*"
             "\\1"
-            _vlnv
-            "${_add_ip_line}"
+            vlnv
+            "${add_ip_line}"
         )
-        parse_ip_vlnv("${_vlnv}" vendor library name version)
+        parse_ip_vlnv("${vlnv}" vendor library name version)
         set(cmake_file ${xml_dir}/${vendor}__${library}__${name}Config.cmake)
         # Add the IPXact file we parsed to ip_sources()
-        set(_config_body
-            "${_config_body}\nip_sources(\${IP} IPXACT\n    \${CMAKE_CURRENT_LIST_DIR}/${xml_name})\n\n"
+        set(config_body
+            "${config_body}\nip_sources(\${IP} IPXACT\n    \${CMAKE_CURRENT_LIST_DIR}/${xml_name})\n\n"
         )
-        write_file(${cmake_file} ${_config_body})
+        write_file(${cmake_file} ${config_body})
 
         # Write out also the VLNV file
-        if(NOT _have_vlnv)
+        if(NOT have_vlnv)
             file(
-                WRITE "${_vlnv_file}"
+                WRITE "${vlnv_file}"
                 "${vendor}::${library}::${name}::${version}"
             )
         endif()
@@ -167,8 +167,8 @@ function(add_ipxact_library DIR)
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
-    file(GLOB_RECURSE _xml_files LIST_DIRECTORIES FALSE "${DIR}/**/*.xml")
-    foreach(f ${_xml_files})
+    file(GLOB_RECURSE xml_files LIST_DIRECTORIES FALSE "${DIR}/**/*.xml")
+    foreach(f ${xml_files})
         if(ARG_GENERATE_ONLY)
             add_ip_from_ipxact(${f} GENERATE_ONLY)
         else()

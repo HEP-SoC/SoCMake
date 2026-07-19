@@ -50,7 +50,7 @@ function(vhdl_linter IP_LIB)
         return()
     endif()
 
-    get_target_property(_SOURCE_DIR ${IP_LIB} SOURCE_DIR)
+    get_target_property(SOURCE_DIR ${IP_LIB} SOURCE_DIR)
 
     set(DESCRIPTION "Lint ${IP_LIB} VHDL with ${CMAKE_CURRENT_FUNCTION}")
     set(STAMP_FILE
@@ -58,7 +58,7 @@ function(vhdl_linter IP_LIB)
     )
     add_custom_command(
         OUTPUT ${STAMP_FILE}
-        COMMAND ${VHDL_LINTER_EXECUTABLE} ${_SOURCE_DIR}
+        COMMAND ${VHDL_LINTER_EXECUTABLE} ${SOURCE_DIR}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES} ${IP_LIB}
         COMMENT ${DESCRIPTION}

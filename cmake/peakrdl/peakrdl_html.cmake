@@ -76,7 +76,7 @@ function(peakrdl_html IP_LIB)
     endforeach()
 
     find_python3()
-    set(_cmd
+    set(cmd
         ${Python3_EXECUTABLE}
         -m
         peakrdl
@@ -112,7 +112,7 @@ function(peakrdl_html IP_LIB)
 
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${GENERATED_FILES}
-        COMMAND ${_cmd}
+        COMMAND ${cmd}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_SOURCES} ${IP_LIB}
         COMMAND_EXPAND_LISTS
