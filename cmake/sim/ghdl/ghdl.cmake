@@ -307,10 +307,7 @@ function(__ghdl_compile_lib IP_LIB)
             get_filename_component(source_basename ${source} NAME_WLE)
             list(APPEND obj_files "${lib_outdir}/${source_basename}.o")
         endforeach()
-        list(
-            APPEND cf_files
-            "${lib_outdir}/${comp_lib_name}-obj${STANDARD}.cf"
-        )
+        list(APPEND cf_files "${lib_outdir}/${comp_lib_name}-obj${STANDARD}.cf")
 
         # Questasim custom command of current IP block should depend on stamp files of immediate linked IPs
         # Extract the list from __ghdl_<LIB>_stamp_files

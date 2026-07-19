@@ -27,11 +27,7 @@ macro(__get_all_targets_recursive targets dir)
         __get_all_targets_recursive(${targets} ${subdir})
     endforeach()
 
-    get_property(
-        _current_targets
-        DIRECTORY ${dir}
-        PROPERTY BUILDSYSTEM_TARGETS
-    )
+    get_property(_current_targets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
     list(APPEND ${targets} ${_current_targets})
 endmacro()
 
