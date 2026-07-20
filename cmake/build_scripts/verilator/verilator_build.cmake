@@ -15,12 +15,15 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :keyword INSTALL_DIR: Path to the location where the binary will be installed. The default is ${PROJECT_BINARY_DIR}/verilator/${VERILATOR_TAG} or ${FETCHCONTENT_BASE_DIR}/verilator/${VERILATOR_TAG} if FETCHCONTENT_BASE_DIR is set.
 #]]
 function(verilator_build)
+    set(options EXACT_VERSION)
+    set(oneValueArgs VERILATOR_TAG INSTALL_DIR)
+    set(multiValueArgs)
+
     cmake_parse_arguments(
         ARG
-        "EXACT_VERSION"
-        "VERILATOR_TAG;INSTALL_DIR"
-        ""
-        ${ARGN}
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
     )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")

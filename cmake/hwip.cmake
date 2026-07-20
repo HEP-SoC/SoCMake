@@ -54,11 +54,15 @@ include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_message.cmake")
 # :type DESCRIPTION: string
 #]]
 function(add_ip IP_NAME)
+    set(options NO_ALIAS)
+    set(oneValueArgs VENDOR LIBRARY VERSION DESCRIPTION)
+    set(multiValueArgs)
+
     cmake_parse_arguments(
         ARG
-        "NO_ALIAS"
-        "VENDOR;LIBRARY;VERSION;DESCRIPTION"
-        ""
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
         ${ARGN}
     )
 
@@ -152,7 +156,17 @@ endfunction()
 # :type VERSION: string
 #]]
 function(create_ip_vlnv OUTVAR IP_NAME)
-    cmake_parse_arguments(ARG "" "VENDOR;LIBRARY;VERSION" "" ${ARGN})
+    set(options)
+    set(oneValueArgs VENDOR LIBRARY VERSION)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -201,32 +215,42 @@ function(
     IP_NAME
     VERSION
 )
-    cmake_parse_arguments(ARG "" "" "" ${ARGN})
+    set(options)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     # Convert IP_VLNV into a list of tokens by replacing :: with ;
-    string(REPLACE "::" ";" _ip_tokens ${IP_VLNV})
+    string(REPLACE "::" ";" ip_tokens ${IP_VLNV})
     # Remove empty list elements in case something like vendor::::ip::1.2.3 is passed
-    list(REMOVE_ITEM _ip_tokens "")
+    list(REMOVE_ITEM ip_tokens "")
 
     # Raise an error if there are different than 4 tokens provided (`add_ip(vendor::lib::ip::0.0.1)`), unless its only 1 (`add_ip(ip)`)
-    list(LENGTH _ip_tokens _token_cnt)
+    list(LENGTH ip_tokens token_cnt)
 
     # Its allowed for IP_VLNV to have 4 tokens (FULL) `add_ip(vendor::lib::ip::0.0.1)`
-    if(_token_cnt EQUAL 4)
+    if(token_cnt EQUAL 4)
         # Get elements of the list
-        list(GET _ip_tokens 0 _v_val)
-        list(GET _ip_tokens 1 _l_val)
-        list(GET _ip_tokens 2 _n_val)
-        list(GET _ip_tokens 3 _r_val)
-        set(${VENDOR} ${_v_val} PARENT_SCOPE)
-        set(${LIBRARY} ${_l_val} PARENT_SCOPE)
-        set(${IP_NAME} ${_n_val} PARENT_SCOPE)
-        set(${VERSION} ${_r_val} PARENT_SCOPE)
+        list(GET ip_tokens 0 v_val)
+        list(GET ip_tokens 1 l_val)
+        list(GET ip_tokens 2 n_val)
+        list(GET ip_tokens 3 r_val)
+        set(${VENDOR} ${v_val} PARENT_SCOPE)
+        set(${LIBRARY} ${l_val} PARENT_SCOPE)
+        set(${IP_NAME} ${n_val} PARENT_SCOPE)
+        set(${VERSION} ${r_val} PARENT_SCOPE)
         # Its allowed for IP_VLNV to have 1 token (SHORT) `add_ip(ip)`
-    elseif(_token_cnt EQUAL 1)
+    elseif(token_cnt EQUAL 1)
         set(${IP_NAME} ${IP_VLNV} PARENT_SCOPE)
         unset(${VENDOR} PARENT_SCOPE)
         unset(${LIBRARY} PARENT_SCOPE)
@@ -266,13 +290,23 @@ endfunction()
 # :type HEADERS: list[string]
 #]]
 function(ip_sources IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "PREPEND;REPLACE" "FILE_SET" "HEADERS" ${ARGN})
+    set(options PREPEND REPLACE)
+    set(oneValueArgs FILE_SET)
+    set(multiValueArgs HEADERS)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Delete PREPEND and REPLACE from argument list, so only sources are left
     list(REMOVE_ITEM ARGN "PREPEND" "REPLACE")
 
     check_languages(${LANGUAGE})
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
-    alias_dereference(_reallib ${IP_LIB})
+    alias_dereference(reallib ${IP_LIB})
     if(NOT ARG_FILE_SET)
         set(ARG_FILE_SET DEFAULT)
     endif()
@@ -281,10 +315,10 @@ function(ip_sources IP_LIB LANGUAGE)
     set(headers_property ${LANGUAGE}_${ARG_FILE_SET}_HEADERS)
     set(get_sources_fileset_arg FILE_SETS ${ARG_FILE_SET})
 
-    get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
+    get_property(filesets TARGET ${reallib} PROPERTY FILE_SETS)
     set(file_set "${LANGUAGE}::${ARG_FILE_SET}")
     if(NOT file_set IN_LIST filesets)
-        set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${file_set})
+        set_property(TARGET ${reallib} APPEND PROPERTY FILE_SETS ${file_set})
     endif()
 
     list(REMOVE_ITEM ARGN "${ARG_FILE_SET}" "FILE_SET")
@@ -302,28 +336,28 @@ function(ip_sources IP_LIB LANGUAGE)
     unset(append_arg)
     # If the PREPEND option is passed prepend the new sources to the old ones
     if(ARG_PREPEND)
-        get_ip_sources(_sources ${_reallib} ${LANGUAGE} ${get_sources_fileset_arg} NO_DEPS)
-        get_ip_sources(_headers ${_reallib} ${LANGUAGE} ${get_sources_fileset_arg} HEADERS NO_DEPS)
-        set(_sources ${file_list} ${_sources})
-        set(_headers ${header_list} ${_headers})
+        get_ip_sources(sources ${reallib} ${LANGUAGE} ${get_sources_fileset_arg} NO_DEPS)
+        get_ip_sources(headers ${reallib} ${LANGUAGE} ${get_sources_fileset_arg} HEADERS NO_DEPS)
+        set(sources ${file_list} ${sources})
+        set(headers ${header_list} ${headers})
     else()
-        set(_sources ${file_list})
-        set(_headers ${header_list})
+        set(sources ${file_list})
+        set(headers ${header_list})
         if(NOT ARG_REPLACE)
             set(append_arg APPEND)
         endif()
     endif()
 
     set_property(
-        TARGET ${_reallib} ${append_arg}
-        PROPERTY ${sources_property} ${_sources}
+        TARGET ${reallib} ${append_arg}
+        PROPERTY ${sources_property} ${sources}
     )
     if(ARG_HEADERS)
         set_property(
-            TARGET ${_reallib} ${append_arg}
-            PROPERTY ${headers_property} ${_headers}
+            TARGET ${reallib} ${append_arg}
+            PROPERTY ${headers_property} ${headers}
         )
-        foreach(header ${_headers})
+        foreach(header ${headers})
             cmake_path(GET header PARENT_PATH header_incdir)
             ip_include_directories(${IP_LIB} ${LANGUAGE} FILE_SET ${ARG_FILE_SET} ${header_incdir})
         endforeach()
@@ -350,13 +384,23 @@ endfunction()
 # :type FILE_SETS: list[string]
 #]]
 function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS;HEADERS" "" "FILE_SETS" ${ARGN})
-    alias_dereference(_reallib ${IP_LIB})
+    set(options NO_DEPS HEADERS)
+    set(oneValueArgs)
+    set(multiValueArgs FILE_SETS)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
+    alias_dereference(reallib ${IP_LIB})
 
     # Handle NO_DEPS flag
-    unset(_no_deps)
+    unset(no_deps)
     if(ARG_NO_DEPS)
-        set(_no_deps "NO_DEPS")
+        set(no_deps "NO_DEPS")
         # ARGN contains extra languages passed, it might also include NO_DEPS so remove it from the list
         list(REMOVE_ITEM ARGN NO_DEPS)
     endif()
@@ -370,7 +414,7 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
 
     # In case FILE_SETS function argument is not passed, return all file sets that were defined in IP or sub IPs
     # Otherwise return only files in listed in FILE_SETS argument
-    get_ip_property(all_filesets ${_reallib} FILE_SETS ${_no_deps})
+    get_ip_property(all_filesets ${reallib} FILE_SETS ${no_deps})
     list(REMOVE_DUPLICATES all_filesets)
     if(ARG_FILE_SETS)
         # Clean ARGN from FILE_SETS and listed sets
@@ -391,10 +435,10 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
         set(filesets ${all_filesets})
     endif()
 
-    if(_no_deps)
-        set(ips ${_reallib})
+    if(no_deps)
+        set(ips ${reallib})
     else()
-        get_ip_links(ips ${_reallib})
+        get_ip_links(ips ${reallib})
     endif()
 
     set(asked_languges ${LANGUAGE} ${ARGN})
@@ -408,9 +452,9 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
                 list(GET fs_list 1 fs_name)
                 if(fs_lang STREQUAL lang)
                     set(prop "${fs_lang}_${fs_name}_${property_type}")
-                    get_ip_property(_src ${ip} ${prop} NO_DEPS)
-                    if(_src)
-                        list(APPEND SOURCES ${_src})
+                    get_ip_property(src ${ip} ${prop} NO_DEPS)
+                    if(src)
+                        list(APPEND SOURCES ${src})
                     endif()
                 endif()
             endforeach()
@@ -439,11 +483,21 @@ endfunction()
 # :type FILE_SET: string
 #]]
 function(ip_include_directories IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "" "FILE_SET" "" ${ARGN})
+    set(options)
+    set(oneValueArgs FILE_SET)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check that the file language is supported by SoCMake
     check_languages(${LANGUAGE})
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
-    alias_dereference(_reallib ${IP_LIB})
+    alias_dereference(reallib ${IP_LIB})
     # DEFAULT file set is used if not specified
     if(NOT ARG_FILE_SET)
         set(ARG_FILE_SET DEFAULT)
@@ -451,10 +505,10 @@ function(ip_include_directories IP_LIB LANGUAGE)
     set(incdir_property ${LANGUAGE}_${ARG_FILE_SET}_INCLUDE_DIRECTORIES)
 
     # Add the file set to the FILE_SETS property
-    get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
+    get_property(filesets TARGET ${reallib} PROPERTY FILE_SETS)
     set(file_set "${LANGUAGE}::${ARG_FILE_SET}")
     if(NOT file_set IN_LIST filesets)
-        set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${file_set})
+        set_property(TARGET ${reallib} APPEND PROPERTY FILE_SETS ${file_set})
     endif()
     # Remove the FILE_SET argument and its value from ARGN to not interfere with directory list
     list(REMOVE_ITEM ARGN "${ARG_FILE_SET}")
@@ -463,7 +517,7 @@ function(ip_include_directories IP_LIB LANGUAGE)
     convert_paths_to_absolute(dir_list ${ARGN})
     # Append the new include directories to the existing ones
     set_property(
-        TARGET ${_reallib}
+        TARGET ${reallib}
         APPEND
         PROPERTY ${incdir_property} ${dir_list}
     )
@@ -487,17 +541,27 @@ endfunction()
 # :type FILE_SETS: list[string]
 #]]
 function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "FILE_SETS" ${ARGN})
-    unset(_no_deps)
+    set(options NO_DEPS)
+    set(oneValueArgs)
+    set(multiValueArgs FILE_SETS)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
+    unset(no_deps)
     if(ARG_NO_DEPS)
-        set(_no_deps "NO_DEPS")
+        set(no_deps "NO_DEPS")
     endif()
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
-    alias_dereference(_reallib ${IP_LIB})
+    alias_dereference(reallib ${IP_LIB})
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
     # Otherwise return only files in listed file sets
-    get_ip_property(filesets ${_reallib} FILE_SETS ${_no_deps})
+    get_ip_property(filesets ${reallib} FILE_SETS ${no_deps})
     list(REMOVE_DUPLICATES filesets)
     if(NOT ARG_FILE_SETS)
         set(filesets ${filesets})
@@ -521,15 +585,15 @@ function(get_ip_include_directories OUTVAR IP_LIB LANGUAGE)
     list(REMOVE_ITEM ARGN NO_DEPS)
     unset(INCDIRS)
     # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
-    foreach(_lang ${LANGUAGE} ${ARGN})
-        check_languages(${_lang})
+    foreach(lang ${LANGUAGE} ${ARGN})
+        check_languages(${lang})
         foreach(fileset ${filesets})
             string(REPLACE "::" ";" fileset_list "${fileset}")
             list(GET fileset_list 0 fileset_language)
             list(GET fileset_list 1 fileset_name)
-            if(fileset_language STREQUAL ${_lang})
-                get_ip_property(_lang_incdirs ${_reallib} ${fileset_language}_${fileset_name}_INCLUDE_DIRECTORIES ${_no_deps})
-                list(APPEND INCDIRS ${_lang_incdirs})
+            if(fileset_language STREQUAL ${lang})
+                get_ip_property(lang_incdirs ${reallib} ${fileset_language}_${fileset_name}_INCLUDE_DIRECTORIES ${no_deps})
+                list(APPEND INCDIRS ${lang_incdirs})
             endif()
         endforeach()
     endforeach()
@@ -638,10 +702,20 @@ endfunction()
 #
 #]]
 function(ip_link IP_LIB)
-    cmake_parse_arguments(ARG "NODEPEND" "" "" ${ARGN})
+    set(options NODEPEND)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
 
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
-    alias_dereference(_reallib ${IP_LIB})
+    alias_dereference(reallib ${IP_LIB})
 
     # Remove the optional NODEPEND argument to keep only a list of dependencies
     if(ARG_NODEPEND)
@@ -649,7 +723,7 @@ function(ip_link IP_LIB)
     endif()
 
     # Get the existing linked libraries
-    get_target_property(ALREADY_LINKED ${_reallib} INTERFACE_LINK_LIBRARIES)
+    get_target_property(ALREADY_LINKED ${reallib} INTERFACE_LINK_LIBRARIES)
 
     foreach(lib ${ARGN})
         alias_dereference(lib ${lib})
@@ -664,17 +738,17 @@ function(ip_link IP_LIB)
 
         # Issue an error if the library does not exist
         if(NOT TARGET ${lib} AND NOT SOCMAKE_ALLOW_UNDEFINED_TARGETS)
-            socmake_message(FATAL_ERROR "Library ${lib} linked to ${_reallib} is not defined")
+            socmake_message(FATAL_ERROR "Library ${lib} linked to ${reallib} is not defined")
         endif()
         # In case user tries to link library to itself, raise an error
-        if(${lib} STREQUAL ${_reallib})
-            socmake_message(FATAL_ERROR "Cannot link library ${lib} to ${_reallib} (itself)")
+        if(${lib} STREQUAL ${reallib})
+            socmake_message(FATAL_ERROR "Cannot link library ${lib} to ${reallib} (itself)")
         endif()
         # Link the library to the target
-        target_link_libraries(${_reallib} INTERFACE ${lib})
+        target_link_libraries(${reallib} INTERFACE ${lib})
         if(NOT ARG_NODEPEND)
             # Add a build dependency to ensure correct build order
-            add_dependencies(${_reallib} ${lib})
+            add_dependencies(${reallib} ${lib})
         endif()
     endforeach()
 endfunction()
@@ -693,22 +767,32 @@ endfunction()
 #
 #]]
 function(get_ip_property OUTVAR IP_LIB PROPERTY)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    set(options NO_DEPS)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
 
     # Retrieve the real library name in case an alias is used
-    alias_dereference(_reallib ${IP_LIB})
+    alias_dereference(reallib ${IP_LIB})
 
     set(OUT_LIST "")
     if(ARG_NO_DEPS)
-        get_target_property(prop ${_reallib} ${PROPERTY})
+        get_target_property(prop ${reallib} ${PROPERTY})
         if(prop)
             set(OUT_LIST ${prop})
         endif()
     else()
         # Flatten the target graph to get all the dependencies in the correct order
-        flatten_graph_if_allowed(${_reallib})
+        flatten_graph_if_allowed(${reallib})
         # Get all the dependencies
-        get_target_property(DEPS ${_reallib} FLAT_GRAPH)
+        get_target_property(DEPS ${reallib} FLAT_GRAPH)
 
         # Append the property of all the deps into a single list (e.g., the source files of an IP)
         foreach(d ${DEPS})
@@ -744,10 +828,20 @@ endfunction()
 #
 #]]
 function(ip_compile_definitions IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "" "FILE_SET" "" ${ARGN})
+    set(options)
+    set(oneValueArgs FILE_SET)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     check_languages(${LANGUAGE})
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
-    alias_dereference(_reallib ${IP_LIB})
+    alias_dereference(reallib ${IP_LIB})
     # DEFAULT file set is used if not specified
     if(NOT ARG_FILE_SET)
         set(ARG_FILE_SET DEFAULT)
@@ -755,26 +849,26 @@ function(ip_compile_definitions IP_LIB LANGUAGE)
     set(comp_def_property ${LANGUAGE}_${ARG_FILE_SET}_COMPILE_DEFINITIONS)
 
     # Add the file set to the FILE_SETS property
-    get_property(filesets TARGET ${_reallib} PROPERTY FILE_SETS)
+    get_property(filesets TARGET ${reallib} PROPERTY FILE_SETS)
     # list(REMOVE_DUPLICATES filesets)
     set(file_set "${LANGUAGE}::${ARG_FILE_SET}")
     if(NOT file_set IN_LIST filesets)
-        set_property(TARGET ${_reallib} APPEND PROPERTY FILE_SETS ${file_set})
+        set_property(TARGET ${reallib} APPEND PROPERTY FILE_SETS ${file_set})
     endif()
     # Remove the FILE_SET argument and its value from ARGN to not interfere with directory list
     list(REMOVE_ITEM ARGN "${ARG_FILE_SET}")
     list(REMOVE_ITEM ARGN "FILE_SET")
 
     # Strip -D
-    set(__comp_defs ${ARGN})
-    string(REPLACE "-D" "" __comp_defs "${__comp_defs}")
-    list(REMOVE_ITEM __comp_defs "")
+    set(comp_defs ${ARGN})
+    string(REPLACE "-D" "" comp_defs "${comp_defs}")
+    list(REMOVE_ITEM comp_defs "")
 
     # Append the new compile definitions to the existing ones
     set_property(
-        TARGET ${_reallib}
+        TARGET ${reallib}
         APPEND
-        PROPERTY ${comp_def_property} ${__comp_defs}
+        PROPERTY ${comp_def_property} ${comp_defs}
     )
 endfunction()
 
@@ -800,17 +894,27 @@ endfunction()
 # :type FILE_SETS: list[string]
 #]]
 function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "FILE_SETS" ${ARGN})
-    unset(_no_deps)
+    set(options NO_DEPS)
+    set(oneValueArgs)
+    set(multiValueArgs FILE_SETS)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
+    unset(no_deps)
     if(ARG_NO_DEPS)
-        set(_no_deps "NO_DEPS")
+        set(no_deps "NO_DEPS")
     endif()
     # If alias IP is given, dereference it (VENDOR::LIB::IP::0.0.1) -> (VENDOR__LIB__IP__0.0.1)
-    alias_dereference(_reallib ${IP_LIB})
+    alias_dereference(reallib ${IP_LIB})
 
     # In case FILE_SETS function argument is not specified, return all defined file sets
     # Otherwise return only files in listed file sets
-    get_ip_property(filesets ${_reallib} FILE_SETS ${_no_deps})
+    get_ip_property(filesets ${reallib} FILE_SETS ${no_deps})
     if(NOT ARG_FILE_SETS)
         set(filesets ${filesets})
     else()
@@ -833,15 +937,15 @@ function(get_ip_compile_definitions OUTVAR IP_LIB LANGUAGE)
     list(REMOVE_ITEM ARGN NO_DEPS)
     unset(COMPDEFS)
     # Get all the <LANGUAGE>_INCLUDE_DIRECTORIES lists in order
-    foreach(_lang ${LANGUAGE} ${ARGN})
-        check_languages(${_lang})
+    foreach(lang ${LANGUAGE} ${ARGN})
+        check_languages(${lang})
         foreach(fileset ${filesets})
             string(REPLACE "::" ";" fileset_list "${fileset}")
             list(GET fileset_list 0 fileset_language)
             list(GET fileset_list 1 fileset_name)
-            if(fileset_language STREQUAL ${_lang})
-                get_ip_property(_lang_compdefs ${_reallib} ${fileset_language}_${fileset_name}_COMPILE_DEFINITIONS ${_no_deps})
-                list(APPEND COMPDEFS ${_lang_compdefs})
+            if(fileset_language STREQUAL ${lang})
+                get_ip_property(lang_compdefs ${reallib} ${fileset_language}_${fileset_name}_COMPILE_DEFINITIONS ${no_deps})
+                list(APPEND COMPDEFS ${lang_compdefs})
             endif()
         endforeach()
     endforeach()
@@ -864,26 +968,36 @@ endfunction()
 # :type NO_DEPS: bool
 #]]
 function(get_ip_links OUTVAR IP_LIB)
-    cmake_parse_arguments(ARG "NO_DEPS" "" "" ${ARGN})
+    set(options NO_DEPS)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    alias_dereference(_reallib ${IP_LIB})
+    alias_dereference(reallib ${IP_LIB})
 
     if(ARG_NO_DEPS)
         get_property(
-            __flat_graph
-            TARGET ${_reallib}
+            flat_graph
+            TARGET ${reallib}
             PROPERTY INTERFACE_LINK_LIBRARIES
         )
     else()
-        flatten_graph_if_allowed(${_reallib})
+        flatten_graph_if_allowed(${reallib})
 
-        get_property(__flat_graph TARGET ${_reallib} PROPERTY FLAT_GRAPH)
+        get_property(flat_graph TARGET ${reallib} PROPERTY FLAT_GRAPH)
     endif()
 
-    set(${OUTVAR} ${__flat_graph} PARENT_SCOPE)
+    set(${OUTVAR} ${flat_graph} PARENT_SCOPE)
 endfunction()
 
 #[[[
@@ -952,11 +1066,11 @@ function(check_languages LANGUAGE)
 
     if(NOT ${LANGUAGE} IN_LIST SOCMAKE_SUPPORTED_LANGUAGES)
         if(SOCMAKE_UNSUPPORTED_LANGUAGE_FATAL)
-            set(_verbosity FATAL_ERROR)
+            set(verbosity FATAL_ERROR)
         else()
-            set(_verbosity WARNING)
+            set(verbosity WARNING)
         endif()
-        socmake_message(${_verbosity} "Language not supported: ${LANGUAGE}")
+        socmake_message(${verbosity} "Language not supported: ${LANGUAGE}")
     endif()
 endfunction()
 
@@ -976,8 +1090,8 @@ endfunction()
 # :type IP_LIB: string
 #]]
 macro(find_ip IP_LIB)
-    string(REPLACE ":" "_" ip_lib_sanitized "${IP_LIB}")
-    find_package("${ip_lib_sanitized}" CONFIG ${ARGN})
+    string(REPLACE ":" "_" _ip_lib_sanitized "${IP_LIB}")
+    find_package("${_ip_lib_sanitized}" CONFIG ${ARGN})
 endmacro()
 
 #[[[

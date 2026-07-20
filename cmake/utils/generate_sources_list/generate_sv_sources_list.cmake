@@ -24,11 +24,15 @@ include("${CMAKE_CURRENT_LIST_DIR}/../socmake_message.cmake")
 # :type FILE_SETS: list
 #]]
 function(generate_sv_sources_list IP_LIB)
+    set(options)
+    set(oneValueArgs OUTDIR TOP_MODULE SLANG_ARGS)
+    set(multiValueArgs FILE_SETS)
+
     cmake_parse_arguments(
         ARG
-        ""
-        "OUTDIR;TOP_MODULE;SLANG_ARGS"
-        "FILE_SETS"
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
         ${ARGN}
     )
     if(ARG_UNPARSED_ARGUMENTS)

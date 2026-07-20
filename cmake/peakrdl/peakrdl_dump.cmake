@@ -24,13 +24,13 @@ function(peakrdl_dump IP_LIB)
     endif()
 
     unset(INCDIRS_ARG)
-    foreach(__incdir ${INC_DIRS})
-        list(APPEND INCDIRS_ARG -I${__incdir})
+    foreach(incdir ${INC_DIRS})
+        list(APPEND INCDIRS_ARG -I${incdir})
     endforeach()
 
     unset(COMPDEFS_ARG)
-    foreach(__compdefs ${COMP_DEFS})
-        list(APPEND COMPDEFS_ARG -D${__compdefs})
+    foreach(compdefs ${COMP_DEFS})
+        list(APPEND COMPDEFS_ARG -D${compdefs})
     endforeach()
 
     set(DESCRIPTION

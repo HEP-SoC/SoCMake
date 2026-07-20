@@ -18,7 +18,17 @@ include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
 # :keyword LIST: if a list is given, the item in the group list are the one given in the list.
 # :type LIST: list[string]
 function(_group_custom_items GROUP_NAME TYPE)
-    cmake_parse_arguments(ARG "" "PATTERN" "LIST" ${ARGN})
+    set(options)
+    set(oneValueArgs PATTERN)
+    set(multiValueArgs LIST)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
 
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument ${ARG_UNPARSED_ARGUMENTS}")

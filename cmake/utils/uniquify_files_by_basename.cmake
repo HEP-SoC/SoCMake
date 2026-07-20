@@ -18,7 +18,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
 function(uniquify_files_by_basename OUTPUT_LIST INPUT_LIST MESSAGE_MODE)
     # Define a dictionary to keep track of seen basenames
     # set(_seen_basenames "")
-    set(_unique_files "")
+    set(unique_files "")
 
     socmake_message(DEBUG "UNIQUIFY: INPUT_LIST ${INPUT_LIST}")
 
@@ -28,23 +28,23 @@ function(uniquify_files_by_basename OUTPUT_LIST INPUT_LIST MESSAGE_MODE)
 
         socmake_message(DEBUG "UNIQUIFY: checking file ${file}")
 
-        if(NOT _seen_basenames_${basename})
+        if(NOT seen_basenames_${basename})
             # If the basename is not yet seen, mark it and store the full path
-            set(_seen_basenames_${basename} ${file})
-            list(APPEND _unique_files ${file})
-            socmake_message(DEBUG "    '-> First occurrence stored in _unique_files")
+            set(seen_basenames_${basename} ${file})
+            list(APPEND unique_files ${file})
+            socmake_message(DEBUG "    '-> First occurrence stored in unique_files")
         else()
             # If the basename has been seen, compare file contents
             file(READ ${file} CURRENT_CONTENT)
-            file(READ ${_seen_basenames_${basename}} ORIGINAL_CONTENT)
+            file(READ ${seen_basenames_${basename}} ORIGINAL_CONTENT)
             if(NOT "${CURRENT_CONTENT}" STREQUAL "${ORIGINAL_CONTENT}")
-                socmake_message(${MESSAGE_MODE} "Files ${file} and ${_seen_basenames_${basename}} have the same basename (${basename}) but different content.")
+                socmake_message(${MESSAGE_MODE} "Files ${file} and ${seen_basenames_${basename}} have the same basename (${basename}) but different content.")
             endif()
         endif()
     endforeach()
 
-    socmake_message(DEBUG "UNIQUIFY: OUTPUT_LIST ${_unique_files}")
+    socmake_message(DEBUG "UNIQUIFY: OUTPUT_LIST ${unique_files}")
 
     # Return the list of unique files
-    set(${OUTPUT_LIST} ${_unique_files} PARENT_SCOPE)
+    set(${OUTPUT_LIST} ${unique_files} PARENT_SCOPE)
 endfunction()

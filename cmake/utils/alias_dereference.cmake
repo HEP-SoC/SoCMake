@@ -24,12 +24,12 @@ function(alias_dereference OUT LIB)
         return()
     endif()
     # Retrieve the original library name from the library property
-    get_target_property(_reallib ${LIB} ALIASED_TARGET)
+    get_target_property(reallib ${LIB} ALIASED_TARGET)
     # If the ALIASED_TARGET property does not exist, it means we already have the original one
-    if(NOT _reallib)
+    if(NOT reallib)
         set(${OUT} ${LIB} PARENT_SCOPE)
     else()
-        set(${OUT} ${_reallib} PARENT_SCOPE)
+        set(${OUT} ${reallib} PARENT_SCOPE)
     endif()
 endfunction()
 

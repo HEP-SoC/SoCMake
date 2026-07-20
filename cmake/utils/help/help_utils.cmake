@@ -50,7 +50,17 @@ endfunction()
 # :keyword PRINT_ON_CONF: If set, it will print the generated help message in the terminal when doing the cmake configuration/generating the makefiles
 # :type PRINT_ON_CONF: bool
 function(_create_help_target HELP_NAME JQ_FILE OUTFILE GROUP_NAME)
-    cmake_parse_arguments(ARG "PRINT_ON_CONF" "" "" ${ARGN})
+    set(options PRINT_ON_CONF)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -113,7 +123,17 @@ endfunction()
 # :type PRINT_ON_CONF: bool
 #]]
 function(help_options)
-    cmake_parse_arguments(ARG "PRINT_ON_CONF" "" "" ${ARGN})
+    set(options PRINT_ON_CONF)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -186,7 +206,17 @@ endfunction()
 # :type PRINT_ON_CONF: bool
 #]]
 function(help_ips)
-    cmake_parse_arguments(ARG "PRINT_ON_CONF" "" "" ${ARGN})
+    set(options PRINT_ON_CONF)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -241,7 +271,17 @@ endfunction()
 # :type PRINT_ON_CONF: bool
 #]]
 function(help_targets)
-    cmake_parse_arguments(ARG "PRINT_ON_CONF" "" "" ${ARGN})
+    set(options PRINT_ON_CONF)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -322,11 +362,15 @@ endfunction()
 # :type HELP_TARGET_NAME: string
 #]]
 function(help_custom_targets GROUP_NAME)
+    set(options DONT_MAKE_GROUP PRINT_ON_CONF)
+    set(oneValueArgs PATTERN DESCRIPTION HELP_TARGET_NAME)
+    set(multiValueArgs LIST)
+
     cmake_parse_arguments(
         ARG
-        "DONT_MAKE_GROUP;PRINT_ON_CONF"
-        "PATTERN;DESCRIPTION;HELP_TARGET_NAME"
-        "LIST"
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
         ${ARGN}
     )
     if(ARG_UNPARSED_ARGUMENTS)
@@ -381,11 +425,15 @@ endfunction()
 # :type LIST: list[string]
 #]]
 function(help_custom_ips GROUP_NAME)
+    set(options PRINT_ON_CONF)
+    set(oneValueArgs PATTERN DESCRIPTION)
+    set(multiValueArgs LIST)
+
     cmake_parse_arguments(
         ARG
-        "PRINT_ON_CONF"
-        "PATTERN;DESCRIPTION"
-        "LIST"
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
         ${ARGN}
     )
     if(ARG_UNPARSED_ARGUMENTS)
@@ -432,11 +480,15 @@ endfunction()
 # :type LIST: list[string]
 #]]
 function(help_custom_options GROUP_NAME)
+    set(options PRINT_ON_CONF)
+    set(oneValueArgs PATTERN DESCRIPTION)
+    set(multiValueArgs LIST)
+
     cmake_parse_arguments(
         ARG
-        "PRINT_ON_CONF"
-        "PATTERN;DESCRIPTION"
-        "LIST"
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
         ${ARGN}
     )
     if(ARG_UNPARSED_ARGUMENTS)
@@ -474,7 +526,17 @@ endfunction()
 # :type PRINT_ON_CONF: bool
 #]]
 function(help)
-    cmake_parse_arguments(ARG "PRINT_ON_CONF" "" "" ${ARGN})
+    set(options PRINT_ON_CONF)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()

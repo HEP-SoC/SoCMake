@@ -20,7 +20,17 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :type DEPENDS: string
 #]]
 function(fc4sc_merge_coverage DIRECTORY)
-    cmake_parse_arguments(ARG "" "OUTFILE;FC4SC_HOME" "DEPENDS" ${ARGN})
+    set(options)
+    set(oneValueArgs OUTFILE FC4SC_HOME)
+    set(multiValueArgs DEPENDS)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -49,11 +59,11 @@ function(fc4sc_merge_coverage DIRECTORY)
 
     find_python3()
 
-    set(_GEN_XML_FILE "${DIRECTORY}/coverage_merged_db.xml")
+    set(GEN_XML_FILE "${DIRECTORY}/coverage_merged_db.xml")
     add_custom_target(
         ${CMAKE_CURRENT_FUNCTION}
         COMMAND ${Python3_EXECUTABLE} ${FC4SC_MERGE_COVERAGE}
-        COMMAND ${CMAKE_COMMAND} -E rename ${_GEN_XML_FILE} ${OUTFILE}
+        COMMAND ${CMAKE_COMMAND} -E rename ${GEN_XML_FILE} ${OUTFILE}
         WORKING_DIRECTORY ${DIRECTORY}
         BYPRODUCTS ${OUTFILE}
         DEPENDS ${ARG_DEPENDS}

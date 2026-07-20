@@ -41,11 +41,15 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 #]]
 function(peakrdl_regblock IP_LIB)
     # Parse keyword arguments
+    set(options)
+    set(oneValueArgs OUTDIR RENAME INTF RESET)
+    set(multiValueArgs PARAMETERS ARGS)
+
     cmake_parse_arguments(
         ARG
-        ""
-        "OUTDIR;RENAME;INTF;RESET"
-        "PARAMETERS;ARGS"
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
         ${ARGN}
     )
     # Check for any unknown argument
@@ -102,17 +106,17 @@ function(peakrdl_regblock IP_LIB)
     endif()
 
     unset(INCDIRS_ARG)
-    foreach(__incdir ${INC_DIRS})
-        list(APPEND INCDIRS_ARG -I${__incdir})
+    foreach(incdir ${INC_DIRS})
+        list(APPEND INCDIRS_ARG -I${incdir})
     endforeach()
 
     unset(COMPDEFS_ARG)
-    foreach(__compdefs ${COMP_DEFS})
-        list(APPEND COMPDEFS_ARG -D${__compdefs})
+    foreach(compdefs ${COMP_DEFS})
+        list(APPEND COMPDEFS_ARG -D${compdefs})
     endforeach()
 
     find_python3()
-    set(__CMD
+    set(cmd
         ${Python3_EXECUTABLE}
         -m
         peakrdl
@@ -143,13 +147,13 @@ function(peakrdl_regblock IP_LIB)
     add_custom_command(
         # The output files are automatically marked as GENERATED (deleted by make clean among other things)
         OUTPUT ${SV_GEN} ${STAMP_FILE}
-        COMMAND ${__CMD}
+        COMMAND ${cmd}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_SOURCES}
         COMMENT ${DESCRIPTION}
         COMMAND_EXPAND_LISTS
     )
-    # This target triggers the systemverilog register block generation using peakRDL regblock tool (_CMD)
+    # This target triggers the systemverilog register block generation using peakRDL regblock tool (cmd)
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${SV_GEN} ${STAMP_FILE}

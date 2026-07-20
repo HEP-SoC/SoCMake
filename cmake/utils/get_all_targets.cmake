@@ -22,13 +22,13 @@ endfunction()
 # :param dir: Path to a directory
 # :type dir: string
 macro(__get_all_targets_recursive targets dir)
-    get_property(subdirectories DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
-    foreach(subdir ${subdirectories})
+    get_property(_subdirectories DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
+    foreach(subdir ${_subdirectories})
         __get_all_targets_recursive(${targets} ${subdir})
     endforeach()
 
-    get_property(current_targets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
-    list(APPEND ${targets} ${current_targets})
+    get_property(_current_targets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
+    list(APPEND ${targets} ${_current_targets})
 endmacro()
 
 #[[[
