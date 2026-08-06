@@ -43,11 +43,15 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 # :type OUTDIR: string path
 #]]
 function(peakrdl_halcpp IP_LIB)
+    set(options SKIP_BUSES GENERATE_TESTS)
+    set(oneValueArgs OUTDIR)
+    set(multiValueArgs PARAMETERS)
+
     cmake_parse_arguments(
         ARG
-        "SKIP_BUSES;GENERATE_TESTS"
-        "OUTDIR"
-        "PARAMETERS"
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
         ${ARGN}
     )
     if(ARG_UNPARSED_ARGUMENTS)
@@ -99,17 +103,17 @@ function(peakrdl_halcpp IP_LIB)
     endif()
 
     unset(INCDIRS_ARG)
-    foreach(__incdir ${INC_DIRS})
-        list(APPEND INCDIRS_ARG -I${__incdir})
+    foreach(incdir ${INC_DIRS})
+        list(APPEND INCDIRS_ARG -I${incdir})
     endforeach()
 
     unset(COMPDEFS_ARG)
-    foreach(__compdefs ${COMP_DEFS})
-        list(APPEND COMPDEFS_ARG -D${__compdefs})
+    foreach(compdefs ${COMP_DEFS})
+        list(APPEND COMPDEFS_ARG -D${compdefs})
     endforeach()
 
     find_python3()
-    set(__CMD
+    set(cmd
         ${Python3_EXECUTABLE}
         -m
         peakrdl
@@ -134,7 +138,7 @@ function(peakrdl_halcpp IP_LIB)
 
     add_custom_command(
         OUTPUT ${CPP_HEADERS} ${STAMP_FILE}
-        COMMAND ${__CMD}
+        COMMAND ${cmd}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES}
         COMMENT ${DESCRIPTION}

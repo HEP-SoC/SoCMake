@@ -23,7 +23,17 @@ function(read_rtl_sources RTL_SOURCES_FILE)
         socmake_message(FATAL_ERROR "${RTL_SOURCES_FILE} file does not exists.")
     endif()
 
-    cmake_parse_arguments(ARG "CONCAT" "" "" ${ARGN})
+    set(options CONCAT)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
 
     # Check for any unexpected arguments
     if(ARG_UNPARSED_ARGUMENTS)

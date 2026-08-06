@@ -25,10 +25,10 @@ jobs:
     outputs:
       run: ${{ steps.gate.outputs.run }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       # Only check for file changes on push-like events, not on label or close
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         if: github.event.action != 'closed' && github.event.action != 'labeled'
         with:
@@ -66,17 +66,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Set up Python
         if: github.event.action != 'closed'
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: 3.12
 
       - name: Set up Node
         if: github.event.action != 'closed'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
 

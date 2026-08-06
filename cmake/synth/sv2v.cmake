@@ -21,7 +21,17 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 # :type REPLACE: bool
 #]]
 function(sv2v IP_LIB)
-    cmake_parse_arguments(ARG "REPLACE" "OUTDIR" "" ${ARGN})
+    set(options REPLACE)
+    set(oneValueArgs OUTDIR)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -75,8 +85,8 @@ function(sv2v IP_LIB)
     )
 
     if(ARG_REPLACE)
-        get_property(__flat_graph TARGET ${IP_LIB} PROPERTY FLAT_GRAPH)
-        foreach(ip ${__flat_graph})
+        get_property(flat_graph TARGET ${IP_LIB} PROPERTY FLAT_GRAPH)
+        foreach(ip ${flat_graph})
             ip_sources(${ip} SYSTEMVERILOG REPLACE  "")
         endforeach()
 

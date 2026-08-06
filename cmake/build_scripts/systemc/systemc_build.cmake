@@ -15,7 +15,17 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :keyword INSTALL_DIR: Path to the location where the library will be installed. The default is ${PROJECT_BINARY_DIR}/systemc or ${FETCHCONTENT_BASE_DIR}/systemc if FETCHCONTENT_BASE_DIR is set.
 #]]
 function(systemc_build)
-    cmake_parse_arguments(ARG "EXACT_VERSION" "VERSION;INSTALL_DIR" "" ${ARGN})
+    set(options EXACT_VERSION)
+    set(oneValueArgs VERSION INSTALL_DIR)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()

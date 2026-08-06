@@ -30,11 +30,15 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 #]]
 function(iverilog IP_LIB)
     # Parse the function arguments
+    set(options NO_RUN_TARGET)
+    set(oneValueArgs TOP_MODULE OUTDIR EXECUTABLE RUN_TARGET_NAME)
+    set(multiValueArgs SV_COMPILE_ARGS RUN_ARGS FILE_SETS)
+
     cmake_parse_arguments(
         ARG
-        "NO_RUN_TARGET"
-        "TOP_MODULE;OUTDIR;EXECUTABLE;RUN_TARGET_NAME"
-        "SV_COMPILE_ARGS;RUN_ARGS;FILE_SETS"
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
         ${ARGN}
     )
     # Check for any unrecognized arguments
@@ -117,7 +121,7 @@ function(iverilog IP_LIB)
         )
     endif()
 
-    set(__sim_run_cmd ${VVP_EXECUTABLE} ${ARG_RUN_ARGS} ${ARG_EXECUTABLE})
+    set(sim_run_cmd ${VVP_EXECUTABLE} ${ARG_RUN_ARGS} ${ARG_EXECUTABLE})
     if(NOT ${ARG_NO_RUN_TARGET})
         if(NOT ARG_RUN_TARGET_NAME)
             set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
@@ -128,7 +132,7 @@ function(iverilog IP_LIB)
         # Add a custom target to run the generated executable
         add_custom_target(
             ${ARG_RUN_TARGET_NAME}
-            COMMAND ${__sim_run_cmd}
+            COMMAND ${sim_run_cmd}
             DEPENDS
                 ${ARG_EXECUTABLE}
                 ${STAMP_FILE}
@@ -141,5 +145,5 @@ function(iverilog IP_LIB)
             PROPERTY DESCRIPTION ${DESCRIPTION}
         )
     endif()
-    set(SOCMAKE_SIM_RUN_CMD ${__sim_run_cmd} PARENT_SCOPE)
+    set(SOCMAKE_SIM_RUN_CMD ${sim_run_cmd} PARENT_SCOPE)
 endfunction()

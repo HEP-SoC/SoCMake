@@ -36,15 +36,15 @@ function(add_cocotb_tests IP_LIB DIRECTORY)
 
     unset(msg)
     list(
-        APPEND _msg
+        APPEND msg
         "-------------------------------------------------------------------------\n"
     )
     string(REPLACE "__" "::" ALIAS_NAME ${IP_LIB})
     list(
-        APPEND _msg
+        APPEND msg
         "------------ Adding cocotb tests for IP_LIB: \"${ALIAS_NAME}\"\n"
     )
-    list(APPEND _msg "Added tests:\n")
+    list(APPEND msg "Added tests:\n")
 
     enable_testing()
     foreach(test ${TEST_SUBDIRS})
@@ -79,7 +79,7 @@ function(add_cocotb_tests IP_LIB DIRECTORY)
 
         if(NOT COCOTB_TESTCASE)
             list(
-                APPEND _msg
+                APPEND msg
                 "   ${COCOTB_MODULE}:         ${COCOTB_DESCRIPTION}\n"
             )
             list(APPEND deps_list ${COCOTB_SIM_BUILD_DEP})
@@ -122,7 +122,7 @@ function(add_cocotb_tests IP_LIB DIRECTORY)
                 endif()
 
                 list(
-                    APPEND _msg
+                    APPEND msg
                     "   ${COCOTB_MODULE}:         ${COCOTB_DESCRIPTION} - test ${test_num}\n"
                 )
 
@@ -176,14 +176,14 @@ function(add_cocotb_tests IP_LIB DIRECTORY)
 
     socmake_message(STATUS "test_list: ${test_list}")
 
-    list(APPEND _msg "\nTo run ctest on all of the tests run:\n")
-    list(APPEND _msg "    make check\n")
-    list(APPEND _msg "To run any of the added tests execute:\n")
-    list(APPEND _msg "   make run_<test_name>\n")
+    list(APPEND msg "\nTo run ctest on all of the tests run:\n")
+    list(APPEND msg "    make check\n")
+    list(APPEND msg "To run any of the added tests execute:\n")
+    list(APPEND msg "   make run_<test_name>\n")
     list(
-        APPEND _msg
+        APPEND msg
         "-------------------------------------------------------------------------"
     )
-    string(REPLACE ";" "" _msg "${_msg}")
-    msg("${_msg}" Blue)
+    string(REPLACE ";" "" msg "${msg}")
+    msg("${msg}" Blue)
 endfunction()

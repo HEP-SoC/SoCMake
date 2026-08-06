@@ -13,7 +13,17 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 # :type CORE_FILE: string
 #]]
 function(add_ip_from_fusesoc CORE_FILE)
-    cmake_parse_arguments(ARG "" "" "" ${ARGN})
+    set(options)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -32,13 +42,13 @@ function(add_ip_from_fusesoc CORE_FILE)
     if(NOT EXISTS ${output_cmake_file} OR FUSESOC_IMPORT)
         socmake_message(STATUS "Generating SoCMake file from fusesoc ${CORE_FILE}")
         find_python3()
-        set(__cmd
+        set(cmd
             ${Python3_EXECUTABLE}
             "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/fusesoc_to_socmake.py"
             "${CORE_FILE}"
         )
 
-        execute_process(COMMAND ${__cmd} OUTPUT_VARIABLE cmake_content)
+        execute_process(COMMAND ${cmd} OUTPUT_VARIABLE cmake_content)
         # message("${cmake_content}")
         write_file(${output_cmake_file} "${cmake_content}")
     endif()

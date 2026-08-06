@@ -20,9 +20,21 @@ include("${CMAKE_CURRENT_LIST_DIR}/../socmake_message.cmake")
 # :type TOP_MODULE: string
 # :keyword SLANG_ARGS: (Optional) Extra arguments to pass directly to slang.
 # :type SLANG_ARGS: list
+# :keyword FILE_SETS: (Optional) Restrict the collected sources and include directories to the listed file sets; all file sets are used when omitted.
+# :type FILE_SETS: list
 #]]
 function(generate_sv_sources_list IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR;TOP_MODULE;SLANG_ARGS" "" ${ARGN})
+    set(options)
+    set(oneValueArgs OUTDIR TOP_MODULE SLANG_ARGS)
+    set(multiValueArgs FILE_SETS)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -56,10 +68,15 @@ function(generate_sv_sources_list IP_LIB)
     if(ARG_TOP_MODULE)
         list(APPEND TOP_MODULE_ARG --top ${ARG_TOP_MODULE})
     endif()
+    # Restrict to the requested file sets, if any; otherwise all file sets are used.
+    set(FILE_SETS_ARG)
+    if(ARG_FILE_SETS)
+        set(FILE_SETS_ARG FILE_SETS ${ARG_FILE_SETS})
+    endif()
 
     # Get the list of RTL sources
-    get_ip_sources(RTL_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
-    get_ip_include_directories(RTL_INCDIRS ${IP_LIB} SYSTEMVERILOG)
+    get_ip_sources(RTL_SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG ${FILE_SETS_ARG})
+    get_ip_include_directories(RTL_INCDIRS ${IP_LIB} SYSTEMVERILOG ${FILE_SETS_ARG})
     foreach(_i ${RTL_INCDIRS})
         list(APPEND INCDIR_ARG -I${_i})
     endforeach()

@@ -5,7 +5,7 @@ include("../../SoCMakeConfig.cmake")
 
 add_subdirectory(adder)
 
-verilator_build(VERSION 5.022)
+verilator_build(VERILATOR_TAG v5.022)
 
 verilator(adder TRACE)
 

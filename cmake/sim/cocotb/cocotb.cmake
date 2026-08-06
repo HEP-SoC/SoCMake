@@ -41,11 +41,23 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 #]]
 function(cocotb IP_LIB)
     # Parse the function arguments
+    set(options NO_RUN_TARGET GUI)
+    set(oneValueArgs
+        OUTDIR
+        RUN_TARGET_NAME
+        TOP_MODULE
+        COCOTB_MODULE
+        COCOTB_TESTCASE
+        SIM
+        TIMESCALE
+    )
+    set(multiValueArgs PYTHONPATH SV_COMPILE_ARGS RUN_ARGS)
+
     cmake_parse_arguments(
         ARG
-        "NO_RUN_TARGET;GUI"
-        "OUTDIR;RUN_TARGET_NAME;TOP_MODULE;COCOTB_MODULE;COCOTB_TESTCASE;SIM;TIMESCALE"
-        "PYTHONPATH;SV_COMPILE_ARGS;RUN_ARGS"
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
         ${ARGN}
     )
     # Check for any unrecognized arguments
@@ -262,19 +274,19 @@ function(cocotb IP_LIB)
         # Default parameters based on cocotb Makefile.inc
         set(COCOTB_RESULTS_FILE ${OUTDIR}/results.xml)
 
-        set(__sim_run_cmd ${sim_run_cmd})
-        list(FIND __sim_run_cmd "&&" _and_index)
-        if(_and_index GREATER -1)
-            math(EXPR _insert_index "${_and_index} + 1")
+        set(full_run_cmd ${sim_run_cmd})
+        list(FIND full_run_cmd "&&" and_index)
+        if(and_index GREATER -1)
+            math(EXPR insert_index "${and_index} + 1")
             list(
-                INSERT __sim_run_cmd
-                ${_insert_index}
+                INSERT full_run_cmd
+                ${insert_index}
                 PYTHONPATH=${PYTHONPATH}
                 MODULE=${ARG_COCOTB_MODULE}
                 COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
             )
         else()
-            set(__sim_run_cmd
+            set(full_run_cmd
                 PYTHONPATH=${PYTHONPATH}
                 MODULE=${ARG_COCOTB_MODULE}
                 COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
@@ -298,7 +310,7 @@ function(cocotb IP_LIB)
             add_custom_target(
                 ${CUSTOM_TARGET_NAME}
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
-                COMMAND ${__sim_run_cmd}
+                COMMAND ${full_run_cmd}
                 BYPRODUCTS ${COCOTB_RESULTS_FILE}
                 DEPENDS ${sim_build_dep} ${cocotb_custom_sim_deps}
                 COMMENT ${DESCRIPTION}
@@ -327,20 +339,20 @@ function(cocotb IP_LIB)
             # Default parameters based on cocotb Makefile.inc
             set(COCOTB_RESULTS_FILE ${OUTDIR}/results.xml)
 
-            set(__sim_run_cmd ${sim_run_cmd})
-            list(FIND __sim_run_cmd "&&" _and_index)
-            if(_and_index GREATER -1)
-                math(EXPR _insert_index "${_and_index} + 1")
+            set(full_run_cmd ${sim_run_cmd})
+            list(FIND full_run_cmd "&&" and_index)
+            if(and_index GREATER -1)
+                math(EXPR insert_index "${and_index} + 1")
                 list(
-                    INSERT __sim_run_cmd
-                    ${_insert_index}
+                    INSERT full_run_cmd
+                    ${insert_index}
                     PYTHONPATH=${PYTHONPATH}
                     MODULE=${ARG_COCOTB_MODULE}
                     COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
                     TESTCASE=${ARG_COCOTB_MODULE}_test_${test_num}
                 )
             else()
-                set(__sim_run_cmd
+                set(full_run_cmd
                     PYTHONPATH=${PYTHONPATH}
                     MODULE=${ARG_COCOTB_MODULE}
                     COCOTB_RESULTS_FILE=${COCOTB_RESULTS_FILE}
@@ -365,7 +377,7 @@ function(cocotb IP_LIB)
                 add_custom_target(
                     ${CUSTOM_TARGET_NAME}
                     COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTDIR}
-                    COMMAND ${__sim_run_cmd}
+                    COMMAND ${full_run_cmd}
                     BYPRODUCTS ${COCOTB_RESULTS_FILE}
                     DEPENDS ${sim_build_dep} ${cocotb_custom_sim_deps}
                     COMMENT ${DESCRIPTION}

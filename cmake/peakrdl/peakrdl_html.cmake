@@ -30,7 +30,17 @@ include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
 # :type ARGS: list
 #]]
 function(peakrdl_html IP_LIB)
-    cmake_parse_arguments(ARG "SERVER_TARGET" "OUTDIR" "ARGS" ${ARGN})
+    set(options SERVER_TARGET)
+    set(oneValueArgs OUTDIR)
+    set(multiValueArgs ARGS)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
         socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
@@ -56,17 +66,17 @@ function(peakrdl_html IP_LIB)
     endif()
 
     unset(INCDIRS_ARG)
-    foreach(__incdir ${INC_DIRS})
-        list(APPEND INCDIRS_ARG -I${__incdir})
+    foreach(incdir ${INC_DIRS})
+        list(APPEND INCDIRS_ARG -I${incdir})
     endforeach()
 
     unset(COMPDEFS_ARG)
-    foreach(__compdefs ${COMP_DEFS})
-        list(APPEND COMPDEFS_ARG -D${__compdefs})
+    foreach(compdefs ${COMP_DEFS})
+        list(APPEND COMPDEFS_ARG -D${compdefs})
     endforeach()
 
     find_python3()
-    set(__CMD
+    set(cmd
         ${Python3_EXECUTABLE}
         -m
         peakrdl
@@ -102,7 +112,7 @@ function(peakrdl_html IP_LIB)
 
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${GENERATED_FILES}
-        COMMAND ${__CMD}
+        COMMAND ${cmd}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_SOURCES} ${IP_LIB}
         COMMAND_EXPAND_LISTS
