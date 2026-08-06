@@ -112,191 +112,12 @@ function(_create_help_target HELP_NAME JQ_FILE OUTFILE GROUP_NAME)
     endif()
 endfunction()
 
-#[[[
-# This functions create a target, to display an help message for the available options.
+# Generate the JSON database used by all help targets.
 #
-# It will show the name, the type, the current and the default value, the description and maybe other information (in case of enumeration or advanced options) for each options.
-#
-# **Keyword Arguments**
-#
-# :keyword PRINT_ON_CONF: If set, it will print the generated help message in the terminal when doing the cmake configuration/generating the makefiles
-# :type PRINT_ON_CONF: bool
-#]]
-function(help_options)
-    set(options PRINT_ON_CONF)
-    set(oneValueArgs)
-    set(multiValueArgs)
-
-    cmake_parse_arguments(
-        ARG
-        "${options}"
-        "${oneValueArgs}"
-        "${multiValueArgs}"
-        ${ARGN}
-    )
-    if(ARG_UNPARSED_ARGUMENTS)
-        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    endif()
-
-    if(ARG_PRINT_ON_CONF)
-        set(ARG_PRINT_ON_CONF PRINT_ON_CONF)
-    endif()
-
-    get_property(ALL_OPTIONS GLOBAL PROPERTY SOCMAKE_OPTIONS)
-    if(NOT ALL_OPTIONS)
-        return()
-    endif()
-
-    # Start with empty options array
-    set(options_array "[]")
-    set(index 0)
-
-    foreach(option ${ALL_OPTIONS})
-        get_property(advanced GLOBAL PROPERTY SOCMAKE_${option}_ADVANCED)
-        get_property(type GLOBAL PROPERTY SOCMAKE_${option}_TYPE)
-        get_property(description GLOBAL PROPERTY SOCMAKE_${option}_DESCRIPTION)
-        get_property(default GLOBAL PROPERTY SOCMAKE_${option}_DEFAULT)
-        get_property(values GLOBAL PROPERTY SOCMAKE_${option}_VALUES)
-        get_property(groups GLOBAL PROPERTY SOCMAKE_${option}_SOCMAKE_GROUPS)
-
-        set(option_obj "{}")
-        string(JSON option_obj SET "${option_obj}" "name" "\"${option}\"")
-        string(JSON option_obj SET "${option_obj}" "type" "\"${type}\"")
-        string(JSON option_obj SET "${option_obj}" "current" "\"${${option}}\"")
-        string(JSON option_obj SET "${option_obj}" "default" "\"${default}\"")
-        string(
-            JSON option_obj
-            SET "${option_obj}"
-            "description"
-            "\"${description}\""
-        )
-        string(JSON option_obj SET "${option_obj}" "advanced" "\"${advanced}\"")
-        __cmake_to_json_array(values_json ${values})
-        string(JSON option_obj SET "${option_obj}" "values" "${values_json}")
-        __cmake_to_json_array(groups_json ${groups})
-        string(JSON option_obj SET "${option_obj}" "groups" "${groups_json}")
-
-        string(
-            JSON options_array
-            SET "${options_array}"
-            "${index}"
-            "${option_obj}"
-        )
-        math(EXPR index "${index} + 1")
-    endforeach()
-
-    set(json_output "{}")
-    string(JSON json_output SET "${json_output}" "options" "${options_array}")
-
-    set(target help_options)
-    set(outfile ${CMAKE_BINARY_DIR}/.help/${target}.json)
-    file(WRITE ${outfile} ${json_output})
-
-    _create_help_target("options" "option.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
-endfunction()
-
-#[[[
-# This functions create a target, to display an help message for the available IPs.
-#
-# It will show the name and a description for each IPs.
-#
-# **Keyword Arguments**
-#
-# :keyword PRINT_ON_CONF: If set, it will print the generated help message in the terminal when doing the cmake configuration/generating the makefiles
-# :type PRINT_ON_CONF: bool
-#]]
-function(help_ips)
-    set(options PRINT_ON_CONF)
-    set(oneValueArgs)
-    set(multiValueArgs)
-
-    cmake_parse_arguments(
-        ARG
-        "${options}"
-        "${oneValueArgs}"
-        "${multiValueArgs}"
-        ${ARGN}
-    )
-    if(ARG_UNPARSED_ARGUMENTS)
-        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    endif()
-
-    if(ARG_PRINT_ON_CONF)
-        set(ARG_PRINT_ON_CONF PRINT_ON_CONF)
-    endif()
-
-    get_all_ips(ALL_IPS)
-    # if(NOT ALL_IPS)
-    #     return()
-    # endif()
-
-    set(ips_array "[]")
-    set(index 0)
-
-    foreach(ip ${ALL_IPS})
-        get_target_property(description ${ip} DESCRIPTION)
-        if(NOT description)
-            set(description "(no description)")
-        endif()
-        set(ip_obj "{}")
-
-        get_target_property(groups ${ip} SOCMAKE_GROUPS)
-        __cmake_to_json_array(groups_json ${groups})
-        string(JSON ip_obj SET "${ip_obj}" "groups" "${groups_json}")
-
-        string(JSON ip_obj SET "${ip_obj}" "name" "\"${ip}\"")
-        string(JSON ip_obj SET "${ip_obj}" "description" "\"${description}\"")
-        string(JSON ips_array SET "${ips_array}" "${index}" "${ip_obj}")
-        math(EXPR index "${index} + 1")
-    endforeach()
-
-    set(json_output "{}")
-    string(JSON json_output SET "${json_output}" "ips" "${ips_array}")
-
-    set(target help_ips)
-    set(outfile ${CMAKE_BINARY_DIR}/.help/${target}.json)
-    file(WRITE ${outfile} ${json_output})
-
-    _create_help_target("ips" "ip.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
-endfunction()
-
-#[[[
-# This functions create a target, to display an help message for the available targets.
-#
-# It will show the name and a description for each targets.
-#
-# **Keyword Arguments**
-#
-# :keyword PRINT_ON_CONF: If set, it will print the generated help message in the terminal when doing the cmake configuration/generating the makefiles
-# :type PRINT_ON_CONF: bool
-#]]
-function(help_targets)
-    set(options PRINT_ON_CONF)
-    set(oneValueArgs)
-    set(multiValueArgs)
-
-    cmake_parse_arguments(
-        ARG
-        "${options}"
-        "${oneValueArgs}"
-        "${multiValueArgs}"
-        ${ARGN}
-    )
-    if(ARG_UNPARSED_ARGUMENTS)
-        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
-    endif()
-
-    if(ARG_PRINT_ON_CONF)
-        set(ARG_PRINT_ON_CONF PRINT_ON_CONF)
-    endif()
-
-    # Create the target first, so it can be discovered by get_all_targets() function
-    set(target help_targets)
-    set(outfile ${CMAKE_BINARY_DIR}/.help/${target}.json)
-
-    _create_help_target("targets" "target.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
-
-    # Now get all the targets and write to JSON
+# :param OUTFILE: Path to the generated JSON file.
+# :type OUTFILE: string
+function(_generate_help_targets_json OUTFILE)
+    # Get all available targets.
     get_all_targets(ALL_TARGETS)
 
     set(targets_array "[]")
@@ -337,7 +158,47 @@ function(help_targets)
 
     set(json_output "{}")
     string(JSON json_output SET "${json_output}" "targets" "${targets_array}")
-    file(WRITE ${outfile} ${json_output})
+    file(WRITE "${OUTFILE}" "${json_output}")
+endfunction()
+
+#[[[
+# This functions create a target, to display an help message for the available targets.
+#
+# It will show the name and a description for each targets.
+#
+# **Keyword Arguments**
+#
+# :keyword PRINT_ON_CONF: If set, it will print the generated help message in the terminal when doing the cmake configuration/generating the makefiles
+# :type PRINT_ON_CONF: bool
+#]]
+function(help_targets)
+    set(options PRINT_ON_CONF)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
+    if(ARG_UNPARSED_ARGUMENTS)
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    if(ARG_PRINT_ON_CONF)
+        set(ARG_PRINT_ON_CONF PRINT_ON_CONF)
+    endif()
+
+    # Create the target first, so it can be discovered by get_all_targets() function
+    set(target help_targets)
+    set(outfile ${CMAKE_BINARY_DIR}/.help/${target}.json)
+
+    _create_help_target("targets" "target.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
+
+    # Now get all the targets and write to JSON
+    _generate_help_targets_json(${outfile})
 endfunction()
 
 #[[[
@@ -403,8 +264,77 @@ function(help_custom_targets GROUP_NAME)
     endif()
 
     set(outfile ${CMAKE_BINARY_DIR}/.help/help_targets.json)
-
+    _generate_help_targets_json(${outfile})
     _create_help_target("${help_name}" "target.jq" ${outfile} "${GROUP_NAME}" ${ARG_PRINT_ON_CONF})
+endfunction()
+
+# Generate the JSON database used by all help ips.
+#
+# :param OUTFILE: Path to the generated JSON file.
+# :type OUTFILE: string
+function(_generate_help_ips_json OUTFILE)
+    get_all_ips(ALL_IPS)
+
+    set(ips_array "[]")
+    set(index 0)
+
+    foreach(ip ${ALL_IPS})
+        get_target_property(description ${ip} DESCRIPTION)
+        if(NOT description)
+            set(description "(no description)")
+        endif()
+        set(ip_obj "{}")
+
+        get_target_property(groups ${ip} SOCMAKE_GROUPS)
+        __cmake_to_json_array(groups_json ${groups})
+        string(JSON ip_obj SET "${ip_obj}" "groups" "${groups_json}")
+
+        string(JSON ip_obj SET "${ip_obj}" "name" "\"${ip}\"")
+        string(JSON ip_obj SET "${ip_obj}" "description" "\"${description}\"")
+        string(JSON ips_array SET "${ips_array}" "${index}" "${ip_obj}")
+        math(EXPR index "${index} + 1")
+    endforeach()
+
+    set(json_output "{}")
+    string(JSON json_output SET "${json_output}" "ips" "${ips_array}")
+    file(WRITE "${OUTFILE}" "${json_output}")
+endfunction()
+
+#[[[
+# This functions create a target, to display an help message for the available IPs.
+#
+# It will show the name and a description for each IPs.
+#
+# **Keyword Arguments**
+#
+# :keyword PRINT_ON_CONF: If set, it will print the generated help message in the terminal when doing the cmake configuration/generating the makefiles
+# :type PRINT_ON_CONF: bool
+#]]
+function(help_ips)
+    set(options PRINT_ON_CONF)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
+    if(ARG_UNPARSED_ARGUMENTS)
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    if(ARG_PRINT_ON_CONF)
+        set(ARG_PRINT_ON_CONF PRINT_ON_CONF)
+    endif()
+
+    set(target help_ips)
+    set(outfile ${CMAKE_BINARY_DIR}/.help/${target}.json)
+    _generate_help_ips_json(${outfile})
+
+    _create_help_target("ips" "ip.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
 endfunction()
 
 #[[[
@@ -458,8 +388,99 @@ function(help_custom_ips GROUP_NAME)
     group_custom_ips("${GROUP_NAME}" ${ARG_PATTERN} ${ARG_LIST})
 
     set(outfile ${CMAKE_BINARY_DIR}/.help/help_ips.json)
-
+    _generate_help_ips_json(${outfile})
     _create_help_target("${GROUP_NAME}" "ip.jq" ${outfile} "${GROUP_NAME}" ${ARG_PRINT_ON_CONF})
+endfunction()
+
+# Generate the JSON database used by all help ips.
+#
+# :param OUTFILE: Path to the generated JSON file.
+# :type OUTFILE: string
+function(_generate_help_options_json OUTFILE)
+    get_property(ALL_OPTIONS GLOBAL PROPERTY SOCMAKE_OPTIONS)
+
+    set(options_array "[]")
+    set(index 0)
+
+    foreach(option ${ALL_OPTIONS})
+        get_property(advanced GLOBAL PROPERTY SOCMAKE_${option}_ADVANCED)
+        get_property(type GLOBAL PROPERTY SOCMAKE_${option}_TYPE)
+        get_property(description GLOBAL PROPERTY SOCMAKE_${option}_DESCRIPTION)
+        get_property(default GLOBAL PROPERTY SOCMAKE_${option}_DEFAULT)
+        get_property(values GLOBAL PROPERTY SOCMAKE_${option}_VALUES)
+        get_property(groups GLOBAL PROPERTY SOCMAKE_${option}_SOCMAKE_GROUPS)
+
+        set(option_obj "{}")
+        string(JSON option_obj SET "${option_obj}" "name" "\"${option}\"")
+        string(JSON option_obj SET "${option_obj}" "type" "\"${type}\"")
+        string(JSON option_obj SET "${option_obj}" "current" "\"${${option}}\"")
+        string(JSON option_obj SET "${option_obj}" "default" "\"${default}\"")
+        string(
+            JSON option_obj
+            SET "${option_obj}"
+            "description"
+            "\"${description}\""
+        )
+        string(JSON option_obj SET "${option_obj}" "advanced" "\"${advanced}\"")
+        __cmake_to_json_array(values_json ${values})
+        string(JSON option_obj SET "${option_obj}" "values" "${values_json}")
+        __cmake_to_json_array(groups_json ${groups})
+        string(JSON option_obj SET "${option_obj}" "groups" "${groups_json}")
+
+        string(
+            JSON options_array
+            SET "${options_array}"
+            "${index}"
+            "${option_obj}"
+        )
+        math(EXPR index "${index} + 1")
+    endforeach()
+
+    set(json_output "{}")
+    string(JSON json_output SET "${json_output}" "options" "${options_array}")
+    file(WRITE "${OUTFILE}" "${json_output}")
+endfunction()
+
+#[[[
+# This functions create a target, to display an help message for the available options.
+#
+# It will show the name, the type, the current and the default value, the description and maybe other information (in case of enumeration or advanced options) for each options.
+#
+# **Keyword Arguments**
+#
+# :keyword PRINT_ON_CONF: If set, it will print the generated help message in the terminal when doing the cmake configuration/generating the makefiles
+# :type PRINT_ON_CONF: bool
+#]]
+function(help_options)
+    set(options PRINT_ON_CONF)
+    set(oneValueArgs)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
+    if(ARG_UNPARSED_ARGUMENTS)
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    if(ARG_PRINT_ON_CONF)
+        set(ARG_PRINT_ON_CONF PRINT_ON_CONF)
+    endif()
+
+    get_property(ALL_OPTIONS GLOBAL PROPERTY SOCMAKE_OPTIONS)
+    if(NOT ALL_OPTIONS)
+        return()
+    endif()
+
+    set(target help_options)
+    set(outfile ${CMAKE_BINARY_DIR}/.help/${target}.json)
+    _generate_help_options_json(${outfile})
+
+    _create_help_target("options" "option.jq" ${outfile} "*" ${ARG_PRINT_ON_CONF})
 endfunction()
 
 #[[[
@@ -513,7 +534,7 @@ function(help_custom_options GROUP_NAME)
     group_custom_options("${GROUP_NAME}" ${ARG_PATTERN} ${ARG_LIST})
 
     set(outfile ${CMAKE_BINARY_DIR}/.help/help_options.json)
-
+    _generate_help_options_json(${outfile})
     _create_help_target("${GROUP_NAME}" "option.jq" ${outfile} "${GROUP_NAME}" ${ARG_PRINT_ON_CONF})
 endfunction()
 
