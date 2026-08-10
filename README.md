@@ -2,7 +2,7 @@
 <img src="docs/static/img/SoCMakeLogo3.png" alt="SoCMake" width="40%">
 
   <a href="https://hep-soc.github.io/SoCMake/">Documentation</a> |
-  <a href="https://github.com/HEP-SoC/SoCMake/tree/develop/examples">Examples</a> |
+  <a href="https://github.com/HEP-SoC/SoCMake/tree/master/examples">Examples</a> |
   <a href="https://hep-soc.github.io/SoCMake/api_html/index.html">API documentation</a>
 </h1>
 
@@ -43,7 +43,7 @@ The only mandatory dependencies are `CMake>=3.27.0` and `make` or/and `ninja` ([
 
 Install the SoCMake bootstrap files once on your system:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/HEP-SoC/SoCMake/develop/bootstrap/bootstrap.sh | sh
+curl -fsSL https://raw.githubusercontent.com/HEP-SoC/SoCMake/master/bootstrap/bootstrap.sh | sh
 ```
 
 This installs bootstrap files to `~/.local/lib/cmake/socmake` that automatically fetches the correct SoCMake version for each project.
@@ -92,7 +92,7 @@ Hello from Adder!
 Examples
 --------
 
-For more examples on how to use SoCMake including the previous example visit [Examples](https://github.com/HEP-SoC/SoCMake/tree/develop/examples).
+For more examples on how to use SoCMake including the previous example visit [Examples](https://github.com/HEP-SoC/SoCMake/tree/master/examples).
 Some of the examples include:
 
 * Simple Verilog and VHDL testbenches
