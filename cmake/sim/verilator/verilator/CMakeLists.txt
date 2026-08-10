@@ -15,6 +15,11 @@ if(NOT DEFINED ENV{VERILATOR_ROOT})
     set(ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
 endif()
 
+# Certain versions of verilator require VERILATOR_ROOT as an environment variable
+if(NOT DEFINED ENV{VERILATOR_ROOT})
+    set(ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
+endif()
+
 foreach(ARG ${ARGUMENTS_LIST})
     string(REPLACE "VERILATE_" "" ARG_MOD ${ARG})
     list(APPEND FORWARDED_ARGS ${ARG_MOD} ${VERILATE_${ARG}})
