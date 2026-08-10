@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkdocs=globalThis.webpackChunkdocs||[]).push([[1903],{1912(o){o.exports=JSON.parse('{"blogBasePath":"/SoCMake/pr-preview/pr-219/blog","blogTitle":"Blog","authorsListPath":"/SoCMake/pr-preview/pr-219/blog/authors"}')}}]);
