@@ -397,7 +397,7 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
         "${multiValueArgs}"
         ${ARGN}
     )
-    alias_dereference(_reallib ${IP_LIB})
+    alias_dereference(reallib ${IP_LIB})
 
     # Handle NO_DEPS flag
     unset(no_deps)
@@ -449,7 +449,7 @@ function(get_ip_sources OUTVAR IP_LIB LANGUAGE)
     if(no_deps)
         set(ips ${reallib})
     else()
-        get_ip_links(ips ${_reallib} ${ARG_EXCLUDED_IPS})
+        get_ip_links(ips ${reallib} ${ARG_EXCLUDED_IPS})
     endif()
 
     set(asked_languges ${LANGUAGE} ${ARGN})
@@ -1005,13 +1005,13 @@ function(get_ip_links OUTVAR IP_LIB)
             PROPERTY INTERFACE_LINK_LIBRARIES
         )
         foreach(excl_ip ${ARG_EXCLUDED_IPS})
-            alias_dereference(_excl_reallib ${excl_ip})
-            list(REMOVE_ITEM __flat_graph ${_excl_reallib})
+            alias_dereference(excl_reallib ${excl_ip})
+            list(REMOVE_ITEM flat_graph ${excl_reallib})
         endforeach()
     elseif(ARG_EXCLUDED_IPS)
         # The FLAT_GRAPH cache holds a single exclusion-free traversal per target, so a
         # filtered view is computed fresh here instead of being read from (or written to) it.
-        flatten_graph(${_reallib} EXCLUDED_IPS ${ARG_EXCLUDED_IPS} OUTVAR __flat_graph)
+        flatten_graph(${reallib} EXCLUDED_IPS ${ARG_EXCLUDED_IPS} OUTVAR flat_graph)
     else()
         flatten_graph_if_allowed(${reallib})
 

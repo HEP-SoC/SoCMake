@@ -24,13 +24,23 @@ include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
 # :type EXCLUDED_IPS: list[string]
 #]]
 function(flatten_graph NODE)
-    cmake_parse_arguments(ARG "" "OUTVAR" "EXCLUDED_IPS" ${ARGN})
+    set(options)
+    set(oneValueArgs OUTVAR)
+    set(multiValueArgs EXCLUDED_IPS)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     alias_dereference(NODE ${NODE})
 
-    set(_excluded_reallibs)
+    set(excluded_reallibs)
     foreach(excl_ip ${ARG_EXCLUDED_IPS})
-        alias_dereference(_excl_reallib ${excl_ip})
-        list(APPEND _excluded_reallibs ${_excl_reallib})
+        alias_dereference(excl_reallib ${excl_ip})
+        list(APPEND excluded_reallibs ${excl_reallib})
     endforeach()
 
     # __GLOBAL_STACK will hold the flattened graph as the DFS is traversing the tree
@@ -42,7 +52,7 @@ function(flatten_graph NODE)
     set_property(TARGET ${NODE} PROPERTY __NODE_PROCESSED FALSE)
 
     # Recursive DFS topological sort
-    __dfs_topo(${NODE} unused "${_excluded_reallibs}")
+    __dfs_topo(${NODE} unused "${excluded_reallibs}")
 
     get_property(STACK GLOBAL PROPERTY __GLOBAL_STACK)
 
@@ -52,7 +62,7 @@ function(flatten_graph NODE)
         set_property(TARGET ${lib} PROPERTY __NODE_PROCESSED FALSE)
     endforeach()
 
-    if(_excluded_reallibs)
+    if(excluded_reallibs)
         set(${ARG_OUTVAR} ${STACK} PARENT_SCOPE)
     else()
         set_property(TARGET ${NODE} PROPERTY FLAT_GRAPH ${STACK})
