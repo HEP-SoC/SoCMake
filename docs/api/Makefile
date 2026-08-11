@@ -14,7 +14,7 @@ help:
 
 .PHONY: help Makefile
 
-# Generate the html static documention with sphinx from the rST files generated with cminx and copy
+# Generate the html static documentation with sphinx from the rST files generated with cminx and copy
 # them to the static folder used by docusaurus.
 html_api: html
 	cp -r build/html/* ../static/api_html/

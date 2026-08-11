@@ -1,3 +1,7 @@
+#[[[ @module peakrdl_halcpp
+#]]
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
+
 #[[[
 # Create a target for invoking PeakRDL-halcpp on IP_LIB.
 #
@@ -30,18 +34,28 @@
 #        FILES "firmware/hal/<lib>_ext.h"
 #    )
 #
-# :param IP_LIB: RTL interface library, it needs to have SYSTEMRDL_SOURCES property set with a list of SystemRDL files.
-# :type IP_LIB: INTERFACE_LIBRARY
+# :param IP_LIB: The target IP library, it needs to have SYSTEMRDL_SOURCES property set with a list of SystemRDL files.
+# :type IP_LIB: string
 #
 # **Keyword Arguments**
 #
-# :keyword OUTDIR: output directory in which the files will be generated, if ommited ${BINARY_DIR}/halcpp will be used.
+# :keyword OUTDIR: output directory in which the files will be generated, if omitted ${BINARY_DIR}/halcpp will be used.
 # :type OUTDIR: string path
 #]]
 function(peakrdl_halcpp IP_LIB)
-    cmake_parse_arguments(ARG "SKIP_BUSES" "OUTDIR" "PARAMETERS" ${ARGN})
+    set(options SKIP_BUSES GENERATE_TESTS)
+    set(oneValueArgs OUTDIR)
+    set(multiValueArgs PARAMETERS)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
@@ -75,58 +89,69 @@ function(peakrdl_halcpp IP_LIB)
     endif()
 
     if(ARG_SKIP_BUSES)
-        set(SKIB_BUSES_ARG --skip-buses)
+        set(SKIP_BUSES_ARG --skip-buses)
+    endif()
+
+    if(ARG_GENERATE_TESTS)
+        set(GENERATE_TESTS_ARG --generate-tests)
     endif()
 
     if(NOT RDL_FILES)
-        message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
-                unable to run ${CMAKE_CURRENT_FUNCTION}")
+        socmake_message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
+                unable to run ${CMAKE_CURRENT_FUNCTION}"
+        )
     endif()
 
     unset(INCDIRS_ARG)
-    foreach(__incdir ${INC_DIRS})
-        list(APPEND INCDIRS_ARG -I${__incdir})
+    foreach(incdir ${INC_DIRS})
+        list(APPEND INCDIRS_ARG -I${incdir})
     endforeach()
 
     unset(COMPDEFS_ARG)
-    foreach(__compdefs ${COMP_DEFS})
-        list(APPEND COMPDEFS_ARG -D${__compdefs})
+    foreach(compdefs ${COMP_DEFS})
+        list(APPEND COMPDEFS_ARG -D${compdefs})
     endforeach()
 
     find_python3()
-    set(__CMD ${Python3_EXECUTABLE} -m peakrdl halcpp
-            ${RDL_FILES}
-            ${EXT_ARG}
-            ${INCDIRS_ARG}
-            ${COMPDEFS_ARG}
-            ${SKIB_BUSES_ARG} -o ${OUTDIR}
-            ${OVERWRITTEN_PARAMETERS}
+    set(cmd
+        ${Python3_EXECUTABLE}
+        -m
+        peakrdl
+        halcpp
+        ${RDL_FILES}
+        ${EXT_ARG}
+        ${INCDIRS_ARG}
+        ${COMPDEFS_ARG}
+        ${GENERATE_TESTS_ARG}
+        ${SKIP_BUSES_ARG}
+        -o
+        ${OUTDIR}
+        ${OVERWRITTEN_PARAMETERS}
     )
 
     target_include_directories(${IP_LIB} INTERFACE ${OUTDIR} ${OUTDIR}/include)
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(DESCRIPTION
+        "Generate C++ HAL for \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}"
+    )
+
     add_custom_command(
         OUTPUT ${CPP_HEADERS} ${STAMP_FILE}
-        COMMAND ${__CMD}
+        COMMAND ${cmd}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${RDL_FILES}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
-        )
+        COMMENT ${DESCRIPTION}
+    )
 
-    add_custom_target(
-        ${IP_LIB}_halcpp
-        DEPENDS ${CPP_HEADERS} ${STAMP_FILE}
-        )
+    add_custom_target(${IP_LIB}_halcpp DEPENDS ${CPP_HEADERS} ${STAMP_FILE})
+    set_property(TARGET ${IP_LIB}_halcpp PROPERTY DESCRIPTION ${DESCRIPTION})
 
     add_dependencies(${IP_LIB} ${IP_LIB}_halcpp)
-
 endfunction()
 
-#[[[
 # Find headers that have _ext.h extension and compare with libraries. If there is a library that
 # matches the file name add it to list.
-#]]
 function(__ext_header_provided LIB libs)
     get_ip_property(HEADERS ${LIB} HEADER_SET)
     get_ip_property(FLAT_GRAPH ${LIB} FLAT_GRAPH)
@@ -147,5 +172,4 @@ function(__ext_header_provided LIB libs)
 
     list(REMOVE_DUPLICATES ext_libs)
     set(${libs} ${ext_libs} PARENT_SCOPE)
-
 endfunction()

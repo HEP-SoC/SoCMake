@@ -9,23 +9,22 @@ function(${${TEST_NAME}})
         LIBRARY lib
         VERSION 1.2.3
         DESCRIPTION "Simple description"
-        )
+    )
     ct_assert_target_has_property(${IP} DESCRIPTION)
     get_target_property(_desc ${IP} DESCRIPTION)
     ct_assert_equal(_desc "Simple description")
 
     add_ip(ip2
         DESCRIPTION "Simpler description"
-        )
+    )
     ct_assert_target_has_property(${IP} DESCRIPTION)
     get_target_property(_desc ${IP} DESCRIPTION)
     ct_assert_equal(_desc "Simpler description")
 
     add_ip(vendor2::lib::ip::0.0.1
         DESCRIPTION "Even simpler description"
-        )
+    )
     ct_assert_target_has_property(${IP} DESCRIPTION)
     get_target_property(_desc ${IP} DESCRIPTION)
     ct_assert_equal(_desc "Even simpler description")
-
 endfunction()

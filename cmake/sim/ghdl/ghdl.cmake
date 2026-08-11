@@ -1,10 +1,27 @@
-include_guard(GLOBAL)
+#[[[ @module ghdl
+#]]
 
+include_guard(GLOBAL)
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
+
+# This function is used to set by ``ghdl``, it shouldn't be used directly in your cmake file.
+#
+# It is used to set a variable that contains the value of the VHDL standard to be used for compilation
+#
+# :param OUTVAR: The variable containing the retrieved VHDL standard
+# :type OUTVAR: string
 function(__ghdl_get_standard_arg OUTVAR)
-    set(SUPPORTED_VHDL_STANDARDS  87 93c 93 00 02 08)
+    set(SUPPORTED_VHDL_STANDARDS
+        87
+        93c
+        93
+        00
+        02
+        08
+    )
     if(ARGN)
         if(NOT ${ARGN} IN_LIST SUPPORTED_VHDL_STANDARDS)
-            message(FATAL_ERROR "VHDL standard not supported ${ARGN}, supported standards: ${ARGN}")
+            socmake_message(FATAL_ERROR "VHDL standard not supported ${ARGN}, supported standards: ${SUPPORTED_VHDL_STANDARDS}")
         endif()
         set(${OUTVAR} ${ARGN} PARENT_SCOPE)
     else()
@@ -12,10 +29,57 @@ function(__ghdl_get_standard_arg OUTVAR)
     endif()
 endfunction()
 
+#[[[
+# Create a target for invoking GHDL (compilation, elaboration, and simulation) on IP_LIB.
+#
+# It will create a target **run_<IP_LIB>_ghdl** that will compile, elaborate, and simulate the IP_LIB design.
+#
+# :param IP_LIB: The target IP library, it needs to have SOURCES property set with a list of VHDL files.
+# :type IP_LIB: string
+#
+# **Keyword Arguments**
+#
+# :keyword NO_RUN_TARGET: Do not create a run target.
+# :type NO_RUN_TARGET: bool
+# :keyword OUTDIR: Output directory for the GHDL compilation and simulation.
+# :type OUTDIR: string
+# :keyword RUN_TARGET_NAME: Override the default run target name (default: ``run_<IP_LIB>_ghdl``).
+# :type RUN_TARGET_NAME: string
+# :keyword TOP_MODULE: Top module name to be used for elaboration and simulation.
+# :type TOP_MODULE: string
+# :keyword EXECUTABLE_NAME: Replace the default name of the generated executable target.
+# :type EXECUTABLE_NAME: string
+# :keyword STANDARD: Specify the VHDL standard to be used, default value is 93, possible values are 87, 93c, 93, 00, 02 and 08.
+# :type STANDARD: string
+# :keyword VHDL_COMPILE_ARGS: Extra arguments to be passed to the VHDL compilation step.
+# :type VHDL_COMPILE_ARGS: string
+# :keyword ELABORATE_ARGS: Extra arguments to be passed to the elaboration step.
+# :type ELABORATE_ARGS: string
+# :keyword RUN_ARGS: Extra arguments to be passed to the simulation step.
+# :type RUN_ARGS: string
+# :keyword FILE_SETS: Specify list of File sets to retrieve the sources from
+# :type FILE_SETS: list[string]
+#]]
 function(ghdl IP_LIB)
-    cmake_parse_arguments(ARG "NO_RUN_TARGET;" "OUTDIR;TOP_MODULE;EXECUTABLE_NAME;STANDARD" "VHDL_COMPILE_ARGS;ELABORATE_ARGS;RUN_ARGS" ${ARGN})
+    set(options NO_RUN_TARGET)
+    set(oneValueArgs
+        OUTDIR
+        RUN_TARGET_NAME
+        TOP_MODULE
+        EXECUTABLE_NAME
+        STANDARD
+    )
+    set(multiValueArgs VHDL_COMPILE_ARGS ELABORATE_ARGS RUN_ARGS FILE_SETS)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
@@ -43,6 +107,10 @@ function(ghdl IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
+    if(ARG_FILE_SETS)
+        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
+    endif()
+
     __ghdl_get_standard_arg(STANDARD ${ARG_STANDARD})
 
     if(ARG_VHDL_COMPILE_ARGS)
@@ -56,82 +124,122 @@ function(ghdl IP_LIB)
             STANDARD ${STANDARD}
             ${ARG_LIBRARY}
             ${ARG_VHDL_COMPILE_ARGS}
-            )
+            ${ARG_FILE_SETS}
+        )
     endif()
-    set(__comp_tgt ${IP_LIB}_ghdl_complib)
+    set(comp_tgt ${IP_LIB}_ghdl_complib)
 
-    __get_ghdl_search_lib_args(${IP_LIB} 
+    __get_ghdl_search_lib_args(${IP_LIB}
         ${ARG_LIBRARY}
-        OUTDIR ${OUTDIR})
+        OUTDIR ${OUTDIR}
+    )
     set(hdl_libs_args ${HDL_LIBS_ARGS})
     set(dpi_libs_args ${DPI_LIBS_ARGS})
 
     ##### GHDL Elaborate
     if(NOT TARGET ${IP_LIB}_ghdl)
-        get_ip_sources(VHDL_SOURCES ${IP_LIB} VHDL)
-        set(__ghdl_elab_cmd ghdl elaborate
-                --std=${STANDARD}
-                -fsynopsys
-                --workdir=${OUTDIR}/${LIBRARY}
-                ${ARG_ELABORATE_ARGS}
-                ${hdl_libs_args} ${dpi_libs_args}
-                ${LIBRARY}.${ARG_TOP_MODULE}
-                )
-
-        ### Clean files
-        #       * For elaborate "e~${ARG_EXECUTABLE_NAME}.o" and executable gets created
-        # set(__clean_files "${OUTDIR}/e~${ARG_EXECUTABLE_NAME}.o")
-        # set(__clean_files "${OUTDIR}/${LIBRARY}-obj${STANDARD}.cf")
-
-        set(DESCRIPTION "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
-        set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_ghdl.stamp")
-        add_custom_command(
-            OUTPUT ${STAMP_FILE}
-            COMMAND ${__ghdl_elab_cmd}
-            COMMAND touch ${STAMP_FILE}
-            # BYPRODUCTS  ${__clean_files}
-            WORKING_DIRECTORY ${OUTDIR}
-            DEPENDS ${__comp_tgt} ${VHDL_SOURCES}
-            COMMENT ${DESCRIPTION}
-            )
-
-        add_custom_target(${IP_LIB}_ghdl
-            DEPENDS ${STAMP_FILE} ${IP_LIB}
-        )
-        set_property(TARGET ${IP_LIB}_ghdl PROPERTY DESCRIPTION ${DESCRIPTION})
-    endif()
-
-
-    set(__ghdl_run_cmd ghdl run
+        get_ip_sources(VHDL_SOURCES ${IP_LIB} VHDL ${ARG_FILE_SETS})
+        set(ghdl_elab_cmd
+            ghdl
+            elaborate
             --std=${STANDARD}
             -fsynopsys
             --workdir=${OUTDIR}/${LIBRARY}
-            ${hdl_libs_args} ${dpi_libs_args}
+            ${ARG_ELABORATE_ARGS}
+            ${hdl_libs_args}
+            ${dpi_libs_args}
             ${LIBRARY}.${ARG_TOP_MODULE}
-            ${ARG_RUN_ARGS}
-            )
+        )
+
+        ### Clean files
+        #       * For elaborate "e~${ARG_EXECUTABLE_NAME}.o" and executable gets created
+        # set(clean_files "${OUTDIR}/e~${ARG_EXECUTABLE_NAME}.o")
+        # set(clean_files "${OUTDIR}/${LIBRARY}-obj${STANDARD}.cf")
+
+        set(DESCRIPTION
+            "Compile testbench ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}"
+        )
+        set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_ghdl.stamp")
+        add_custom_command(
+            OUTPUT ${STAMP_FILE}
+            COMMAND ${ghdl_elab_cmd}
+            COMMAND touch ${STAMP_FILE}
+            WORKING_DIRECTORY ${OUTDIR}
+            DEPENDS ${comp_tgt} ${VHDL_SOURCES}
+            COMMENT ${DESCRIPTION}
+        )
+
+        add_custom_target(${IP_LIB}_ghdl DEPENDS ${STAMP_FILE} ${IP_LIB})
+        set_property(TARGET ${IP_LIB}_ghdl PROPERTY DESCRIPTION ${DESCRIPTION})
+    endif()
+
+    set(ghdl_run_cmd
+        ghdl
+        run
+        --std=${STANDARD}
+        -fsynopsys
+        --workdir=${OUTDIR}/${LIBRARY}
+        ${hdl_libs_args}
+        ${dpi_libs_args}
+        ${LIBRARY}.${ARG_TOP_MODULE}
+        ${ARG_RUN_ARGS}
+    )
     if(NOT ARG_NO_RUN_TARGET)
         if(NOT ARG_RUN_TARGET_NAME)
             set(ARG_RUN_TARGET_NAME run_${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
         endif()
-        set(DESCRIPTION "Run simulation on ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
-        add_custom_target(${ARG_RUN_TARGET_NAME}
-            COMMAND ${__ghdl_run_cmd}
+        set(DESCRIPTION
+            "Run simulation on ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}"
+        )
+        add_custom_target(
+            ${ARG_RUN_TARGET_NAME}
+            COMMAND ${ghdl_run_cmd}
             COMMENT ${DESCRIPTION}
             WORKING_DIRECTORY ${OUTDIR}
             DEPENDS ${IP_LIB}_ghdl
-            )
-        set_property(TARGET ${ARG_RUN_TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
+        )
+        set_property(
+            TARGET ${ARG_RUN_TARGET_NAME}
+            PROPERTY DESCRIPTION ${DESCRIPTION}
+        )
     endif()
-    set(SIM_RUN_CMD ${__ghdl_run_cmd} PARENT_SCOPE)
-
+    set(SOCMAKE_SIM_RUN_CMD ${ghdl_run_cmd} PARENT_SCOPE)
 endfunction()
 
+# This function is called by ``ghdl``, it shouldn't be used directly in a cmake file.
+#
+# It will create an intermediary target to compile VHDL files, using ghdl analyze.
+#
+# :param IP_LIB: The target IP library, it needs to have SOURCES property set with a list of VHDL files.
+# :type IP_LIB: string
+#
+# **Keyword Arguments**
+#
+# :keyword OUTDIR: Output directory for the Questa compilation and simulation.
+# :type OUTDIR: string
+# :keyword LIBRARY: replace the default library name (worklib) to be used for elaboration and simulation.
+# :type LIBRARY: string
+# :keyword STANDARD: VHDL standard to use for compilation; same values as in the public ``ghdl()`` function.
+# :type STANDARD: string
+# :keyword VHDL_COMPILE_ARGS: Extra arguments to be passed to the VHDL compilation step.
+# :type VHDL_COMPILE_ARGS: string
+# :keyword FILE_SETS: Specify list of File sets to retrieve the sources from
+# :type FILE_SETS: list[string]
 function(__ghdl_compile_lib IP_LIB)
-    cmake_parse_arguments(ARG "" "LIBRARY;OUTDIR;STANDARD" "VHDL_COMPILE_ARGS" ${ARGN})
+    set(options)
+    set(oneValueArgs LIBRARY OUTDIR STANDARD)
+    set(multiValueArgs VHDL_COMPILE_ARGS FILE_SETS)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
@@ -146,45 +254,50 @@ function(__ghdl_compile_lib IP_LIB)
     endif()
     file(MAKE_DIRECTORY ${OUTDIR})
 
+    if(ARG_FILE_SETS)
+        set(ARG_FILE_SETS FILE_SETS ${ARG_FILE_SETS})
+    endif()
+
     __ghdl_get_standard_arg(STANDARD ${ARG_STANDARD})
 
     # Find the GHDL tools/include directory, needed for VPI/VHPI libraries
     __add_ghdl_cxx_properties_to_libs(${IP_LIB})
 
-    get_ip_links(__ips ${IP_LIB})
+    get_ip_links(ips ${IP_LIB})
     unset(all_stamp_files)
-    foreach(lib ${__ips})
-
+    foreach(lib ${ips})
         # VHDL library of the current IP block, get it from SoCMake library if present
         # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
-        get_target_property(__comp_lib_name ${lib} LIBRARY)
-        if(NOT __comp_lib_name)
-            set(__comp_lib_name work)
+        get_target_property(comp_lib_name ${lib} LIBRARY)
+        if(NOT comp_lib_name)
+            set(comp_lib_name work)
         endif()
         if(ARG_LIBRARY)
-            set(__comp_lib_name ${ARG_LIBRARY})
+            set(comp_lib_name ${ARG_LIBRARY})
         endif()
 
-        # Create output directoy for the VHDL library
-        set(lib_outdir ${OUTDIR}/${__comp_lib_name})
+        # Create output directory for the VHDL library
+        set(lib_outdir ${OUTDIR}/${comp_lib_name})
         file(MAKE_DIRECTORY ${lib_outdir})
 
         __get_ghdl_search_lib_args(${lib}
-            OUTDIR ${OUTDIR})
+            OUTDIR ${OUTDIR}
+        )
         set(hdl_libs_args ${HDL_LIBS_ARGS})
 
         # VHDL files and arguments
-        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS)
-        set(ghdl_analyze_cmd ghdl analyze
-                --std=${STANDARD}
-                -fsynopsys
-                --work=${__comp_lib_name}
-                --workdir=${OUTDIR}/${__comp_lib_name}
-                ${ARG_VHDL_COMPILE_ARGS}
-                ${hdl_libs_args}
-                ${VHDL_SOURCES}
-                )
-
+        get_ip_sources(VHDL_SOURCES ${lib} VHDL NO_DEPS ${ARG_FILE_SETS})
+        set(ghdl_analyze_cmd
+            ghdl
+            analyze
+            --std=${STANDARD}
+            -fsynopsys
+            --work=${comp_lib_name}
+            --workdir=${OUTDIR}/${comp_lib_name}
+            ${ARG_VHDL_COMPILE_ARGS}
+            ${hdl_libs_args}
+            ${VHDL_SOURCES}
+        )
 
         # GHDL creates an object (.o) file for each VHDL source file
         # GHDL creates a .cf file for each VHDL library
@@ -194,32 +307,34 @@ function(__ghdl_compile_lib IP_LIB)
             get_filename_component(source_basename ${source} NAME_WLE)
             list(APPEND obj_files "${lib_outdir}/${source_basename}.o")
         endforeach()
-        list(APPEND cf_files "${lib_outdir}/${__comp_lib_name}-obj${STANDARD}.cf")
+        list(APPEND cf_files "${lib_outdir}/${comp_lib_name}-obj${STANDARD}.cf")
 
-        # Modelsim custom command of current IP block should depend on stamp files of immediate linked IPs
+        # Questasim custom command of current IP block should depend on stamp files of immediate linked IPs
         # Extract the list from __ghdl_<LIB>_stamp_files
         get_ip_links(ip_subdeps ${lib} NO_DEPS)
-        unset(__ghdl_subdep_stamp_files)
+        unset(ghdl_subdep_stamp_files)
         foreach(ip_dep ${ip_subdeps})
-            list(APPEND __ghdl_subdep_stamp_files ${__ghdl_${ip_dep}_stamp_files})
+            list(APPEND ghdl_subdep_stamp_files ${ghdl_${ip_dep}_stamp_files})
         endforeach()
 
         if(VHDL_SOURCES)
-            set(DESCRIPTION "Compile VHDL for ${lib} with ghdl in library ${__comp_lib_name}")
-            set(STAMP_FILE "${lib_outdir}/${lib}_ghdl_${CMAKE_CURRENT_FUNCTION}.stamp")
+            set(DESCRIPTION
+                "Compile VHDL for ${lib} with ghdl in library ${comp_lib_name}"
+            )
+            set(STAMP_FILE
+                "${lib_outdir}/${lib}_ghdl_${CMAKE_CURRENT_FUNCTION}.stamp"
+            )
             add_custom_command(
                 OUTPUT ${STAMP_FILE}
                 COMMAND ${ghdl_analyze_cmd}
                 COMMAND touch ${STAMP_FILE}
-                BYPRODUCTS ${cf_files} ${obj_files}
                 WORKING_DIRECTORY ${OUTDIR}
-                DEPENDS ${VHDL_SOURCES} ${__ghdl_subdep_stamp_files}
+                DEPENDS ${VHDL_SOURCES} ${ghdl_subdep_stamp_files}
                 COMMENT ${DESCRIPTION}
             )
             list(APPEND all_stamp_files ${STAMP_FILE})
-            list(APPEND __ghdl_${lib}_stamp_files ${STAMP_FILE})
+            list(APPEND ghdl_${lib}_stamp_files ${STAMP_FILE})
         endif()
-
     endforeach()
 
     if(NOT TARGET ${IP_LIB}_ghdl_complib)
@@ -227,16 +342,45 @@ function(__ghdl_compile_lib IP_LIB)
             ${IP_LIB}_ghdl_complib
             DEPENDS ${all_stamp_files} ${IP_LIB}
         )
-        set_property(TARGET ${IP_LIB}_ghdl_complib PROPERTY DESCRIPTION 
-            "Compile VHDL files for ${IP_LIB} with ghdl")
+        set_property(
+            TARGET ${IP_LIB}_ghdl_complib
+            PROPERTY DESCRIPTION "Compile VHDL files for ${IP_LIB} with ghdl"
+        )
+        set_property(
+            TARGET ${IP_LIB}_ghdl_complib
+            APPEND
+            PROPERTY ADDITIONAL_CLEAN_FILES ${cf_files} ${obj_files}
+        )
     endif()
-
 endfunction()
 
+# This function is called by ``ghdl``, it shouldn't be used directly in a cmake file.
+#
+# It will set values for the HDL and DPI library arguments that will be used for compilation, elaboration and simulation.
+#
+# :param IP_LIB: The target IP library.
+# :type IP_LIB: string
+#
+# **Keyword Arguments**
+#
+# :keyword OUTDIR: Output directory for the ghdl compilation and simulation.
+# :type OUTDIR: string
+# :keyword LIBRARY: replace the default library name (worklib) to be used for elaboration and simulation.
+# :type LIBRARY: string
 function(__get_ghdl_search_lib_args IP_LIB)
-    cmake_parse_arguments(ARG "" "OUTDIR;LIBRARY" "" ${ARGN})
+    set(options)
+    set(oneValueArgs OUTDIR LIBRARY)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     get_ip_links(ips ${IP_LIB})
@@ -244,24 +388,27 @@ function(__get_ghdl_search_lib_args IP_LIB)
     foreach(lib ${ips})
         # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
         get_target_property(ip_type ${lib} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
+        if(
+            ip_type STREQUAL "SHARED_LIBRARY"
+            OR ip_type STREQUAL "STATIC_LIBRARY"
+        )
             list(APPEND dpi_libs_args -Wl,$<TARGET_FILE:${lib}>)
             if(ip_type STREQUAL "SHARED_LIBRARY")
-                message(WARNING "Shared library linked to simulation executable, set LD_LIBRARY_PATH")
+                socmake_message(WARNING "Shared library linked to simulation executable, set LD_LIBRARY_PATH")
             endif()
         else()
             # Library of the current IP block, get it from SoCMake library if present
             # If neither LIBRARY property is set, or LIBRARY passed as argument, use "work" as default
-            get_target_property(__comp_lib_name ${lib} LIBRARY)
-            if(NOT __comp_lib_name)
-                set(__comp_lib_name work)
+            get_target_property(comp_lib_name ${lib} LIBRARY)
+            if(NOT comp_lib_name)
+                set(comp_lib_name work)
             endif()
             if(ARG_LIBRARY)
-                set(__comp_lib_name ${ARG_LIBRARY})
+                set(comp_lib_name ${ARG_LIBRARY})
             endif()
 
-            set(lib_outdir ${ARG_OUTDIR}/${__comp_lib_name})
-            # Append current library outdhdl_libs_argsir to list of search directories
+            set(lib_outdir ${ARG_OUTDIR}/${comp_lib_name})
+            # Append current library outdir to list of search directories
             if(NOT "-P${lib_outdir}" IN_LIST hdl_libs_args)
                 list(APPEND hdl_libs_args -P${lib_outdir})
             endif()
@@ -272,9 +419,13 @@ function(__get_ghdl_search_lib_args IP_LIB)
     set(DPI_LIBS_ARGS ${dpi_libs_args} PARENT_SCOPE)
 endfunction()
 
+# This function adds the GHDL tools/include directory to the include directories of the VPI/DPI libraries, to be correctly compiled later.
+#
+# :param IP_LIB: The target IP library.
+# :type IP_LIB: string
 function(__add_ghdl_cxx_properties_to_libs IP_LIB)
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
     # Find the GHDL tools/include directory, needed for VPI/DPI libraries
     find_program(ghdl_exec_path ghdl)
@@ -285,9 +436,12 @@ function(__add_ghdl_cxx_properties_to_libs IP_LIB)
     foreach(lib ${ips})
         # In case linked library is C/C++ shared/static object, dont try to compile it, just append its path to -sv_lib arg
         get_target_property(ip_type ${lib} TYPE)
-        if(ip_type STREQUAL "SHARED_LIBRARY" OR ip_type STREQUAL "STATIC_LIBRARY")
+        if(
+            ip_type STREQUAL "SHARED_LIBRARY"
+            OR ip_type STREQUAL "STATIC_LIBRARY"
+        )
             if(NOT ghdl_exec_path)
-                message(FATAL_ERROR "GHDL executable xrun was not found, cannot set include directory on DPI library")
+                socmake_message(FATAL_ERROR "GHDL executable was not found, cannot set include directory on DPI library")
             endif()
             # Add tools/include directory to the include directories of DPI libraries
             # TODO do this only when its needed

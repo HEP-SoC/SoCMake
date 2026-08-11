@@ -1,2 +1,6 @@
-add_subdirectory(iverilog_simple_test)
+add_subdirectory(iverilog_compile_args)
+add_subdirectory(iverilog_include_directories)
+add_subdirectory(iverilog_linked_ips)
 add_subdirectory(iverilog_multi_top)
+add_subdirectory(iverilog_outdir)
+add_subdirectory(iverilog_simple_test)

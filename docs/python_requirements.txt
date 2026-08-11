@@ -1,0 +1,4 @@
+cmake==3.27
+cminx==1.1.13
+typing_extensions==4.15.0
+Sphinx==9.0.4

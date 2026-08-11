@@ -8,22 +8,22 @@ function(${${TEST_NAME}})
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.3
-        )
+    )
 
     ip_include_directories(${IP} SYSTEMVERILOG
         /svdir1
         /svdir2
-        )
+    )
 
     ip_include_directories(${IP} VERILOG
         /vdir1
         /vdir2
-        )
+    )
 
     ip_include_directories(${IP} VHDL
         /vhdldir1
         /vhdldir2
-        )
+    )
 
     get_ip_include_directories(INCDIRS ${IP} VERILOG SYSTEMVERILOG)
     ct_assert_list(INCDIRS)
@@ -41,17 +41,17 @@ function(${${TEST_NAME}})
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.4
-        )
+    )
 
     ip_include_directories(${IP} VERILOG
         /vdir3
         /vdir4
-        )
+    )
 
     ip_include_directories(${IP} VHDL
         /vhdldir3
         /vhdldir4
-        )
+    )
 
     ip_link(vendor::lib::ip::1.2.3 vendor::lib::ip2::1.2.4)
 
@@ -63,5 +63,3 @@ function(${${TEST_NAME}})
     ct_assert_list(INCDIRS)
     ct_assert_equal(INCDIRS "/vdir1;/vdir2;/vhdldir1;/vhdldir2;/svdir1;/svdir2")
 endfunction()
-
-

@@ -1,0 +1,53 @@
+#[[[ @module peakrdl_dump
+#]]
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
+
+#[[[
+# Creates a target <IP_LIB>_peakrdl_dump that prints address map in terminal.
+#
+#]]
+function(peakrdl_dump IP_LIB)
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../utils/find_python.cmake")
+
+    alias_dereference(IP_LIB ${IP_LIB})
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
+
+    get_ip_sources(RDL_FILES ${IP_LIB} SYSTEMRDL)
+    get_ip_include_directories(INC_DIRS ${IP_LIB} SYSTEMRDL)
+    get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMRDL)
+
+    if(NOT RDL_FILES)
+        socmake_message(FATAL_ERROR "Library ${IP_LIB} does not have RDL_FILES property set,
+                unable to run ${CMAKE_CURRENT_FUNCTION}"
+        )
+    endif()
+
+    unset(INCDIRS_ARG)
+    foreach(incdir ${INC_DIRS})
+        list(APPEND INCDIRS_ARG -I${incdir})
+    endforeach()
+
+    unset(COMPDEFS_ARG)
+    foreach(compdefs ${COMP_DEFS})
+        list(APPEND COMPDEFS_ARG -D${compdefs})
+    endforeach()
+
+    set(DESCRIPTION
+        "Print address map for \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}"
+    )
+
+    find_python3()
+    add_custom_target(
+        ${IP_LIB}_peakrdl_dump
+        COMMAND
+            ${Python3_EXECUTABLE} -m peakrdl dump ${INCDIRS_ARG} ${COMPDEFS_ARG}
+            ${RDL_FILES}
+        DEPENDS ${IP_LIB}
+        COMMENT ${DESCRIPTION}
+    )
+    set_property(
+        TARGET ${IP_LIB}_peakrdl_dump
+        PROPERTY DESCRIPTION ${DESCRIPTION}
+    )
+endfunction()

@@ -18,11 +18,11 @@ SC_MODULE(test_counters) {
     void rst_gen();
     void monitor_cnt();
 
-    SC_CTOR(test_counters) : 
+    SC_CTOR(test_counters) :
         clk("clk", 10, sc_core::SC_NS),
         rst("rst"),
         cnt1_out("cnt1_out"),
-        cnt2_out("cnt2_out") 
+        cnt2_out("cnt2_out")
     {
 #ifdef _SCGENMOD_counters_
         counters_i = new counters("counters_i", "counters");

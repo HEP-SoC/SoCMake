@@ -8,8 +8,8 @@ set(TEST_NAME ip_include_directories_rel_path)
 ct_add_test(NAME ${TEST_NAME})
 function(${${TEST_NAME}})
     execute_process(
-        COMMAND cmake -S ${THIS_DIR}/test
-                      -B ${CMAKE_BINARY_DIR}/${TEST_NAME}/build
-                      COMMAND_ERROR_IS_FATAL ANY
-                  )
+        COMMAND
+            cmake -S ${THIS_DIR}/test -B ${CMAKE_BINARY_DIR}/${TEST_NAME}/build
+        COMMAND_ERROR_IS_FATAL ANY
+    )
 endfunction()

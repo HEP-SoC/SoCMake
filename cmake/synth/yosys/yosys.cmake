@@ -1,14 +1,18 @@
+#[[[ @module yosys
+#]]
+
 include_guard(GLOBAL)
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 
 include(${CMAKE_CURRENT_LIST_DIR}/../sv2v.cmake)
 
-# [[[
+#[[[
 # This function runs the Yosys synthesis tool on a specified IP library.
 #
 # The function is a wrapper around the Yosys tool and generates necessary scripts
 # and configurations to run Yosys on the specified IP library.
 #
-# :param IP_LIB: Name of the IP library to run Yosys on.
+# :param IP_LIB: The target IP library.
 # :type IP_LIB: string
 #
 # **Keyword Arguments**
@@ -27,18 +31,28 @@ include(${CMAKE_CURRENT_LIST_DIR}/../sv2v.cmake)
 # :type SHOW: boolean
 # :keyword REPLACE: Replace original sources with the generated Verilog source.
 # :type REPLACE: boolean
-# ]]]
+#]]
 function(yosys IP_LIB)
     # TODO iterate over linked libraries and replace SYSTEMVERILOG_SOURCES with VERILOG_SOURCES instead
 
     # Parse the function arguments
-    cmake_parse_arguments(ARG "SV2V;SHOW;REPLACE" "OUTDIR;TOP;PLUGINS;SCRIPTS" "" ${ARGN})
+    set(options SV2V SHOW REPLACE)
+    set(oneValueArgs OUTDIR TOP PLUGINS SCRIPTS)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     # Check for any unrecognized arguments
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
-    # Include the hardware IP managament main functions
+    # Include the hardware IP management main functions
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
 
     # Assume the IP library is the latest one provided if full name is not given
@@ -67,11 +81,11 @@ function(yosys IP_LIB)
 
     # If SV2V argument is passed and the target does not exist, convert SystemVerilog to Verilog
     if(ARG_SV2V AND NOT TARGET ${IP_LIB}_sv2v)
-        message("Yosys ${IP_LIB}: sv2v argument call")
+        socmake_message(STATUS "Yosys ${IP_LIB}: sv2v argument call")
         # Replace the original files with the generated ones
         sv2v(${IP_LIB} REPLACE)
     else()
-        message("Yosys ${IP_LIB}: sv2v argument NOT call")
+        socmake_message(STATUS "Yosys ${IP_LIB}: sv2v argument NOT call")
         # Otherwise use original source files
         get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
         list(REMOVE_DUPLICATES SOURCES)
@@ -81,9 +95,9 @@ function(yosys IP_LIB)
     get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
 
     # Format the string for config file format
-    string (REPLACE ";" " " V_FILES_STR "${SOURCES}")
+    string(REPLACE ";" " " V_FILES_STR "${SOURCES}")
 
-    message("Yosys V_FILES_STR: ${V_FILES_STR}")
+    socmake_message(STATUS "Yosys V_FILES_STR: ${V_FILES_STR}")
 
     # Get the IP compile definitions (e.g., )
     get_ip_compile_definitions(COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG)
@@ -99,56 +113,86 @@ function(yosys IP_LIB)
     # If no custom scripts are provided, use the default Yosys script
     if(NOT ARG_SCRIPTS)
         set(YOSYS_SCRIPTS ${OUTDIR}/flows/default_${IP_LIB}.ys)
-        configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/flows/default.ys.in ${YOSYS_SCRIPTS} @ONLY)
-        set_property(TARGET ${IP_LIB} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${YOSYS_SCRIPTS})
+        configure_file(
+            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/flows/default.ys.in
+            ${YOSYS_SCRIPTS}
+            @ONLY
+        )
+        set_property(
+            TARGET ${IP_LIB}
+            APPEND
+            PROPERTY ADDITIONAL_CLEAN_FILES ${YOSYS_SCRIPTS}
+        )
     else()
-        foreach(_script ${ARG_SCRIPTS})
+        foreach(script ${ARG_SCRIPTS})
             # Configure and set the custom scripts
-            get_filename_component(__ext ${_script} EXT)
-            get_filename_component(__fn ${_script} NAME_WLE)
-            if(__ext STREQUAL ".ys.in")
-                configure_file(${_script} ${OUTDIR}/flows/${__fn} @ONLY)
-                set_property(TARGET ${IP_LIB} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR}/flows/${__fn})
-                list(APPEND YOSYS_SCRIPTS ${OUTDIR}/flows/${__fn})
+            get_filename_component(ext ${script} EXT)
+            get_filename_component(fn ${script} NAME_WLE)
+            if(ext STREQUAL ".ys.in")
+                configure_file(${script} ${OUTDIR}/flows/${fn} @ONLY)
+                set_property(
+                    TARGET ${IP_LIB}
+                    APPEND
+                    PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR}/flows/${fn}
+                )
+                list(APPEND YOSYS_SCRIPTS ${OUTDIR}/flows/${fn})
             endif()
         endforeach()
     endif()
 
     # If SHOW argument is passed, configure an additional Yosys script to show the netlist
     if(ARG_SHOW)
-        configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/flows/show.ys.in ${OUTDIR}/flows/show_${IP_LIB}.ys @ONLY)
-        set_property(TARGET ${IP_LIB} APPEND PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR}/flows/show_${IP_LIB}.ys)
+        configure_file(
+            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/flows/show.ys.in
+            ${OUTDIR}/flows/show_${IP_LIB}.ys
+            @ONLY
+        )
+        set_property(
+            TARGET ${IP_LIB}
+            APPEND
+            PROPERTY ADDITIONAL_CLEAN_FILES ${OUTDIR}/flows/show_${IP_LIB}.ys
+        )
         list(PREPEND YOSYS_SCRIPTS ${OUTDIR}/flows/show_${IP_LIB}.ys)
     endif()
 
     # If PLUGINS argument is passed, set the plugins for Yosys
     if(ARG_PLUGINS)
-        unset(__PLUGINS_ARG)
+        unset(plugins_arg)
         foreach(plugin ${ARG_PLUGINS})
-            get_target_property(__type ${plugin} TYPE)
+            get_target_property(type ${plugin} TYPE)
             # Add the '-m' flag for each shared and static library plugin provided
-            if(${__type} STREQUAL "SHARED_LIBRARY" OR ${__type} STREQUAL "STATIC_LIBRARY")
-                list(APPEND __PLUGINS_ARG -m $<TARGET_FILE:${plugin}>)
+            if(
+                ${type} STREQUAL "SHARED_LIBRARY"
+                OR ${type} STREQUAL "STATIC_LIBRARY"
+            )
+                list(APPEND plugins_arg -m $<TARGET_FILE:${plugin}>)
             else()
-                message(FATAL_ERROR "Only Shared and Static libraries are supported for Yosys PLUGINS at the moment")
+                socmake_message(FATAL_ERROR "Only Shared and Static libraries are supported for Yosys PLUGINS at the moment")
             endif()
         endforeach()
     endif()
 
     # Set the stamp file path used as the generated output of the custom command
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(DESCRIPTION
+        "Run synthesis on \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}"
+    )
     # Add a custom command to run Yosys
     add_custom_command(
         OUTPUT ${STAMP_FILE}
-        COMMAND yosys ${CMP_DEFS_ARG} -s ${YOSYS_SCRIPTS} ${__PLUGINS_ARG}
+        COMMAND yosys ${CMP_DEFS_ARG} -s ${YOSYS_SCRIPTS} ${plugins_arg}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
+        COMMENT ${DESCRIPTION}
     )
     # Custom target that depends on the stamp file, sources, and yosys scripts
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${STAMP_FILE} ${SOURCES} ${YOSYS_SCRIPTS}
+    )
+    set_property(
+        TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        PROPERTY DESCRIPTION ${DESCRIPTION}
     )
 
     # Add
@@ -159,6 +203,4 @@ function(yosys IP_LIB)
         set_property(TARGET ${IP_LIB} PROPERTY SYSTEMVERILOG_SOURCES "")
         add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
     endif()
-
 endfunction()
-

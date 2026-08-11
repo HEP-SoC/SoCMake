@@ -1,0 +1,50 @@
+name: linting
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+  push:
+    branches:
+      - master
+      - develop
+    paths-ignore:
+      - 'docs/**'
+
+jobs:
+
+  pre-commit:
+    name: Pre-commit hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - uses: pre-commit/action@v3.0.1
+
+  socmake_message:
+    name: Check socmake_message usage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check that all message() calls use socmake_message()
+        run: |
+          violations=$(grep -rEn 'message\s*\(' \
+            --include="*.cmake" \
+            --include="CMakeLists.txt" \
+            cmake/ CMakeLists.txt SoCMakeConfig.cmake \
+            | grep -vE 'socmake_message\s*\(' \
+            | grep -vE ':[0-9]+:\s*#' \
+            | grep -v 'cmake/utils/socmake_message.cmake' \
+            || true)
+
+          if [ -n "$violations" ]; then
+            echo "ERROR: bare message() calls found — use socmake_message() instead:"
+            echo "$violations"
+            exit 1
+          fi
+
+          echo "OK: all message() calls use socmake_message()"

@@ -1,0 +1,112 @@
+name: docs_preview_workflow
+
+# Build the docs for any PR touching docs/ or carrying the 'preview-docs' label
+# and publish them to a per-PR sub-path on gh-pages, e.g.
+# https://hep-soc.github.io/SoCMake/pr-preview/pr-123/
+# The preview is removed automatically when the PR is closed.
+#
+# Note: GITHUB_TOKEN is read-only for pull_request events coming from forks,
+# so this only deploys previews for branches pushed within this repository.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed, labeled]
+
+concurrency:
+  group: docs-preview-${{ github.event.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # Only check for file changes on push-like events, not on label or close
+      - uses: dorny/paths-filter@v4
+        id: filter
+        if: github.event.action != 'closed' && github.event.action != 'labeled'
+        with:
+          filters: |
+            docs:
+              - 'docs/**'
+              - '.github/workflows/pages_preview.yml'
+
+      - id: gate
+        shell: bash
+        run: |
+          ACTION="${{ github.event.action }}"
+          HAS_LABEL="${{ contains(github.event.pull_request.labels.*.name, 'preview-docs') }}"
+          DOCS_CHANGED="${{ steps.filter.outputs.docs }}"
+
+          if [[ "$ACTION" == "closed" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$ACTION" == "labeled" ]]; then
+            # Only rebuild when 'preview-docs' itself is added, not unrelated labels
+            [[ "${{ github.event.label.name }}" == "preview-docs" ]] && \
+              echo "run=true" >> "$GITHUB_OUTPUT" || echo "run=false" >> "$GITHUB_OUTPUT"
+          elif [[ "$HAS_LABEL" == "true" || "$DOCS_CHANGED" == "true" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  preview_docs_job:
+    needs: check
+    if: needs.check.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      DOCS_BASE_URL: /SoCMake/pr-preview/pr-${{ github.event.number }}/
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        if: github.event.action != 'closed'
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.12
+
+      - name: Set up Node
+        if: github.event.action != 'closed'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        if: github.event.action != 'closed'
+        run: |
+          python -m pip install -U sphinx
+          python -m pip install sphinx-rtd-theme
+          python -m pip install sphinx-autoapi
+
+      - name: Build the docs
+        if: github.event.action != 'closed'
+        run: |
+          cd docs
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r python_requirements.txt
+          mkdir -p build
+          cd build
+          cmake ../
+          make docusaurus_doc
+
+      - name: Deploy / clean up PR preview
+        id: preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./docs/build/docusaurus
+
+      - name: Print preview URL
+        if: github.event.action != 'closed'
+        run: |
+          echo "Preview URL: ${{ steps.preview.outputs.preview-url }}"
+          echo "### 📖 Docs preview: ${{ steps.preview.outputs.preview-url }}" >> "$GITHUB_STEP_SUMMARY"

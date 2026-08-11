@@ -18,4 +18,3 @@ module counter2 (
     end
 
 endmodule
-

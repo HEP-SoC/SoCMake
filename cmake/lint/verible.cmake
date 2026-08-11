@@ -1,0 +1,217 @@
+#[[[ @module verible
+#]]
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
+
+#[[[
+# Verible lint tool interface
+#
+# This function will create a target for linting the SystemVerilog files, more information about the tool can be found `here <https://github.com/chipsalliance/verible>`_.
+#
+# It expects that **IP_LIB** *INTERFACE_LIBRARY* has **SOURCES** property set with a list of System Verilog files to be used as inputs.
+#
+# Function will create targets for linting or formatting depending on passed option
+#
+# :param IP_LIB: The target IP library.
+# :type IP_LIB: string
+#
+# **Keyword Arguments**
+#
+# :keyword REQUIRED: if option REQUIRED is passed, the **IP_LIB** will depend on linting target, meaning that the linting will be done as soon as all the Verilog files are generated. By default only a new target <IP_LIB>_verible_lint is created and can be run optionally.
+# :type REQUIRED: bool
+# :keyword OUTDIR: output directory in which the files will be generated, if omitted ${BINARY_DIR}/verible will be used.
+# :type OUTDIR: string path
+# :keyword AUTOFIX: autofix the linting errors
+# :type AUTOFIX: [no|patch-interactive|patch|inplace-interactive|inplace|generate-waiver]
+# :keyword RULES: list of rules to enable or disable for reference look at verible `documentation <https://github.com/chipsalliance/verible/tree/master/verilog/tools/lint#rule-configuration>`_
+# :type RULES: List[string]
+# :keyword RULES_FILE: Additionally, the RULES_FILE flag can be used to read configuration stored in a file. The syntax is the same as RULES, except the rules can be also separated with the newline character
+# :type RULES_FILE: path string
+# :keyword WAIVER_FILES: Path to waiver config files (comma-separated). Please refer to the README file for information about its format.
+# :type WAIVER_FILES: list[string]
+# :keyword ONLY_TOP: If set, only lint the source files belonging directly to IP_LIB, without traversing its dependencies.
+# :type ONLY_TOP: bool
+# :keyword SKIP_GENERATED: If set, exclude files marked with the CMake ``GENERATED`` source property from linting.
+# :type SKIP_GENERATED: bool
+#]]
+
+function(verible_lint IP_LIB)
+    set(options REQUIRED ONLY_TOP SKIP_GENERATED)
+    set(oneValueArgs OUTDIR AUTOFIX RULES_FILE)
+    set(multiValueArgs RULES WAIVER_FILES)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
+    if(ARG_UNPARSED_ARGUMENTS)
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
+    include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
+
+    alias_dereference(IP_LIB ${IP_LIB})
+
+    get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
+    if(NOT ARG_OUTDIR)
+        set(OUTDIR ${BINARY_DIR}/verible)
+    else()
+        set(OUTDIR ${ARG_OUTDIR})
+    endif()
+    file(MAKE_DIRECTORY ${OUTDIR})
+
+    set(AUTOFIX_OPTIONS
+        "no;patch-interactive;patch;inplace-interactive;inplace;generate-waiver"
+    )
+    if(ARG_AUTOFIX AND (NOT ARG_AUTOFIX IN_LIST AUTOFIX_OPTIONS))
+        socmake_message(FATAL_ERROR "Not valid option for AUTOFIX: ${ARG_AUTOFIX}, valid options are ${AUTOFIX_OPTIONS}")
+    endif()
+
+    if(ARG_AUTOFIX)
+        set(ARG_AUTOFIX --autofix ${ARG_AUTOFIX})
+        set(AUTOFIX_OUTFILE_ARG
+            --autofix_output_file
+            ${OUTDIR}/${IP_LIB}_autofix.patch
+        )
+    endif()
+
+    if(ARG_RULES)
+        string(REPLACE ";" "," RULES "${ARG_RULES}")
+        set(ARG_RULES --rules=${RULES})
+    endif()
+
+    if(ARG_RULES_FILE)
+        set(ARG_RULES_FILE --rules_config=${ARG_RULES_FILE})
+    endif()
+
+    if(ARG_WAIVER_FILES)
+        string(REPLACE ";" "," WAIVER_FILES "${ARG_WAIVER_FILES}")
+        set(ARG_WAIVER_FILES --waiver_files=${WAIVER_FILES})
+    endif()
+
+    if(ARG_ONLY_TOP)
+        get_ip_sources(V_SOURCES ${IP_LIB} VERILOG)
+        get_ip_sources(SV_SOURCES ${IP_LIB} SYSTEMVERILOG)
+    else()
+        get_ip_sources(SOURCES ${IP_LIB} SYSTEMVERILOG VERILOG)
+    endif()
+    set(sources ${SV_SOURCES} ${V_SOURCES})
+
+    if(ARG_SKIP_GENERATED)
+        foreach(fn ${sources})
+            get_property(file_is_gen SOURCE ${fn} PROPERTY GENERATED)
+            if(file_is_gen)
+                list(REMOVE_ITEM sources ${fn})
+            endif()
+        endforeach()
+    endif()
+
+    find_program(VERIBLE_LINTER NAMES verible-verilog-lint)
+    set(cmd
+        ${VERIBLE_LINTER}
+        ${ARG_AUTOFIX}
+        ${AUTOFIX_OUTFILE_ARG}
+        ${ARG_RULES}
+        ${ARG_RULES_FILE}
+        ${ARG_WAIVER_FILES}
+        ${sources}
+    )
+
+    set(DESCRIPTION "Lint ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}")
+    if(ARG_REQUIRED)
+        set(STAMP_FILE
+            "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp"
+        )
+        add_custom_command(
+            OUTPUT ${STAMP_FILE}
+            COMMAND ${cmd}
+            COMMAND touch ${STAMP_FILE}
+            DEPENDS ${sources}
+            COMMENT ${DESCRIPTION}
+        )
+
+        add_custom_target(
+            ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+            DEPENDS ${sources} ${STAMP_FILE}
+        )
+        add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
+    else()
+        add_custom_target(
+            ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+            COMMAND ${cmd}
+            COMMENT ${DESCRIPTION}
+        )
+        add_dependencies(${IP_LIB}_${CMAKE_CURRENT_FUNCTION} ${IP_LIB})
+    endif()
+    set_property(
+        TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        PROPERTY DESCRIPTION ${DESCRIPTION}
+    )
+endfunction()
+
+# TODO add formatter
+
+# function(verible_format IP_LIB)
+#     cmake_parse_arguments(ARG "" "OUTDIR;AUTOFIX;RULES_FILE" "RULES;WAIVER_FILES" ${ARGN})
+#     if(ARG_UNPARSED_ARGUMENTS)
+#         message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+#     endif()
+#
+#     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../IP_LIB.cmake")
+#
+#     get_target_property(BINARY_DIR ${IP_LIB} BINARY_DIR)
+#     if(NOT ARG_OUTDIR)
+#         set(OUTDIR ${BINARY_DIR}/verible)
+#     else()
+#         set(OUTDIR ${ARG_OUTDIR})
+#     endif()
+#     file(MAKE_DIRECTORY ${OUTDIR})
+#
+#     set(AUTOFIX_OPTIONS "no;patch-interactive;patch;inplace-interactive;inplace;generate-waiver")
+#     if(ARG_AUTOFIX AND (NOT ARG_AUTOFIX IN_LIST AUTOFIX_OPTIONS))
+#         message(FATAL_ERROR "Not valid option for AUTOFIX: ${ARG_AUTOFIX}, valid options are ${AUTOFIX_OPTIONS}")
+#     endif()
+#
+#     if(ARG_AUTOFIX)
+#         set(ARG_AUTOFIX --autofix ${ARG_AUTOFIX})
+#         set(AUTOFIX_OUTFILE_ARG --autofix_output_file ${OUTDIR}/${IP_LIB}_autofix.patch)
+#     endif()
+#
+#     if(ARG_RULES)
+#         string(REPLACE ";" "," RULES "${ARG_RULES}")
+#         set(ARG_RULES --rules=${RULES})
+#     endif()
+#
+#     if(ARG_RULES_FILE)
+#         set(ARG_RULES_FILE --rules_config=${ARG_RULES_FILE})
+#     endif()
+#
+#     if(ARG_WAIVER_FILES)
+#         string(REPLACE ";" "," WAIVER_FILES "${ARG_WAIVER_FILES}")
+#         set(ARG_WAIVER_FILES --waiver_files=${WAIVER_FILES})
+#     endif()
+#
+#     get_rtl_target_sources(SOURCES ${IP_LIB})
+#
+#     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+#     add_custom_command(OUTPUT ${STAMP_FILE}
+#         COMMAND verible-verilog-lint
+#             ${ARG_AUTOFIX} ${AUTOFIX_OUTFILE_ARG}
+#             ${ARG_RULES} ${ARG_RULES_FILE}
+#             ${ARG_WAIVER_FILES}
+#             ${SOURCES}
+#         COMMAND touch ${STAMP_FILE}
+#         DEPENDS ${SOURCES}
+#         COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
+#         )
+#
+#     add_custom_target(${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+#         DEPENDS ${SOURCES} ${STAMP_FILE}
+#         )
+#
+#     add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
+#
+# endfunction()
+#

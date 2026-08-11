@@ -1,4 +1,4 @@
-# This test will succed because its allowed to have short notation in `ip_link(ip)` call
+# This test will succeed because its allowed to have short notation in `ip_link(ip)` call
 include("${CMAKE_CURRENT_LIST_DIR}/../../../CMakeLists.txt")
 
 set(TEST_NAME add_ip_1_token)
@@ -16,7 +16,7 @@ function(${${TEST_NAME}})
     add_ip(ip2
         VENDOR vendor
         LIBRARY lib
-        )
+    )
     ct_assert_target_exists(vendor::lib::ip2)
     ct_assert_equal(IP vendor__lib__ip2)
     ct_assert_equal(IP_VENDOR vendor)

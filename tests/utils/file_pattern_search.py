@@ -1,23 +1,51 @@
+"""Search a file for one or more substrings and report which patterns were found.
+
+Used by CTest via add_test_build_commands_match_patterns to verify that expected
+commands (e.g. compiler flags, tool invocations) appear in a captured build dry-run
+output file. Exits with 0 if all patterns are found, -1 otherwise.
+
+Usage:
+    python file_pattern_search.py <file> [--] <pattern> [<pattern> ...]
+"""
+
 import argparse
 from pathlib import Path
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
+
 def check_search(file_content, search_term):
-    """Check if a search term exists in the file content and return matching lines with their line numbers."""
+    """Check if a search term exists in the file content and return matching lines with their line numbers.
+
+    Args:
+        file_content: The full text content of the file to search.
+        search_term: The string to search for in each line.
+
+    Returns:
+        List of ``(line_number, line)`` tuples for each matching line.
+    """
     matched_lines = []
     for line_number, line in enumerate(file_content.splitlines(), start=1):
         if search_term in line:
             matched_lines.append((line_number, line))
     return matched_lines
 
+
 def generate_report(results):
-    """Generate a detailed report from the search results with colored output."""
+    """Generate a detailed report from the search results with colored output.
+
+    Args:
+        results: Dictionary mapping each pattern string to a ``(found, matched_lines)`` tuple.
+
+    Returns:
+        Tuple of ``(report_string, return_status)`` where ``return_status`` is ``0``
+        if all patterns were found, or ``-1`` if any pattern was missing.
+    """
     report = []
     report.append("Search Report")
     report.append("=" * 40)
-    
+
     return_status = 0
     for term, (found, _) in results.items():
         if found:
@@ -27,28 +55,44 @@ def generate_report(results):
             # Red [FAILED] message for mismatches
             status = Text("[red][FAILED][/red] Not found: ")
             return_status = -1
-        
+
         # Add the search term to the status
         report.append(Text.assemble(status, term))
-    
+
     report.append("=" * 40)
-    
+
     # Return the full report as a string
     return "\n".join(str(line) for line in report), return_status
 
+
 def highlight_patterns(line, patterns):
-    """Highlight matched and unmatched patterns in the given line."""
+    """Highlight matched and unmatched patterns in the given line.
+
+    Wraps the entire line in red Rich markup, then re-wraps each matched
+    pattern in green.
+
+    Args:
+        line: The text line to highlight.
+        patterns: List of pattern strings to highlight in green if found.
+
+    Returns:
+        The line string with Rich markup applied.
+    """
     line = f"[red]{line}[/red]"
     for pattern in patterns:
         if pattern in line:
             line = line.replace(pattern, f"[green]{pattern}[/green]")
     return line
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Search for multiple patterns in a file and report results.")
-    parser.add_argument('file', type=Path, help="Path to the file to search")
-    parser.add_argument('patterns', nargs='+', help="Patterns to search for")
-    
+    """Entry point: search a file for one or more patterns and print a formatted report."""
+    parser = argparse.ArgumentParser(
+        description="Search for multiple patterns in a file and report results."
+    )
+    parser.add_argument("file", type=Path, help="Path to the file to search")
+    parser.add_argument("patterns", nargs="+", help="Patterns to search for")
+
     args = parser.parse_args()
 
     console = Console(force_terminal=True)
@@ -59,7 +103,7 @@ def main():
         return
 
     # Read file content
-    with args.file.open('r') as file:
+    with args.file.open("r") as file:
         file_content = file.read()
 
     # Perform the searches and collect unique matching lines
@@ -82,13 +126,18 @@ def main():
     if matched_lines_set:
         for line_number, line in matched_lines_set:
             highlighted_line = highlight_patterns(line, args.patterns)
-            # console.print(f"[yellow]{line_number}: {highlighted_line}[/yellow]")
-            console.print(Panel(f"[yellow]{line_number}: {highlighted_line}[/yellow]", title="Matched Lines", expand=False))
+            console.print(
+                Panel(
+                    f"[yellow]{line_number}: {highlighted_line}[/yellow]",
+                    title="Matched Lines",
+                    expand=False,
+                )
+            )
     else:
         console.print("[yellow]No matching lines found in the file.[/yellow]")
 
     exit(return_status)
 
+
 if __name__ == "__main__":
     main()
-

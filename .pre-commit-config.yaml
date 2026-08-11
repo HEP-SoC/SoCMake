@@ -1,0 +1,49 @@
+repos:
+  # ── General ────────────────────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: check-json
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: end-of-file-fixer
+        exclude: '^.*\.svg$'
+      - id: trailing-whitespace
+        exclude: '^.*\.svg$'
+
+  # ── Python ─────────────────────────────────────────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.7
+    hooks:
+      - id: ruff          # linter (replaces flake8 + isort)
+        args: [--fix]
+      - id: ruff-format   # formatter (replaces black)
+
+  # ── CMake ──────────────────────────────────────────────────────────────────
+  - repo: https://github.com/BlankSpruce/gersemi-pre-commit
+    rev: 0.27.7
+    hooks:
+    - id: gersemi
+
+  # ── Whitespace ─────────────────────────────────────────────────────────────
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.1.13
+    hooks:
+      - id: remove-tabs
+      - id: remove-crlf
+
+  # ── Spelling ───────────────────────────────────────────────────────────────
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.1
+    hooks:
+      - id: codespell
+        name: codespell
+        description: Checks for common misspellings in text files.
+        entry: codespell
+        language: python
+        types: [text]
+        args: ['--ignore-words=.codespell.ignore', '--skip=docs/package-lock.json']

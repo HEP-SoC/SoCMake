@@ -1,0 +1,12 @@
+addrmap ip2 {
+    reg {
+        regwidth = 32;
+        field {
+            fieldwidth = 32;
+        } f1;
+    } testreg2;
+
+    `ifdef USE_IP1
+    ip1 ip1_i;
+    `endif
+};

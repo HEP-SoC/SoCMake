@@ -32,4 +32,3 @@ SC_MODULE(counters) {
         delete cnt2_i;
     }
 };
-

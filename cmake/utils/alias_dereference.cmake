@@ -1,3 +1,7 @@
+#[[[ @module alias_dereference
+#]]
+include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
+
 #[[[
 # This function returns the original library name if the given one is an alias.
 #
@@ -8,7 +12,6 @@
 #
 #]]
 function(alias_dereference OUT LIB)
-
     # Check if the library is STATIC linked one, the library name will be $<LINK_ONLY:${LIB}> in that case
     if("${LIB}" MATCHES "\\$<LINK_ONLY:")
         return()
@@ -20,23 +23,23 @@ function(alias_dereference OUT LIB)
         # message(FATAL_ERROR "Library ${LIB} is not defined")
         return()
     endif()
-    # Retrive the original library name from the library property
-    get_target_property(_reallib ${LIB} ALIASED_TARGET)
+    # Retrieve the original library name from the library property
+    get_target_property(reallib ${LIB} ALIASED_TARGET)
     # If the ALIASED_TARGET property does not exist, it means we already have the original one
-    if(NOT _reallib)
+    if(NOT reallib)
         set(${OUT} ${LIB} PARENT_SCOPE)
     else()
-        set(${OUT} ${_reallib} PARENT_SCOPE)
+        set(${OUT} ${reallib} PARENT_SCOPE)
     endif()
 endfunction()
 
-# # ORGINAL FUNCTION MOVED INTO utils/alias_dereference.cmake
+# # ORIGINAL FUNCTION MOVED INTO utils/alias_dereference.cmake
 # function(alias_dereference OUT LIB)
 #     # First check the library exists
 #     if(NOT TARGET ${LIB})
 #         message(FATAL_ERROR "Library ${LIB} is not defined")
 #     endif()
-#     # Retrive the original library name from the library property
+#     # Retrieve the original library name from the library property
 #     get_target_property(_reallib ${LIB} ALIASED_TARGET)
 #     # If the ALIASED_TARGET property does not exist, it means we already have the original one
 #     if(NOT _reallib)

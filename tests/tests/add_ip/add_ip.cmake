@@ -9,7 +9,7 @@ function(${${TEST_NAME}})
         VENDOR vendor
         LIBRARY lib
         VERSION 1.2.3
-        )
+    )
     ct_assert_target_exists(vendor::lib::ip::1.2.3)
     ct_assert_target_exists(vendor__lib__ip__1.2.3)
 
@@ -22,11 +22,11 @@ function(${${TEST_NAME}})
 
     add_ip(ip4
         VERSION 1.1.1
-        )
+    )
     ct_assert_target_exists(ip4::1.1.1)
     ct_assert_target_exists(ip4__1.1.1)
 
-    ## Test shortened add_ip() call 
+    ## Test shortened add_ip() call
     add_ip(vendor2::lib2::ip2::1.2.2)
 
     ct_assert_target_exists(vendor2::lib2::ip2::1.2.2)
@@ -38,5 +38,4 @@ function(${${TEST_NAME}})
     ct_assert_equal(IP_LIBRARY "lib2")
     ct_assert_equal(IP_VERSION "1.2.2")
     ct_assert_target_exists(${IP_VENDOR}__${IP_LIBRARY}__${IP_NAME}__${IP_VERSION})
-
 endfunction()

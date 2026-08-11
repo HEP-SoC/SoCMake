@@ -1,7 +1,39 @@
+#[[[ @module fpga
+#]]
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
+
+#[[[
+# Generate a vivado FPGA project and create a target to generate the bitstream.
+#
+# The python script, edalize_vivado, using edalize library is used to correctly run vivado with the given information.
+# The different arguments are parsed and formatted to be properly given to vivado.
+#
+# :param IP_LIB: The target IP library.
+# :type IP_LIB: string
+#
+# **Keyword Arguments**
+#
+# :keyword TOP: Top-level module name used for elaboration. The default is the IP_LIB ``IP_NAME`` property.
+# :type TOP: string
+# :keyword VERILOG_DEFINES: Additional SV/Verilog define flags to be passed to the Vivado project.
+# :type VERILOG_DEFINES: list[string]
+# :keyword OUTDIR: Output directory for generated files. Defaults to ``${BINARY_DIR}/vivado``.
+# :type OUTDIR: string
+#]]
 function(vivado IP_LIB)
-    cmake_parse_arguments(ARG "" "TOP" "VERILOG_DEFINES" ${ARGN})
+    set(options)
+    set(oneValueArgs TOP OUTDIR)
+    set(multiValueArgs VERILOG_DEFINES)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../hwip.cmake")
@@ -38,25 +70,22 @@ function(vivado IP_LIB)
     set_source_files_properties(${BITSTREAM} PROPERTIES GENERATED TRUE)
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
+    set(DESCRIPTION
+        "Generate bitstream for \"${IP_LIB}\" with ${CMAKE_CURRENT_FUNCTION}"
+    )
     add_custom_command(
         OUTPUT ${BITSTREAM} ${STAMP_FILE}
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/edalize_vivado.py
-            --rtl-files ${SOURCES}
-            --inc-dirs ${INCLUDE_DIRS}
-            --constraint-files ${XDC_FILES}
-            --part ${FPGA_PART}
-            --name ${IP_LIB}
-            --top  ${TOP}
-            --outdir ${OUTDIR}
-            --verilog-defs ${COMP_DEFS}
-
+        COMMAND
+            ${Python3_EXECUTABLE}
+            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/edalize_vivado.py --rtl-files
+            ${SOURCES} --inc-dirs ${INCLUDE_DIRS} --constraint-files
+            ${XDC_FILES} --part ${FPGA_PART} --name ${IP_LIB} --top ${TOP}
+            --outdir ${OUTDIR} --verilog-defs ${COMP_DEFS}
         COMMAND /bin/sh -c date > ${STAMP_FILE}
         DEPENDS ${SOURCES} ${XDC_FILES} ${IP_LIB}
-        COMMENT "Running ${CMAKE_CURRENT_FUNCTION} on ${IP_LIB}"
+        COMMENT ${DESCRIPTION}
     )
 
-    add_custom_target(
-        ${IP_LIB}_vivado
-        DEPENDS ${BITSTREAM} ${STAMP_FILE}
-    )
+    add_custom_target(${IP_LIB}_vivado DEPENDS ${BITSTREAM} ${STAMP_FILE})
+    set_property(TARGET ${IP_LIB}_vivado PROPERTY DESCRIPTION ${DESCRIPTION})
 endfunction()

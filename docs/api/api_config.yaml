@@ -1,0 +1,166 @@
+input:
+  # Whether undocumented functions should have documentation
+  # auto-generated.
+  include_undocumented_function: false
+
+  # Whether undocumented macros should have documentation
+  # auto-generated.
+  include_undocumented_macro: false
+
+  # Whether undocumented classes should have documentation
+  # auto-generated.
+  include_undocumented_cpp_class: false
+
+  # Whether undocumented attributes within CMakePP classes should have documentation
+  # auto-generated.
+  include_undocumented_cpp_attr: false
+
+  # Whether undocumented members within CMakePP classes should have documentation
+  # auto-generated.
+  include_undocumented_cpp_member: false
+
+  # Whether undocumented constructors within CMakePP classes should have documentation
+  # auto-generated.
+  include_undocumented_cpp_constructor: false
+
+  # Whether undocumented tests should have documentation
+  # auto-generated.
+  include_undocumented_ct_add_test: false
+
+  # Whether undocumented test sections should have documentation
+  # auto-generated.
+  include_undocumented_ct_add_section: false
+
+  # Whether undocumented options should have documentation
+  # auto-generated.
+  include_undocumented_option: false
+
+  # Whether undocumented CTest tests should have documentation
+  # auto-generated. This controls whether all vanilla
+  # CMake add_test() commands should be documented,
+  # it has no relation to CMakeTest tests.
+  include_undocumented_add_test: false
+
+  # Whether directories not containing .cmake
+  # files should be excluded from recursive mode searching.
+  auto_exclude_directories_without_cmake: false
+
+  # What string should trigger automatic kwargs documentation
+  # generation when encountered in a doccomment for a function()
+  # or macro() definition. When this string is encountered
+  # the defined command parameter list will be modified to include
+  # "**kwargs" as the last parameter. This will also occur
+  # if a call to "cmake_parse_arguments()" exists within the
+  # body of the function or macro.
+  kwargs_doc_trigger_string: ":keyword"
+
+  # Strips out any string matching this regex
+  # for parameter names. This is useful for when
+  # parameter names have a prefix/postfix to prevent
+  # name collisions. This affects function definitions.
+  #
+  # An example regex that strips the prefix "_abc_"
+  # from parameter names where "abc" is any combination of letters
+  # is below:
+  # function_parameter_name_strip_regex: "^_[a-zA-Z]*_"
+  function_parameter_name_strip_regex: ""
+
+  # Strips out any string matching this regex
+  # for parameter names. This is useful for when
+  # parameter names have a prefix/postfix to prevent
+  # name collisions. This affects macro definitions
+  macro_parameter_name_strip_regex: ""
+
+  # Strips out any string matching this regex
+  # for parameter names. This is useful for when
+  # parameter names have a prefix/postfix to prevent
+  # name collisions. This affects CMakePP
+  # class member definitions.
+  member_parameter_name_strip_regex: ""
+
+  # Whether directories should be documented recursively
+  recursive: false
+
+  # Whether CMinx should follow symlinks that resolve to directories
+  # when using recursive mode.
+  # This can cause infinite recursion if the symlink resolves
+  # to a parent directory of itself
+  follow_symlinks: false
+
+  # Optional list of exclude filters
+  # The full list of filters is combined from all sources,
+  # and not overridden.
+  #exclude_filters:
+  #  - __pycache__
+
+output:
+  # The directory to write generated RST files to. If not set,
+  # will output to STDOUT instead.
+  # Relative paths will be resolved with regard to the relative_to_config setting
+  # directory: build/
+
+  # If false, relative output paths are resolved with regard to the current working directory.
+  # If true, they are instead resolved with regard to the directory where the highest priority
+  # output.directory property is specified. If the highest priority config source does not have
+  # a file, the current working directory is instead used.
+  relative_to_config: false
+
+logging:
+  # Supports all Python logging dict config options
+  # See https://docs.python.org/3/howto/logging.html#configuring-logging
+  version: 1
+  formatters:
+    simple:
+      format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      # Changing this level changes what's viewable on stdout
+      level: INFO
+      formatter: simple
+      stream: ext://sys.stdout
+      #Uncomment to add logfile handler
+#    logfile:
+#      class: logging.FileHandler
+#      # Changing this level changes what's viewable in the log file
+#      level: DEBUG
+#      formatter: simple
+#      # File to output the log to, relative paths are resolved with regard
+#      # to current working directory upon execution
+#      filename: log.txt
+#      # Mode used to write the log file. 'a' appends and 'w' writes, erasing original content
+#      mode: 'w'
+  loggers:
+    cminx:
+      # Changing this overrides log levels in handlers
+      level: DEBUG
+      handlers:
+        - console
+        #- logfile # Uncomment to add logging to a file called log.txt
+      propagate: no
+  root:
+    level: DEBUG
+    handlers:
+      - console
+
+rst:
+  # Whether the title of the RST file should contain the CMake file's
+  # extension.
+  file_extensions_in_titles: false
+
+  # Whether the module directive should contain the CMake file's
+  # extension.
+  file_extensions_in_modules: false
+
+  # Character to use as a separator between CMake directories and modules
+  module_path_separator: '.'
+
+  # A list of characters to be used for RST headers.
+  # The character is selected by using the section depth to index
+  # into this list. It is recommended to have at least 4 characters
+  # in the list, to support at least 4 sections of nesting.
+  headers: ['#', '*', '=', '-', '_', '~', '!', '&', '@', '^']
+
+  # A prefix to use for RST headers and modules
+  # If not set, the path to the file relative to the input path will be used instead
+  # prefix: Prefix

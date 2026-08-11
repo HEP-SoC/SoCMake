@@ -1,9 +1,39 @@
-include_guard(GLOBAL)
+#[[[ @module sv2v
+#]]
 
+include_guard(GLOBAL)
+include("${CMAKE_CURRENT_LIST_DIR}/../utils/socmake_message.cmake")
+
+#[[[
+# This function convert SystemVerilog files to Verilog files.
+#
+# It will take all the .sv files in ${IP_LIB} and convert them to verilog files, they will be stored in a new folder, which can be parametrized.
+# It's also possible to replace the files in case of flattening, using the ``REPLACE`` argument.
+#
+# :param IP_LIB: The target IP library.
+# :type IP_LIB: string
+#
+# **Keyword Arguments**
+#
+# :keyword OUTDIR: Path to the location where converted file will be stored, if not set, it's in ``${BINARY_DIR}/sv2v``
+# :type OUTDIR: string
+# :keyword REPLACE: Can be set if .sv files need to be replaced by the .v files in the flatten graph.
+# :type REPLACE: bool
+#]]
 function(sv2v IP_LIB)
-    cmake_parse_arguments(ARG "REPLACE" "OUTDIR" "" ${ARGN})
+    set(options REPLACE)
+    set(oneValueArgs OUTDIR)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
     if(ARG_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
     endif()
 
     include("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../hwip.cmake")
@@ -33,33 +63,34 @@ function(sv2v IP_LIB)
     set(V_GEN ${OUTDIR}/${IP_LIB}.v)
 
     set(STAMP_FILE "${BINARY_DIR}/${IP_LIB}_${CMAKE_CURRENT_FUNCTION}.stamp")
-    set(DESCRIPTION "Convert ${IP_LIB} System Verilog files to Verilog with ${CMAKE_CURRENT_FUNCTION}")
+    set(DESCRIPTION
+        "Convert ${IP_LIB} System Verilog files to Verilog with ${CMAKE_CURRENT_FUNCTION}"
+    )
 
     add_custom_command(
         OUTPUT ${STAMP_FILE} ${V_GEN}
-        COMMAND  sv2v
-        ${SOURCES} ${INCDIR_ARG} ${CMP_DEFS_ARG}
-        -w ${V_GEN}
-
+        COMMAND sv2v ${SOURCES} ${INCDIR_ARG} ${CMP_DEFS_ARG} -w ${V_GEN}
         COMMAND touch ${STAMP_FILE}
         DEPENDS ${SOURCES}
         COMMENT ${DESCRIPTION}
-        )
+    )
 
     add_custom_target(
         ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
         DEPENDS ${STAMP_FILE} ${SOURCES} ${V_GEN}
-        )
-    set_property(TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION} PROPERTY DESCRIPTION ${DESCRIPTION})
+    )
+    set_property(
+        TARGET ${IP_LIB}_${CMAKE_CURRENT_FUNCTION}
+        PROPERTY DESCRIPTION ${DESCRIPTION}
+    )
 
     if(ARG_REPLACE)
-        get_property(__flat_graph TARGET ${IP_LIB} PROPERTY FLAT_GRAPH)
-        foreach(ip ${__flat_graph})
+        get_property(flat_graph TARGET ${IP_LIB} PROPERTY FLAT_GRAPH)
+        foreach(ip ${flat_graph})
             ip_sources(${ip} SYSTEMVERILOG REPLACE  "")
         endforeach()
 
         ip_sources(${IP_LIB} VERILOG ${V_GEN})
         add_dependencies(${IP_LIB} ${IP_LIB}_${CMAKE_CURRENT_FUNCTION})
     endif()
-
 endfunction()

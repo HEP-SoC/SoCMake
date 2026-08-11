@@ -2,7 +2,8 @@
 <img src="docs/static/img/SoCMakeLogo3.png" alt="SoCMake" width="40%">
 
   <a href="https://hep-soc.github.io/SoCMake/">Documentation</a> |
-  <a href="https://github.com/HEP-SoC/SoCMake/tree/develop/examples">Examples</a>
+  <a href="https://github.com/HEP-SoC/SoCMake/tree/master/examples">Examples</a> |
+  <a href="https://hep-soc.github.io/SoCMake/api_html/index.html">API documentation</a>
 </h1>
 
 
@@ -27,7 +28,7 @@ SoCMake key features are:
 * Mixed-language SV-VHDL-SC simulation
 * SystemVerilog-UVM and VHDL-UVVM support
 * CocoTB Python co-simulation support
-* Software and IP block package managment with CMake package managers
+* Software and IP block package management with CMake package managers
 * HDL code generation and conversion (PeakRDL, desyrdl, yosys, sv2v, ..)
 * Build graph generation with graphviz
 
@@ -36,25 +37,26 @@ Getting started
 ---------------
 
 SoCMake is lightweight and has minimal dependencies.
-The only mandatory dependencies are `CMake>=3.25.0` and `make` ([Install Dependencies](https://hep-soc.github.io/SoCMake/docs/getting_started))
+The only mandatory dependencies are `CMake>=3.27.0` and `make` or/and `ninja` ([Install Dependencies](https://hep-soc.github.io/SoCMake/docs/getting_started))
 
-There is no need to install SoCMake on your system, it is possible to fetch it in your `CMakeLists.txt`
+### One-Time Bootstrap Installation (Recommended)
 
-Create a file called `CMakeLists.txt`
+Install the SoCMake bootstrap files once on your system:
+```bash
+curl -fsSL https://raw.githubusercontent.com/HEP-SoC/SoCMake/master/bootstrap/bootstrap.sh | sh
+```
+
+This installs bootstrap files to `~/.local/lib/cmake/socmake` that automatically fetches the correct SoCMake version for each project.
+In order to use it create a file called `CMakeLists.txt`
 
 ```CMake
-# Bootstrap SoCMake into CMake project
-include(FetchContent)
-FetchContent_Declare(SoCMake
-    GIT_REPOSITORY "https://github.com/HEP-SoC/SoCMake.git"
-    GIT_TAG develop)
-FetchContent_MakeAvailable(SoCMake)
-
-cmake_minimum_required(VERSION 3.25) # CMake minimum required version
+cmake_minimum_required(VERSION 3.27) # CMake minimum required version
 project(adder NONE)                  # Name of CMake project
 
+find_package(socmake REQUIRED)
+
 # Create an IP block called adder
-add_ip(adder)  
+add_ip(adder)
 # Add verilog file adder.v to adder IP
 ip_sources(adder VERILOG
                  ./adder.v)
@@ -90,7 +92,7 @@ Hello from Adder!
 Examples
 --------
 
-For more examples on how to use SoCMake including the previous example visit [Examples](https://github.com/HEP-SoC/SoCMake/tree/develop/examples).
+For more examples on how to use SoCMake including the previous example visit [Examples](https://github.com/HEP-SoC/SoCMake/tree/master/examples).
 Some of the examples include:
 
 * Simple Verilog and VHDL testbenches

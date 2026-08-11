@@ -1,4 +1,7 @@
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_BINARY_DIR}/_deps/cmakepp_lang-src/cmake)
+list(
+    APPEND CMAKE_MODULE_PATH
+    ${PROJECT_BINARY_DIR}/_deps/cmakepp_lang-src/cmake
+)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_BINARY_DIR}/_deps/cmake_test-src/cmake)
 include_guard()
 
@@ -12,23 +15,20 @@ include_guard()
 macro(get_cmake_test)
     include(cmake_test/cmake_test OPTIONAL RESULT_VARIABLE cmake_test_found)
     if(NOT cmake_test_found)
-
-
-
         # Store whether we are building tests or not, then turn off the tests
         set(build_testing_old "${BUILD_TESTING}")
         set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
         # Download CMakeTest and bring it into scope
         include(FetchContent)
         FetchContent_Declare(
-             cmake_test
-             GIT_REPOSITORY https://github.com/CMakePP/CMakeTest
-             GIT_TAG b07712effc7877c97712a5342a34f49b4e8ee3fb
-       )
-       FetchContent_MakeAvailable(cmake_test)
+            cmake_test
+            GIT_REPOSITORY https://github.com/CMakePP/CMakeTest
+            GIT_TAG b07712effc7877c97712a5342a34f49b4e8ee3fb
+        )
+        FetchContent_MakeAvailable(cmake_test)
 
-       # Restore the previous value
-       set(BUILD_TESTING "${build_testing_old}" CACHE BOOL "" FORCE)
+        # Restore the previous value
+        set(BUILD_TESTING "${build_testing_old}" CACHE BOOL "" FORCE)
     endif()
 endmacro()
 

@@ -14,12 +14,12 @@
     "write-heading-ids": "docusaurus write-heading-ids"
   },
   "dependencies": {
-    "@docusaurus/core": "3.1.1",
-    "@docusaurus/plugin-ideal-image": "^3.1.1",
-    "@docusaurus/preset-classic": "3.1.1",
+    "@docusaurus/core": "^3.10.1",
+    "@docusaurus/plugin-ideal-image": "^3.10.1",
+    "@docusaurus/preset-classic": "^3.10.1",
+    "@easyops-cn/docusaurus-search-local": "^0.44.4",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^1.2.1",
-    "docusaurus": "^1.14.7",
     "graphviz-react": "^1.2.5",
     "prism-react-renderer": "^2.1.0",
     "raw-loader": "^4.0.2",
@@ -28,7 +28,7 @@
     "react-player": "^2.12.0"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.1.1"
+    "@docusaurus/module-type-aliases": "^3.10.1"
   },
   "browserslist": {
     "production": [
@@ -43,6 +43,10 @@
     ]
   },
   "engines": {
-    "node": ">=16.14"
+    "node": ">=20.0"
+  },
+  "overrides": {
+    "cheerio": "1.0.0-rc.12",
+    "shell-quote": "1.8.4"
   }
 }
