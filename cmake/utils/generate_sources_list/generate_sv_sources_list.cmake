@@ -22,10 +22,12 @@ include("${CMAKE_CURRENT_LIST_DIR}/../socmake_message.cmake")
 # :type SLANG_ARGS: list
 # :keyword FILE_SETS: (Optional) Restrict the collected sources and include directories to the listed file sets; all file sets are used when omitted.
 # :type FILE_SETS: list
+# :keyword TARGET_NAME_SUFFIX: (Optional) Suffix appended to the generated ``<IP_LIB>_source_list`` target name, so multiple calls for the same IP_LIB (e.g. with different OUTDIR/FILE_SETS) don't collide.
+# :type TARGET_NAME_SUFFIX: string
 #]]
 function(generate_sv_sources_list IP_LIB)
     set(options)
-    set(oneValueArgs OUTDIR TOP_MODULE SLANG_ARGS)
+    set(oneValueArgs OUTDIR TOP_MODULE SLANG_ARGS TARGET_NAME_SUFFIX)
     set(multiValueArgs FILE_SETS)
 
     cmake_parse_arguments(
@@ -116,15 +118,21 @@ function(generate_sv_sources_list IP_LIB)
         "Generate dependency-ordered Verilog/SystemVerilog source list for ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}"
     )
 
+    if(ARG_TARGET_NAME_SUFFIX)
+        set(TARGET_NAME ${IP_LIB}_source_list_${ARG_TARGET_NAME_SUFFIX})
+    else()
+        set(TARGET_NAME ${IP_LIB}_source_list)
+    endif()
+
     add_custom_target(
-        ${IP_LIB}_source_list
+        ${TARGET_NAME}
         DEPENDS ${RTL_FILE} ${INCLUDE_FILE}
         COMMENT ${DESCRIPTION}
         VERBATIM
     )
 
     set_property(
-        TARGET ${IP_LIB}_source_list
+        TARGET ${TARGET_NAME}
         PROPERTY DESCRIPTION ${DESCRIPTION}
     )
 endfunction()
