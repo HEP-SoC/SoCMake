@@ -82,7 +82,7 @@ function(peakrdl_socgen IP_LIB)
         set(OUTDIR ${ARG_OUTDIR})
     endif()
 
-    get_target_property(SOCGEN_INJECT_V_FILES ${_reallib} SOCGEN_INJECT_V_FILES)
+    get_target_property(SOCGEN_INJECT_V_FILES ${reallib} SOCGEN_INJECT_V_FILES)
     if(NOT SOCGEN_INJECT_V_FILES)
         unset(SOCGEN_INJECT_V_FILES)
     endif()
