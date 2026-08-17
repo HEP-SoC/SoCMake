@@ -25,8 +25,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/../socmake_message.cmake")
 #]]
 function(generate_sv_sources_list IP_LIB)
     set(options)
-    set(oneValueArgs OUTDIR TOP_MODULE SLANG_ARGS)
-    set(multiValueArgs FILE_SETS)
+    set(oneValueArgs OUTDIR TOP_MODULE TARGET_NAME_SUFFIX)
+    set(multiValueArgs FILE_SETS SLANG_ARGS)
 
     cmake_parse_arguments(
         ARG
@@ -116,15 +116,20 @@ function(generate_sv_sources_list IP_LIB)
         "Generate dependency-ordered Verilog/SystemVerilog source list for ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}"
     )
 
+    set(TARGET_NAME ${IP_LIB}_source_list)
+    if(ARG_TARGET_NAME_SUFFIX)
+        set(TARGET_NAME ${IP_LIB}_${ARG_TARGET_NAME_SUFFIX}_source_list)
+    endif()
+
     add_custom_target(
-        ${IP_LIB}_source_list
+        ${TARGET_NAME}
         DEPENDS ${RTL_FILE} ${INCLUDE_FILE}
         COMMENT ${DESCRIPTION}
         VERBATIM
     )
 
     set_property(
-        TARGET ${IP_LIB}_source_list
+        TARGET ${TARGET_NAME}
         PROPERTY DESCRIPTION ${DESCRIPTION}
     )
 endfunction()
