@@ -6,9 +6,9 @@ get set up, the conventions we follow, and how to submit changes.
 ## Getting started
 
 1. Fork the repository on GitHub and clone your fork locally.
-2. Create a branch from `develop` (not `master`) for your changes:
+2. Create a branch from `master` for your changes:
    ```bash
-   git checkout develop
+   git checkout master
    git checkout -b my-feature
    ```
 3. Create a virtual environment (using `venv`, `uv`, or any tool you prefer),
@@ -65,14 +65,14 @@ pre-commit run --all-files
 
 ## Submitting a pull request
 
-1. Push your branch to your fork and open a PR against the `develop` branch of
+1. Push your branch to your fork and open a PR against the `master` branch of
    `HEP-SoC/SoCMake`.
 2. Describe *what* changed and *why* in the PR description.
 3. Make sure all pre-commit hooks pass and existing tests still succeed
    (check the [CDash dashboard](https://my.cdash.org/index.php?project=SoCMake)
    after CI runs).
 4. A maintainer will review your PR. Please address review comments promptly
-   and keep the branch up to date with `develop`.
+   and keep the branch up to date with `master`.
 
 ## Reporting issues
 
