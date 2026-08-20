@@ -81,6 +81,12 @@ function(generate_sv_sources_list IP_LIB)
         list(APPEND INCDIR_ARG -I${_i})
     endforeach()
 
+    # Get the list of compile definitions for the IP library
+    get_ip_compile_definitions(RTL_COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG ${FILE_SETS_ARG})
+    foreach(compdef ${RTL_COMP_DEFS})
+        list(APPEND USER_SLANG_ARGS -D${compdef})
+    endforeach()
+
     if(ARG_SLANG_ARGS)
         list(APPEND USER_SLANG_ARGS ${ARG_SLANG_ARGS})
     endif()
