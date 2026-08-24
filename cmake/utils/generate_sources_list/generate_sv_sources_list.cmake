@@ -136,8 +136,5 @@ function(generate_sv_sources_list IP_LIB)
         VERBATIM
     )
 
-    set_property(
-        TARGET ${TARGET_NAME}
-        PROPERTY DESCRIPTION ${DESCRIPTION}
-    )
+    set_property(TARGET ${TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
 endfunction()
