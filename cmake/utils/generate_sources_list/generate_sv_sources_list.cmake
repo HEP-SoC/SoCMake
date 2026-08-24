@@ -22,10 +22,12 @@ include("${CMAKE_CURRENT_LIST_DIR}/../socmake_message.cmake")
 # :type SLANG_ARGS: list
 # :keyword FILE_SETS: (Optional) Restrict the collected sources and include directories to the listed file sets; all file sets are used when omitted.
 # :type FILE_SETS: list
+# :keyword TARGET_NAME_QUALIFIER: (Optional) Qualifier inserted into the generated target name `<IP_LIB>_source_list`, producing `<IP_LIB>_<qualifier>_source_list`.
+# :type TARGET_NAME_QUALIFIER: string
 #]]
 function(generate_sv_sources_list IP_LIB)
     set(options)
-    set(oneValueArgs OUTDIR TOP_MODULE TARGET_NAME_SUFFIX)
+    set(oneValueArgs OUTDIR TOP_MODULE TARGET_NAME_QUALIFIER)
     set(multiValueArgs FILE_SETS SLANG_ARGS)
 
     cmake_parse_arguments(
@@ -123,8 +125,8 @@ function(generate_sv_sources_list IP_LIB)
     )
 
     set(TARGET_NAME ${IP_LIB}_source_list)
-    if(ARG_TARGET_NAME_SUFFIX)
-        set(TARGET_NAME ${IP_LIB}_${ARG_TARGET_NAME_SUFFIX}_source_list)
+    if(ARG_TARGET_NAME_QUALIFIER)
+        set(TARGET_NAME ${IP_LIB}_${ARG_TARGET_NAME_QUALIFIER}_source_list)
     endif()
 
     add_custom_target(
