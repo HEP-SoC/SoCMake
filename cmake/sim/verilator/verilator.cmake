@@ -120,7 +120,7 @@ function(verilator IP_LIB)
     # VERILATOR_ROOT is the single name used throughout:
     # 1. build_scripts/verilator/verilator_build.cmake caches it
     # 2. Verilator's own generated verilator-config.cmake expects it as an environment variable
-    # 3. sim/verilator/verilator/CMakeLists.txt reads back via -DVERILATOR_ROOT= and env VERILATOR_ROOT=. 
+    # 3. sim/verilator/verilator/CMakeLists.txt reads back via -DVERILATOR_ROOT= and env VERILATOR_ROOT=.
     if(NOT VERILATOR_ROOT)
         find_package(verilator REQUIRED)
         # Verilator's own CMakeLists.txt always installs
@@ -130,12 +130,7 @@ function(verilator IP_LIB)
         set(VERILATOR_ROOT "${verilator_DIR}")
     endif()
 
-    find_file(
-        VERILATED_H
-        verilated.h
-        REQUIRED
-        HINTS ${VERILATOR_ROOT}/include
-    )
+    find_file(VERILATED_H verilated.h REQUIRED HINTS ${VERILATOR_ROOT}/include)
     get_filename_component(VERILATOR_INCLUDE_DIR ${VERILATED_H} DIRECTORY)
     ##################################
 

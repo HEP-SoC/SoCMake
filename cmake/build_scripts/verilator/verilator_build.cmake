@@ -73,10 +73,7 @@ function(verilator_build)
         list(APPEND ARG_VERILATOR_VERSION_CANDIDATES "${CMAKE_MATCH_1}")
     endif()
 
-    find_package(
-        verilator
-        HINTS ${ARG_INSTALL_DIR}
-    )
+    find_package(verilator HINTS ${ARG_INSTALL_DIR})
 
     if(ARG_EXACT_VERSION AND verilator_FOUND)
         # verilator_VERSION is copied verbatim from PACKAGE_VERSION in
@@ -130,7 +127,10 @@ function(verilator_build)
             socmake_message(FATAL_ERROR "Verilator was not found after building. Please check the build logs for errors.")
         endif()
 
-        if(ARG_EXACT_VERSION AND NOT "${verilator_VERSION}" IN_LIST ARG_VERILATOR_VERSION_CANDIDATES)
+        if(
+            ARG_EXACT_VERSION
+            AND NOT "${verilator_VERSION}" IN_LIST ARG_VERILATOR_VERSION_CANDIDATES
+        )
             socmake_message(FATAL_ERROR "Built Verilator version is ${verilator_VERSION} but requested version was ${ARG_VERILATOR_TAG}. Please check the build logs for errors.")
         endif()
     endif()
@@ -143,12 +143,7 @@ function(verilator_build)
     # VERILATOR_ROOT matters for sim/verilator/verilator.cmake function.
     if(NOT "${VERILATOR_ROOT}" STREQUAL "${verilator_DIR}")
         socmake_message(STATUS "${Magenta}[Verilator version updated]${ColourReset}")
-        set(VERILATOR_ROOT
-            ${verilator_DIR}
-            CACHE PATH
-            "VERILATOR_ROOT"
-            FORCE
-        )
+        set(VERILATOR_ROOT ${verilator_DIR} CACHE PATH "VERILATOR_ROOT" FORCE)
     endif()
 
     socmake_message(STATUS "${Green}[Found Verilator]${ColourReset}: ${verilator_VERSION} in ${verilator_DIR}")
