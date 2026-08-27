@@ -22,11 +22,13 @@ include("${CMAKE_CURRENT_LIST_DIR}/../socmake_message.cmake")
 # :type SLANG_ARGS: list
 # :keyword FILE_SETS: (Optional) Restrict the collected sources and include directories to the listed file sets; all file sets are used when omitted.
 # :type FILE_SETS: list
+# :keyword TARGET_NAME_QUALIFIER: (Optional) Qualifier inserted into the generated target name `<IP_LIB>_source_list`, producing `<IP_LIB>_<qualifier>_source_list`.
+# :type TARGET_NAME_QUALIFIER: string
 #]]
 function(generate_sv_sources_list IP_LIB)
     set(options)
-    set(oneValueArgs OUTDIR TOP_MODULE SLANG_ARGS)
-    set(multiValueArgs FILE_SETS)
+    set(oneValueArgs OUTDIR TOP_MODULE TARGET_NAME_QUALIFIER)
+    set(multiValueArgs FILE_SETS SLANG_ARGS)
 
     cmake_parse_arguments(
         ARG
@@ -81,6 +83,12 @@ function(generate_sv_sources_list IP_LIB)
         list(APPEND INCDIR_ARG -I${_i})
     endforeach()
 
+    # Get the list of compile definitions for the IP library
+    get_ip_compile_definitions(RTL_COMP_DEFS ${IP_LIB} SYSTEMVERILOG VERILOG ${FILE_SETS_ARG})
+    foreach(compdef ${RTL_COMP_DEFS})
+        list(APPEND USER_SLANG_ARGS -D${compdef})
+    endforeach()
+
     if(ARG_SLANG_ARGS)
         list(APPEND USER_SLANG_ARGS ${ARG_SLANG_ARGS})
     endif()
@@ -116,15 +124,17 @@ function(generate_sv_sources_list IP_LIB)
         "Generate dependency-ordered Verilog/SystemVerilog source list for ${IP_LIB} with ${CMAKE_CURRENT_FUNCTION}"
     )
 
+    set(TARGET_NAME ${IP_LIB}_source_list)
+    if(ARG_TARGET_NAME_QUALIFIER)
+        set(TARGET_NAME ${IP_LIB}_${ARG_TARGET_NAME_QUALIFIER}_source_list)
+    endif()
+
     add_custom_target(
-        ${IP_LIB}_source_list
+        ${TARGET_NAME}
         DEPENDS ${RTL_FILE} ${INCLUDE_FILE}
         COMMENT ${DESCRIPTION}
         VERBATIM
     )
 
-    set_property(
-        TARGET ${IP_LIB}_source_list
-        PROPERTY DESCRIPTION ${DESCRIPTION}
-    )
+    set_property(TARGET ${TARGET_NAME} PROPERTY DESCRIPTION ${DESCRIPTION})
 endfunction()
