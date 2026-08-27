@@ -1,21 +1,21 @@
 cmake_minimum_required(VERSION 3.27)
-cmake_policy(SET CMP0144 NEW)
 
 project(${TARGET})
 
 include("${CMAKE_CURRENT_LIST_DIR}/../../../utils/socmake_message.cmake")
 
-find_package(verilator HINTS $ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
+find_package(verilator)
 if(NOT verilator_FOUND)
     socmake_message(FATAL_ERROR "Verilator was not found. Either install it, or set the VERILATOR_ROOT environment variable")
 endif()
 
-# Certain versions of verilator require VERILATOR_ROOT as an environment variable
-if(NOT DEFINED ENV{VERILATOR_ROOT})
-    set(ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
-endif()
-
-# Certain versions of verilator require VERILATOR_ROOT as an environment variable
+# Certain (older) versions of verilator require VERILATOR_ROOT as an actual
+# OS environment variable, not just a CMake variable. verilator.cmake's
+# BUILD_COMMAND wraps `make` with `env VERILATOR_ROOT=...` for the build
+# step below, but that wrapping doesn't cover this configure step itself -
+# and verilate() a few lines down runs verilator_bin directly (via
+# execute_process) during this very configure. So re-export it as an env
+# var here too, if it isn't already one (e.g. from a parent shell).
 if(NOT DEFINED ENV{VERILATOR_ROOT})
     set(ENV{VERILATOR_ROOT} ${VERILATOR_ROOT})
 endif()

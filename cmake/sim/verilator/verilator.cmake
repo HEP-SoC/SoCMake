@@ -117,24 +117,21 @@ function(verilator IP_LIB)
     ##################################
     ## Find verilator installation ###
     ##################################
-    if(NOT VERILATOR_HOME)
-        # Ensure CMP0144 is set before find_package to get rid of warning
-        cmake_policy(PUSH)
-        cmake_policy(SET CMP0144 NEW)
+    # VERILATOR_ROOT is the single name used throughout:
+    # 1. build_scripts/verilator/verilator_build.cmake caches it
+    # 2. Verilator's own generated verilator-config.cmake expects it as an environment variable
+    # 3. sim/verilator/verilator/CMakeLists.txt reads back via -DVERILATOR_ROOT= and env VERILATOR_ROOT=.
+    if(NOT VERILATOR_ROOT)
         find_package(verilator REQUIRED)
-        set(VERILATOR_HOME "${verilator_DIR}/../../")
-        cmake_policy(POP)
+        # Verilator's own CMakeLists.txt always installs
+        # verilator-config.cmake with DESTINATION ${CMAKE_INSTALL_PREFIX},
+        # i.e. directly at the package root, so verilator_DIR (the directory
+        # find_package found it in) already *is* the root.
+        set(VERILATOR_ROOT "${verilator_DIR}")
     endif()
 
-    find_file(
-        VERILATED_H
-        verilated.h
-        REQUIRED
-        HINTS ${VERILATOR_HOME}/include ${verilator_DIR}/include
-    )
+    find_file(VERILATED_H verilated.h REQUIRED HINTS ${VERILATOR_ROOT}/include)
     get_filename_component(VERILATOR_INCLUDE_DIR ${VERILATED_H} DIRECTORY)
-
-    set(VERILATOR_ROOT ${VERILATOR_INCLUDE_DIR}/../)
     ##################################
 
     get_ip_include_directories(INCLUDE_DIRS ${IP_LIB} SYSTEMVERILOG VERILOG ${ARG_FILE_SETS})
@@ -273,9 +270,15 @@ function(verilator IP_LIB)
                 -DTARGET=${ARG_TOP_MODULE} -DARGUMENTS_LIST=${ARGUMENTS_LIST}
                 ${EXT_PRJ_ARGS} -DVERILATOR_ROOT=${VERILATOR_ROOT}
                 -DSYSTEMC_ROOT=${SYSTEMC_HOME}
-            # VERILATOR_ROOT env variable is required for some older versions of verilator
-            # For the configuration phase, this is set in the verilator/CMakeLists.txt file
-            # For the build phase, this is the simplest (only?) solution
+            # Certain (older) versions of verilator require VERILATOR_ROOT as
+            # an actual OS environment variable, not just a CMake variable.
+            # - Configure phase: verilator/CMakeLists.txt (this
+            #   ExternalProject_Add's own configure step) re-exports it as
+            #   an env var itself, since verilate() runs verilator_bin
+            #   directly during that configure.
+            # - Build phase: that re-export doesn't carry over to `make`
+            #   below, a separate process started after configure has
+            #   already finished, so it's set explicitly again here.
             BUILD_COMMAND
                 ${CMAKE_COMMAND} -E env VERILATOR_ROOT=${VERILATOR_ROOT} make
                 -j${CMAKE_BUILD_PARALLEL_LEVEL}
