@@ -3,6 +3,7 @@
 
 include_guard(GLOBAL)
 include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/../../utils/get_interface_link_libraries.cmake")
 
 socmake_add_languages(VCS_SC_PORTMAP)
 
@@ -347,7 +348,7 @@ function(__vcs_compile_lib IP_LIB)
     get_ip_links(ips ${IP_LIB})
 
     foreach(parent ${ips})
-        get_target_property(children_ips ${parent} INTERFACE_LINK_LIBRARIES)
+        get_interface_link_libraries(children_ips ${parent})
 
         __is_socmake_systemc_lib(parent_is_systemc_lib ${parent})
         __is_socmake_ip_lib(parent_is_ip_lib ${parent})

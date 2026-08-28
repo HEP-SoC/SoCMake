@@ -3,6 +3,7 @@
 
 include_guard(GLOBAL)
 include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/get_interface_link_libraries.cmake")
 
 #[[[
 # Flatten the dependency graph of NODE into a topologically-sorted flat list.
@@ -113,12 +114,7 @@ function(__dfs_topo NODE RET EXCLUDED)
     # Node is visited, we should not visit the same node again
     set_property(TARGET ${NODE} PROPERTY __ALREADY_VISITED TRUE)
 
-    get_target_property(LINK_LIBS ${NODE} INTERFACE_LINK_LIBRARIES)
-    if(LINK_LIBS)
-        # Workaround a mechanism described in (https://cmake.org/cmake/help/v3.30/prop_tgt/INTERFACE_LINK_LIBRARIES.html)
-        list(FILTER LINK_LIBS EXCLUDE REGEX "::@")
-        list(REMOVE_DUPLICATES LINK_LIBS)
-    endif()
+    get_interface_link_libraries(LINK_LIBS ${NODE})
 
     # Visit each child recursively
     foreach(child ${LINK_LIBS})
