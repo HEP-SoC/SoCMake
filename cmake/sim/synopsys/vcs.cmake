@@ -3,7 +3,9 @@
 
 include_guard(GLOBAL)
 include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/../../utils/get_interface_link_libraries.cmake")
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/../../utils/get_interface_link_libraries.cmake"
+)
 
 socmake_add_languages(VCS_SC_PORTMAP)
 
