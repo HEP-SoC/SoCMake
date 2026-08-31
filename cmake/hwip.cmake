@@ -4,6 +4,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_graph.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils/alias_dereference.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}//utils/file_paths.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/utils/socmake_message.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/utils/get_interface_link_libraries.cmake")
 
 #[[[
 # This function creates an INTERFACE library for a given IP.
@@ -734,7 +735,7 @@ function(ip_link IP_LIB)
     endif()
 
     # Get the existing linked libraries
-    get_target_property(ALREADY_LINKED ${reallib} INTERFACE_LINK_LIBRARIES)
+    get_interface_link_libraries(ALREADY_LINKED ${reallib})
 
     foreach(lib ${ARGN})
         alias_dereference(lib ${lib})
