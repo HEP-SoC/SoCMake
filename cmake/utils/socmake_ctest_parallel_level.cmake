@@ -3,6 +3,8 @@
 
 include_guard(GLOBAL)
 
+include("${CMAKE_CURRENT_LIST_DIR}/socmake_message.cmake")
+
 #[[[
 # Number of tests a ``check`` target runs in parallel.
 #
@@ -26,7 +28,7 @@ function(socmake_ctest_parallel_level OUTVAR PARALLEL_LEVEL)
         ProcessorCount(level)
     endif()
     if(NOT level MATCHES "^[0-9]+$")
-        message(FATAL_ERROR "Invalid ctest parallel level: '${level}'")
+        socmake_message(FATAL_ERROR "Invalid ctest parallel level: '${level}'")
     endif()
     if(level EQUAL 0)
         set(level 1)

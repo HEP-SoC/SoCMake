@@ -1,7 +1,9 @@
 #[[[ @module cocotb_tests
 #]]
 include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_ctest_parallel_level.cmake")
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_ctest_parallel_level.cmake"
+)
 
 #[[[
 # This function scans a given directory for cocotb test subdirectories and registers each as a CTest, with support for both simple and multi-testcase cocotb test configurations.
