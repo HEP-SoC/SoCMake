@@ -276,12 +276,14 @@ function(verilator IP_LIB)
             #   ExternalProject_Add's own configure step) re-exports it as
             #   an env var itself, since verilate() runs verilator_bin
             #   directly during that configure.
-            # - Build phase: that re-export doesn't carry over to `make`
+            # - Build phase: that re-export doesn't carry over to the build
             #   below, a separate process started after configure has
             #   already finished, so it's set explicitly again here.
+            # The ExternalProject uses the generator of the calling project
+            # (e.g. Ninja), so it is built with cmake --build and not make.
             BUILD_COMMAND
-                ${CMAKE_COMMAND} -E env VERILATOR_ROOT=${VERILATOR_ROOT} make
-                -j${CMAKE_BUILD_PARALLEL_LEVEL}
+                ${CMAKE_COMMAND} -E env VERILATOR_ROOT=${VERILATOR_ROOT}
+                ${CMAKE_COMMAND} --build <BINARY_DIR> --parallel ${CMAKE_BUILD_PARALLEL_LEVEL}
             INSTALL_COMMAND ""
             DEPENDS ${IP_LIB}
             EXCLUDE_FROM_ALL 1
