@@ -1,0 +1,2 @@
+add_subdirectory(verilator_simple_test)
+add_subdirectory(verilator_opt_flags)

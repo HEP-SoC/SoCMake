@@ -41,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y cmake iverilog make ninja-build g++ perl cpanminus xsltproc
+          sudo apt install -y cmake iverilog verilator make ninja-build g++ perl cpanminus xsltproc
 
           pip install jinja2~=3.1.6 peakrdl==1.5.0 rich==14.2.0
 

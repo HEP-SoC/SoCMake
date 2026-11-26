@@ -255,6 +255,12 @@ function(verilator IP_LIB)
         set(ARG_CMAKE_CXX_STANDARD "-DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}")
     endif()
 
+    # Forward the calling project setting so the verilated model compile commands are exported too
+    if(DEFINED CMAKE_EXPORT_COMPILE_COMMANDS)
+        set(ARG_CMAKE_EXPORT_COMPILE_COMMANDS
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}")
+    endif()
+
     ##################################
     ## Prepare help message ##########
     ##################################
@@ -276,6 +282,7 @@ function(verilator IP_LIB)
             BUILD_BYPRODUCTS ${VLT_STATIC_LIB}
             CMAKE_ARGS
                 ${ARG_CMAKE_CXX_STANDARD}
+                ${ARG_CMAKE_EXPORT_COMPILE_COMMANDS}
                 -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                 -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                 # Compile the verilated model with the same build type and flags as the project

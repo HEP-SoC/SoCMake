@@ -16,6 +16,7 @@ add_custom_target(
 )
 
 add_subdirectory(iverilog)
+add_subdirectory(verilator)
 add_subdirectory(peakrdl)
 # TODO: add this test once merging into master (CI workflow uses only master branch for testing)
 # TODO: add slang v10.0.0 to support it
