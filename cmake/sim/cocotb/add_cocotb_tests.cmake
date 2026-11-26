@@ -1,6 +1,9 @@
 #[[[ @module cocotb_tests
 #]]
 include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_ctest_parallel_level.cmake"
+)
 
 #[[[
 # This function scans a given directory for cocotb test subdirectories and registers each as a CTest, with support for both simple and multi-testcase cocotb test configurations.
@@ -21,8 +24,32 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :type IP_LIB: string
 # :param DIRECTORY: Path to the directory containing the cocotb test subdirectories to scan. Subdirectories prefixed with ``_`` are excluded.
 # :type DIRECTORY: path string
+#
+# **Keyword Arguments**
+#
+# :keyword PARALLEL_LEVEL: Number of tests the ``check`` target runs in parallel (``ctest -j<N>``).
+# If omitted, the ``CTEST_PARALLEL_LEVEL`` environment variable is used, else the number of host CPUs
+# (``ProcessorCount()``), else 1. ``0`` is replaced by ``1``.
+# The value is fixed when cmake configures: after changing ``CTEST_PARALLEL_LEVEL``, reconfigure the project
+# for the ``check`` target to use it. ``make -j<N> check`` does not change it.
+# :type PARALLEL_LEVEL: integer
 #]]
 function(add_cocotb_tests IP_LIB DIRECTORY)
+    set(options)
+    set(oneValueArgs PARALLEL_LEVEL)
+    set(multiValueArgs)
+
+    cmake_parse_arguments(
+        ARG
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN}
+    )
+    if(ARG_UNPARSED_ARGUMENTS)
+        socmake_message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} passed unrecognized argument " "${ARG_UNPARSED_ARGUMENTS}")
+    endif()
+
     include(
         "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../utils/subdirectory_search.cmake"
     )
@@ -166,8 +193,7 @@ function(add_cocotb_tests IP_LIB DIRECTORY)
         endif() # COCOTB_TESTCASE
     endforeach()
 
-    include(ProcessorCount)
-    ProcessorCount(NPROC)
+    socmake_ctest_parallel_level(NPROC "${ARG_PARALLEL_LEVEL}")
     add_custom_target(
         check
         COMMAND ${CMAKE_CTEST_COMMAND} -j${NPROC}
@@ -177,7 +203,7 @@ function(add_cocotb_tests IP_LIB DIRECTORY)
     socmake_message(STATUS "test_list: ${test_list}")
 
     list(APPEND msg "\nTo run ctest on all of the tests run:\n")
-    list(APPEND msg "    make check\n")
+    list(APPEND msg "    make check (ctest -j${NPROC})\n")
     list(APPEND msg "To run any of the added tests execute:\n")
     list(APPEND msg "   make run_<test_name>\n")
     list(
