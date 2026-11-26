@@ -24,14 +24,15 @@ function(add_opt_flags_test NAME)
 
     add_test(
         NAME verilator_opt_${NAME}
-        COMMAND ${CMAKE_COMMAND}
-            -DDIRECTORY=${PROJECT_BINARY_DIR}/${NAME}
-            -DFAST=${ARG_FAST}
-            -DSLOW=${ARG_SLOW}
-            -DGLOBAL=${ARG_GLOBAL}
-            -P ${PROJECT_SOURCE_DIR}/check_flags.cmake
+        COMMAND
+            ${CMAKE_COMMAND} -DDIRECTORY=${PROJECT_BINARY_DIR}/${NAME}
+            -DFAST=${ARG_FAST} -DSLOW=${ARG_SLOW} -DGLOBAL=${ARG_GLOBAL} -P
+            ${PROJECT_SOURCE_DIR}/check_flags.cmake
     )
-    set_property(TEST verilator_opt_${NAME} PROPERTY PASS_REGULAR_EXPRESSION "PASS: ")
+    set_property(
+        TEST verilator_opt_${NAME}
+        PROPERTY PASS_REGULAR_EXPRESSION "PASS: "
+    )
 
     add_dependencies(check ${IP}_verilate)
     add_dependencies(check_cdash ${IP}_verilate)

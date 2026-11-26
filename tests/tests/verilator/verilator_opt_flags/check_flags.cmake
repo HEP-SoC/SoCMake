@@ -62,7 +62,10 @@ foreach(group FAST SLOW GLOBAL)
         get_filename_component(name ${src} NAME)
         string(MD5 key "${src}")
         if(NOT DEFINED command_${key})
-            message(SEND_ERROR "FAIL: ${group} ${name}: no compile command found")
+            message(
+                SEND_ERROR
+                "FAIL: ${group} ${name}: no compile command found"
+            )
             math(EXPR errors "${errors} + 1")
             continue()
         endif()
@@ -79,7 +82,10 @@ foreach(group FAST SLOW GLOBAL)
         if(used STREQUAL "${${group}}")
             message(STATUS "OK: ${group} ${name}: ${used}")
         else()
-            message(SEND_ERROR "FAIL: ${group} ${name}: ${used} is used, expected ${${group}}")
+            message(
+                SEND_ERROR
+                "FAIL: ${group} ${name}: ${used} is used, expected ${${group}}"
+            )
             math(EXPR errors "${errors} + 1")
         endif()
     endforeach()

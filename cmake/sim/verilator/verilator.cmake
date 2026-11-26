@@ -204,8 +204,13 @@ function(verilator IP_LIB)
 
     # Without CMAKE_BUILD_TYPE, OPT_* or -O flags the verilated C++ model would be compiled without
     # any optimization (-O0). Use the Verilator default flags (verilated.mk) in this case.
-    if(NOT CMAKE_BUILD_TYPE AND NOT ARG_OPT_SLOW AND NOT ARG_OPT_FAST AND NOT ARG_OPT_GLOBAL
-       AND NOT CMAKE_CXX_FLAGS MATCHES "(^| )-O")
+    if(
+        NOT CMAKE_BUILD_TYPE
+        AND NOT ARG_OPT_SLOW
+        AND NOT ARG_OPT_FAST
+        AND NOT ARG_OPT_GLOBAL
+        AND NOT CMAKE_CXX_FLAGS MATCHES "(^| )-O"
+    )
         set(ARG_OPT_FAST -Os)
         set(ARG_OPT_GLOBAL -Os)
     endif()
@@ -258,7 +263,8 @@ function(verilator IP_LIB)
     # Forward the calling project setting so the verilated model compile commands are exported too
     if(DEFINED CMAKE_EXPORT_COMPILE_COMMANDS)
         set(ARG_CMAKE_EXPORT_COMPILE_COMMANDS
-            "-DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}")
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}"
+        )
     endif()
 
     ##################################
@@ -281,8 +287,7 @@ function(verilator IP_LIB)
             BUILD_ALWAYS 1
             BUILD_BYPRODUCTS ${VLT_STATIC_LIB}
             CMAKE_ARGS
-                ${ARG_CMAKE_CXX_STANDARD}
-                ${ARG_CMAKE_EXPORT_COMPILE_COMMANDS}
+                ${ARG_CMAKE_CXX_STANDARD} ${ARG_CMAKE_EXPORT_COMPILE_COMMANDS}
                 -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                 -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                 # Compile the verilated model with the same build type and flags as the project
@@ -307,7 +312,8 @@ function(verilator IP_LIB)
             # (e.g. Ninja), so it is built with cmake --build and not make.
             BUILD_COMMAND
                 ${CMAKE_COMMAND} -E env VERILATOR_ROOT=${VERILATOR_ROOT}
-                ${CMAKE_COMMAND} --build <BINARY_DIR> --parallel ${CMAKE_BUILD_PARALLEL_LEVEL}
+                ${CMAKE_COMMAND} --build <BINARY_DIR> --parallel
+                ${CMAKE_BUILD_PARALLEL_LEVEL}
             INSTALL_COMMAND ""
             DEPENDS ${IP_LIB}
             EXCLUDE_FROM_ALL 1
