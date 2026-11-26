@@ -42,12 +42,17 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../utils/socmake_message.cmake")
 # :type RUN_TARGET_NAME: string
 # :keyword VERILATOR_ARGS: Extra arguments to be passed to the Verilator invocation.
 # :type VERILATOR_ARGS: string
-# :keyword OPT_SLOW: Enable slow but optimized compilation mode.
-# :type OPT_SLOW: bool
-# :keyword OPT_FAST: Enable fast compilation optimization mode.
-# :type OPT_FAST: bool
-# :keyword OPT_GLOBAL: Enable global optimization mode.
-# :type OPT_GLOBAL: bool
+# :keyword OPT_SLOW: C++ compiler flags for the verilated code that runs rarely (e.g. initialization).
+# :type OPT_SLOW: list[string]
+# :keyword OPT_FAST: C++ compiler flags for the verilated code that runs on every evaluation.
+# :type OPT_FAST: list[string]
+# :keyword OPT_GLOBAL: C++ compiler flags for the Verilator runtime library sources.
+# :type OPT_GLOBAL: list[string]
+#
+# The verilated model is compiled with the ``CMAKE_BUILD_TYPE``, ``CMAKE_C_FLAGS`` and ``CMAKE_CXX_FLAGS``
+# of the calling project. If no ``CMAKE_BUILD_TYPE``, no ``OPT_*`` argument and no ``-O`` flag in
+# ``CMAKE_CXX_FLAGS`` is set, the Verilator defaults are used (``OPT_FAST`` and ``OPT_GLOBAL`` set to
+# ``-Os``), instead of no optimization at all.
 # :keyword RUN_ARGS: Extra arguments to be passed to the simulation executable.
 # :type RUN_ARGS: string
 # :keyword FILE_SETS: Specify list of file sets to retrieve the sources from.
@@ -197,6 +202,14 @@ function(verilator IP_LIB)
         unset(ARG_NO_RUN_TARGET)
     endif()
 
+    # Without CMAKE_BUILD_TYPE, OPT_* or -O flags the verilated C++ model would be compiled without
+    # any optimization (-O0). Use the Verilator default flags (verilated.mk) in this case.
+    if(NOT CMAKE_BUILD_TYPE AND NOT ARG_OPT_SLOW AND NOT ARG_OPT_FAST AND NOT ARG_OPT_GLOBAL
+       AND NOT CMAKE_CXX_FLAGS MATCHES "(^| )-O")
+        set(ARG_OPT_FAST -Os)
+        set(ARG_OPT_GLOBAL -Os)
+    endif()
+
     set(PASS_ADDITIONAL_MULTIPARAM SOURCES INCLUDE_DIRS) # Additional parameters to pass
     set(PASS_ADDITIONAL_ONEPARAM DIRECTORY PREFIX)
     set(PASS_ADDITIONAL_OPTIONS)
@@ -265,6 +278,10 @@ function(verilator IP_LIB)
                 ${ARG_CMAKE_CXX_STANDARD}
                 -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                 -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                # Compile the verilated model with the same build type and flags as the project
+                -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                "-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}"
+                "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}"
                 -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}
                 -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${BINARY_DIR}
                 -DTARGET=${ARG_TOP_MODULE} -DARGUMENTS_LIST=${ARGUMENTS_LIST}
